@@ -11,7 +11,7 @@ function compile(model, naive, name) {
 
   return `(function () {
     'use strict';
-    ${source}
+    return ${source}
   })()`;
 }
 

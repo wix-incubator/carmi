@@ -5,16 +5,16 @@ const { splitSettersGetters, topologicalSortGetters, tagAllExpressions } = requi
 let idx = 0;
 
 class NaiveCompiler {
-  constructor(model, name = 'Essential') {
+  constructor(model, name) {
     const { getters, setters } = splitSettersGetters(model);
     tagAllExpressions(getters);
-    this.name = name;
     this.getters = getters;
     this.setters = setters;
+    this.name = name || 'EssX';
   }
 
   get template() {
-    return fs.readFileSync('./src/templates/naive.js').toString();
+    return require('./templates/naive.js');
   }
 
   generateExpr(expr) {
@@ -53,7 +53,7 @@ class NaiveCompiler {
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
-        return `${tokenType}($model, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'func':
         return currentToken.funcName;
       case 'arg0':
@@ -61,7 +61,7 @@ class NaiveCompiler {
       case 'arg1':
         return 'arg1';
       case 'topLevel':
-        return `$${expr[1]}($model)`;
+        return `$${expr[1]}()`;
       default:
         return JSON.stringify(currentToken);
     }
@@ -81,30 +81,21 @@ class NaiveCompiler {
           }`;
   }
 
-  get functionDefs() {
+  exprTemplatePlaceholders(expr, funcName) {
     return {
-      func: function() {
-        function $funcName($model, arg0, arg1) {
-          return `${this.generateExpr(expr[1])}`;
-        }
-      },
-      topLevel: function() {
-        function $$funcName($model) {
-          return `${this.generateExpr(expr)}`;
-        }
-      }
+      ROOTNAME: expr[0].$rootName,
+      FUNCNAME: funcName,
+      EXPR1: () => this.generateExpr(expr[1]),
+      EXPR: () => this.generateExpr(expr)
     };
   }
 
   appendExpr(acc, type, expr, funcName) {
-    const base = this.functionDefs[type] || this.functionDefs[expr[0].$funcType];
     acc.push(
-      base
-        .toString()
-        .replace(/\$funcName/g, funcName)
-        .replace(/\$rootName/g, expr[0].$rootName)
-        .replace(/\`\${(.*?)}`/g, (m, i) => eval(i))
-        .replace(/function\s*\(\)\s*\{([\s\S]+)\}/, (m, i) => i)
+      this.mergeTemplate(
+        this.template[type] || this.template[expr[0].$funcType],
+        this.exprTemplatePlaceholders(expr, funcName)
+      )
     );
   }
 
@@ -130,23 +121,27 @@ class NaiveCompiler {
     return acc;
   }
 
+  mergeTemplate(template, placeHolders) {
+    return Object.keys(placeHolders)
+      .reduce((result, name) => {
+        const replaceFunc = typeof placeHolders[name] === 'function' ? placeHolders[name]() : () => placeHolders[name];
+        const commentRegex = new RegExp('/\\*\\s*' + name + '\\s*\\*/');
+        const dollarRegex = new RegExp('\\$' + name, 'g');
+        return result.replace(commentRegex, replaceFunc).replace(dollarRegex, replaceFunc);
+      }, template.toString())
+      .replace(/function\s*\w*\(\)\s*\{\s*([\s\S]+)\}/, (m, i) => i);
+  }
+
   compile() {
-    const source = `
-            ${this.template}
-            ${_.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n')}
-            return function ${this.name} ($model) {
-              const res = {$model};
-              function recalculate() {
-                ${topologicalSortGetters(this.getters)
-                  .map(this.buildDerived.bind(this))
-                  .join('\n')}
-              }
-              Object.assign(res, {${_.map(this.setters, this.buildSetter.bind(this)).join(',')}});
-              recalculate();
-              return res;
-            }
-          `;
-    return source;
+    return this.mergeTemplate(this.template.base, {
+      NAME: this.name,
+      ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
+      DERIVED: () =>
+        topologicalSortGetters(this.getters)
+          .map(this.buildDerived.bind(this))
+          .join('\n'),
+      SETTERS: () => _.map(this.setters, this.buildSetter.bind(this)).join(',')
+    });
   }
 }
 
