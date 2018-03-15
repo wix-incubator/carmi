@@ -68,7 +68,7 @@ class NaiveCompiler {
   }
 
   buildDerived(name) {
-    const prefix = name.indexOf('$') === 0 ? '' : `res.${name} = `;
+    const prefix = name.indexOf('$') === 0 ? '' : `$res.${name} = `;
     return `${prefix} ${this.generateExpr(new Expression(TopLevel, name))};`;
   }
 

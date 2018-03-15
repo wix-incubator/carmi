@@ -1,6 +1,6 @@
 function base() {
   function $NAME($model) {
-    const res = { $model };
+    const $res = { $model };
 
     function mapValues(arg0, arg1) {
       return Object.keys(arg1).reduce((acc, key) => {
@@ -40,11 +40,11 @@ function base() {
     function recalculate() {
       /* DERIVED */
     }
-    Object.assign(res, {
+    Object.assign($res, {
       /* SETTERS */
     });
     recalculate();
-    return res;
+    return $res;
   }
 }
 

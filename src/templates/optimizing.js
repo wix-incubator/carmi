@@ -1,76 +1,87 @@
 function base() {
   function $NAME($model) {
-    const $context = { $ready: {} };
-    const res = { $model };
+    const $res = { $model };
+    const $trackingMap = new WeakMap();
+    const $trackedMap = new WeakMap();
+    const $invalidatedMap = new WeakMap();
+    const $parentMap = new WeakMap();
+    const $invalidatedRoots = new Set();
+    $invalidatedMap.set($res, $invalidatedRoots);
 
-    function context($path) {
-      let $childContext = $context;
-      for (let i = 0; i < $path.length; i++) {
-        if (!$childContext.hasOwnProperty($path[i])) {
-          $childContext[$path[i]] = { tracks: [], tracked: {} };
-        }
-        $childContext = $childContext[$path[i]];
-      }
-      return $childContext;
-    }
-
-    function invalidate($path) {
-      $context.$ready[$path[0]] = false;
-      let $childContext = $context;
-      for (let i = 0; i < $path.length; i++) {
-        if (!$childContext.hasOwnProperty($path[i])) {
-          $childContext[$path[i]] = { tracks: [], tracked: {} };
-        }
-        $childContext.invalid = $childContext.invalid || {};
-        $childContext.invalid[$path[i]] = true;
-        $childContext = $childContext[$path[i]];
-      }
-    }
-
-    function pathToStr($path) {
-      return $path.map(x => '' + x).join('.');
-    }
-
-    function track($currentPath, $trackedPath) {
-      const $currentContext = context($currentPath);
-      const $trackedContext = context($trackedPath);
-      $currentContext.tracks = $currentContext.tracks || [];
-      $currentContext.tracks.push($trackedPath);
-      $trackedContext.tracked = $trackedContext.tracked || {};
-      $trackedContext.tracked[pathToStr($currentPath)] = $currentPath;
-    }
-
-    function untrack($path) {
-      const $currentContext = context($path);
-      $currentContext.tracks.forEach($trackedPath => {
-        const $trackedContext = context($trackedPath);
-        delete $trackedContext.tracked[pathToStr($trackedPath)];
-      });
-      $currentContext.tracks = [];
-    }
-
-    function triggerInvalidations($path) {
-      const $currentContext = context($path);
-      if (!$currentContext.tracked) {
+    const invalidate = ($targetObj, $targetKey) => {
+      if (!$targetObj) {
         return;
       }
-      Object.keys($currentContext.tracked).forEach(key => {
-        invalidate($currentContext.tracked[key]);
+      if (!$invalidatedMap.has($targetObj)) {
+        $invalidatedMap.set($targetObj, new Set());
+      }
+      const $invalidatedSet = $invalidatedMap.get($targetObj);
+      if ($invalidatedSet.has($targetKey)) {
+        return; // already invalidated
+      }
+      $invalidatedSet.add($targetKey);
+      if ($parentMap.has($targetObj)) {
+        const $parentData = $parentMap.get($targetObj);
+        invalidate($parentData.$targetObj, $parentData.$targetKey);
+      }
+    };
+
+    const track = ($targetObj, $targetKey, $sourceObj, $sourceKey) => {
+      if (!$trackingMap.has($sourceObj)) {
+        $trackingMap.set($sourceObj, {});
+      }
+      const $track = $trackingMap.get($sourceObj);
+      $track[$sourceKey] = $track.hasOwnProperty($sourceKey) ? $track[$sourceKey] : new Map();
+      if (!$track[$sourceKey].has($targetObj)) {
+        $track[$sourceKey].set($targetObj, new Set());
+      }
+      $track[$sourceKey].get($targetObj).add($targetKey);
+      if (!$trackedMap.has($targetObj)) {
+        $trackedMap.set($targetObj, {});
+      }
+      const $tracked = $trackedMap.get($targetObj);
+      $tracked[$targetKey] = $tracked[$targetKey] || [];
+      $tracked[$targetKey].push({ $sourceKey, $sourceObj });
+    };
+
+    const untrack = ($targetObj, $targetKey) => {
+      const $tracked = $trackedMap.get($targetObj);
+      if (!$tracked || !$tracked[$targetKey]) {
+        return;
+      }
+      $tracked[$targetKey].forEach(({ $sourceObj, $sourceKey }) => {
+        const $trackingSource = $trackingMap.get($sourceObj);
+        $trackingSource[$sourceKey].get($targetObj).delete($targetKey);
+      });
+      delete $tracked[$targetKey];
+    };
+
+    function triggerInvalidations($sourceObj, $sourceKey) {
+      if (!$trackingMap.has($sourceObj)) {
+        return;
+      }
+      const $track = $trackingMap.get($sourceObj);
+      if (!$track.hasOwnProperty($sourceKey)) {
+        return;
+      }
+      $track[$sourceKey].forEach(($targetKeySet, $targetObj) => {
+        $targetKeySet.forEach($targetKey => invalidate($targetObj, $targetKey));
       });
     }
 
-    function forObject($path, arg0, arg1) {
-      const $localContext = context($path);
-      const invalidKeys = $localContext.hasOwnProperty('invalid')
-        ? Object.keys($localContext.invalid)
+    function forObject($targetObj, $targetKey, arg0, arg1) {
+      $targetObj[$targetKey] = $targetObj[$targetKey] || {};
+      if (!$parentMap.has($targetObj[$targetKey])) {
+        $parentMap.set($targetObj[$targetKey], { $targetObj, $targetKey });
+      }
+      const invalidKeys = $invalidatedMap.has($targetObj[$targetKey])
+        ? $invalidatedMap.get($targetObj[$targetKey])
         : Object.keys(arg1);
-      $localContext.output = $localContext.output || {};
-      $localContext.invalid = {};
-      return invalidKeys.reduce((acc, key) => {
-        const $newPath = $path.concat(key);
-        arg0($newPath, arg1, key, acc);
-        return acc;
-      }, $localContext.output);
+      $invalidatedMap.set($targetObj[$targetKey], new Set());
+      invalidKeys.forEach(key => {
+        arg0(arg1, key, $targetObj[$targetKey]);
+      });
+      return $targetObj[$targetKey];
     }
 
     /* ALL_EXPRESSIONS */
@@ -78,26 +89,27 @@ function base() {
     function recalculate() {
       /* DERIVED */
     }
-    Object.assign(res, {
+    Object.assign($res, {
       /* SETTERS */
     });
     recalculate();
-    return res;
+    return $res;
   }
 }
 
 function topLevel() {
-  $context.$ready.$FUNCNAME = false;
-  let $$FUNCNAMEValue;
+  $invalidatedRoots.add('$FUNCNAME');
   function $$FUNCNAMEBuild() {
-    const $path = ['$FUNCNAME'];
-    $$FUNCNAMEValue = $EXPR;
-    $context.$ready.$FUNCNAME = true;
-    return $$FUNCNAMEValue;
+    const $targetObj = $res;
+    const $targetKey = '$FUNCNAME';
+    $res.$FUNCNAME = $EXPR;
+    $invalidatedRoots.delete('$FUNCNAME');
+    return $res.$FUNCNAME;
   }
 }
+
 function mapValues() {
-  function $FUNCNAME($path, src, arg1, acc) {
+  function $FUNCNAME(src, arg1, acc) {
     let $changed = false;
     const arg0 = src[arg1];
     if (!src.hasOwnProperty(arg1) && acc.hasOwnProperty(arg1)) {
@@ -111,8 +123,9 @@ function mapValues() {
     /* TRACKING */
   }
 }
+
 function filterBy() {
-  function $FUNCNAME($path, src, arg1, acc) {
+  function $FUNCNAME(src, arg1, acc) {
     let $changed = false;
     const arg0 = src[arg1];
     if (!src.hasOwnProperty(arg1) && acc.hasOwnProperty(arg1)) {
@@ -131,4 +144,5 @@ function filterBy() {
     /* TRACKING */
   }
 }
+
 module.exports = { base, topLevel, mapValues, filterBy };

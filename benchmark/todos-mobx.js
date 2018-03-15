@@ -1,6 +1,7 @@
 const mobx = require('mobx');
 const { generateTestTodoItems, benchmark } = require('./todos');
 const countItems = process.argv[2] ? parseInt(process.argv[2], 10) : 50000;
+const countChanges = process.argv[3] ? parseInt(process.argv[3], 10) : countItems / 10;
 
 const initialState = { todos: generateTestTodoItems(countItems) };
 console.log('Todos - mobx', countItems);
@@ -23,7 +24,7 @@ Object.keys(initialState.todos).forEach(idx => {
       canBeWorkedOn[idx] = result;
     }, true);
 });
-benchmark(countItems / 10, (idx, item) => (todosMap[idx] = item));
+benchmark(countChanges, (idx, item) => (todosMap[idx] = item));
 // const result = Object.keys(canBeWorkedOn).reduce((acc, idx) => {
 //   return acc + (canBeWorkedOn[idx] ? 1 : 0);
 // }, 0);

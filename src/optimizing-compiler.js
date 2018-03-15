@@ -40,12 +40,16 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
-        return `forObject($path, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return `forObject($targetObj, $targetKey, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'topLevel':
-        return `(($context.$ready.${expr[1]} || $${expr[1]}Build()) && $${expr[1]}Value)`;
+        return `$res.${expr[1]}`;
       default:
         return super.generateExpr(expr);
     }
+  }
+
+  buildDerived(name) {
+    return `!$invalidatedRoots.has('${name}') || $${name}Build();`;
   }
 
   buildSetter(setterExpr, name) {
@@ -57,10 +61,9 @@ class OptimizingCompiler extends NaiveCompiler {
               $model${path} = value;
               ${_(refsToPath)
                 .map((getter, name) => {
-                  return `invalidate(['${name}'${setterExpr
-                    .filter(t => t instanceof Token)
-                    .map(t => ',' + t.$type)
-                    .join('')}])`;
+                  const values = [`'${name}'`].concat(setterExpr.filter(t => t instanceof Token).map(t => t.$type));
+                  const last = values.pop();
+                  return `invalidate($res${values.map(v => `[${v}]`).join()}, ${last})`;
                 })
                 .compact()
                 .join('\n')}
@@ -80,12 +83,12 @@ class OptimizingCompiler extends NaiveCompiler {
       _.forEach(refsToPath, (allRelevantPathsInGetter, getterName) => {
         _.forEach(allRelevantPathsInGetter, pathInGetter => {
           if (pathInGetter.length === 2 && pathInGetter[1].$type === 'func') {
-            invalidates.push(`invalidate(['${getterName}', arg1])`);
+            invalidates.push(`invalidate($res.${getterName}, arg1)`);
           }
           invalidates.push(`// invalidate ${JSON.stringify(pathInGetter)} ${JSON.stringify(getterName)}`);
         });
       });
-      invalidates.push('triggerInvalidations($path)');
+      invalidates.push('triggerInvalidations(acc, arg1)');
     }
     const tracks = [];
     if (pathsThatInvalidate) {
@@ -95,7 +98,7 @@ class OptimizingCompiler extends NaiveCompiler {
           invalidatedPath[0][0].$type === 'topLevel' &&
           invalidatedPath.length > 1
         ) {
-          tracks.push(`track($path, ['${invalidatedPath[0][1]}', ${this.generateExpr(invalidatedPath[1])}])`);
+          tracks.push(`track(acc, arg1, $res.${invalidatedPath[0][1]}, ${this.generateExpr(invalidatedPath[1])})`);
         }
         tracks.push(`// tracking ${JSON.stringify(invalidatedPath)}`);
       });
@@ -105,7 +108,7 @@ class OptimizingCompiler extends NaiveCompiler {
       invalidates.push('}');
     }
     if (tracks.filter(line => line.indexOf('//') !== 0).length > 0) {
-      tracks.unshift('untrack($path)');
+      tracks.unshift('untrack(acc, arg1)');
     }
 
     return [...invalidates, ...tracks].join('\n');
