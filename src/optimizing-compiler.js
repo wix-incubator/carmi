@@ -8,7 +8,8 @@ const {
   splitSettersGetters,
   pathMatches,
   pathFragmentToString,
-  normalizeAndTagAllGetters
+  normalizeAndTagAllGetters,
+  allPathsInGetter
 } = require('./expr-tagging');
 
 class OptimizingCompiler extends NaiveCompiler {
@@ -26,7 +27,16 @@ class OptimizingCompiler extends NaiveCompiler {
   exprTemplatePlaceholders(expr, funcName) {
     return Object.assign(
       {
-        TRACKING: () => this.tracking(expr)
+        TRACKING: () => this.tracking(expr),
+        PRETRACKING: () => {
+          if (expr[0].$path) {
+            return Array.from(expr[0].$path.values())
+              .filter(cond => cond)
+              .map(cond => `let $cond_${cond} = false;`)
+              .join('');
+          }
+          return '';
+        }
       },
       super.exprTemplatePlaceholders(expr, funcName)
     );
@@ -36,6 +46,16 @@ class OptimizingCompiler extends NaiveCompiler {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
     switch (tokenType) {
+      case 'get':
+        if (expr[0].$conditional && expr[0].$rootName) {
+          const getter = this.getters[expr[0].$rootName];
+          const paths = allPathsInGetter(getter);
+          if (Array.from(paths.values()).filter(k => k === expr[0].$id).length) {
+            return `${this.generateExpr(expr[2])}[($cond_${expr[0].$id} = true && ${this.generateExpr(expr[1])})]`;
+          }
+        }
+        return super.generateExpr(expr);
+
       case 'mapValues':
       case 'filterBy':
       case 'groupBy':
@@ -92,13 +112,17 @@ class OptimizingCompiler extends NaiveCompiler {
     }
     const tracks = [];
     if (pathsThatInvalidate) {
-      _.forEach(pathsThatInvalidate, invalidatedPath => {
+      //console.log(pathsThatInvalidate);
+      pathsThatInvalidate.forEach((cond, invalidatedPath) => {
         if (
           invalidatedPath[0] instanceof Expression &&
           invalidatedPath[0][0].$type === 'topLevel' &&
           invalidatedPath.length > 1
         ) {
-          tracks.push(`track(acc, arg1, $res.${invalidatedPath[0][1]}, ${this.generateExpr(invalidatedPath[1])})`);
+          const precond = cond ? `$cond_${cond} && ` : '';
+          tracks.push(
+            `${precond} track(acc, arg1, $res.${invalidatedPath[0][1]}, ${this.generateExpr(invalidatedPath[1])})`
+          );
         }
         tracks.push(`// tracking ${JSON.stringify(invalidatedPath)}`);
       });

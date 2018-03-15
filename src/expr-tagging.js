@@ -8,10 +8,7 @@ const {
   Func,
   TokensThatOperateOnCollections
 } = require('./lang');
-const Id = Symbol('Id');
-const Backlink = Symbol('Backlink');
 const Paths = Symbol('Paths');
-const Depth = Symbol('Depth');
 const FunctionId = Symbol('FunctionId');
 
 let exprCounter = 0;
@@ -47,7 +44,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
       isCollectionExpr(expr) ? Func : [expr[1]]
     );
     if (!inChain) {
-      paths.push(result);
+      paths.set(result, expr[0].$conditional ? expr[0].$id : false);
     }
     return result;
   } else if (expr[0].$type === 'topLevel') {
@@ -82,7 +79,7 @@ function pathToString(path) {
 function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
   const exprFuncs = getAllFunctions(sourceExpr);
   _.forEach(exprFuncs, expr => {
-    const allPaths = [];
+    const allPaths = new Map();
     annotatePathsThatCanBeInvalidated(expr, allPaths);
     expr[0].$path = allPaths;
     // console.log(expr[0].$rootName, expr[0].$id, allPaths.map(pathToString));
@@ -90,10 +87,11 @@ function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
 }
 
 function tagExpressions(expr, name, currentDepth, indexChain, rootName) {
-  expr[Id] = exprCounter++;
-  expr[Depth] = currentDepth;
+  if (expr[0].$id) {
+    return; //Already tagged
+  }
   expr[FunctionId] = name;
-  expr[0].$id = expr[Id];
+  expr[0].$id = exprCounter++;
   expr[0].$funcId = expr[FunctionId];
   expr[0].$rootName = rootName;
   expr[0].$depth = currentDepth;
@@ -103,7 +101,7 @@ function tagExpressions(expr, name, currentDepth, indexChain, rootName) {
         tagExpressions(subExpression, name, currentDepth + 1, indexChain.concat(childIndex), rootName);
       } else {
         subExpression[0].$funcType = expr[0].$type;
-        tagExpressions(subExpression, name + '$' + expr[Id], 0, indexChain, rootName);
+        tagExpressions(subExpression, name + '$' + expr[0].$id, 0, indexChain, rootName);
       }
     }
   });
@@ -204,9 +202,26 @@ function tagAllExpressions(getters) {
   _.forEach(getters, (getter, name) => tagExpressions(getter, name, 0, [1], name));
 }
 
+function tagUnconditionalExpressions(expr, cond) {
+  if (!(expr instanceof Expression)) {
+    return;
+  }
+  expr[0].$conditional = !!cond;
+  const $type = expr[0].$type;
+  if ($type === 'or' || $type === 'and') {
+    tagUnconditionalExpressions(expr[1], cond);
+    expr.slice(2).forEach(subExpr => tagUnconditionalExpressions(subExpr, true));
+  } else if ($type === 'func') {
+    tagUnconditionalExpressions(expr[1], false);
+  } else {
+    expr.slice(1).forEach(subExpr => tagUnconditionalExpressions(subExpr, cond));
+  }
+}
+
 function normalizeAndTagAllGetters(getters) {
   extractAllStaticExpressionsAsValues(getters);
   tagAllExpressions(getters);
+  _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
   return getters;
 }
@@ -214,9 +229,12 @@ function normalizeAndTagAllGetters(getters) {
 function allPathsInGetter(getter) {
   return _(flattenExpression([getter]))
     .filter(e => e instanceof Expression && e[0].$path)
-    .map(e => e[0].$path)
+    .map(e => Array.from(e[0].$path.entries()))
     .flatten()
-    .value();
+    .reduce((acc, item) => {
+      acc.set(item[0], item[1]);
+      return acc;
+    }, new Map());
 }
 
 function pathMatches(srcPath, trgPath) {
@@ -228,8 +246,7 @@ function pathMatches(srcPath, trgPath) {
 }
 
 function findReferencesToPathInAllGetters(path, getters) {
-  const pathsInAllGetters = _.mapValues(getters, allPathsInGetter);
-
+  const pathsInAllGetters = _.mapValues(getters, getter => Array.from(allPathsInGetter(getter).keys()));
   const res = _(pathsInAllGetters).reduce((accAllGetters, allPaths, name) => {
     const getterRelevant = _.filter(allPaths, exprPath => pathMatches(path, exprPath));
     if (getterRelevant.length) {
@@ -287,5 +304,6 @@ module.exports = {
   pathFragmentToString,
   tagAllExpressions,
   splitSettersGetters,
-  normalizeAndTagAllGetters
+  normalizeAndTagAllGetters,
+  allPathsInGetter
 };

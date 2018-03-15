@@ -1,5 +1,6 @@
 function base() {
   function $NAME($model) {
+    'use strict';
     const $res = { $model };
     const $trackingMap = new WeakMap();
     const $trackedMap = new WeakMap();
@@ -111,6 +112,7 @@ function topLevel() {
 function mapValues() {
   function $FUNCNAME(src, arg1, acc) {
     let $changed = false;
+    /* PRETRACKING */
     const arg0 = src[arg1];
     if (!src.hasOwnProperty(arg1) && acc.hasOwnProperty(arg1)) {
       delete acc[arg1];
@@ -127,6 +129,7 @@ function mapValues() {
 function filterBy() {
   function $FUNCNAME(src, arg1, acc) {
     let $changed = false;
+    /* PRETRACKING */
     const arg0 = src[arg1];
     if (!src.hasOwnProperty(arg1) && acc.hasOwnProperty(arg1)) {
       delete acc[arg1];
