@@ -101,10 +101,13 @@ function base() {
 function topLevel() {
   $invalidatedRoots.add('$FUNCNAME');
   function $$FUNCNAMEBuild() {
-    const $targetObj = $res;
-    const $targetKey = '$FUNCNAME';
+    /* PRETRACKING */
+    const acc = $res;
+    const arg1 = '$FUNCNAME';
+    const $changed = true;
     $res.$FUNCNAME = $EXPR;
     $invalidatedRoots.delete('$FUNCNAME');
+    /* TRACKING */
     return $res.$FUNCNAME;
   }
 }

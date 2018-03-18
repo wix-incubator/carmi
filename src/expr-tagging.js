@@ -61,7 +61,7 @@ function getAllFunctions(sourceExpr) {
 }
 
 function pathFragmentToString(token) {
-  if (typeof token === 'string') {
+  if (typeof token === 'string' || typeof token === 'number') {
     return token;
   } else if (token.$type === 'root') {
     return token.$type;
@@ -98,10 +98,10 @@ function tagExpressions(expr, name, currentDepth, indexChain, rootName) {
   expr.forEach((subExpression, childIndex) => {
     if (subExpression instanceof Expression) {
       if (subExpression[0].$type !== 'func') {
-        tagExpressions(subExpression, name, currentDepth + 1, indexChain.concat(childIndex), rootName);
+        tagExpressions(subExpression, name, currentDepth, indexChain.concat(childIndex), rootName);
       } else {
         subExpression[0].$funcType = expr[0].$type;
-        tagExpressions(subExpression, name + '$' + expr[0].$id, 0, indexChain, rootName);
+        tagExpressions(subExpression, name + '$' + expr[0].$id, currentDepth + 1, indexChain, rootName);
       }
     }
   });

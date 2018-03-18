@@ -60,7 +60,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
-        return `forObject($targetObj, $targetKey, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return `forObject(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'topLevel':
         return `$res.${expr[1]}`;
       default:
@@ -69,48 +69,56 @@ class OptimizingCompiler extends NaiveCompiler {
   }
 
   buildDerived(name) {
-    return `!$invalidatedRoots.has('${name}') || $${name}Build();`;
+    return `$invalidatedRoots.has('${name}') && $${name}Build();`;
   }
 
   buildSetter(setterExpr, name) {
     const args = setterExpr.filter(t => typeof t !== 'string').map(t => t.$type);
-    const path = setterExpr.map(t => (t instanceof Token ? `[${t.$type}]` : `[${JSON.stringify(t)}]`)).join('');
-    const refsToPath = findReferencesToPathInAllGetters(['root'].concat(setterExpr), this.getters);
-
+    const path = setterExpr.map(t => (t instanceof Token ? t.$type : JSON.stringify(t)));
     return `${name}:(${args.concat('value').join(',')}) => {
-              $model${path} = value;
-              ${_(refsToPath)
-                .map((getter, name) => {
-                  const values = [`'${name}'`].concat(setterExpr.filter(t => t instanceof Token).map(t => t.$type));
-                  const last = values.pop();
-                  return `invalidate($res${values.map(v => `[${v}]`).join()}, ${last})`;
-                })
-                .compact()
-                .join('\n')}
-              // console.log('CONTEXT:', JSON.stringify($context,null,2));
+              $model${path.map(t => `[${t}]`).join('')} = value;
+              ${this.invalidates(
+                [new Token('root')].concat(setterExpr),
+                '$model' +
+                  path
+                    .slice(0, path.length - 1)
+                    .map(t => `[${t}]`)
+                    .join(''),
+                path[path.length - 1]
+              ).join('\n')}
               recalculate();
           }`;
   }
 
-  tracking(expr) {
-    const path = [expr[0].$rootName].concat(new Array(expr.$depth).fill('*'));
+  invalidates(path, targetObj, targetKey) {
     const refsToPath = findReferencesToPathInAllGetters(path, this.getters);
-    const pathsThatInvalidate = expr[0].$path;
+    // console.log('invalidates:', path, refsToPath);
     const invalidates = [];
-
     let parts = [];
     if (!_.isEmpty(refsToPath)) {
       _.forEach(refsToPath, (allRelevantPathsInGetter, getterName) => {
         _.forEach(allRelevantPathsInGetter, pathInGetter => {
-          if (pathInGetter.length === 2 && pathInGetter[1].$type === 'func') {
-            invalidates.push(`invalidate($res.${getterName}, arg1)`);
+          if (pathInGetter.length === path.length && pathInGetter[path.length - 1].$type === 'func') {
+            invalidates.push(`invalidate($res.${getterName}, ${targetKey})`);
           }
           invalidates.push(`// invalidate ${JSON.stringify(pathInGetter)} ${JSON.stringify(getterName)}`);
         });
       });
-      invalidates.push('triggerInvalidations(acc, arg1)');
+      invalidates.push(`triggerInvalidations(${targetObj}, ${targetKey})`);
     }
+    return invalidates;
+  }
+
+  tracking(expr) {
+    const path = [expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('arg1')));
+    const invalidates = this.invalidates(path, 'acc', 'arg1');
+    if (invalidates.filter(line => line.indexOf('//') !== 0).length > 0) {
+      invalidates.unshift('if ($changed) {');
+      invalidates.push('}');
+    }
+
     const tracks = [];
+    const pathsThatInvalidate = expr[0].$path;
     if (pathsThatInvalidate) {
       //console.log(pathsThatInvalidate);
       pathsThatInvalidate.forEach((cond, invalidatedPath) => {
@@ -126,10 +134,6 @@ class OptimizingCompiler extends NaiveCompiler {
         }
         tracks.push(`// tracking ${JSON.stringify(invalidatedPath)}`);
       });
-    }
-    if (invalidates.filter(line => line.indexOf('//') !== 0).length > 0) {
-      invalidates.unshift('if ($changed) {');
-      invalidates.push('}');
     }
     if (tracks.filter(line => line.indexOf('//') !== 0).length > 0) {
       tracks.unshift('untrack(acc, arg1)');
