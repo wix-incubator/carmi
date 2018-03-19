@@ -28,6 +28,9 @@ function currentValues(inst) {
 const exported = { currentValues, compile, Setter, Expression };
 
 Object.keys(AllTokensList).forEach(t => {
+  if (t === 'topLevel') {
+    return; // topLevel not exported
+  }
   if (AllTokensList[t]) {
     exported[t] = (...args) => Expr.apply(null, [new Token(t), ...args]);
   } else {

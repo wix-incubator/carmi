@@ -55,7 +55,7 @@ function func() {
 }
 
 function topLevel() {
-  function $$FUNCNAME(arg0, arg1) {
+  function $$FUNCNAME() {
     return $EXPR;
   }
 }

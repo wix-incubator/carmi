@@ -21,10 +21,11 @@ const {
 const naive = process.argv[2] === 'naive';
 
 function TodosModel() {
-  const pendingTodos = filterBy(func(not(get('done', arg0))), get('todos', root));
-  const blockedBy = mapValues(func(get('blockedBy', arg0)), get('todos', root));
-  const todosDone = mapValues(func(get('done', arg0)), get('todos', root));
-  const isNotDone = func(and(arg0, not(get('done', get(arg0, get('todos', root))))));
+  const todos = get('todos', root);
+  const pendingTodos = filterBy(func(not(get('done', arg0))), todos);
+  const blockedBy = mapValues(func(get('blockedBy', arg0)), todos);
+  const todosDone = mapValues(func(get('done', arg0)), todos);
+  const isNotDone = func(and(arg0, not(get('done', get(arg0, todos)))));
   const isNotDone2 = func(and(arg0, not(get(arg0, todosDone))));
   const isNotDone3 = func(get(arg0, pendingTodos));
   const isBlocked = mapValues(isNotDone, blockedBy);
@@ -33,13 +34,22 @@ function TodosModel() {
   const canItemBeWorkedOn = func(
     and(not(get('done', arg0)), or(not(get('blockedBy', arg0)), get(get('blockedBy', arg0), todosDone)))
   );
-  const canBeWorkedOn = mapValues(canItemBeWorkedOn, get('todos', root));
+  const canBeWorkedOn = mapValues(canItemBeWorkedOn, todos);
 
   const shownTodo = or(and(get('showCompleted', root), canBeWorkedOn), pendingTodos);
 
+  const currentTask = get('currentTask', root);
+  const currentTaskTodo = get(currentTask, todos);
+
+  const statusOfCurrentTask = or(
+    and(get('done', currentTaskTodo), 'done'),
+    and(get(currentTask, isBlocked), 'blocked'),
+    'not done'
+  );
+
   // const mapOfMaps = mapValues(
-  //   func(mapValues(func(get('showCompleted', root)), get('todos', root))),
-  //   get('todos', root)
+  //   func(mapValues(func(get('showCompleted', root)), todos)),
+  //   todos
   // );
 
   // console.log({ isBlocked, blockedBy, isNotDone });
@@ -53,7 +63,9 @@ function TodosModel() {
     shownTodo,
     pendingTodos,
     setTodo: Setter('todos', arg0),
-    setShowCompleted: Setter('showCompleted')
+    setShowCompleted: Setter('showCompleted'),
+    setCurrentTask: Setter('currentTask'),
+    statusOfCurrentTask
   };
 }
 
@@ -70,7 +82,8 @@ try {
       2: { text: '2', done: true },
       3: { text: '3', done: false, blockedBy: '1' }
     },
-    showCompleted: false
+    showCompleted: false,
+    currentTask: 1
   });
   console.log(JSON.stringify(currentValues(inst), null, 2));
   inst.setTodo(1, { ...inst.$model.todos['1'], done: true });

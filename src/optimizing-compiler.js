@@ -62,7 +62,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'mapKeys':
         return `forObject(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'topLevel':
-        return `$res.${expr[1]}`;
+        return `$res`;
       default:
         return super.generateExpr(expr);
     }
@@ -73,19 +73,17 @@ class OptimizingCompiler extends NaiveCompiler {
   }
 
   buildSetter(setterExpr, name) {
-    const args = setterExpr.filter(t => typeof t !== 'string').map(t => t.$type);
-    const path = setterExpr.map(t => (t instanceof Token ? t.$type : JSON.stringify(t)));
+    const args = setterExpr
+      .slice(1)
+      .filter(t => typeof t !== 'string')
+      .map(t => t.$type);
     return `${name}:(${args.concat('value').join(',')}) => {
-              $model${path.map(t => `[${t}]`).join('')} = value;
               ${this.invalidates(
-                [new Token('root')].concat(setterExpr),
-                '$model' +
-                  path
-                    .slice(0, path.length - 1)
-                    .map(t => `[${t}]`)
-                    .join(''),
-                path[path.length - 1]
+                setterExpr,
+                this.pathToString(setterExpr.slice(0, setterExpr.length - 1)),
+                this.generateExpr(setterExpr[setterExpr.length - 1])
               ).join('\n')}
+              ${this.pathToString(setterExpr)}  = value;
               recalculate();
           }`;
   }
@@ -100,6 +98,8 @@ class OptimizingCompiler extends NaiveCompiler {
         _.forEach(allRelevantPathsInGetter, pathInGetter => {
           if (pathInGetter.length === path.length && pathInGetter[path.length - 1].$type === 'func') {
             invalidates.push(`invalidate($res.${getterName}, ${targetKey})`);
+          } else if (path.length === 2) {
+            invalidates.push(`invalidate($res, '${getterName}')`);
           }
           invalidates.push(`// invalidate ${JSON.stringify(pathInGetter)} ${JSON.stringify(getterName)}`);
         });
@@ -110,7 +110,7 @@ class OptimizingCompiler extends NaiveCompiler {
   }
 
   tracking(expr) {
-    const path = [expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('arg1')));
+    const path = [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('arg1')));
     const invalidates = this.invalidates(path, 'acc', 'arg1');
     if (invalidates.filter(line => line.indexOf('//') !== 0).length > 0) {
       invalidates.unshift('if ($changed) {');
@@ -122,15 +122,33 @@ class OptimizingCompiler extends NaiveCompiler {
     if (pathsThatInvalidate) {
       //console.log(pathsThatInvalidate);
       pathsThatInvalidate.forEach((cond, invalidatedPath) => {
-        if (
-          invalidatedPath[0] instanceof Expression &&
-          invalidatedPath[0][0].$type === 'topLevel' &&
-          invalidatedPath.length > 1
-        ) {
-          const precond = cond ? `$cond_${cond} && ` : '';
+        // console.log('invalidatedPath', invalidatedPath, cond);
+        const precond = cond ? `$cond_${cond} && ` : '';
+        if (invalidatedPath[0] instanceof Token && invalidatedPath[0].$type === 'topLevel' && path.length > 2) {
           tracks.push(
-            `${precond} track(acc, arg1, $res.${invalidatedPath[0][1]}, ${this.generateExpr(invalidatedPath[1])})`
+            `${precond} track(acc, arg1, $res[${this.generateExpr(invalidatedPath[1])}], ${this.generateExpr(
+              invalidatedPath[2]
+            )})`
           );
+        } else if (invalidatedPath[0] instanceof Token && invalidatedPath[0].$type === 'root') {
+          Object.values(this.setters).forEach(setter => {
+            if (
+              pathMatches(invalidatedPath, setter) &&
+              _.some(invalidatedPath, t => t instanceof Token && t.$type !== 'root') &&
+              !_.some(invalidatedPath, t => t instanceof Token && t.$type === 'func')
+            ) {
+              const setterPath = setter.map(
+                (t, index) => (t instanceof Token && t.$type !== 'root' ? invalidatedPath[index] : t)
+              );
+              tracks.push(`// path matched ${JSON.stringify(setter)}`);
+              tracks.push(
+                `${precond} track(acc, arg1, ${this.pathToString(
+                  setterPath.slice(0, setterPath.length - 1)
+                )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
+              );
+            }
+          });
+          tracks.push('// tracking model directly');
         }
         tracks.push(`// tracking ${JSON.stringify(invalidatedPath)}`);
       });

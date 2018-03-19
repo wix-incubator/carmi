@@ -140,8 +140,8 @@ function filterBy() {
     } else {
       const res = $EXPR1;
       if (res) {
-        acc[arg1] = arg0;
         $changed = acc[arg1] !== arg0;
+        acc[arg1] = arg0;
       } else if (acc.hasOwnProperty(arg1)) {
         delete acc[arg1];
         $changed = true;

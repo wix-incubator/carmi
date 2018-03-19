@@ -5,6 +5,8 @@ const {
   Expression,
   SetterExpression,
   TopLevel,
+  Root,
+  Get,
   Func,
   TokensThatOperateOnCollections
 } = require('./lang');
@@ -34,7 +36,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
     return expr;
   }
   if (expr instanceof Token) {
-    if (expr.$type === 'root' || expr.$type === 'arg0') {
+    if (expr.$type === 'root' || expr.$type === 'arg0' || expr.$type === 'topLevel') {
       return [expr];
     }
     return [];
@@ -47,8 +49,6 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
       paths.set(result, expr[0].$conditional ? expr[0].$id : false);
     }
     return result;
-  } else if (expr[0].$type === 'topLevel') {
-    return [expr];
   } else if (expr[0].$type !== 'func' || !inChain) {
     expr.slice(1).forEach(e => annotatePathsThatCanBeInvalidated(e, paths, false));
   }
@@ -63,10 +63,8 @@ function getAllFunctions(sourceExpr) {
 function pathFragmentToString(token) {
   if (typeof token === 'string' || typeof token === 'number') {
     return token;
-  } else if (token.$type === 'root') {
+  } else if (token.$type === 'root' || token.$type === 'topLevel') {
     return token.$type;
-  } else if (token instanceof Expression && token[0].$type === 'topLevel') {
-    return token[1];
   } else {
     return '*';
   }
@@ -145,7 +143,7 @@ function rewriteUsingTopLevels(expr, namesByExpr) {
     const str = JSON.stringify(subExpression);
     rewriteUsingTopLevels(subExpression, namesByExpr);
     if (namesByExpr[str]) {
-      expr.splice(index, 1, Expr(TopLevel, namesByExpr[str]));
+      expr.splice(index, 1, Expr(Get, namesByExpr[str], TopLevel));
     }
   });
   return expr;
@@ -265,7 +263,7 @@ function findReferencesToPathInAllGetters(path, getters) {
 
 function collectAllTopLevelInExpr(expr, acc) {
   acc = acc || {};
-  if (expr[0].$type === 'topLevel') {
+  if (expr[0].$type === 'get' && expr[2] instanceof Token && expr[2].$type === 'topLevel') {
     acc[expr[1]] = true;
   } else {
     expr.forEach(token => {
@@ -291,9 +289,16 @@ function topologicalSortGetters(getters) {
 }
 
 function splitSettersGetters(model) {
+  const setters = _.pickBy(model, v => v instanceof SetterExpression);
+  _.forEach(setters, setter => {
+    if (!(setter[0] instanceof Token) || setter[0].$type !== 'root') {
+      setter.unshift(Root);
+    }
+  });
+  const getters = _.pickBy(model, v => v instanceof Expression);
   return {
-    setters: _.pickBy(model, v => v instanceof SetterExpression),
-    getters: _.pickBy(model, v => v instanceof Expression)
+    getters,
+    setters
   };
 }
 

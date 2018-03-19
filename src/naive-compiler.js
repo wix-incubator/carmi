@@ -61,7 +61,7 @@ class NaiveCompiler {
       case 'arg1':
         return 'arg1';
       case 'topLevel':
-        return `$${expr[1]}()`;
+        return `$res`;
       default:
         return JSON.stringify(currentToken);
     }
@@ -69,14 +69,26 @@ class NaiveCompiler {
 
   buildDerived(name) {
     const prefix = name.indexOf('$') === 0 ? '' : `$res.${name} = `;
-    return `${prefix} ${this.generateExpr(new Expression(TopLevel, name))};`;
+    return `${prefix} $${name}();`;
+  }
+
+  pathToString(path) {
+    return (
+      this.generateExpr(path[0]) +
+      path
+        .slice(1)
+        .map(t => (t instanceof Token ? `[${t.$type}]` : `[${JSON.stringify(t)}]`))
+        .join('')
+    );
   }
 
   buildSetter(setterExpr, name) {
-    const args = setterExpr.filter(t => typeof t !== 'string').map(t => t.$type);
-    const path = setterExpr.map(t => (t instanceof Token ? `[${t.$type}]` : `[${JSON.stringify(t)}]`)).join('');
+    const args = setterExpr
+      .slice(1)
+      .filter(t => typeof t !== 'string')
+      .map(t => t.$type);
     return `${name}:(${args.concat('value').join(',')}) => {
-              $model${path} = value;
+              ${this.pathToString(setterExpr)} = value;
               recalculate();
           }`;
   }
