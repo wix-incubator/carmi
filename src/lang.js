@@ -13,7 +13,8 @@ class Token {
     );
   }
 }
-const AllTokensList = {
+
+const TokensRequireExpressions = {
   and: true,
   or: true,
   not: true,
@@ -23,12 +24,16 @@ const AllTokensList = {
   filterBy: true,
   mapKeys: true,
   groupBy: true,
+  context: false,
   func: true,
   arg0: false,
   arg1: false,
-  topLevel: true
+  topLevel: true,
+  eq: true,
+  wildcard: false
 };
-const AllTokens = Object.keys(AllTokensList).reduce((acc, k) => {
+
+const AllTokens = Object.keys(TokensRequireExpressions).reduce((acc, k) => {
   acc[k[0].toUpperCase() + k.slice(1)] = new Token(k);
   return acc;
 }, {});
@@ -53,7 +58,7 @@ AllTokens.Expr = (...args) => new Expression(...args);
 AllTokens.Setter = (...args) => new SetterExpression(...args);
 AllTokens.TokensThatOperateOnCollections = ['mapValues', 'filterBy', 'mapKeys', 'groupBy'];
 AllTokens.Expression = Expression;
-AllTokens.AllTokensList = AllTokensList;
+AllTokens.TokensRequireExpressions = TokensRequireExpressions; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 
 module.exports = AllTokens;

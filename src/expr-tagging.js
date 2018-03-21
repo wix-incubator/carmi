@@ -7,7 +7,7 @@ const {
   TopLevel,
   Root,
   Get,
-  Func,
+  Wildcard,
   TokensThatOperateOnCollections
 } = require('./lang');
 const Paths = Symbol('Paths');
@@ -43,7 +43,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
   }
   if (expr[0].$type === 'get' || isCollectionExpr(expr)) {
     const result = annotatePathsThatCanBeInvalidated(expr[2], paths, true).concat(
-      isCollectionExpr(expr) ? Func : [expr[1]]
+      isCollectionExpr(expr) ? Wildcard : [expr[1]]
     );
     if (!inChain) {
       paths.set(result, expr[0].$conditional ? expr[0].$id : false);
@@ -128,7 +128,7 @@ function isStaticExpression(expr) {
       } else {
         return isStaticExpression(token);
       }
-    } else if (token.$type === 'arg0' || token.$type === 'arg1') {
+    } else if (token.$type === 'arg0' || token.$type === 'arg1' || token.$type === 'context') {
       return false;
     }
     return true;

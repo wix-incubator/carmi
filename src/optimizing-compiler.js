@@ -60,9 +60,13 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
-        return `forObject(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return `forObject(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
+          typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
+        })`;
       case 'topLevel':
         return `$res`;
+      case 'wildcard':
+        return '$wildcard';
       default:
         return super.generateExpr(expr);
     }
@@ -96,7 +100,7 @@ class OptimizingCompiler extends NaiveCompiler {
     if (!_.isEmpty(refsToPath)) {
       _.forEach(refsToPath, (allRelevantPathsInGetter, getterName) => {
         _.forEach(allRelevantPathsInGetter, pathInGetter => {
-          if (pathInGetter.length === path.length && pathInGetter[path.length - 1].$type === 'func') {
+          if (pathInGetter.length === path.length && pathInGetter[path.length - 1].$type === 'wildcard') {
             invalidates.push(`invalidate($res.${getterName}, ${targetKey})`);
           } else if (path.length === 2) {
             invalidates.push(`invalidate($res, '${getterName}')`);
@@ -122,30 +126,46 @@ class OptimizingCompiler extends NaiveCompiler {
     if (pathsThatInvalidate) {
       //console.log(pathsThatInvalidate);
       pathsThatInvalidate.forEach((cond, invalidatedPath) => {
-        // console.log('invalidatedPath', invalidatedPath, cond);
+        tracks.push(
+          `//invalidatedPath: ${JSON.stringify(invalidatedPath)}, ${cond}, ${
+            invalidatedPath[invalidatedPath.length - 1].$type
+          }`
+        );
         const precond = cond ? `$cond_${cond} && ` : '';
-        if (invalidatedPath[0] instanceof Token && invalidatedPath[0].$type === 'topLevel' && path.length > 2) {
-          tracks.push(
-            `${precond} track(acc, arg1, $res[${this.generateExpr(invalidatedPath[1])}], ${this.generateExpr(
-              invalidatedPath[2]
-            )})`
-          );
-        } else if (invalidatedPath[0] instanceof Token && invalidatedPath[0].$type === 'root') {
+        if (invalidatedPath[0].$type === 'topLevel') {
+          if (invalidatedPath[invalidatedPath.length - 1].$type === 'wildcard') {
+            tracks.push(
+              `${precond} track(acc[arg1],$wildcard, ${this.pathToString(
+                invalidatedPath.slice(0, invalidatedPath.length - 1)
+              )}, $wildcard)`
+            );
+          } else if (invalidatedPath.length > 2) {
+            tracks.push(
+              `${precond} track(acc, arg1, $res[${this.generateExpr(invalidatedPath[1])}], ${this.generateExpr(
+                invalidatedPath[2]
+              )})`
+            );
+          }
+        } else if (invalidatedPath[0].$type === 'root') {
           Object.values(this.setters).forEach(setter => {
-            if (
-              pathMatches(invalidatedPath, setter) &&
-              _.some(invalidatedPath, t => t instanceof Token && t.$type !== 'root') &&
-              !_.some(invalidatedPath, t => t instanceof Token && t.$type === 'func')
-            ) {
+            if (pathMatches(invalidatedPath, setter)) {
               const setterPath = setter.map(
                 (t, index) => (t instanceof Token && t.$type !== 'root' ? invalidatedPath[index] : t)
               );
               tracks.push(`// path matched ${JSON.stringify(setter)}`);
-              tracks.push(
-                `${precond} track(acc, arg1, ${this.pathToString(
-                  setterPath.slice(0, setterPath.length - 1)
-                )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
-              );
+              if (setterPath[setterPath.length - 1].$type === 'wildcard') {
+                tracks.push(
+                  `${precond} track(acc[arg1], $wildcard, ${this.pathToString(
+                    setterPath.slice(0, setterPath.length - 1)
+                  )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
+                );
+              } else {
+                tracks.push(
+                  `${precond} track(acc, arg1, ${this.pathToString(
+                    setterPath.slice(0, setterPath.length - 1)
+                  )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
+                );
+              }
             }
           });
           tracks.push('// tracking model directly');

@@ -18,6 +18,7 @@ class NaiveCompiler {
   }
 
   generateExpr(expr) {
+    // console.log(JSON.stringify(expr, null, 2));
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
     switch (tokenType) {
@@ -53,13 +54,17 @@ class NaiveCompiler {
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
-        return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
+          typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
+        })`;
       case 'func':
         return currentToken.funcName;
       case 'arg0':
         return 'arg0';
       case 'arg1':
         return 'arg1';
+      case 'context':
+        return 'context';
       case 'topLevel':
         return `$res`;
       default:
@@ -73,13 +78,7 @@ class NaiveCompiler {
   }
 
   pathToString(path) {
-    return (
-      this.generateExpr(path[0]) +
-      path
-        .slice(1)
-        .map(t => (t instanceof Token ? `[${t.$type}]` : `[${JSON.stringify(t)}]`))
-        .join('')
-    );
+    return this.generateExpr(path.slice(1).reduce((acc, token) => Expr(new Token('get'), token, acc), path[0]));
   }
 
   buildSetter(setterExpr, name) {

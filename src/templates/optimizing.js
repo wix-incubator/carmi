@@ -5,12 +5,67 @@ function base() {
     const $trackingMap = new WeakMap();
     const $trackedMap = new WeakMap();
     const $invalidatedMap = new WeakMap();
-    const $parentMap = new WeakMap();
+    const $parentObjectMap = new WeakMap();
+    const $parentKeyMap = new WeakMap();
     const $invalidatedRoots = new Set();
+    const $wildcard = '*****';
     $invalidatedMap.set($res, $invalidatedRoots);
 
+    const collectAllItems = (res, obj, prefix) => {
+      if (typeof obj !== 'object') {
+        return;
+      }
+      res.set(obj, prefix);
+      const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);
+      keys.forEach(idx => {
+        const child = obj[idx];
+        if (typeof child === 'object') {
+          collectAllItems(res, child, `${prefix}.${idx}`);
+        }
+      });
+    };
+
+    const serialize = (all, obj) => {
+      if (all.has(obj)) {
+        return all.get(obj);
+      } else if (obj instanceof WeakMap) {
+        return Array.from(all.keys()).reduce((acc, item) => {
+          if (obj.has(item)) {
+            acc[all.get(item)] = serialize(all, obj.get(item));
+          }
+          return acc;
+        }, {});
+      } else if (obj instanceof Map) {
+        return Array.from(obj.keys()).reduce((acc, item) => {
+          if (all.has(item)) {
+            acc[all.get(item)] = serialize(all, obj.get(item));
+          } else {
+            acc[item] = serialize(all, obj.get(item));
+          }
+          return acc;
+        }, {});
+      } else if (obj instanceof Set || obj instanceof Array) {
+        return Array.from(obj).map(x => (all.has(x) ? all.get(x) : serialize(all, x)));
+      } else if (typeof obj === 'object') {
+        return Object.keys(obj).reduce((acc, key) => {
+          acc[key] = serialize(all, obj[key]);
+          return acc;
+        }, {});
+      } else {
+        return obj;
+      }
+    };
+
+    const debug = () => {
+      const all = new Map();
+      collectAllItems(all, $model, '$model');
+      collectAllItems(all, $res, '$res');
+      console.log(`all has: ${all.size} records`);
+      console.log(JSON.stringify(serialize(all, { $trackingMap, $invalidatedMap }), null, 2));
+    };
+
     const invalidate = ($targetObj, $targetKey) => {
-      if (!$targetObj) {
+      if (!$targetObj || typeof $targetObj !== 'object') {
         return;
       }
       if (!$invalidatedMap.has($targetObj)) {
@@ -21,13 +76,15 @@ function base() {
         return; // already invalidated
       }
       $invalidatedSet.add($targetKey);
-      if ($parentMap.has($targetObj)) {
-        const $parentData = $parentMap.get($targetObj);
-        invalidate($parentData.$targetObj, $parentData.$targetKey);
+      if ($parentObjectMap.has($targetObj)) {
+        invalidate($parentObjectMap.get($targetObj), $parentKeyMap.get($targetObj));
       }
     };
 
     const track = ($targetObj, $targetKey, $sourceObj, $sourceKey) => {
+      if (!$sourceObj || !$targetObj) {
+        return;
+      }
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
       }
@@ -62,25 +119,30 @@ function base() {
         return;
       }
       const $track = $trackingMap.get($sourceObj);
-      if (!$track.hasOwnProperty($sourceKey)) {
-        return;
+      if ($track.hasOwnProperty($sourceKey)) {
+        $track[$sourceKey].forEach(($targetKeySet, $targetObj) => {
+          $targetKeySet.forEach($targetKey => invalidate($targetObj, $targetKey));
+        });
       }
-      $track[$sourceKey].forEach(($targetKeySet, $targetObj) => {
-        $targetKeySet.forEach($targetKey => invalidate($targetObj, $targetKey));
-      });
+      if ($track.hasOwnProperty($wildcard)) {
+        $track[$wildcard].forEach(($targetKeySet, $targetObj) => {
+          $targetKeySet.forEach($targetKey => invalidate($targetObj, $sourceKey));
+        });
+      }
     }
 
-    function forObject($targetObj, $targetKey, arg0, arg1) {
+    function forObject($targetObj, $targetKey, arg0, arg1, context) {
       $targetObj[$targetKey] = $targetObj[$targetKey] || {};
-      if (!$parentMap.has($targetObj[$targetKey])) {
-        $parentMap.set($targetObj[$targetKey], { $targetObj, $targetKey });
+      if (!$parentObjectMap.has($targetObj[$targetKey])) {
+        $parentObjectMap.set($targetObj[$targetKey], $targetObj);
+        $parentKeyMap.set($targetObj[$targetKey], $targetKey);
       }
       const invalidKeys = $invalidatedMap.has($targetObj[$targetKey])
         ? $invalidatedMap.get($targetObj[$targetKey])
         : Object.keys(arg1);
       $invalidatedMap.set($targetObj[$targetKey], new Set());
       invalidKeys.forEach(key => {
-        arg0(arg1, key, $targetObj[$targetKey]);
+        arg0(arg1, key, $targetObj[$targetKey], context);
       });
       return $targetObj[$targetKey];
     }
@@ -113,13 +175,15 @@ function topLevel() {
 }
 
 function mapValues() {
-  function $FUNCNAME(src, arg1, acc) {
+  function $FUNCNAME(src, arg1, acc, context) {
     let $changed = false;
     /* PRETRACKING */
     const arg0 = src[arg1];
-    if (!src.hasOwnProperty(arg1) && acc.hasOwnProperty(arg1)) {
-      delete acc[arg1];
-      $changed = true;
+    if (!src.hasOwnProperty(arg1)) {
+      if (acc.hasOwnProperty(arg1)) {
+        delete acc[arg1];
+        $changed = true;
+      }
     } else {
       const res = $EXPR1;
       $changed = res !== acc[arg1];
@@ -130,13 +194,15 @@ function mapValues() {
 }
 
 function filterBy() {
-  function $FUNCNAME(src, arg1, acc) {
+  function $FUNCNAME(src, arg1, acc, context) {
     let $changed = false;
     /* PRETRACKING */
     const arg0 = src[arg1];
-    if (!src.hasOwnProperty(arg1) && acc.hasOwnProperty(arg1)) {
-      delete acc[arg1];
-      $changed = true;
+    if (!src.hasOwnProperty(arg1)) {
+      if (acc.hasOwnProperty(arg1)) {
+        delete acc[arg1];
+        $changed = true;
+      }
     } else {
       const res = $EXPR1;
       if (res) {

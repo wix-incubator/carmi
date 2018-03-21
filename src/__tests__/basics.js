@@ -4,6 +4,8 @@ const {
   and,
   or,
   not,
+  eq,
+  context,
   get,
   root,
   mapValues,
@@ -21,10 +23,36 @@ const _ = require('lodash');
 
 const timers = {};
 
-let seed = 1.2;
-function randomInt(range) {
-  return Math.floor(Math.abs(Math.sin(seed++ * 10000)) * range);
-}
+const randomInt = (function Alea(seed) {
+  if (seed === undefined) {
+    seed = +new Date() + Math.random();
+  }
+  function Mash() {
+    var n = 4022871197;
+    return function(r) {
+      for (var t, s, u = 0, e = 0.02519603282416938; u < r.length; u++)
+        (s = r.charCodeAt(u)),
+          (f = e * (n += s) - ((n * e) | 0)),
+          (n = 4294967296 * ((t = f * ((e * n) | 0)) - (t | 0)) + (t | 0));
+      return (n | 0) * 2.3283064365386963e-10;
+    };
+  }
+  return (function() {
+    var m = Mash(),
+      a = m(' '),
+      b = m(' '),
+      c = m(' '),
+      x = 1,
+      y;
+    (seed = seed.toString()), (a -= m(seed)), (b -= m(seed)), (c -= m(seed));
+    a < 0 && a++, b < 0 && b++, c < 0 && c++;
+    return function(range) {
+      var y = x * 2.3283064365386963e-10 + a * 2091639;
+      (a = b), (b = c);
+      return Math.floor((c = y - (x = y | 0)) * range);
+    };
+  })();
+})(234234);
 
 function benchmark(title) {
   if (timers[title]) {
@@ -63,6 +91,11 @@ describe('simple todo', () => {
       'not done'
     );
 
+    const blockedGrouped = mapValues(
+      func(filterBy(func(eq(get('blockedBy', arg0), context)), todos, arg1)),
+      pendingTodos
+    );
+
     return {
       isBlocked,
       isBlocked2,
@@ -71,6 +104,7 @@ describe('simple todo', () => {
       canBeWorkedOn,
       shownTodo,
       pendingTodos,
+      blockedGrouped,
       setTodo: Setter('todos', arg0),
       setShowCompleted: Setter('showCompleted'),
       setCurrentTask: Setter('currentTask')
@@ -82,14 +116,14 @@ describe('simple todo', () => {
     return {
       text: `todo_${idx}`,
       done: randomInt(2) === 0,
-      blockedBy: randomInt(4) === 0 ? '' + (idx + randomInt(countItems - 1)) % countItems : false
+      blockedBy: randomInt(4) === 2 ? '' + (idx + randomInt(countItems - 1)) % countItems : false
     };
   }
 
   function generateTestTodoItems(count) {
     const res = {};
     for (let idx = 0; idx < count; idx++) {
-      res[idx] = randomTodoItem(idx);
+      res['' + idx] = randomTodoItem(idx);
     }
     return res;
   }
@@ -98,6 +132,12 @@ describe('simple todo', () => {
     const naiveFunc = eval(compile(TodosModel(), true));
     const optFunc = eval(compile(TodosModel()));
     const initialState = { todos: generateTestTodoItems(countItems), currentTask: '1', showCompleted: false };
+    require('fs').writeFileSync(
+      'junk.js',
+      `const model = require('./tmp.js');
+const { currentValues } = require('./index');
+const inst = model(${JSON.stringify(initialState, null, 2)});`
+    );
     console.log(initialState);
     const naive = naiveFunc(initialState);
     const opt = optFunc(initialState);
@@ -106,23 +146,34 @@ describe('simple todo', () => {
       () => {
         const idx = randomInt(countItems);
         const todoItem = randomTodoItem(idx);
-        return inst => inst.setTodo('' + idx, todoItem);
+        return inst => {
+          inst.setTodo('' + idx, todoItem);
+          return `inst.setTodo('${idx}', ${JSON.stringify(todoItem)});`;
+        };
       },
       () => {
         const current = randomInt(countItems);
-        return inst => inst.setCurrentTask(current);
+        return inst => {
+          inst.setCurrentTask(current);
+          return `inst.setCurrentTask(${current});`;
+        };
       },
       () => {
         const show = randomInt(2) === 1;
-        return inst => inst.setShowCompleted(show);
+        return inst => {
+          inst.setShowCompleted(show);
+          return `inst.setShowCompleted(${show})`;
+        };
       }
     ];
     new Array(countItems * 10).fill().forEach((__, idx) => {
       const action = actionTypes[randomInt(actionTypes.length)]();
       action(naive);
-      action(opt);
-      //   require('fs').writeFileSync('tmp-opt.json', JSON.stringify(currentValues(opt), null, 2));
-      //   require('fs').writeFileSync('tmp-naive.json', JSON.stringify(currentValues(naive), null, 2));
+      const actionDesc = action(opt);
+      console.log(actionDesc);
+      require('fs').appendFileSync('junk.js', '\n' + actionDesc);
+      require('fs').writeFileSync('tmp-opt.json', JSON.stringify(currentValues(opt), null, 2));
+      require('fs').writeFileSync('tmp-naive.json', JSON.stringify(currentValues(naive), null, 2));
       expect(currentValues(naive)).toEqual(currentValues(opt));
     });
   });

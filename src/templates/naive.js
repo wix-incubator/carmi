@@ -2,34 +2,34 @@ function base() {
   function $NAME($model) {
     const $res = { $model };
 
-    function mapValues(arg0, arg1) {
+    function mapValues(arg0, arg1, context) {
       return Object.keys(arg1).reduce((acc, key) => {
-        acc[key] = arg0(arg1[key]);
+        acc[key] = arg0(arg1[key], key, context);
         return acc;
       }, {});
     }
 
-    function filterBy(arg0, arg1) {
+    function filterBy(arg0, arg1, context) {
       return Object.keys(arg1).reduce((acc, key) => {
-        if (arg0(arg1[key])) {
+        if (arg0(arg1[key], key, context)) {
           acc[key] = arg1[key];
         }
         return acc;
       }, {});
     }
 
-    function groupBy(arg0, arg1) {
+    function groupBy(arg0, arg1, context) {
       return Object.keys(arg1).reduce((acc, key) => {
-        const newKey = arg0(arg1[key]);
+        const newKey = arg0(arg1[key], key, context);
         acc[newKey] = acc[newKey] || [];
         acc[newKey].push(arg1[key]);
         return acc;
       }, {});
     }
 
-    function mapKeys(arg0, arg1) {
+    function mapKeys(arg0, arg1, context) {
       return Object.keys(arg1).reduce((acc, key) => {
-        const newKey = arg0(arg1[key]);
+        const newKey = arg0(arg1[key], key, context);
         acc[newKey] = arg1[key];
         return acc;
       }, {});
@@ -49,7 +49,7 @@ function base() {
 }
 
 function func() {
-  function $FUNCNAME(arg0, arg1) {
+  function $FUNCNAME(arg0, arg1, context) {
     return $EXPR1;
   }
 }
