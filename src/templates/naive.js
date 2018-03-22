@@ -40,9 +40,13 @@ function base() {
     function recalculate() {
       /* DERIVED */
     }
-    Object.assign($res, {
-      /* SETTERS */
-    });
+    Object.assign(
+      $res,
+      {
+        /* SETTERS */
+      },
+      { $startBatch: () => {}, $endBatch: () => {} }
+    );
     recalculate();
     return $res;
   }

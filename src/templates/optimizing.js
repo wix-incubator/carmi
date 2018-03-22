@@ -148,13 +148,26 @@ function base() {
     }
 
     /* ALL_EXPRESSIONS */
-
+    let $inBatch = false;
     function recalculate() {
+      if ($inBatch) {
+        return;
+      }
       /* DERIVED */
     }
-    Object.assign($res, {
-      /* SETTERS */
-    });
+    Object.assign(
+      $res,
+      {
+        /* SETTERS */
+      },
+      {
+        $startBatch: () => ($inBatch = true),
+        $endBatch: () => {
+          $inBatch = false;
+          recalculate();
+        }
+      }
+    );
     recalculate();
     return $res;
   }
