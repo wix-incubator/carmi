@@ -216,11 +216,37 @@ function tagUnconditionalExpressions(expr, cond) {
   }
 }
 
-function normalizeAndTagAllGetters(getters) {
+function unmarkPathsThatHaveNoSetters(getters, setters) {
+  const currentSetters = Object.values(setters);
+  topologicalSortGetters(getters).forEach(name => {
+    const getter = getters[name];
+    const exprPathsMaps = _(flattenExpression([getter]))
+      .filter(e => e instanceof Expression && e[0].$path)
+      .map(e => e[0].$path)
+      .value();
+    let canBeExprBeInvalidated = false;
+    exprPathsMaps.forEach(pathMap =>
+      pathMap.forEach((cond, path) => {
+        console.log(path);
+        if (_.some(currentSetters, setter => pathMatches(path, setter))) {
+          canBeExprBeInvalidated = true;
+        } else {
+          pathMap.delete(path);
+        }
+      })
+    );
+    if (canBeExprBeInvalidated) {
+      currentSetters.push([TopLevel, name]);
+    }
+  });
+}
+
+function normalizeAndTagAllGetters(getters, setters) {
   extractAllStaticExpressionsAsValues(getters);
   tagAllExpressions(getters);
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
+  unmarkPathsThatHaveNoSetters(getters, setters);
   return getters;
 }
 

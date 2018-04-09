@@ -15,9 +15,7 @@ const {
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, name) {
     const { getters, setters } = splitSettersGetters(model);
-    const newModel = {};
-    Object.assign(newModel, model, normalizeAndTagAllGetters(getters));
-    super(newModel, name);
+    super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
   }
 
   get template() {
