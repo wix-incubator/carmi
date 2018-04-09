@@ -1,6 +1,4 @@
-# essx
-
-Essential Complexity - Compiler for Automatic Reactive Modelling of Inference
+# CARMI - Compiler for Automatic Reactive Modelling of Inference
 
 This is a POC of an entirely new approach to modelling infered state, there are 4 classic methods of handling
 deriviation of state
