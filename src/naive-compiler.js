@@ -10,7 +10,7 @@ class NaiveCompiler {
     tagAllExpressions(getters);
     this.getters = getters;
     this.setters = setters;
-    this.name = name || 'EssX';
+    this.name = name || 'Model';
   }
 
   get template() {
