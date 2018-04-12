@@ -67,6 +67,8 @@ class NaiveCompiler {
         return 'context';
       case 'topLevel':
         return `$res`;
+      case 'call':
+        return `$funcLib[${this.generateExpr(expr[1])}](${this.generateExpr(expr[2])})`;
       default:
         return JSON.stringify(currentToken);
     }

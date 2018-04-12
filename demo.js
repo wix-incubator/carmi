@@ -31,11 +31,13 @@ function TodosModel() {
     and(arg0.get('done').not(), or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy'))))
   );
   const blockedGrouped = pendingTodos.mapValues(todos.filterBy(arg0.get('blockedBy').eq(context), arg1));
+  const todosDoneText = todos.mapValues(arg0.get('done').call('toDoneString'));
 
   return {
     canBeWorkedOn,
     pendingTodos,
     blockedGrouped,
+    todosDoneText,
     setTodo: Setter('todos', arg0)
   };
 }
@@ -47,15 +49,18 @@ const source = compile(todosModel, naive);
 try {
   require('fs').writeFileSync('./tmp.js', source);
   const modelFunction = eval(source);
-  const inst = modelFunction({
-    todos: {
-      1: { text: '1', done: false, blockedBy: '2' },
-      2: { text: '2', done: true },
-      3: { text: '3', done: false, blockedBy: '1' }
+  const inst = modelFunction(
+    {
+      todos: {
+        1: { text: '1', done: false, blockedBy: '2' },
+        2: { text: '2', done: true },
+        3: { text: '3', done: false, blockedBy: '1' }
+      },
+      showCompleted: false,
+      currentTask: 1
     },
-    showCompleted: false,
-    currentTask: 1
-  });
+    { toDoneString: s => (s ? 'done' : 'not done') }
+  );
   console.log(JSON.stringify(currentValues(inst), null, 2));
   inst.setTodo(1, { ...inst.$model.todos['1'], done: true });
   console.log(JSON.stringify(currentValues(inst), null, 2));

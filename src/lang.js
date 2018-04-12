@@ -32,6 +32,7 @@ const TokenTypeData = {
   arg1: new TokenTypes({ nonVerb: true }),
   topLevel: new TokenTypes({ nonVerb: true, private: true }),
   eq: new TokenTypes({ chainIndex: 1 }),
+  call: new TokenTypes({ chainIndex: 2 }),
   wildcard: new TokenTypes({ nonVerb: true, private: true })
 };
 

@@ -1,5 +1,5 @@
 function base() {
-  function $NAME($model) {
+  function $NAME($model, $funcLib) {
     const $res = { $model };
 
     function mapValues(arg0, arg1, context) {

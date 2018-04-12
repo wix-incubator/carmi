@@ -1,5 +1,5 @@
 function base() {
-  function $NAME($model) {
+  function $NAME($model, $funcLib) {
     'use strict';
     const $res = { $model };
     const $trackingMap = new WeakMap();
