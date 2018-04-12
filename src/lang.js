@@ -1,3 +1,5 @@
+const TokenTypes = require('./token-type');
+
 class Token {
   constructor(type) {
     this.$type = type;
@@ -14,26 +16,26 @@ class Token {
   }
 }
 
-const TokensRequireExpressions = {
-  and: true,
-  or: true,
-  not: true,
-  get: true,
-  root: false,
-  mapValues: true,
-  filterBy: true,
-  mapKeys: true,
-  groupBy: true,
-  context: false,
-  func: true,
-  arg0: false,
-  arg1: false,
-  topLevel: true,
-  eq: true,
-  wildcard: false
+const TokenTypeData = {
+  and: new TokenTypes({ nonChained: true }),
+  or: new TokenTypes({ nonChained: true }),
+  not: new TokenTypes({ chainIndex: 1 }),
+  get: new TokenTypes({ chainIndex: 2 }),
+  root: new TokenTypes({ nonVerb: true }),
+  mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  filterBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  mapKeys: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  context: new TokenTypes({ nonVerb: true }),
+  func: new TokenTypes({ private: true }),
+  arg0: new TokenTypes({ nonVerb: true }),
+  arg1: new TokenTypes({ nonVerb: true }),
+  topLevel: new TokenTypes({ nonVerb: true, private: true }),
+  eq: new TokenTypes({ chainIndex: 1 }),
+  wildcard: new TokenTypes({ nonVerb: true, private: true })
 };
 
-const AllTokens = Object.keys(TokensRequireExpressions).reduce((acc, k) => {
+const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
   acc[k[0].toUpperCase() + k.slice(1)] = new Token(k);
   return acc;
 }, {});
@@ -58,7 +60,7 @@ AllTokens.Expr = (...args) => new Expression(...args);
 AllTokens.Setter = (...args) => new SetterExpression(...args);
 AllTokens.TokensThatOperateOnCollections = ['mapValues', 'filterBy', 'mapKeys', 'groupBy'];
 AllTokens.Expression = Expression;
-AllTokens.TokensRequireExpressions = TokensRequireExpressions; //AllTokensList;
+AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 
 module.exports = AllTokens;

@@ -227,7 +227,6 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
     let canBeExprBeInvalidated = false;
     exprPathsMaps.forEach(pathMap =>
       pathMap.forEach((cond, path) => {
-        console.log(path);
         if (_.some(currentSetters, setter => pathMatches(path, setter))) {
           canBeExprBeInvalidated = true;
         } else {
@@ -278,12 +277,6 @@ function findReferencesToPathInAllGetters(path, getters) {
     }
     return accAllGetters;
   }, {});
-  /*console.log(
-    'findReferencesToPathInAllGetters',
-    path,
-    JSON.stringify(_.mapValues(res, getterPaths => _.map(getterPaths, pathToString)), null, 2),
-    JSON.stringify(_.mapValues(pathsInAllGetters, getterPaths => _.map(getterPaths, pathToString)), null, 2)
-  );*/
   return res;
 }
 

@@ -13,6 +13,7 @@ const {
   func,
   arg0,
   arg1,
+  context,
   Expr,
   Setter,
   Expression
@@ -21,51 +22,21 @@ const {
 const naive = process.argv[2] === 'naive';
 
 function TodosModel() {
-  const todos = get('todos', root);
-  const pendingTodos = filterBy(func(not(get('done', arg0))), todos);
-  const blockedBy = mapValues(func(get('blockedBy', arg0)), todos);
-  const todosDone = mapValues(func(get('done', arg0)), todos);
-  const isNotDone = func(and(arg0, not(get('done', get(arg0, todos)))));
-  const isNotDone2 = func(and(arg0, not(get(arg0, todosDone))));
-  const isNotDone3 = func(get(arg0, pendingTodos));
-  const isBlocked = mapValues(isNotDone, blockedBy);
-  const isBlocked2 = mapValues(isNotDone2, blockedBy);
-  const isBlocked3 = mapValues(isNotDone3, blockedBy);
-  const canItemBeWorkedOn = func(
-    and(not(get('done', arg0)), or(not(get('blockedBy', arg0)), get(get('blockedBy', arg0), todosDone)))
+  const todos = root.get('todos');
+  const pendingTodos = todos.filterBy(arg0.get('done').not());
+  const blockedBy = todos.mapValues(arg0.get('blockedBy'));
+  const todosDone = todos.mapValues(arg0.get('done'));
+  const isBlocked3 = blockedBy.mapValues(pendingTodos.get(arg0));
+  const canBeWorkedOn = todos.mapValues(
+    and(arg0.get('done').not(), or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy'))))
   );
-  const canBeWorkedOn = mapValues(canItemBeWorkedOn, todos);
-
-  const shownTodo = or(and(get('showCompleted', root), canBeWorkedOn), pendingTodos);
-
-  const currentTask = get('currentTask', root);
-  const currentTaskTodo = get(currentTask, todos);
-
-  const statusOfCurrentTask = or(
-    and(get('done', currentTaskTodo), 'done'),
-    and(get(currentTask, isBlocked), 'blocked'),
-    'not done'
-  );
-
-  // const mapOfMaps = mapValues(
-  //   func(mapValues(func(get('showCompleted', root)), todos)),
-  //   todos
-  // );
-
-  // console.log({ isBlocked, blockedBy, isNotDone });
+  const blockedGrouped = pendingTodos.mapValues(todos.filterBy(arg0.get('blockedBy').eq(context), arg1));
 
   return {
-    isBlocked,
-    isBlocked2,
-    isBlocked3,
     canBeWorkedOn,
-    // mapOfMaps,
-    shownTodo,
     pendingTodos,
-    setTodo: Setter('todos', arg0),
-    setShowCompleted: Setter('showCompleted'),
-    setCurrentTask: Setter('currentTask'),
-    statusOfCurrentTask
+    blockedGrouped,
+    setTodo: Setter('todos', arg0)
   };
 }
 
@@ -88,7 +59,7 @@ try {
   console.log(JSON.stringify(currentValues(inst), null, 2));
   inst.setTodo(1, { ...inst.$model.todos['1'], done: true });
   console.log(JSON.stringify(currentValues(inst), null, 2));
-  inst.setShowCompleted(true);
+  inst.setTodo(2, { ...inst.$model.todos['2'], done: false });
   console.log(JSON.stringify(currentValues(inst), null, 2));
 } catch (e) {
   console.log(e);

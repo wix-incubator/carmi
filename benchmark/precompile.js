@@ -22,11 +22,13 @@ const fs = require('fs');
 const path = require('path');
 
 function TodosModel() {
-  const todosDone = mapValues(func(get('done', arg0)), get('todos', root));
-  const canItemBeWorkedOn = func(
-    and(not(get('done', arg0)), or(not(get('blockedBy', arg0)), get(get('blockedBy', arg0), todosDone)))
+  const todos = root.get('todos');
+  const todosDone = todos.mapValues(arg0.get('done'));
+  const canItemBeWorkedOn = and(
+    arg0.get('done').not(),
+    or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy')))
   );
-  const canBeWorkedOn = mapValues(canItemBeWorkedOn, get('todos', root));
+  const canBeWorkedOn = todos.mapValues(canItemBeWorkedOn);
   return {
     setTodo: Setter('todos', arg0),
     canBeWorkedOn

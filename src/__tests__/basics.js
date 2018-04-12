@@ -54,47 +54,41 @@ const randomInt = (function Alea(seed) {
   })();
 })(234234);
 
-function benchmark(title) {
-  if (timers[title]) {
-    const res = new Date() - timers[title];
-    delete timers[title];
-    console.log(title, res);
-  } else {
-    timers[title] = new Date();
-  }
-}
-
 describe('simple todo', () => {
   function TodosModel() {
-    const todos = get('todos', root);
-    const pendingTodos = filterBy(func(not(get('done', arg0))), todos);
-    const blockedBy = mapValues(func(get('blockedBy', arg0)), todos);
-    const todosDone = mapValues(func(get('done', arg0)), todos);
-    const isNotDone = func(and(arg0, not(get('done', get(arg0, todos)))));
-    const isNotDone2 = func(and(arg0, not(get(arg0, todosDone))));
-    const isNotDone3 = func(get(arg0, pendingTodos));
-    const isBlocked = mapValues(isNotDone, blockedBy);
-    const isBlocked2 = mapValues(isNotDone2, blockedBy);
-    const isBlocked3 = mapValues(isNotDone3, blockedBy);
-    const canItemBeWorkedOn = func(
-      and(not(get('done', arg0)), or(not(get('blockedBy', arg0)), get(get('blockedBy', arg0), todosDone)))
+    const todos = root.get('todos');
+    const pendingTodos = todos.filterBy(arg0.get('done').not());
+    const blockedBy = todos.mapValues(arg0.get('blockedBy'));
+    const todosDone = todos.mapValues(arg0.get('done'));
+    const isNotDone = and(
+      arg0,
+      todos
+        .get(arg0)
+        .get('done')
+        .not()
     );
-    const canBeWorkedOn = mapValues(canItemBeWorkedOn, todos);
+    const isNotDone2 = and(arg0, todosDone.get(arg0).not());
+    const isNotDone3 = pendingTodos.get(arg0);
+    const isBlocked = blockedBy.mapValues(isNotDone);
+    const isBlocked2 = blockedBy.mapValues(isNotDone2);
+    const isBlocked3 = blockedBy.mapValues(isNotDone3);
+    const canItemBeWorkedOn = and(
+      arg0.get('done').not(),
+      or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy')))
+    );
+    const canBeWorkedOn = todos.mapValues(canItemBeWorkedOn);
 
-    const shownTodo = or(and(get('showCompleted', root), canBeWorkedOn), pendingTodos);
+    const shownTodo = or(and(root.get('showCompleted'), canBeWorkedOn), pendingTodos);
 
-    const currentTask = get('currentTask', root);
-    const currentTaskTodo = get(currentTask, todos);
+    const currentTask = root.get('currentTask');
+    const currentTaskTodo = todos.get(currentTask);
     const statusOfCurrentTask = or(
-      and(get('done', currentTaskTodo), 'done'),
-      and(get(currentTask, isBlocked), 'blocked'),
+      and(currentTaskTodo.get('done'), 'done'),
+      and(isBlocked.get(currentTask), 'blocked'),
       'not done'
     );
 
-    const blockedGrouped = mapValues(
-      func(filterBy(func(eq(get('blockedBy', arg0), context)), todos, arg1)),
-      pendingTodos
-    );
+    const blockedGrouped = pendingTodos.mapValues(todos.filterBy(arg0.get('blockedBy').eq(context), arg1));
 
     return {
       isBlocked,

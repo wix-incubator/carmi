@@ -60,7 +60,7 @@ function base() {
       const all = new Map();
       collectAllItems(all, $model, '$model');
       collectAllItems(all, $res, '$res');
-      console.log(`all has: ${all.size} records`);
+      console.log(`Found ${all.size} records`);
       console.log(JSON.stringify(serialize(all, { $trackingMap, $invalidatedMap }), null, 2));
     };
 
