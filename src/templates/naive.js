@@ -35,6 +35,10 @@ function base() {
       }, {});
     }
 
+    function map(arg0, arg1, context) {
+      return arg1.map((val, key) => arg0(val, key, context));
+    }
+
     /* ALL_EXPRESSIONS */
 
     function recalculate() {

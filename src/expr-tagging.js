@@ -20,15 +20,7 @@ const toposort = require('toposort');
 
 function isCollectionExpr(expr) {
   const $type = expr[0].$type;
-  switch ($type) {
-    case 'mapValues':
-    case 'filterBy':
-    case 'groupBy':
-    case 'mapKeys':
-      return true;
-    default:
-      return false;
-  }
+  return _.includes(TokensThatOperateOnCollections, $type);
 }
 
 function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {

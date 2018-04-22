@@ -23,6 +23,7 @@ const TokenTypeData = {
   get: new TokenTypes({ chainIndex: 2 }),
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  map: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true }),
   filterBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   mapKeys: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
@@ -59,7 +60,9 @@ class SetterExpression extends Array {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 AllTokens.Setter = (...args) => new SetterExpression(...args);
-AllTokens.TokensThatOperateOnCollections = ['mapValues', 'filterBy', 'mapKeys', 'groupBy'];
+AllTokens.TokensThatOperateOnCollections = Object.keys(TokenTypeData).filter(
+  k => TokenTypeData[k].collectionVerb
+);
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
