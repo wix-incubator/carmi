@@ -56,25 +56,20 @@ class OptimizingCompiler extends NaiveCompiler {
         if (expr[0].$conditional && expr[0].$rootName) {
           const getter = this.getters[expr[0].$rootName];
           const paths = allPathsInGetter(getter);
-          if (
-            Array.from(paths.values()).filter(k => k === expr[0].$id).length
-          ) {
-            return `${this.generateExpr(expr[2])}[($cond_${
-              expr[0].$id
-            } = true && ${this.generateExpr(expr[1])})]`;
+          if (Array.from(paths.values()).filter(k => k === expr[0].$id).length) {
+            return `${this.generateExpr(expr[2])}[($cond_${expr[0].$id} = true && ${this.generateExpr(expr[1])})]`;
           }
         }
         return super.generateExpr(expr);
       case 'map':
+      case 'any':
       case 'mapValues':
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
-        return `${
-          TokenTypeData[tokenType].arrayVerb ? 'forArray' : 'forObject'
-        }(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(
-          expr[2]
-        )}, ${
+        return `${TokenTypeData[tokenType].anyVerb ? 'any' : 'for'}${
+          TokenTypeData[tokenType].arrayVerb ? 'Array' : 'Object'
+        }(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
         })`;
       case 'topLevel':
@@ -112,15 +107,19 @@ class OptimizingCompiler extends NaiveCompiler {
     const invalidates = [];
     let parts = [];
     if (!_.isEmpty(refsToPath)) {
-      _.forEach(refsToPath, (allRelevantPathsInGetter, getterName) => {
+      /*_.forEach(refsToPath, (allRelevantPathsInGetter, getterName) => {
         _.forEach(allRelevantPathsInGetter, pathInGetter => {
           if (
             pathInGetter.length === path.length &&
             pathInGetter[path.length - 1].$type === 'wildcard'
           ) {
-            invalidates.push(`invalidate($res.${getterName}, ${targetKey})`);
+            invalidates.push(
+              `invalidate($invalidatedMap.get($res.${getterName}), ${
+                targetKey
+              })`
+            );
           } else if (path.length === 2) {
-            invalidates.push(`invalidate($res, '${getterName}')`);
+            invalidates.push(`invalidate($invalidatedRoots, '${getterName}')`);
           }
           invalidates.push(
             `// invalidate ${JSON.stringify(pathInGetter)} ${JSON.stringify(
@@ -128,16 +127,14 @@ class OptimizingCompiler extends NaiveCompiler {
             )}`
           );
         });
-      });
+      });*/
       invalidates.push(`triggerInvalidations(${targetObj}, ${targetKey})`);
     }
     return invalidates;
   }
 
   tracking(expr) {
-    const path = [new Token('topLevel'), expr[0].$rootName].concat(
-      new Array(expr[0].$depth).fill(new Token('arg1'))
-    );
+    const path = [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('arg1')));
     const invalidates = this.invalidates(path, 'acc', 'arg1');
     if (invalidates.filter(line => line.indexOf('//') !== 0).length > 0) {
       invalidates.unshift('if ($changed) {');
@@ -156,17 +153,9 @@ class OptimizingCompiler extends NaiveCompiler {
         );
         const precond = cond ? `$cond_${cond} && ` : '';
         if (invalidatedPath[0].$type === 'topLevel') {
-          if (
-            invalidatedPath[invalidatedPath.length - 1].$type === 'wildcard'
-          ) {
+          if (invalidatedPath[invalidatedPath.length - 1].$type !== 'wildcard' && invalidatedPath.length > 2) {
             tracks.push(
-              `${precond} track(acc[arg1],$wildcard, ${this.pathToString(
-                invalidatedPath.slice(0, invalidatedPath.length - 1)
-              )}, $wildcard)`
-            );
-          } else if (invalidatedPath.length > 2) {
-            tracks.push(
-              `${precond} track(acc, arg1, $res[${this.generateExpr(
+              `${precond} track($invalidatedKeys, arg1, $res[${this.generateExpr(
                 invalidatedPath[1]
               )}], ${this.generateExpr(invalidatedPath[2])})`
             );
@@ -175,21 +164,12 @@ class OptimizingCompiler extends NaiveCompiler {
           Object.values(this.setters).forEach(setter => {
             if (pathMatches(invalidatedPath, setter)) {
               const setterPath = setter.map(
-                (t, index) =>
-                  t instanceof Token && t.$type !== 'root'
-                    ? invalidatedPath[index]
-                    : t
+                (t, index) => (t instanceof Token && t.$type !== 'root' ? invalidatedPath[index] : t)
               );
               tracks.push(`// path matched ${JSON.stringify(setter)}`);
-              if (setterPath[setterPath.length - 1].$type === 'wildcard') {
+              if (setterPath[setterPath.length - 1].$type !== 'wildcard') {
                 tracks.push(
-                  `${precond} track(acc[arg1], $wildcard, ${this.pathToString(
-                    setterPath.slice(0, setterPath.length - 1)
-                  )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
-                );
-              } else {
-                tracks.push(
-                  `${precond} track(acc, arg1, ${this.pathToString(
+                  `${precond} track($invalidatedKeys, arg1, ${this.pathToString(
                     setterPath.slice(0, setterPath.length - 1)
                   )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
                 );
@@ -202,7 +182,7 @@ class OptimizingCompiler extends NaiveCompiler {
       });
     }
     if (tracks.filter(line => line.indexOf('//') !== 0).length > 0) {
-      tracks.unshift('untrack(acc, arg1)');
+      tracks.unshift('untrack($invalidatedKeys, arg1)');
     }
 
     return [...invalidates, ...tracks].join('\n');

@@ -24,6 +24,12 @@ const TokenTypeData = {
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   map: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true }),
+  any: new TokenTypes({
+    collectionVerb: true,
+    chainIndex: 2,
+    arrayVerb: true,
+    anyVerb: true
+  }),
   filterBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   mapKeys: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),

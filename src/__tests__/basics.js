@@ -78,7 +78,10 @@ describe('simple todo', () => {
     );
     const canBeWorkedOn = todos.mapValues(canItemBeWorkedOn);
 
-    const shownTodo = or(and(root.get('showCompleted'), canBeWorkedOn), pendingTodos);
+    const shownTodo = or(
+      and(root.get('showCompleted'), canBeWorkedOn),
+      pendingTodos
+    );
 
     const currentTask = root.get('currentTask');
     const currentTaskTodo = todos.get(currentTask);
@@ -88,7 +91,9 @@ describe('simple todo', () => {
       'not done'
     );
 
-    const blockedGrouped = pendingTodos.mapValues(todos.filterBy(arg0.get('blockedBy').eq(context), arg1));
+    const blockedGrouped = pendingTodos.mapValues(
+      todos.filterBy(arg0.get('blockedBy').eq(context), arg1)
+    );
 
     return {
       isBlocked,
@@ -110,7 +115,10 @@ describe('simple todo', () => {
     return {
       text: `todo_${idx}`,
       done: randomInt(2) === 0,
-      blockedBy: randomInt(4) === 2 ? '' + (idx + randomInt(countItems - 1)) % countItems : false
+      blockedBy:
+        randomInt(4) === 2
+          ? '' + (idx + randomInt(countItems - 1)) % countItems
+          : false
     };
   }
 
@@ -125,13 +133,11 @@ describe('simple todo', () => {
   it('compare naive and optimized', () => {
     const naiveFunc = eval(compile(TodosModel(), true));
     const optFunc = eval(compile(TodosModel()));
-    const initialState = { todos: generateTestTodoItems(countItems), currentTask: '1', showCompleted: false };
-    require('fs').writeFileSync(
-      'junk.js',
-      `const model = require('./tmp.js');
-const { currentValues } = require('./index');
-const inst = model(${JSON.stringify(initialState, null, 2)});`
-    );
+    const initialState = {
+      todos: generateTestTodoItems(countItems),
+      currentTask: '1',
+      showCompleted: false
+    };
     console.log(initialState);
     const naive = naiveFunc(initialState);
     const opt = optFunc(initialState);
@@ -164,11 +170,27 @@ const inst = model(${JSON.stringify(initialState, null, 2)});`
       const action = actionTypes[randomInt(actionTypes.length)]();
       action(naive);
       const actionDesc = action(opt);
-      console.log(actionDesc);
-      require('fs').appendFileSync('junk.js', '\n' + actionDesc);
-      require('fs').writeFileSync('tmp-opt.json', JSON.stringify(currentValues(opt), null, 2));
-      require('fs').writeFileSync('tmp-naive.json', JSON.stringify(currentValues(naive), null, 2));
       expect(currentValues(naive)).toEqual(currentValues(opt));
     });
+  });
+});
+describe('simple tests', () => {
+  it('test any', () => {
+    const model = {
+      anyTruthy: root.any(arg0),
+      set: Setter(arg0)
+    };
+    const optModel = eval(compile(model));
+    const inst = optModel(new Array(5));
+    expect(inst.anyTruthy).toEqual(false);
+    inst.set(3, true);
+    expect(inst.anyTruthy).toEqual(true);
+    inst.set(4, true);
+    expect(inst.anyTruthy).toEqual(true);
+    inst.set(3, false);
+    expect(inst.anyTruthy).toEqual(true);
+    inst.set(4, false);
+    expect(inst.anyTruthy).toEqual(false);
+    console.log(inst);
   });
 });

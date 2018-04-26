@@ -8,13 +8,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "jest": "^21.2.1",
     "lodash": "^4.17.4",
     "prettier": "^1.8.2",
     "toposort": "^1.0.6"
   },
   "devDependencies": {
-    "mobx": "^3.5.1"
+    "jest": "^21.2.1",
+    "mobx": "^3.5.1",
+    "random-seed": "^0.3.0"
   },
   "description": ""
 }

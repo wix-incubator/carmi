@@ -39,6 +39,10 @@ function base() {
       return arg1.map((val, key) => arg0(val, key, context));
     }
 
+    function any(arg0, arg1, context) {
+      return arg1.some((val, key) => arg0(val, key, context));
+    }
+
     /* ALL_EXPRESSIONS */
 
     function recalculate() {
