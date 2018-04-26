@@ -124,13 +124,13 @@ function base() {
       }
     }
 
-    function initOutput($targetObj, $targetKey, src, callback, createDefaultValue) {
+    function initOutput($targetObj, $targetKey, src, func, createDefaultValue) {
       let $new = false;
-      callback.output = callback.output || new WeakMap();
-      if (!callback.output.has($targetObj)) {
-        callback.output.set($targetObj, new WeakMap());
+      func.output = func.output || new WeakMap();
+      if (!func.output.has($targetObj)) {
+        func.output.set($targetObj, new WeakMap());
       }
-      const $targetOutputs = callback.output.get($targetObj);
+      const $targetOutputs = func.output.get($targetObj);
       if (!$targetOutputs.has(src)) {
         $targetOutputs.set(src, {});
       }
@@ -154,34 +154,34 @@ function base() {
     };
     const emptyArr = () => [];
 
-    function forObject($targetObj, $targetKey, callback, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, callback, emptyObj);
+    function forObject($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       const $invalidatedKeys = $invalidatedMap.get($out);
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
-        callback($invalidatedKeys, src, key, $out, context);
+        func($invalidatedKeys, src, key, $out, context);
       });
       $invalidatedKeys.clear();
       return $out;
     }
 
-    function forArray($targetObj, $targetKey, callback, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, callback, emptyArr);
+    function forArray($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       const $invalidatedKeys = $invalidatedMap.get($out);
       if ($new) {
         for (let key = 0; key < src.length; key++) {
-          callback($invalidatedKeys, src, key, $out, context);
+          func($invalidatedKeys, src, key, $out, context);
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          callback($invalidatedKeys, src, key, $out, context);
+          func($invalidatedKeys, src, key, $out, context);
         });
       }
       $invalidatedKeys.clear();
       return $out;
     }
 
-    function anyArray($targetObj, $targetKey, callback, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, callback, emptyArr);
+    function anyArray($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       const $invalidatedKeys = $invalidatedMap.get($out);
       // $out has at most 1 key - the one that stopped the previous run because it was truthy
       if ($new) {
@@ -193,7 +193,7 @@ function base() {
       if ($prevStop) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
-          if (callback($invalidatedKeys, src, $prevStop, $out, context)) {
+          if (func($invalidatedKeys, src, $prevStop, $out, context)) {
             return true;
           } else {
             $out.length = 0;
@@ -204,7 +204,7 @@ function base() {
       }
       for (let key of $invalidatedKeys) {
         $invalidatedKeys.delete(key);
-        if (callback($invalidatedKeys, src, key, $out, context)) {
+        if (func($invalidatedKeys, src, key, $out, context)) {
           $out[0] = key;
           return true;
         }
@@ -243,7 +243,7 @@ function topLevel() {
   function $$FUNCNAMEBuild() {
     /* PRETRACKING */
     const acc = $res;
-    const arg1 = '$FUNCNAME';
+    const key = '$FUNCNAME';
     const $changed = true;
     const $invalidatedKeys = $invalidatedRoots;
     $res.$FUNCNAME = $EXPR;
@@ -254,41 +254,41 @@ function topLevel() {
 }
 
 function mapValues() {
-  function $FUNCNAME($invalidatedKeys, src, arg1, acc, context) {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
     let $changed = false;
     /* PRETRACKING */
-    const arg0 = src[arg1];
-    if (!src.hasOwnProperty(arg1)) {
-      if (acc.hasOwnProperty(arg1)) {
-        delete acc[arg1];
+    const val = src[key];
+    if (!src.hasOwnProperty(key)) {
+      if (acc.hasOwnProperty(key)) {
+        delete acc[key];
         $changed = true;
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[arg1];
-      acc[arg1] = res;
+      $changed = res !== acc[key];
+      acc[key] = res;
     }
     /* TRACKING */
   }
 }
 
 function filterBy() {
-  function $FUNCNAME($invalidatedKeys, src, arg1, acc, context) {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
     let $changed = false;
     /* PRETRACKING */
-    const arg0 = src[arg1];
-    if (!src.hasOwnProperty(arg1)) {
-      if (acc.hasOwnProperty(arg1)) {
-        delete acc[arg1];
+    const val = src[key];
+    if (!src.hasOwnProperty(key)) {
+      if (acc.hasOwnProperty(key)) {
+        delete acc[key];
         $changed = true;
       }
     } else {
       const res = $EXPR1;
       if (res) {
-        $changed = acc[arg1] !== arg0;
-        acc[arg1] = arg0;
-      } else if (acc.hasOwnProperty(arg1)) {
-        delete acc[arg1];
+        $changed = acc[key] !== val;
+        acc[key] = val;
+      } else if (acc.hasOwnProperty(key)) {
+        delete acc[key];
         $changed = true;
       }
     }
@@ -297,35 +297,35 @@ function filterBy() {
 }
 
 function map() {
-  function $FUNCNAME($invalidatedKeys, src, arg1, acc, context) {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
     let $changed = false;
     /* PRETRACKING */
-    const arg0 = src[arg1];
-    if (arg1 > src.length) {
+    const val = src[key];
+    if (key > src.length) {
       $changed = true;
-      if (acc.length > arg1) {
+      if (acc.length > key) {
         acc.length = src.length;
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[arg1];
-      acc[arg1] = res;
+      $changed = res !== acc[key];
+      acc[key] = res;
     }
     /* TRACKING */
   }
 }
 
 function any() {
-  function $FUNCNAME($invalidatedKeys, src, arg1, acc, context) {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
     let $changed = false;
     /* PRETRACKING */
-    const arg0 = src[arg1];
+    const val = src[key];
     let res = false;
-    if (arg1 > src.length) {
+    if (key > src.length) {
       $changed = true;
     } else {
       res = $EXPR1;
-      $changed = acc[0] !== arg1;
+      $changed = acc[0] !== key;
     }
     /* TRACKING */
     return res;

@@ -69,7 +69,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'mapKeys':
         return `${TokenTypeData[tokenType].anyVerb ? 'any' : 'for'}${
           TokenTypeData[tokenType].arrayVerb ? 'Array' : 'Object'
-        }(acc, arg1, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
+        }(acc, key, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
         })`;
       case 'topLevel':
@@ -134,8 +134,8 @@ class OptimizingCompiler extends NaiveCompiler {
   }
 
   tracking(expr) {
-    const path = [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('arg1')));
-    const invalidates = this.invalidates(path, 'acc', 'arg1');
+    const path = [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('key')));
+    const invalidates = this.invalidates(path, 'acc', 'key');
     if (invalidates.filter(line => line.indexOf('//') !== 0).length > 0) {
       invalidates.unshift('if ($changed) {');
       invalidates.push('}');
@@ -155,7 +155,7 @@ class OptimizingCompiler extends NaiveCompiler {
         if (invalidatedPath[0].$type === 'topLevel') {
           if (invalidatedPath[invalidatedPath.length - 1].$type !== 'wildcard' && invalidatedPath.length > 2) {
             tracks.push(
-              `${precond} track($invalidatedKeys, arg1, $res[${this.generateExpr(
+              `${precond} track($invalidatedKeys, key, $res[${this.generateExpr(
                 invalidatedPath[1]
               )}], ${this.generateExpr(invalidatedPath[2])})`
             );
@@ -169,7 +169,7 @@ class OptimizingCompiler extends NaiveCompiler {
               tracks.push(`// path matched ${JSON.stringify(setter)}`);
               if (setterPath[setterPath.length - 1].$type !== 'wildcard') {
                 tracks.push(
-                  `${precond} track($invalidatedKeys, arg1, ${this.pathToString(
+                  `${precond} track($invalidatedKeys, key, ${this.pathToString(
                     setterPath.slice(0, setterPath.length - 1)
                   )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
                 );
@@ -182,7 +182,7 @@ class OptimizingCompiler extends NaiveCompiler {
       });
     }
     if (tracks.filter(line => line.indexOf('//') !== 0).length > 0) {
-      tracks.unshift('untrack($invalidatedKeys, arg1)');
+      tracks.unshift('untrack($invalidatedKeys, key)');
     }
 
     return [...invalidates, ...tracks].join('\n');

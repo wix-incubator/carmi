@@ -11,8 +11,9 @@ const {
   mapKeys,
   groupBy,
   func,
+  val,
+  key,
   arg0,
-  arg1,
   Expr,
   Setter,
   Expression
@@ -23,10 +24,10 @@ const path = require('path');
 
 function TodosModel() {
   const todos = root.get('todos');
-  const todosDone = todos.mapValues(arg0.get('done'));
+  const todosDone = todos.mapValues(val.get('done'));
   const canItemBeWorkedOn = and(
-    arg0.get('done').not(),
-    or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy')))
+    val.get('done').not(),
+    or(val.get('blockedBy').not(), todosDone.get(val.get('blockedBy')))
   );
   const canBeWorkedOn = todos.mapValues(canItemBeWorkedOn);
   return {

@@ -28,7 +28,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
     return expr;
   }
   if (expr instanceof Token) {
-    if (expr.$type === 'root' || expr.$type === 'arg0' || expr.$type === 'topLevel') {
+    if (expr.$type === 'root' || expr.$type === 'val' || expr.$type === 'topLevel') {
       return [expr];
     }
     return [];
@@ -120,7 +120,7 @@ function isStaticExpression(expr) {
       } else {
         return isStaticExpression(token);
       }
-    } else if (token.$type === 'arg0' || token.$type === 'arg1' || token.$type === 'context') {
+    } else if (token.$type === 'val' || token.$type === 'key' || token.$type === 'context') {
       return false;
     }
     return true;

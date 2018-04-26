@@ -13,8 +13,9 @@ const {
   mapKeys,
   groupBy,
   func,
+  val,
+  key,
   arg0,
-  arg1,
   Expr,
   Setter,
   Expression
@@ -57,31 +58,28 @@ const randomInt = (function Alea(seed) {
 describe('simple todo', () => {
   function TodosModel() {
     const todos = root.get('todos');
-    const pendingTodos = todos.filterBy(arg0.get('done').not());
-    const blockedBy = todos.mapValues(arg0.get('blockedBy'));
-    const todosDone = todos.mapValues(arg0.get('done'));
+    const pendingTodos = todos.filterBy(val.get('done').not());
+    const blockedBy = todos.mapValues(val.get('blockedBy'));
+    const todosDone = todos.mapValues(val.get('done'));
     const isNotDone = and(
-      arg0,
+      val,
       todos
-        .get(arg0)
+        .get(val)
         .get('done')
         .not()
     );
-    const isNotDone2 = and(arg0, todosDone.get(arg0).not());
-    const isNotDone3 = pendingTodos.get(arg0);
+    const isNotDone2 = and(val, todosDone.get(val).not());
+    const isNotDone3 = pendingTodos.get(val);
     const isBlocked = blockedBy.mapValues(isNotDone);
     const isBlocked2 = blockedBy.mapValues(isNotDone2);
     const isBlocked3 = blockedBy.mapValues(isNotDone3);
     const canItemBeWorkedOn = and(
-      arg0.get('done').not(),
-      or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy')))
+      val.get('done').not(),
+      or(val.get('blockedBy').not(), todosDone.get(val.get('blockedBy')))
     );
     const canBeWorkedOn = todos.mapValues(canItemBeWorkedOn);
 
-    const shownTodo = or(
-      and(root.get('showCompleted'), canBeWorkedOn),
-      pendingTodos
-    );
+    const shownTodo = or(and(root.get('showCompleted'), canBeWorkedOn), pendingTodos);
 
     const currentTask = root.get('currentTask');
     const currentTaskTodo = todos.get(currentTask);
@@ -91,9 +89,7 @@ describe('simple todo', () => {
       'not done'
     );
 
-    const blockedGrouped = pendingTodos.mapValues(
-      todos.filterBy(arg0.get('blockedBy').eq(context), arg1)
-    );
+    const blockedGrouped = pendingTodos.mapValues(todos.filterBy(val.get('blockedBy').eq(context), key));
 
     return {
       isBlocked,
@@ -115,10 +111,7 @@ describe('simple todo', () => {
     return {
       text: `todo_${idx}`,
       done: randomInt(2) === 0,
-      blockedBy:
-        randomInt(4) === 2
-          ? '' + (idx + randomInt(countItems - 1)) % countItems
-          : false
+      blockedBy: randomInt(4) === 2 ? '' + (idx + randomInt(countItems - 1)) % countItems : false
     };
   }
 
@@ -177,7 +170,7 @@ describe('simple todo', () => {
 describe('simple tests', () => {
   it('test any', () => {
     const model = {
-      anyTruthy: root.any(arg0),
+      anyTruthy: root.any(val),
       set: Setter(arg0)
     };
     const optModel = eval(compile(model));

@@ -61,12 +61,12 @@ class NaiveCompiler {
         })`;
       case 'func':
         return currentToken.funcName;
+      case 'val':
+      case 'key':
       case 'arg0':
-        return 'arg0';
       case 'arg1':
-        return 'arg1';
       case 'context':
-        return 'context';
+        return tokenType;
       case 'topLevel':
         return `$res`;
       case 'call':

@@ -2,45 +2,45 @@ function base() {
   function $NAME($model, $funcLib) {
     const $res = { $model };
 
-    function mapValues(arg0, arg1, context) {
-      return Object.keys(arg1).reduce((acc, key) => {
-        acc[key] = arg0(arg1[key], key, context);
+    function mapValues(func, src, context) {
+      return Object.keys(src).reduce((acc, key) => {
+        acc[key] = func(src[key], key, context);
         return acc;
       }, {});
     }
 
-    function filterBy(arg0, arg1, context) {
-      return Object.keys(arg1).reduce((acc, key) => {
-        if (arg0(arg1[key], key, context)) {
-          acc[key] = arg1[key];
+    function filterBy(func, src, context) {
+      return Object.keys(src).reduce((acc, key) => {
+        if (func(src[key], key, context)) {
+          acc[key] = src[key];
         }
         return acc;
       }, {});
     }
 
-    function groupBy(arg0, arg1, context) {
-      return Object.keys(arg1).reduce((acc, key) => {
-        const newKey = arg0(arg1[key], key, context);
+    function groupBy(func, src, context) {
+      return Object.keys(src).reduce((acc, key) => {
+        const newKey = func(src[key], key, context);
         acc[newKey] = acc[newKey] || [];
-        acc[newKey].push(arg1[key]);
+        acc[newKey].push(src[key]);
         return acc;
       }, {});
     }
 
-    function mapKeys(arg0, arg1, context) {
-      return Object.keys(arg1).reduce((acc, key) => {
-        const newKey = arg0(arg1[key], key, context);
-        acc[newKey] = arg1[key];
+    function mapKeys(func, src, context) {
+      return Object.keys(src).reduce((acc, key) => {
+        const newKey = func(src[key], key, context);
+        acc[newKey] = src[key];
         return acc;
       }, {});
     }
 
-    function map(arg0, arg1, context) {
-      return arg1.map((val, key) => arg0(val, key, context));
+    function map(func, src, context) {
+      return src.map((val, key) => func(val, key, context));
     }
 
-    function any(arg0, arg1, context) {
-      return arg1.some((val, key) => arg0(val, key, context));
+    function any(func, src, context) {
+      return src.some((val, key) => func(val, key, context));
     }
 
     /* ALL_EXPRESSIONS */
@@ -61,7 +61,7 @@ function base() {
 }
 
 function func() {
-  function $FUNCNAME(arg0, arg1, context) {
+  function $FUNCNAME(val, key, context) {
     return $EXPR1;
   }
 }

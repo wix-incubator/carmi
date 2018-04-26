@@ -11,9 +11,10 @@ const {
   mapKeys,
   groupBy,
   func,
-  arg0,
-  arg1,
+  val,
+  key,
   context,
+  arg0,
   Expr,
   Setter,
   Expression
@@ -23,15 +24,15 @@ const naive = process.argv[2] === 'naive';
 
 function TodosModel() {
   const todos = root.get('todos');
-  const pendingTodos = todos.filterBy(arg0.get('done').not());
-  const blockedBy = todos.mapValues(arg0.get('blockedBy'));
-  const todosDone = todos.mapValues(arg0.get('done'));
-  const isBlocked3 = blockedBy.mapValues(pendingTodos.get(arg0));
+  const pendingTodos = todos.filterBy(val.get('done').not());
+  const blockedBy = todos.mapValues(val.get('blockedBy'));
+  const todosDone = todos.mapValues(val.get('done'));
+  const isBlocked3 = blockedBy.mapValues(pendingTodos.get(val));
   const canBeWorkedOn = todos.mapValues(
-    and(arg0.get('done').not(), or(arg0.get('blockedBy').not(), todosDone.get(arg0.get('blockedBy'))))
+    and(val.get('done').not(), or(val.get('blockedBy').not(), todosDone.get(val.get('blockedBy'))))
   );
-  const blockedGrouped = pendingTodos.mapValues(todos.filterBy(arg0.get('blockedBy').eq(context), arg1));
-  const todosDoneText = todos.mapValues(arg0.get('done').call('toDoneString'));
+  const blockedGrouped = pendingTodos.mapValues(todos.filterBy(val.get('blockedBy').eq(context), key));
+  const todosDoneText = todos.mapValues(val.get('done').call('toDoneString'));
 
   return {
     canBeWorkedOn,

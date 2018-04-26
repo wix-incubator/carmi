@@ -35,6 +35,8 @@ const TokenTypeData = {
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   context: new TokenTypes({ nonVerb: true }),
   func: new TokenTypes({ private: true }),
+  val: new TokenTypes({ nonVerb: true }),
+  key: new TokenTypes({ nonVerb: true }),
   arg0: new TokenTypes({ nonVerb: true }),
   arg1: new TokenTypes({ nonVerb: true }),
   topLevel: new TokenTypes({ nonVerb: true, private: true }),
@@ -66,9 +68,7 @@ class SetterExpression extends Array {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 AllTokens.Setter = (...args) => new SetterExpression(...args);
-AllTokens.TokensThatOperateOnCollections = Object.keys(TokenTypeData).filter(
-  k => TokenTypeData[k].collectionVerb
-);
+AllTokens.TokensThatOperateOnCollections = Object.keys(TokenTypeData).filter(k => TokenTypeData[k].collectionVerb);
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
