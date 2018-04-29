@@ -180,6 +180,36 @@ function base() {
       return $out;
     }
 
+    function anyObject($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      // $out has at most 1 key - the one that stopped the previous run because it was truthy
+      if ($new) {
+        Object.keys(src).forEach(key => $invalidatedKeys.add(key));
+      }
+      const $prevStop = $out.length > 0 ? $out[0] : false;
+      if ($prevStop) {
+        if ($invalidatedKeys.has($prevStop)) {
+          $invalidatedKeys.delete($prevStop);
+          if (func($invalidatedKeys, src, $prevStop, $out, context)) {
+            return true;
+          } else {
+            $out.length = 0;
+          }
+        } else {
+          return true;
+        }
+      }
+      for (let key of $invalidatedKeys) {
+        $invalidatedKeys.delete(key);
+        if (func($invalidatedKeys, src, key, $out, context)) {
+          $out[0] = key;
+          return true;
+        }
+      }
+      return false;
+    }
+
     function anyArray($targetObj, $targetKey, func, src, context) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       const $invalidatedKeys = $invalidatedMap.get($out);
@@ -332,4 +362,21 @@ function any() {
   }
 }
 
-module.exports = { base, topLevel, mapValues, filterBy, map, any };
+function anyValues() {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
+    let $changed = false;
+    /* PRETRACKING */
+    let res = false;
+    const val = src[key];
+    if (!src.hasOwnProperty(key)) {
+      $changed = true;
+    } else {
+      res = $EXPR1;
+      $changed = acc[0] !== key;
+    }
+    /* TRACKING */
+    return res;
+  }
+}
+
+module.exports = { base, topLevel, mapValues, filterBy, map, any, anyValues };

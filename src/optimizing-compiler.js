@@ -64,6 +64,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'map':
       case 'any':
       case 'mapValues':
+      case 'anyValues':
       case 'filterBy':
       case 'groupBy':
       case 'mapKeys':
