@@ -4,6 +4,7 @@ const {
   Setter,
   Expression,
   SetterExpression,
+  SpliceSetterExpression,
   TokenTypeData,
   TokensThatOperateOnCollections
 } = require('./lang');
@@ -99,6 +100,19 @@ class OptimizingCompiler extends NaiveCompiler {
       .slice(1)
       .filter(t => typeof t !== 'string')
       .map(t => t.$type);
+
+    if (setterExpr instanceof SpliceSetterExpression) {
+      return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
+          const arr = ${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))};
+          const origLength = arr.length;
+          const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
+          for (let i = key; i < end; i++ ) {
+            triggerInvalidations(arr, i);
+          }
+          ${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))}.splice(key, len, ...newItems);
+          recalculate();
+      }`;
+    }
     return `${name}:(${args.concat('value').join(',')}) => {
               ${
                 this.invalidates(setterExpr)

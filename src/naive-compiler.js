@@ -1,4 +1,4 @@
-const { Expr, Token, Setter, Expression, SetterExpression, TopLevel } = require('./lang');
+const { Expr, Token, Setter, Expression, SetterExpression, TopLevel, SpliceSetterExpression } = require('./lang');
 const _ = require('lodash');
 const fs = require('fs');
 const { splitSettersGetters, topologicalSortGetters, tagAllExpressions } = require('./expr-tagging');
@@ -95,6 +95,12 @@ class NaiveCompiler {
       .slice(1)
       .filter(t => typeof t !== 'string')
       .map(t => t.$type);
+    if (setterExpr instanceof SpliceSetterExpression) {
+      return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
+        ${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))}.splice(key, len, ...newItems);
+        recalculate();
+    }`;
+    }
     return `${name}:(${args.concat('value').join(',')}) => {
               ${this.pathToString(setterExpr)} = value;
               recalculate();

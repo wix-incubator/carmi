@@ -1,4 +1,4 @@
-const { currentValues, compile, and, or, context, root, val, key, arg0, Setter } = require('../../index');
+const { currentValues, compile, and, or, context, root, val, key, arg0, Setter, Splice } = require('../../index');
 const _ = require('lodash');
 const rand = require('random-seed').create();
 const defaultSeed = 'CARMI';
@@ -50,5 +50,26 @@ describe('testing array', () => {
     inst.set(4, false);
     expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 5);
     expect(inst.anyTruthy).toEqual(false);
+  });
+  it('simple keyBy', () => {
+    const model = {
+      itemByIdx: root.keyBy(val.get('idx')).mapValues(val.get('text').call('tap')),
+      set: Setter(arg0),
+      splice: Splice()
+    };
+    const optModel = eval(compile(model));
+    const inst = optModel([{ idx: 1, text: 'a' }, { idx: 2, text: 'b' }, { idx: 3, text: 'c' }], funcLibrary);
+    expect(funcLibrary.tap.mock.calls.length).toEqual(3);
+    expect(inst.itemByIdx).toEqual({ 1: 'a', 2: 'b', 3: 'c' });
+    inst.set(0, { idx: 4, text: 'd' });
+    expect(funcLibrary.tap.mock.calls.length).toEqual(4);
+    expect(inst.itemByIdx).toEqual({ 4: 'd', 2: 'b', 3: 'c' });
+    inst.splice(1, 2, { idx: 3, text: 'e' });
+    expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
+    expect(funcLibrary.tap.mock.calls.length).toEqual(5);
+    const reverseArray = [...inst.$model].reverse();
+    inst.splice(0, inst.$model.length, ...reverseArray);
+    expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
+    expect(funcLibrary.tap.mock.calls.length).toEqual(5);
   });
 });

@@ -73,12 +73,15 @@ class Expression extends Array {
 }
 
 class SetterExpression extends Array {}
+class SpliceSetterExpression extends SetterExpression {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 AllTokens.Setter = (...args) => new SetterExpression(...args);
+AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
 AllTokens.TokensThatOperateOnCollections = Object.keys(TokenTypeData).filter(k => TokenTypeData[k].collectionVerb);
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
+AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 
 module.exports = AllTokens;
