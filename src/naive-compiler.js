@@ -147,7 +147,14 @@ class NaiveCompiler {
         const replaceFunc = typeof placeHolders[name] === 'function' ? placeHolders[name]() : () => placeHolders[name];
         const commentRegex = new RegExp('/\\*\\s*' + name + '\\s*([\\s\\S]*?)\\*/', 'mg');
         const dollarRegex = new RegExp('\\$' + name, 'g');
-        return result.replace(commentRegex, replaceFunc).replace(dollarRegex, replaceFunc);
+        const inCommentRegex = new RegExp(
+          '/\\*\\s*' + name + '\\s*\\*/([\\s\\S]*?)/\\*\\s*' + name + '\\-END\\s*\\*/',
+          'mg'
+        );
+        return result
+          .replace(inCommentRegex, replaceFunc)
+          .replace(commentRegex, replaceFunc)
+          .replace(dollarRegex, replaceFunc);
       }, template.toString())
       .replace(/function\s*\w*\(\)\s*\{\s*([\s\S]+)\}/, (m, i) => i);
   }

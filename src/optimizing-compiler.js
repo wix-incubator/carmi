@@ -125,8 +125,6 @@ class OptimizingCompiler extends NaiveCompiler {
 
   tracking(expr) {
     const path = this.pathOfExpr(expr);
-    console.log(JSON.stringify(expr, null, 2), expr[0].$type);
-
     const tracks = [];
     const pathsThatInvalidate = expr[0].$path;
     if (pathsThatInvalidate) {

@@ -315,9 +315,11 @@ function topLevel() {
     $res.$FUNCNAME = $EXPR;
     $invalidatedRoots.delete('$FUNCNAME');
     /* TRACKING */
-    /* INVALIDATES if ($changed) {
+    /* INVALIDATES */
+    if ($changed) {
       triggerInvalidations(acc, key);
-    } */
+    }
+    /* INVALIDATES-END */
     return $res.$FUNCNAME;
   }
 }
@@ -338,9 +340,11 @@ function mapValues() {
       acc[key] = res;
     }
     /* TRACKING */
-    /* INVALIDATES if ($changed) {
+    /* INVALIDATES */
+    if ($changed) {
       triggerInvalidations(acc, key);
-    }*/
+    }
+    /* INVALIDATES-END */
   }
 }
 
@@ -365,9 +369,11 @@ function filterBy() {
       }
     }
     /* TRACKING */
-    /* INVALIDATES if ($changed) {
+    /* INVALIDATES */
+    if ($changed) {
       triggerInvalidations(acc, key);
-    }*/
+    }
+    /* INVALIDATES-END */
   }
 }
 
@@ -387,9 +393,11 @@ function map() {
       acc[key] = res;
     }
     /* TRACKING */
-    /* INVALIDATES if ($changed) {
+    /* INVALIDATES */
+    if ($changed) {
       triggerInvalidations(acc, key);
-    }*/
+    }
+    /* INVALIDATES-END */
   }
 }
 
@@ -440,9 +448,11 @@ function keyBy() {
       acc[res] = val;
       $idxToKey[key] = res;
       /* TRACKING */
-      /* INVALIDATES if ($changed) {
+      /* INVALIDATES */
+      if ($changed) {
         triggerInvalidations(acc, res);
-      }*/
+      }
+      /* INVALIDATES-END */
     }
     return res;
   }
