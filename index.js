@@ -1,4 +1,4 @@
-const { TokenTypeData, Expr, Token, Setter, Expression } = require('./src/lang');
+const { TokenTypeData, Expr, Token, Setter, Expression, Splice } = require('./src/lang');
 const NaiveCompiler = require('./src/naive-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
 const prettier = require('prettier');
@@ -57,7 +57,7 @@ function currentValues(inst) {
     }, {});
 }
 
-const exported = { currentValues, compile, Setter, Expression };
+const exported = { currentValues, compile, Setter, Expression, Splice };
 Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].private) {
     return; // privates aren't exported - only used in optimizing code or internally

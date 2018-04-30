@@ -8,6 +8,11 @@ describe('testing array', () => {
     tap: x => x
   };
 
+  function expectTapFunctionToHaveBeenCalled(n) {
+    expect(funcLibrary.tap.mock.calls.length).toEqual(n);
+    funcLibrary.tap.mockClear();
+  }
+
   beforeEach(() => {
     rand.seed(defaultSeed);
     jest.spyOn(funcLibrary, 'tap');
@@ -22,9 +27,10 @@ describe('testing array', () => {
     const optCode = eval(compile(model));
     const inst = optCode([true, true, false, false, false], funcLibrary);
     expect(inst.negated).toEqual([false, false, true, true, true]);
+    expectTapFunctionToHaveBeenCalled(inst.$model.length);
     inst.set(1, false);
     expect(inst.negated).toEqual([false, true, true, true, true]);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 1);
+    expectTapFunctionToHaveBeenCalled(1);
   });
   it('simple any', () => {
     const model = {
@@ -33,22 +39,22 @@ describe('testing array', () => {
     };
     const optModel = eval(compile(model));
     const inst = optModel([true, false, false, false, false], funcLibrary);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(1);
+    expectTapFunctionToHaveBeenCalled(1);
     expect(inst.anyTruthy).toEqual(true);
     inst.set(0, false);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 1);
+    expectTapFunctionToHaveBeenCalled(inst.$model.length);
     expect(inst.anyTruthy).toEqual(false);
     inst.set(3, true);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 2);
+    expectTapFunctionToHaveBeenCalled(1);
     expect(inst.anyTruthy).toEqual(true);
     inst.set(4, true);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 2);
+    expectTapFunctionToHaveBeenCalled(0);
     expect(inst.anyTruthy).toEqual(true);
     inst.set(3, false);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 4);
+    expectTapFunctionToHaveBeenCalled(2);
     expect(inst.anyTruthy).toEqual(true);
     inst.set(4, false);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(inst.$model.length + 5);
+    expectTapFunctionToHaveBeenCalled(1);
     expect(inst.anyTruthy).toEqual(false);
   });
   it('simple keyBy', () => {
@@ -59,17 +65,17 @@ describe('testing array', () => {
     };
     const optModel = eval(compile(model));
     const inst = optModel([{ idx: 1, text: 'a' }, { idx: 2, text: 'b' }, { idx: 3, text: 'c' }], funcLibrary);
-    expect(funcLibrary.tap.mock.calls.length).toEqual(3);
+    expectTapFunctionToHaveBeenCalled(3);
     expect(inst.itemByIdx).toEqual({ 1: 'a', 2: 'b', 3: 'c' });
     inst.set(0, { idx: 4, text: 'd' });
-    expect(funcLibrary.tap.mock.calls.length).toEqual(4);
+    expectTapFunctionToHaveBeenCalled(1);
     expect(inst.itemByIdx).toEqual({ 4: 'd', 2: 'b', 3: 'c' });
     inst.splice(1, 2, { idx: 3, text: 'e' });
     expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
-    expect(funcLibrary.tap.mock.calls.length).toEqual(5);
+    expectTapFunctionToHaveBeenCalled(1);
     const reverseArray = [...inst.$model].reverse();
     inst.splice(0, inst.$model.length, ...reverseArray);
     expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
-    expect(funcLibrary.tap.mock.calls.length).toEqual(5);
+    expectTapFunctionToHaveBeenCalled(0);
   });
 });
