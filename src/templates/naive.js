@@ -47,6 +47,13 @@ function base() {
       return Object.keys(src).some(key => func(src[key], key, context));
     }
 
+    function keyBy(func, src, context) {
+      return src.reduce((acc, val, key) => {
+        acc[func(val, key, context)] = val;
+        return acc;
+      }, {});
+    }
+
     /* ALL_EXPRESSIONS */
 
     function recalculate() {

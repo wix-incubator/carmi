@@ -56,6 +56,7 @@ class NaiveCompiler {
       case 'mapKeys':
       case 'map':
       case 'any':
+      case 'keyBy':
       case 'anyValues':
         return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
@@ -144,7 +145,7 @@ class NaiveCompiler {
     return Object.keys(placeHolders)
       .reduce((result, name) => {
         const replaceFunc = typeof placeHolders[name] === 'function' ? placeHolders[name]() : () => placeHolders[name];
-        const commentRegex = new RegExp('/\\*\\s*' + name + '\\s*\\*/');
+        const commentRegex = new RegExp('/\\*\\s*' + name + '\\s*([\\s\\S]*?)\\*/', 'mg');
         const dollarRegex = new RegExp('\\$' + name, 'g');
         return result.replace(commentRegex, replaceFunc).replace(dollarRegex, replaceFunc);
       }, template.toString())

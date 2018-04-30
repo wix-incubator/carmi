@@ -76,7 +76,7 @@ function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
   });
 }
 
-function tagExpressions(expr, name, currentDepth, indexChain, rootName) {
+function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName) {
   if (expr[0].$id) {
     return; //Already tagged
   }
@@ -85,13 +85,14 @@ function tagExpressions(expr, name, currentDepth, indexChain, rootName) {
   expr[0].$funcId = expr[FunctionId];
   expr[0].$rootName = rootName;
   expr[0].$depth = currentDepth;
+  expr[0].$funcType = funcType;
   expr.forEach((subExpression, childIndex) => {
     if (subExpression instanceof Expression) {
       if (subExpression[0].$type !== 'func') {
-        tagExpressions(subExpression, name, currentDepth, indexChain.concat(childIndex), rootName);
+        tagExpressions(subExpression, name, currentDepth, indexChain.concat(childIndex), funcType, rootName);
       } else {
         subExpression[0].$funcType = expr[0].$type;
-        tagExpressions(subExpression, name + '$' + expr[0].$id, currentDepth + 1, indexChain, rootName);
+        tagExpressions(subExpression, name + '$' + expr[0].$id, currentDepth + 1, indexChain, expr[0].$type, rootName);
       }
     }
   });
@@ -189,7 +190,7 @@ function extractAllStaticExpressionsAsValues(getters) {
 }
 
 function tagAllExpressions(getters) {
-  _.forEach(getters, (getter, name) => tagExpressions(getter, name, 0, [1], name));
+  _.forEach(getters, (getter, name) => tagExpressions(getter, name, 0, [1], 'topLevel', name));
 }
 
 function tagUnconditionalExpressions(expr, cond) {

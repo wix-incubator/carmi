@@ -180,6 +180,42 @@ function base() {
       return $out;
     }
 
+    const keyByStruct = () => {
+      return {
+        output: {},
+        idxToKey: []
+      };
+    };
+
+    const $keyByCache = new WeakMap();
+
+    function keyByArray($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      if ($new) {
+        $keyByCache.set($out, []);
+      }
+      const $idxToKey = $keyByCache.get($out);
+      if ($new) {
+        for (let key = 0; key < src.length; key++) {
+          func($invalidatedKeys, $idxToKey, src, key, $out, context);
+        }
+      } else {
+        const keysPendingDelete = new Set();
+        $invalidatedKeys.forEach(key => keysPendingDelete.add($idxToKey[key]));
+        $invalidatedKeys.forEach(key => {
+          keysPendingDelete.delete(func($invalidatedKeys, $idxToKey, src, key, $out, context));
+        });
+        keysPendingDelete.forEach(key => {
+          triggerInvalidations($out, key);
+          delete $out[key];
+        });
+      }
+      $idxToKey.length = src.length;
+      $invalidatedKeys.clear();
+      return $out;
+    }
+
     function anyObject($targetObj, $targetKey, func, src, context) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       const $invalidatedKeys = $invalidatedMap.get($out);
@@ -279,6 +315,9 @@ function topLevel() {
     $res.$FUNCNAME = $EXPR;
     $invalidatedRoots.delete('$FUNCNAME');
     /* TRACKING */
+    /* INVALIDATES if ($changed) {
+      triggerInvalidations(acc, key);
+    } */
     return $res.$FUNCNAME;
   }
 }
@@ -299,6 +338,9 @@ function mapValues() {
       acc[key] = res;
     }
     /* TRACKING */
+    /* INVALIDATES if ($changed) {
+      triggerInvalidations(acc, key);
+    }*/
   }
 }
 
@@ -323,6 +365,9 @@ function filterBy() {
       }
     }
     /* TRACKING */
+    /* INVALIDATES if ($changed) {
+      triggerInvalidations(acc, key);
+    }*/
   }
 }
 
@@ -342,6 +387,9 @@ function map() {
       acc[key] = res;
     }
     /* TRACKING */
+    /* INVALIDATES if ($changed) {
+      triggerInvalidations(acc, key);
+    }*/
   }
 }
 
@@ -361,6 +409,7 @@ function any() {
     return res;
   }
 }
+any.collectionFunc = 'anyArray';
 
 function anyValues() {
   function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
@@ -378,5 +427,26 @@ function anyValues() {
     return res;
   }
 }
+anyValues.collectionFunc = 'anyObject';
 
-module.exports = { base, topLevel, mapValues, filterBy, map, any, anyValues };
+function keyBy() {
+  function $FUNCNAME($invalidatedKeys, $idxToKey, src, key, acc, context) {
+    /* PRETRACKING */
+    let res = null;
+    if (key < src.length) {
+      const val = src[key];
+      res = '' + $EXPR1;
+      const $changed = acc[res] !== val;
+      acc[res] = val;
+      $idxToKey[key] = res;
+      /* TRACKING */
+      /* INVALIDATES if ($changed) {
+        triggerInvalidations(acc, res);
+      }*/
+    }
+    return res;
+  }
+}
+keyBy.collectionFunc = 'keyByArray';
+
+module.exports = { base, topLevel, mapValues, filterBy, map, any, anyValues, keyBy };

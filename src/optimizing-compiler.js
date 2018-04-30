@@ -42,6 +42,9 @@ class OptimizingCompiler extends NaiveCompiler {
               .join('');
           }
           return '';
+        },
+        INVALIDATES: () => (tag, content) => {
+          return this.invalidates(this.pathOfExpr(expr)) ? content : '';
         }
       },
       super.exprTemplatePlaceholders(expr, funcName)
@@ -67,9 +70,14 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'anyValues':
       case 'filterBy':
       case 'groupBy':
+      case 'keyBy':
       case 'mapKeys':
-        return `${TokenTypeData[tokenType].anyVerb ? 'any' : 'for'}${
-          TokenTypeData[tokenType].arrayVerb ? 'Array' : 'Object'
+        return `${
+          this.template[tokenType].collectionFunc
+            ? this.template[tokenType].collectionFunc
+            : TokenTypeData[tokenType].arrayVerb
+              ? 'forArray'
+              : 'forObject'
         }(acc, key, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
         })`;
@@ -92,55 +100,32 @@ class OptimizingCompiler extends NaiveCompiler {
       .filter(t => typeof t !== 'string')
       .map(t => t.$type);
     return `${name}:(${args.concat('value').join(',')}) => {
-              ${this.invalidates(
-                setterExpr,
-                this.pathToString(setterExpr.slice(0, setterExpr.length - 1)),
-                this.generateExpr(setterExpr[setterExpr.length - 1])
-              ).join('\n')}
+              ${
+                this.invalidates(setterExpr)
+                  ? `triggerInvalidations(${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))},
+                ${this.generateExpr(setterExpr[setterExpr.length - 1])})`
+                  : ''
+              }
               ${this.pathToString(setterExpr)}  = value;
               recalculate();
           }`;
   }
 
-  invalidates(path, targetObj, targetKey) {
+  invalidates(path) {
     const refsToPath = findReferencesToPathInAllGetters(path, this.getters);
-    // console.log('invalidates:', path, refsToPath);
-    const invalidates = [];
-    let parts = [];
     if (!_.isEmpty(refsToPath)) {
-      /*_.forEach(refsToPath, (allRelevantPathsInGetter, getterName) => {
-        _.forEach(allRelevantPathsInGetter, pathInGetter => {
-          if (
-            pathInGetter.length === path.length &&
-            pathInGetter[path.length - 1].$type === 'wildcard'
-          ) {
-            invalidates.push(
-              `invalidate($invalidatedMap.get($res.${getterName}), ${
-                targetKey
-              })`
-            );
-          } else if (path.length === 2) {
-            invalidates.push(`invalidate($invalidatedRoots, '${getterName}')`);
-          }
-          invalidates.push(
-            `// invalidate ${JSON.stringify(pathInGetter)} ${JSON.stringify(
-              getterName
-            )}`
-          );
-        });
-      });*/
-      invalidates.push(`triggerInvalidations(${targetObj}, ${targetKey})`);
+      return true;
     }
-    return invalidates;
+    return false;
+  }
+
+  pathOfExpr(expr) {
+    return [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('key')));
   }
 
   tracking(expr) {
-    const path = [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('key')));
-    const invalidates = this.invalidates(path, 'acc', 'key');
-    if (invalidates.filter(line => line.indexOf('//') !== 0).length > 0) {
-      invalidates.unshift('if ($changed) {');
-      invalidates.push('}');
-    }
+    const path = this.pathOfExpr(expr);
+    console.log(JSON.stringify(expr, null, 2), expr[0].$type);
 
     const tracks = [];
     const pathsThatInvalidate = expr[0].$path;
@@ -186,7 +171,7 @@ class OptimizingCompiler extends NaiveCompiler {
       tracks.unshift('untrack($invalidatedKeys, key)');
     }
 
-    return [...invalidates, ...tracks].join('\n');
+    return tracks.join('\n');
   }
 }
 

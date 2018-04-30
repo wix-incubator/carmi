@@ -27,13 +27,16 @@ const TokenTypeData = {
   any: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2,
-    arrayVerb: true,
-    anyVerb: true
+    arrayVerb: true
+  }),
+  keyBy: new TokenTypes({
+    collectionVerb: true,
+    chainIndex: 2,
+    arrayVerb: true
   }),
   anyValues: new TokenTypes({
     collectionVerb: true,
-    chainIndex: 2,
-    anyVerb: true
+    chainIndex: 2
   }),
   filterBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   mapKeys: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
