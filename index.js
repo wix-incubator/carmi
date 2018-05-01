@@ -16,6 +16,11 @@ proxyHandler.get = (target, key) => {
     args = [new Token(key), ...args];
     if (tokenData.chainIndex) {
       if (tokenData.collectionVerb) {
+        if (typeof args[1] === 'function') {
+          args[1] = args[1].apply(null, ['val', 'key', 'context'].map(t => wrap(new Token(t))));
+        } else if (typeof args[1] === 'string') {
+          args[1] = Expr.apply(null, [new Token('get'), args[1], new Token('val')]);
+        }
         args[1] = Expr.apply(null, [new Token('func'), args[1]]);
       }
       args.splice(tokenData.chainIndex, 0, target);
