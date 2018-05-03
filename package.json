@@ -3,9 +3,13 @@
   "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/jest/bin/jest.js"
+    "test": "node node_modules/jest/bin/jest.js",
+    "release": "wnpm-release --no-shrinkwrap"
   },
-  "author": "",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": "Avi Marcus",
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.4",
@@ -15,7 +19,8 @@
   "devDependencies": {
     "jest": "^21.2.1",
     "mobx": "^3.5.1",
-    "random-seed": "^0.3.0"
+    "random-seed": "^0.3.0",
+    "wnpm-ci": "latest"
   },
-  "description": ""
+  "description": "CARMI - Compiler for Automatic Reactive Modelling of Inference"
 }
