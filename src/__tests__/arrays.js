@@ -78,4 +78,41 @@ describe('testing array', () => {
     expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
     expectTapFunctionToHaveBeenCalled(0);
   });
+  it('simple comparison operations', () => {
+    const arr = root.get('arr');
+    const compareTo = root.get('compareTo');
+    const model = {
+      greaterThan: arr.map(val => val.gt(compareTo).call('tap')),
+      lessThan: arr.map(val => val.lt(compareTo).call('tap')),
+      greaterOrEqual: arr.map(val => val.gte(compareTo).call('tap')),
+      lessThanOrEqual: arr.map(val => val.lte(compareTo).call('tap')),
+      setArr: Setter('arr', arg0),
+      setCompareTo: Setter('compareTo')
+    };
+    const optModel = eval(compile(model));
+    const inst = optModel({ arr: [0, 1, 2, 3, 4], compareTo: 2 }, funcLibrary);
+    expect(currentValues(inst)).toEqual({
+      greaterThan: [false, false, false, true, true],
+      lessThan: [true, true, false, false, false],
+      greaterOrEqual: [false, false, true, true, true],
+      lessThanOrEqual: [true, true, true, false, false]
+    });
+    expectTapFunctionToHaveBeenCalled(20);
+    inst.setArr(4, 0);
+    expect(currentValues(inst)).toEqual({
+      greaterThan: [false, false, false, true, false],
+      lessThan: [true, true, false, false, true],
+      greaterOrEqual: [false, false, true, true, false],
+      lessThanOrEqual: [true, true, true, false, true]
+    });
+    expectTapFunctionToHaveBeenCalled(4);
+    inst.setCompareTo(100);
+    expect(currentValues(inst)).toEqual({
+      greaterThan: [false, false, false, false, false],
+      lessThan: [true, true, true, true, true],
+      greaterOrEqual: [false, false, false, false, false],
+      lessThanOrEqual: [true, true, true, true, true]
+    });
+    expectTapFunctionToHaveBeenCalled(20);
+  });
 });

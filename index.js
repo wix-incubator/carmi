@@ -53,6 +53,9 @@ function currentValues(inst) {
   if (typeof inst !== 'object') {
     return inst;
   }
+  if (Array.isArray(inst)) {
+    return inst.map(currentValues);
+  }
   return Object.keys(inst)
     .sort()
     .filter(k => typeof inst[k] !== 'function' && k.indexOf('$') !== 0)

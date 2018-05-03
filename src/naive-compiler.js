@@ -46,6 +46,14 @@ class NaiveCompiler {
         return `!(${this.generateExpr(expr[1])})`;
       case 'eq':
         return `(${this.generateExpr(expr[1])}) === (${this.generateExpr(expr[2])})`;
+      case 'lt':
+        return `(${this.generateExpr(expr[1])}) < (${this.generateExpr(expr[2])})`;
+      case 'lte':
+        return `(${this.generateExpr(expr[1])}) <= (${this.generateExpr(expr[2])})`;
+      case 'gt':
+        return `(${this.generateExpr(expr[1])}) > (${this.generateExpr(expr[2])})`;
+      case 'gte':
+        return `(${this.generateExpr(expr[1])}) >= (${this.generateExpr(expr[2])})`;
       case 'root':
         return '$model';
       case 'get':

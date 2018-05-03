@@ -23,7 +23,7 @@ const {
 
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, name) {
-    console.log(JSON.stringify(model, null, 2));
+    // console.log(JSON.stringify(model, null, 2));
     const { getters, setters } = splitSettersGetters(model);
     super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
   }
