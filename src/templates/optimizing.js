@@ -497,7 +497,7 @@ function filter() {
     const nextItemIdx = res ? prevItemIdx + 1 : prevItemIdx;
     let $changed = false;
     if (nextItemIdx !== prevItemIdx) {
-      $changed = acc[prevItemIdx] != val;
+      $changed = acc[prevItemIdx] !== val;
       acc[prevItemIdx] = val;
     }
     $idxToIdx[key + 1] = nextItemIdx;
