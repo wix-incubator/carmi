@@ -4,6 +4,18 @@ const fs = require('fs');
 const { splitSettersGetters, topologicalSortGetters, tagAllExpressions } = require('./expr-tagging');
 let idx = 0;
 
+const nativeOps = {
+  eq: '===',
+  plus: '+',
+  minus: '-',
+  mult: '*',
+  div: '/',
+  gt: '>',
+  gte: '>=',
+  lt: '<',
+  lte: '<='
+};
+
 class NaiveCompiler {
   constructor(model, name) {
     const { getters, setters } = splitSettersGetters(model);
@@ -45,15 +57,15 @@ class NaiveCompiler {
       case 'not':
         return `!(${this.generateExpr(expr[1])})`;
       case 'eq':
-        return `(${this.generateExpr(expr[1])}) === (${this.generateExpr(expr[2])})`;
       case 'lt':
-        return `(${this.generateExpr(expr[1])}) < (${this.generateExpr(expr[2])})`;
       case 'lte':
-        return `(${this.generateExpr(expr[1])}) <= (${this.generateExpr(expr[2])})`;
       case 'gt':
-        return `(${this.generateExpr(expr[1])}) > (${this.generateExpr(expr[2])})`;
       case 'gte':
-        return `(${this.generateExpr(expr[1])}) >= (${this.generateExpr(expr[2])})`;
+      case 'plus':
+      case 'minus':
+      case 'mult':
+      case 'div':
+        return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
       case 'root':
         return '$model';
       case 'get':

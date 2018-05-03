@@ -58,6 +58,10 @@ const TokenTypeData = {
   lt: new TokenTypes({ chainIndex: 1 }),
   gte: new TokenTypes({ chainIndex: 1 }),
   lte: new TokenTypes({ chainIndex: 1 }),
+  plus: new TokenTypes({ chainIndex: 1 }),
+  minus: new TokenTypes({ chainIndex: 1 }),
+  mult: new TokenTypes({ chainIndex: 1 }),
+  div: new TokenTypes({ chainIndex: 1 }),
   call: new TokenTypes({ chainIndex: 2 }),
   wildcard: new TokenTypes({ nonVerb: true, private: true })
 };
