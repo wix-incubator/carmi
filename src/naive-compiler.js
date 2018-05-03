@@ -56,6 +56,7 @@ class NaiveCompiler {
       case 'mapKeys':
       case 'map':
       case 'any':
+      case 'filter':
       case 'keyBy':
       case 'anyValues':
         return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${

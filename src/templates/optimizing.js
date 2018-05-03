@@ -216,6 +216,35 @@ function base() {
       return $out;
     }
 
+    const $filterCache = new WeakMap();
+
+    function filterArray($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      if ($new) {
+        $filterCache.set($out, [0]);
+      }
+      const $idxToIdx = $filterCache.get($out);
+      if ($new) {
+        for (let key = 0; key < src.length; key++) {
+          func($invalidatedKeys, $idxToIdx, src, key, $out, context);
+        }
+      } else {
+        let firstIndex = Number.MAX_SAFE_INTEGER;
+        $invalidatedKeys.forEach(key => (firstIndex = Math.min(firstIndex, key)));
+        for (let key = firstIndex; key < src.length; key++) {
+          func($invalidatedKeys, $idxToIdx, src, key, $out, context);
+        }
+        $idxToIdx.length = src.length + 1;
+        for (let key = $idxToIdx[$idxToIdx.length - 1]; key < $out.length; key++) {
+          triggerInvalidations($out, key);
+        }
+        $out.length = $idxToIdx[$idxToIdx.length - 1];
+      }
+      $invalidatedKeys.clear();
+      return $out;
+    }
+
     function anyObject($targetObj, $targetKey, func, src, context) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       const $invalidatedKeys = $invalidatedMap.get($out);
@@ -459,4 +488,27 @@ function keyBy() {
 }
 keyBy.collectionFunc = 'keyByArray';
 
-module.exports = { base, topLevel, mapValues, filterBy, map, any, anyValues, keyBy };
+function filter() {
+  function $FUNCNAME($invalidatedKeys, $idxToIdx, src, key, acc, context) {
+    /* PRETRACKING */
+    const val = src[key];
+    const res = $EXPR1;
+    const prevItemIdx = $idxToIdx[key];
+    const nextItemIdx = res ? prevItemIdx + 1 : prevItemIdx;
+    let $changed = false;
+    if (nextItemIdx !== prevItemIdx) {
+      $changed = acc[prevItemIdx] != val;
+      acc[prevItemIdx] = val;
+    }
+    $idxToIdx[key + 1] = nextItemIdx;
+    /* TRACKING */
+    /* INVALIDATES */
+    if ($changed) {
+      triggerInvalidations(acc, prevItemIdx);
+    }
+    /* INVALIDATES-END */
+  }
+}
+filter.collectionFunc = 'filterArray';
+
+module.exports = { base, topLevel, mapValues, filterBy, map, any, anyValues, keyBy, filter };

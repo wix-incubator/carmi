@@ -34,6 +34,11 @@ const TokenTypeData = {
     chainIndex: 2,
     arrayVerb: true
   }),
+  filter: new TokenTypes({
+    collectionVerb: true,
+    chainIndex: 2,
+    arrayVerb: true
+  }),
   anyValues: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2

@@ -43,6 +43,10 @@ function base() {
       return src.some((val, key) => func(val, key, context));
     }
 
+    function filter(func, src, context) {
+      return src.filter((val, key) => func(val, key, context));
+    }
+
     function anyValues(func, src, context) {
       return Object.keys(src).some(key => func(src[key], key, context));
     }

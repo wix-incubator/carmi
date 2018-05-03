@@ -23,6 +23,7 @@ const {
 
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, name) {
+    console.log(JSON.stringify(model, null, 2));
     const { getters, setters } = splitSettersGetters(model);
     super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
   }
@@ -72,6 +73,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'filterBy':
       case 'groupBy':
       case 'keyBy':
+      case 'filter':
       case 'mapKeys':
         return `${
           this.template[tokenType].collectionFunc
