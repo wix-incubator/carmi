@@ -1,72 +1,40 @@
-const {
-  currentValues,
-  compile,
-  and,
-  or,
-  not,
-  get,
-  root,
-  mapValues,
-  filterBy,
-  mapKeys,
-  groupBy,
-  func,
-  val,
-  key,
-  context,
-  arg0,
-  Expr,
-  Setter,
-  Expression
-} = require('./index');
+const { compile, root, and, or, arg0, Setter, Splice } = require('./index');
+const todosByIdx = root.keyBy('idx');
+const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get('done').not());
+const todosDisplayByIdx = todosByIdx.mapValues(todo =>
+  todo.get('task').plus(or(and(todo.get('done'), ' - done'), ' - not done'))
+);
+const todosDisplay = root.map(todo => todosDisplayByIdx.get(todo.get('idx')));
+const model = {
+  todosDisplay,
+  anyTodoNotDone,
+  setTodoDone: Setter(arg0, 'done'),
+  spliceTodos: Splice()
+};
 
-const naive = process.argv[2] === 'naive';
-
-function TodosModel() {
-  const todos = root.get('todos');
-  const pendingTodos = todos.filterBy(val.get('done').not());
-  const blockedBy = todos.mapValues(val.get('blockedBy'));
-  const todosDone = todos.mapValues(val.get('done'));
-  const isBlocked3 = blockedBy.mapValues(pendingTodos.get(val));
-  const canBeWorkedOn = todos.mapValues(
-    and(val.get('done').not(), or(val.get('blockedBy').not(), todosDone.get(val.get('blockedBy'))))
-  );
-  const blockedGrouped = pendingTodos.mapValues(todos.filterBy(val.get('blockedBy').eq(context), key));
-  const todosDoneText = todos.mapValues(val.get('done').call('toDoneString'));
-
-  return {
-    canBeWorkedOn,
-    pendingTodos,
-    blockedGrouped,
-    todosDoneText,
-    setTodo: Setter('todos', arg0)
-  };
-}
-
-const todosModel = TodosModel();
-console.log(JSON.stringify(todosModel, null, 2));
-const source = compile(todosModel, naive);
-
-try {
-  require('fs').writeFileSync('./tmp.js', source);
-  const modelFunction = eval(source);
-  const inst = modelFunction(
-    {
-      todos: {
-        1: { text: '1', done: false, blockedBy: '2' },
-        2: { text: '2', done: true },
-        3: { text: '3', done: false, blockedBy: '1' }
-      },
-      showCompleted: false,
-      currentTask: 1
-    },
-    { toDoneString: s => (s ? 'done' : 'not done') }
-  );
-  console.log(JSON.stringify(currentValues(inst), null, 2));
-  inst.setTodo(1, { ...inst.$model.todos['1'], done: true });
-  console.log(JSON.stringify(currentValues(inst), null, 2));
-  inst.setTodo(2, { ...inst.$model.todos['2'], done: false });
-  console.log(JSON.stringify(currentValues(inst), null, 2));
-} catch (e) {
-  console.log(e);
-}
+const todosModel = eval(compile(model));
+const todos = todosModel([
+  { idx: '1', done: false, task: 'write a blog post about carmi' },
+  { idx: '2', done: true, task: 'publish to npm' },
+  { idx: '3', done: false, task: 'write a demo for carmi' }
+]);
+console.log(todos.todosDisplay);
+/*
+[ 'write a demo for carmi - not done',
+'write a blog post about carmi - not done',
+'publish to npm - done' ]
+*/
+todos.setTodoDone(2, true); // only todosDisplayByIdx of the demo is recalculated
+console.log(todos.todosDisplay);
+/*
+[ 'write a blog post about carmi - not done',
+  'publish to npm - done',
+  'write a demo for carmi - done' ]
+*/
+todos.spliceTodos(0, 3, todos.$model[2], todos.$model[1], todos.$model[0]); // todosDisplayByIdx is not called at all
+console.log(todos.todosDisplay);
+/*
+[ 'write a demo for carmi - done',
+  'publish to npm - done',
+  'write a blog post about carmi - not done' ]
+*/

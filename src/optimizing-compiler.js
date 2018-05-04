@@ -102,26 +102,37 @@ class OptimizingCompiler extends NaiveCompiler {
       .slice(1)
       .filter(t => typeof t !== 'string')
       .map(t => t.$type);
+    const taint = new Array(setterExpr.length - 1)
+      .fill()
+      .map((v, idx) => `$tainted.add(${this.pathToString(setterExpr, idx + 1)});`)
+      .join('');
+    const invalidate = new Array(setterExpr.length - 1)
+      .fill()
+      .map(
+        (v, idx) =>
+          `triggerInvalidations(${this.pathToString(setterExpr, idx + 1)}, ${this.generateExpr(
+            setterExpr[setterExpr.length - idx - 1]
+          )});`
+      )
+      .join('');
 
     if (setterExpr instanceof SpliceSetterExpression) {
       return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
-          const arr = ${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))};
+          const arr = ${this.pathToString(setterExpr, 1)};
           const origLength = arr.length;
           const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
           for (let i = key; i < end; i++ ) {
             triggerInvalidations(arr, i);
           }
-          ${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))}.splice(key, len, ...newItems);
+          ${this.invalidates(setterExpr) ? invalidate : ''}
+          ${taint}
+          ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
           recalculate();
       }`;
     }
     return `${name}:(${args.concat('value').join(',')}) => {
-              ${
-                this.invalidates(setterExpr)
-                  ? `triggerInvalidations(${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))},
-                ${this.generateExpr(setterExpr[setterExpr.length - 1])})`
-                  : ''
-              }
+              ${this.invalidates(setterExpr) ? invalidate : ''}
+              ${taint}
               ${this.pathToString(setterExpr)}  = value;
               recalculate();
           }`;

@@ -116,11 +116,11 @@ class NaiveCompiler {
   buildSetter(setterExpr, name) {
     const args = setterExpr
       .slice(1)
-      .filter(t => typeof t !== 'string')
+      .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
     if (setterExpr instanceof SpliceSetterExpression) {
       return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
-        ${this.pathToString(setterExpr.slice(0, setterExpr.length - 1))}.splice(key, len, ...newItems);
+        ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
         recalculate();
     }`;
     }

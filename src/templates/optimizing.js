@@ -9,6 +9,7 @@ function base() {
     const $parentKeyMap = new WeakMap();
     const $invalidatedRoots = new Set();
     const $wildcard = '*****';
+    let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
     const collectAllItems = (res, obj, prefix) => {
@@ -314,6 +315,7 @@ function base() {
         return;
       }
       /* DERIVED */
+      $tainted = new WeakSet();
     }
     Object.assign(
       $res,
@@ -342,7 +344,8 @@ function topLevel() {
     const prevValue = $res.$FUNCNAME;
     const $invalidatedKeys = $invalidatedRoots;
     $res.$FUNCNAME = $EXPR;
-    const $changed = prevValue !== $res.$FUNCNAME;
+    const $changed =
+      prevValue !== $res.$FUNCNAME || (typeof $res.$FUNCNAME === 'object' && $tainted.has($res.$FUNCNAME));
     $invalidatedRoots.delete('$FUNCNAME');
     /* TRACKING */
     /* INVALIDATES */
@@ -366,7 +369,7 @@ function mapValues() {
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[key];
+      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
       acc[key] = res;
     }
     /* TRACKING */
@@ -391,7 +394,7 @@ function filterBy() {
     } else {
       const res = $EXPR1;
       if (res) {
-        $changed = acc[key] !== val;
+        $changed = acc[key] !== val || (typeof val === 'object' && $tainted.has(val));
         acc[key] = val;
       } else if (acc.hasOwnProperty(key)) {
         delete acc[key];
@@ -419,7 +422,7 @@ function map() {
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[key];
+      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
       acc[key] = res;
     }
     /* TRACKING */
@@ -474,7 +477,7 @@ function keyBy() {
     if (key < src.length) {
       const val = src[key];
       res = '' + $EXPR1;
-      const $changed = acc[res] !== val;
+      const $changed = acc[res] !== val || (typeof val === 'object' && $tainted.has(val));
       acc[res] = val;
       $idxToKey[key] = res;
       /* TRACKING */
@@ -498,7 +501,7 @@ function filter() {
     const nextItemIdx = res ? prevItemIdx + 1 : prevItemIdx;
     let $changed = false;
     if (nextItemIdx !== prevItemIdx) {
-      $changed = acc[prevItemIdx] !== val;
+      $changed = acc[prevItemIdx] !== val || (typeof val === 'object' && $tainted.has(val));
       acc[prevItemIdx] = val;
     }
     $idxToIdx[key + 1] = nextItemIdx;
