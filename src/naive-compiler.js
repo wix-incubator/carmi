@@ -107,8 +107,10 @@ class NaiveCompiler {
     return `${prefix} $${name}();`;
   }
 
-  pathToString(path) {
-    return this.generateExpr(path.slice(1).reduce((acc, token) => Expr(new Token('get'), token, acc), path[0]));
+  pathToString(path, n = 0) {
+    return this.generateExpr(
+      path.slice(1, path.length - n).reduce((acc, token) => Expr(new Token('get'), token, acc), path[0])
+    );
   }
 
   buildSetter(setterExpr, name) {

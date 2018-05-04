@@ -153,11 +153,10 @@ class OptimizingCompiler extends NaiveCompiler {
         );
         const precond = cond ? `$cond_${cond} && ` : '';
         if (invalidatedPath[0].$type === 'topLevel') {
-          if (invalidatedPath[invalidatedPath.length - 1].$type !== 'wildcard' && invalidatedPath.length > 2) {
+          if (invalidatedPath[invalidatedPath.length - 1].$type !== 'wildcard') {
             tracks.push(
-              `${precond} track($invalidatedKeys, key, $res[${this.generateExpr(
-                invalidatedPath[1]
-              )}], ${this.generateExpr(invalidatedPath[2])})`
+              `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 1)}
+              , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 1])})`
             );
           }
         } else if (invalidatedPath[0].$type === 'root') {

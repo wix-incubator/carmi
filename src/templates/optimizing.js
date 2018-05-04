@@ -284,8 +284,8 @@ function base() {
           $invalidatedKeys.add(key);
         }
       }
-      const $prevStop = $out.length > 0 ? $out[0] : false;
-      if ($prevStop) {
+      const $prevStop = $out.length > 0 ? $out[0] : -1;
+      if ($prevStop !== -1) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
           if (func($invalidatedKeys, src, $prevStop, $out, context)) {
@@ -339,9 +339,10 @@ function topLevel() {
     /* PRETRACKING */
     const acc = $res;
     const key = '$FUNCNAME';
-    const $changed = true;
+    const prevValue = $res.$FUNCNAME;
     const $invalidatedKeys = $invalidatedRoots;
     $res.$FUNCNAME = $EXPR;
+    const $changed = prevValue !== $res.$FUNCNAME;
     $invalidatedRoots.delete('$FUNCNAME');
     /* TRACKING */
     /* INVALIDATES */
