@@ -301,6 +301,47 @@ function base() {
       return false;
     }
 
+    const $groupByCache = new WeakMap();
+
+    function groupByObject($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      if ($new) {
+        $groupByCache.set($out, {});
+      }
+      const $keyToKey = $groupByCache.get($out);
+      if ($new) {
+        Object.keys(src).forEach(key => func($invalidatedKeys, $keyToKey, src, key, $out, context));
+      } else {
+        const keysPendingDelete = {};
+        $invalidatedKeys.forEach(key => {
+          keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
+          keysPendingDelete[$keyToKey[key]].add(key);
+        });
+        $invalidatedKeys.forEach(key => {
+          if (func($invalidatedKeys, $keyToKey, src, key, $out, context)) {
+            if (keysPendingDelete.hasOwnProperty($keyToKey[key])) {
+              keysPendingDelete[$keyToKey[key]].delete(key);
+            }
+          }
+        });
+        Object.keys(keysPendingDelete).forEach(res => {
+          if (keysPendingDelete[res].size > 0) {
+            keysPendingDelete[res].forEach(key => {
+              triggerInvalidations($out[res], key);
+              delete $out[res][key];
+            });
+            triggerInvalidations($out, res);
+            if (Object.keys($out[res]).length == 0) {
+              delete $out[res];
+            }
+          }
+        });
+      }
+      $invalidatedKeys.clear();
+      return $out;
+    }
+
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
     function recalculate() {
@@ -508,6 +549,34 @@ function filter() {
 }
 filter.collectionFunc = 'filterArray';
 
+function groupBy() {
+  function $FUNCNAME($invalidatedKeys, $keyToKey, src, key, acc, context) {
+    let $changed = false;
+    /* PRETRACKING */
+    if (!src.hasOwnProperty(key)) {
+      delete $keyToKey[key];
+      return false;
+    }
+    const val = src[key];
+    const res = '' + $EXPR1;
+    $keyToKey[key] = res;
+    if (!acc.hasOwnProperty(res)) {
+      acc[res] = {};
+    }
+    $changed = val !== acc[res][key] || (typeof val === 'object' && $tainted.has(val));
+    acc[res][key] = val;
+    /* TRACKING */
+    /* INVALIDATES */
+    if ($changed) {
+      triggerInvalidations(acc[res], key);
+      triggerInvalidations(acc, res);
+    }
+    /* INVALIDATES-END */
+    return true;
+  }
+}
+groupBy.collectionFunc = 'groupByObject';
+
 module.exports = {
   base,
   topLevel,
@@ -517,5 +586,6 @@ module.exports = {
   any,
   anyValues,
   keyBy,
-  filter
+  filter,
+  groupBy
 };
