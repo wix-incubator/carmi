@@ -181,17 +181,10 @@ function base() {
       return $out;
     }
 
-    const keyByStruct = () => {
-      return {
-        output: {},
-        idxToKey: []
-      };
-    };
-
     const $keyByCache = new WeakMap();
 
     function keyByArray($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       const $invalidatedKeys = $invalidatedMap.get($out);
       if ($new) {
         $keyByCache.set($out, []);
@@ -371,8 +364,8 @@ function mapValues() {
       const res = $EXPR1;
       $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
       acc[key] = res;
+      /* TRACKING */
     }
-    /* TRACKING */
     /* INVALIDATES */
     if ($changed) {
       triggerInvalidations(acc, key);
@@ -400,8 +393,8 @@ function filterBy() {
         delete acc[key];
         $changed = true;
       }
+      /* TRACKING */
     }
-    /* TRACKING */
     /* INVALIDATES */
     if ($changed) {
       triggerInvalidations(acc, key);
@@ -415,17 +408,17 @@ function map() {
     let $changed = false;
     /* PRETRACKING */
     const val = src[key];
-    if (key > src.length) {
+    if (key >= src.length) {
       $changed = true;
-      if (acc.length > key) {
+      if (acc.length >= key) {
         acc.length = src.length;
       }
     } else {
       const res = $EXPR1;
       $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
       acc[key] = res;
+      /* TRACKING */
     }
-    /* TRACKING */
     /* INVALIDATES */
     if ($changed) {
       triggerInvalidations(acc, key);
@@ -440,7 +433,7 @@ function any() {
     /* PRETRACKING */
     const val = src[key];
     let res = false;
-    if (key > src.length) {
+    if (key >= src.length) {
       $changed = true;
     } else {
       res = $EXPR1;
@@ -515,4 +508,14 @@ function filter() {
 }
 filter.collectionFunc = 'filterArray';
 
-module.exports = { base, topLevel, mapValues, filterBy, map, any, anyValues, keyBy, filter };
+module.exports = {
+  base,
+  topLevel,
+  mapValues,
+  filterBy,
+  map,
+  any,
+  anyValues,
+  keyBy,
+  filter
+};
