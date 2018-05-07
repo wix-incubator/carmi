@@ -32,7 +32,8 @@ describe('testing objects', () => {
         .keys()
         .keyBy(val => val.call('tap')),
       set: Setter('numbers', arg0),
-      setCenter: Setter('center')
+      setCenter: Setter('center'),
+      setRange: Setter('range')
     };
 
     // const naiveModel = eval(compile(model, true));
@@ -58,11 +59,14 @@ describe('testing objects', () => {
     inst.setCenter(6);
     expect(inst.inRange).toEqual({ eight: 'eight', five: 'five', three: 'three' });
     expectTapFunctionToHaveBeenCalled(2);
+    inst.$startBatch();
+    inst.setRange(7);
     inst.setCenter(2);
-    expect(inst.inRange).toEqual({ five: 'five', three: 'three', one: 'one' });
+    inst.$endBatch();
+    expect(inst.inRange).toEqual({ five: 'five', three: 'three', one: 'one', eight: 'eight' });
     expectTapFunctionToHaveBeenCalled(1);
-    inst.setCenter(10);
-    expect(inst.inRange).toEqual({ eight: 'eight', twelve: 'twelve', ten: 'ten' });
-    expectTapFunctionToHaveBeenCalled(3);
+    inst.setCenter(15);
+    expect(inst.inRange).toEqual({ twelve: 'twelve', ten: 'ten', eight: 'eight' });
+    expectTapFunctionToHaveBeenCalled(2);
   });
 });
