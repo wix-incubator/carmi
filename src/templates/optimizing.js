@@ -384,8 +384,8 @@ function base() {
           $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
         }
         const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length;
+        // keys both deleted and added fill created holes first
         for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
-          // keys both deleted and added fill created holes
           const $addedKey = $addedKeys[i];
           const $deletedKey = $deletedKeys[i];
           const $newIdx = $keyToIdx[$deletedKey];
@@ -395,30 +395,38 @@ function base() {
           $out[$newIdx] = getValues ? src[$addedKey] : $addedKey;
           triggerInvalidations($out, $newIdx);
         }
-        const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
-        const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));
-        const $keysToMoveInside = $idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key));
-        for (let i = 0; i < $keysToMoveInside.length; i++) {
-          const $movedKey = $keysToMoveInside[i];
-          const $oldIdx = $keyToIdx[$movedKey];
-          const $newIdx = $keyToIdx[$deletedNotMoved[i]];
-          $out[$newIdx] = getValues ? src[$movedKey] : $movedKey;
-          $idxToKey[$newIdx] = $movedKey;
-          $keyToIdx[$movedKey] = $newIdx;
-          triggerInvalidations($out, $newIdx);
-        }
-        for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
-          triggerInvalidations($out, $tailIdx);
-        }
-        $deletedNotMoved.forEach(key => delete $keyToIdx[key]);
+        // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
-          // more keys added - append to end
           const $addedKey = $addedKeys[i];
           const $newIdx = $out.length;
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
           $out[$newIdx] = getValues ? src[$addedKey] : $addedKey;
           triggerInvalidations($out, $newIdx);
+        }
+        // more keys deleted - move non deleted items at the tail to the location of deleted
+        const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
+        const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));
+        const $keysToMoveInside = new Set(
+          $idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key))
+        );
+        let $savedCount = 0;
+        for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
+          const $currentKey = $idxToKey[$tailIdx];
+          if ($keysToMoveInside.has($currentKey)) {
+            // need to move this key to one of the pending delete
+            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
+            const $newIdx = $keyToIdx[$switchedWithDeletedKey];
+            $out[$newIdx] = getValues ? src[$currentKey] : $currentKey;
+            $keyToIdx[$currentKey] = $newIdx;
+            $idxToKey[$newIdx] = $currentKey;
+            delete $keyToIdx[$switchedWithDeletedKey];
+            triggerInvalidations($out, $newIdx);
+            $savedCount++;
+          } else {
+            delete $keyToIdx[$currentKey];
+          }
+          triggerInvalidations($out, $tailIdx);
         }
         $out.length = $finalOutLength;
         $idxToKey.length = $out.length;
