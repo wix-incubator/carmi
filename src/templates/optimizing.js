@@ -12,6 +12,14 @@ function base() {
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
+    const $uniquePersistentObjects = new Map();
+    const getUniquePersistenObject = id => {
+      if (!$uniquePersistentObjects.has(id)) {
+        $uniquePersistentObjects.set(id, {});
+      }
+      return $uniquePersistentObjects.get(id);
+    };
+
     const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
@@ -339,6 +347,83 @@ function base() {
         });
       }
       $invalidatedKeys.clear();
+      return $out;
+    }
+
+    const $valuesOrKeysCache = new WeakMap();
+
+    function valuesOrKeysForObject($targetObj, $targetKey, identifier, src, getValues) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyArr);
+      if ($new) {
+        const $keyToIdx = {};
+        const $idxToKey = [];
+        $valuesOrKeysCache.set($out, { $keyToIdx, $idxToKey });
+        Object.keys(src).forEach((key, idx) => {
+          $out[idx] = getValues ? src[key] : key;
+          $idxToKey[idx] = key;
+          $keyToIdx[key] = idx;
+        });
+      } else {
+        const $invalidatedKeys = $invalidatedMap.get($out);
+        const { $keyToIdx, $idxToKey } = $valuesOrKeysCache.get($out);
+        const $deletedKeys = [];
+        const $addedKeys = [];
+        const $touchedKeys = [];
+        $invalidatedKeys.forEach(key => {
+          if (src.hasOwnProperty(key) && !$keyToIdx.hasOwnProperty(key)) {
+            $addedKeys.push(key);
+          } else if (!src.hasOwnProperty(key) && $keyToIdx.hasOwnProperty(key)) {
+            $deletedKeys.push(key);
+          } else {
+            if ($keyToIdx.hasOwnProperty(key)) {
+              triggerInvalidations($out, $keyToIdx[key]);
+            }
+          }
+        });
+        if ($addedKeys.length < $deletedKeys.length) {
+          $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
+        }
+        const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length;
+        for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
+          // keys both deleted and added fill created holes
+          const $addedKey = $addedKeys[i];
+          const $deletedKey = $deletedKeys[i];
+          const $newIdx = $keyToIdx[$deletedKey];
+          delete $keyToIdx[$deletedKey];
+          $keyToIdx[$addedKey] = $newIdx;
+          $idxToKey[$newIdx] = $addedKey;
+          $out[$newIdx] = getValues ? src[$addedKey] : $addedKey;
+          triggerInvalidations($out, $newIdx);
+        }
+        const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
+        const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));
+        const $keysToMoveInside = $idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key));
+        for (let i = 0; i < $keysToMoveInside.length; i++) {
+          const $movedKey = $keysToMoveInside[i];
+          const $oldIdx = $keyToIdx[$movedKey];
+          const $newIdx = $keyToIdx[$deletedNotMoved[i]];
+          $out[$newIdx] = getValues ? src[$movedKey] : $movedKey;
+          $idxToKey[$newIdx] = $movedKey;
+          $keyToIdx[$movedKey] = $newIdx;
+          triggerInvalidations($out, $newIdx);
+        }
+        for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
+          triggerInvalidations($out, $tailIdx);
+        }
+        $deletedNotMoved.forEach(key => delete $keyToIdx[key]);
+        for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
+          // more keys added - append to end
+          const $addedKey = $addedKeys[i];
+          const $newIdx = $out.length;
+          $keyToIdx[$addedKey] = $newIdx;
+          $idxToKey[$newIdx] = $addedKey;
+          $out[$newIdx] = getValues ? src[$addedKey] : $addedKey;
+          triggerInvalidations($out, $newIdx);
+        }
+        $out.length = $finalOutLength;
+        $idxToKey.length = $out.length;
+        $invalidatedKeys.clear();
+      }
       return $out;
     }
 

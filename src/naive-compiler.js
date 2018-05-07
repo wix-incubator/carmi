@@ -58,6 +58,9 @@ class NaiveCompiler {
         return `!(${this.generateExpr(expr[1])})`;
       case 'ternary':
         return `((${this.generateExpr(expr[1])})?(${this.generateExpr(expr[2])}):(${this.generateExpr(expr[3])}))`;
+      case 'keys':
+      case 'values':
+        return `${tokenType}(${this.generateExpr(expr[1])})`;
       case 'eq':
       case 'lt':
       case 'lte':
@@ -68,8 +71,6 @@ class NaiveCompiler {
       case 'mult':
       case 'div':
         return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
-      case 'root':
-        return '$model';
       case 'get':
         return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
       case 'mapValues':
@@ -86,6 +87,8 @@ class NaiveCompiler {
         })`;
       case 'func':
         return currentToken.funcName;
+      case 'root':
+        return '$model';
       case 'val':
       case 'key':
       case 'arg0':

@@ -1,13 +1,4 @@
-const {
-  Expr,
-  Token,
-  Setter,
-  Expression,
-  SetterExpression,
-  SpliceSetterExpression,
-  TokenTypeData,
-  TokensThatOperateOnCollections
-} = require('./lang');
+const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
 const _ = require('lodash');
 const NaiveCompiler = require('./naive-compiler');
 const fs = require('fs');
@@ -23,7 +14,6 @@ const {
 
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, name) {
-    // console.log(JSON.stringify(model, null, 2));
     const { getters, setters } = splitSettersGetters(model);
     super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
   }
@@ -66,6 +56,11 @@ class OptimizingCompiler extends NaiveCompiler {
           }
         }
         return super.generateExpr(expr);
+      case 'keys':
+      case 'values':
+        return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(
+          expr[1]
+        )}, ${tokenType === 'values' ? 'true' : 'false'})`;
       case 'map':
       case 'any':
       case 'mapValues':

@@ -15,7 +15,7 @@ proxyHandler.get = (target, key) => {
   return (...args) => {
     args = [new Token(key), ...args];
     if (tokenData.chainIndex) {
-      if (tokenData.collectionVerb) {
+      if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
         if (typeof args[1] === 'function') {
           args[1] = args[1].apply(null, ['val', 'key', 'context'].map(t => wrap(new Token(t))));
         } else if (typeof args[1] === 'string') {

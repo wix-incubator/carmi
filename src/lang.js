@@ -47,6 +47,8 @@ const TokenTypeData = {
   filterBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   mapKeys: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  values: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
+  keys: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
   context: new TokenTypes({ nonVerb: true }),
   func: new TokenTypes({ private: true }),
   val: new TokenTypes({ nonVerb: true }),
@@ -92,7 +94,6 @@ AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 AllTokens.Setter = (...args) => new SetterExpression(...args);
 AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
-AllTokens.TokensThatOperateOnCollections = Object.keys(TokenTypeData).filter(k => TokenTypeData[k].collectionVerb);
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;

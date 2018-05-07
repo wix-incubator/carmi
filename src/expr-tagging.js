@@ -8,7 +8,7 @@ const {
   Root,
   Get,
   Wildcard,
-  TokensThatOperateOnCollections
+  TokenTypeData
 } = require('./lang');
 const Paths = Symbol('Paths');
 const FunctionId = Symbol('FunctionId');
@@ -18,9 +18,16 @@ let exprCounter = 0;
 const _ = require('lodash');
 const toposort = require('toposort');
 
+function tokenData(expr) {
+  return TokenTypeData[expr[0].$type];
+}
+
 function isCollectionExpr(expr) {
-  const $type = expr[0].$type;
-  return _.includes(TokensThatOperateOnCollections, $type);
+  return tokenData(expr).collectionVerb;
+}
+
+function chainIndex(expr) {
+  return tokenData(expr).chainIndex;
 }
 
 function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
@@ -34,7 +41,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
     return [];
   }
   if (expr[0].$type === 'get' || isCollectionExpr(expr)) {
-    const result = annotatePathsThatCanBeInvalidated(expr[2], paths, true).concat(
+    const result = annotatePathsThatCanBeInvalidated(expr[chainIndex(expr)], paths, true).concat(
       isCollectionExpr(expr) ? Wildcard : [expr[1]]
     );
     if (!inChain) {
@@ -175,7 +182,7 @@ function extractAllStaticExpressionsAsValues(getters) {
   let nodeIndex = 0;
   _.forEach(allStaticStringsSorted, s => {
     const e = allStaticAsStrings[s];
-    if (!namesByExpr[s] && _.includes(TokensThatOperateOnCollections, e[0].$type)) {
+    if (!namesByExpr[s] && isCollectionExpr(e)) {
       namesByExpr[s] = '$' + generateName(namesByExpr, e) + nodeIndex++;
     }
   });

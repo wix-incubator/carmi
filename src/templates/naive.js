@@ -58,6 +58,14 @@ function base() {
       }, {});
     }
 
+    function keys(src) {
+      return Array.from(Object.keys(src));
+    }
+
+    function values(src) {
+      return Array.from(Object.values(src));
+    }
+
     /* ALL_EXPRESSIONS */
 
     function recalculate() {
