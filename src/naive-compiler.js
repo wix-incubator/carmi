@@ -56,6 +56,8 @@ class NaiveCompiler {
         );
       case 'not':
         return `!(${this.generateExpr(expr[1])})`;
+      case 'ternary':
+        return `((${this.generateExpr(expr[1])})?(${this.generateExpr(expr[2])}):(${this.generateExpr(expr[3])}))`;
       case 'eq':
       case 'lt':
       case 'lte':

@@ -20,6 +20,7 @@ const TokenTypeData = {
   and: new TokenTypes({ nonChained: true }),
   or: new TokenTypes({ nonChained: true }),
   not: new TokenTypes({ chainIndex: 1 }),
+  ternary: new TokenTypes({ chainIndex: 1 }),
   get: new TokenTypes({ chainIndex: 2 }),
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
