@@ -61,6 +61,7 @@ describe('testing objects', () => {
     expectTapFunctionToHaveBeenCalled(2);
     inst.$startBatch();
     inst.setRange(7);
+    expectTapFunctionToHaveBeenCalled(0); // batch
     inst.setCenter(2);
     inst.$endBatch();
     expect(inst.inRange).toEqual({ five: 'five', three: 'three', one: 'one', eight: 'eight' });

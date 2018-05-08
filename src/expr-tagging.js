@@ -31,7 +31,7 @@ function chainIndex(expr) {
 }
 
 function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
-  if (typeof expr === 'string') {
+  if (typeof expr === 'string' || typeof expr === 'number') {
     return expr;
   }
   if (expr instanceof Token) {
