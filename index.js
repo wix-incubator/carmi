@@ -9,6 +9,9 @@ const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
 proxyHandler.get = (target, key) => {
   const tokenData = TokenTypeData[key];
+  if (!tokenData && typeof key === 'string' && key !== 'length' && Number.isNaN(parseInt(key, 10))) {
+    throw `unknown token: ${key}`;
+  }
   if (!tokenData || tokenData.nonVerb || tokenData.nonChained) {
     return Reflect.get(target, key);
   }
