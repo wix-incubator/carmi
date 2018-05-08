@@ -13,7 +13,8 @@ const nativeOps = {
   gt: '>',
   gte: '>=',
   lt: '<',
-  lte: '<='
+  lte: '<=',
+  mod: '%'
 };
 
 class NaiveCompiler {
@@ -70,6 +71,7 @@ class NaiveCompiler {
       case 'minus':
       case 'mult':
       case 'div':
+      case 'mod':
         return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
       case 'get':
         return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
