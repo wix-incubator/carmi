@@ -23,6 +23,7 @@ class NaiveCompiler {
     tagAllExpressions(getters);
     this.getters = getters;
     this.setters = setters;
+    // console.log(JSON.stringify(getters, null, 2));
     this.name = name || 'Model';
   }
 
@@ -33,6 +34,7 @@ class NaiveCompiler {
   generateExpr(expr) {
     // console.log(JSON.stringify(expr, null, 2));
     const currentToken = expr instanceof Expression ? expr[0] : expr;
+    // console.log(expr);
     const tokenType = currentToken.$type;
     switch (tokenType) {
       case 'and':
@@ -84,9 +86,15 @@ class NaiveCompiler {
       case 'filter':
       case 'keyBy':
       case 'anyValues':
+      case 'recursiveMap':
+      case 'recursiveMapValues':
         return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
         })`;
+      case 'loop':
+        return 'loop';
+      case 'recur':
+        return `${this.generateExpr(expr[1])}(${this.generateExpr(expr[2])})`;
       case 'func':
         return currentToken.funcName;
       case 'root':

@@ -189,6 +189,71 @@ function base() {
       return $out;
     }
 
+    function recursiveSteps(key) {
+      const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context } = this;
+      if ($currentStack.length > 0) {
+        const prevKey = $currentStack[$currentStack.length - 1];
+        if (!$dependencyMap.has(key)) {
+          $dependencyMap.set(key, new Set());
+        }
+        $dependencyMap.get(key).add(prevKey);
+      }
+      if ($invalidatedKeys.has(key)) {
+        $currentStack.push(key);
+        $invalidatedKeys.delete(key);
+        func($invalidatedKeys, src, key, $out, context, this);
+        $currentStack.pop();
+      }
+      return $out[key];
+    }
+
+    function cascadeRecursiveInvalidations($loop) {
+      const { $dependencyMap, $invalidatedKeys } = $loop;
+      $invalidatedKeys.forEach(key => {
+        if ($dependencyMap.has(key)) {
+          $dependencyMap.get(key).forEach(consumedByKey => {
+            $invalidatedKeys.add(consumedByKey);
+          });
+        }
+      });
+    }
+
+    const $recursiveMapCache = new WeakMap();
+
+    function recursiveMapArray($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      if ($new) {
+        $recursiveMapCache.set($out, {
+          $dependencyMap: new Map(),
+          $currentStack: [],
+          $invalidatedKeys,
+          $out,
+          func,
+          src,
+          context,
+          recursiveSteps
+        });
+      }
+      const $loop = $recursiveMapCache.get($out);
+      $loop.context = context;
+      if ($new) {
+        for (let key = 0; key < src.length; key++) {
+          $invalidatedKeys.add(key);
+        }
+        for (let key = 0; key < src.length; key++) {
+          $loop.recursiveSteps(key);
+        }
+      } else {
+        cascadeRecursiveInvalidations($loop);
+        $invalidatedKeys.forEach(key => {
+          $loop.recursiveSteps(key);
+        });
+      }
+      $invalidatedKeys.clear();
+      return $out;
+    }
+
     const $keyByCache = new WeakMap();
 
     function keyByArray($targetObj, $targetKey, func, src, context) {
@@ -670,6 +735,31 @@ function groupBy() {
 }
 groupBy.collectionFunc = 'groupByObject';
 
+function recursiveMap() {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context, loop) {
+    let $changed = false;
+    /* PRETRACKING */
+    const val = src[key];
+    if (key >= src.length) {
+      $changed = true;
+      if (acc.length >= key) {
+        acc.length = src.length;
+      }
+    } else {
+      const res = $EXPR1;
+      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
+      acc[key] = res;
+      /* TRACKING */
+    }
+    /* INVALIDATES */
+    if ($changed) {
+      triggerInvalidations(acc, key);
+    }
+    /* INVALIDATES-END */
+  }
+}
+recursiveMap.collectionFunc = 'recursiveMapArray';
+
 module.exports = {
   base,
   topLevel,
@@ -680,5 +770,6 @@ module.exports = {
   anyValues,
   keyBy,
   filter,
-  groupBy
+  groupBy,
+  recursiveMap
 };

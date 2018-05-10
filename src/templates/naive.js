@@ -66,6 +66,33 @@ function base() {
       return Array.from(Object.values(src));
     }
 
+    function loopFunction(resolved, res, func, src, context, key) {
+      if (!resolved[key]) {
+        resolved[key] = true;
+        res[key] = func(src[key], key, context, loopFunction.bind(null, resolved, res, func, src, context));
+      }
+      return res[key];
+    }
+
+    function recursiveMap(func, src, context) {
+      const res = [];
+      const resolved = src.map(x => false);
+      src.forEach((val, key) => {
+        loopFunction(resolved, res, func, src, context, key);
+      });
+      return res;
+    }
+
+    function recursiveMapValues(func, src, context) {
+      const res = {};
+      const resolved = {};
+      Object.keys(src).forEach(key => (resolved[key] = false));
+      Object.keys(src).forEach(key => {
+        loopFunction(resolved, res, func, src, context, key);
+      });
+      return res;
+    }
+
     /* ALL_EXPRESSIONS */
 
     function recalculate() {
@@ -84,7 +111,7 @@ function base() {
 }
 
 function func() {
-  function $FUNCNAME(val, key, context) {
+  function $FUNCNAME(val, key, context, loop) {
     return $EXPR1;
   }
 }

@@ -25,6 +25,8 @@ const TokenTypeData = {
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   map: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true }),
+  recursiveMapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
+  recursiveMap: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true }),
   any: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2,
@@ -49,6 +51,8 @@ const TokenTypeData = {
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   values: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
   keys: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
+  loop: new TokenTypes({ nonVerb: true }),
+  recur: new TokenTypes({ chainIndex: 2 }),
   context: new TokenTypes({ nonVerb: true }),
   func: new TokenTypes({ private: true }),
   val: new TokenTypes({ nonVerb: true }),

@@ -65,6 +65,8 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'any':
       case 'mapValues':
       case 'anyValues':
+      case 'recursiveMap':
+      case 'recursiveMapValues':
       case 'filterBy':
       case 'groupBy':
       case 'keyBy':
@@ -83,6 +85,8 @@ class OptimizingCompiler extends NaiveCompiler {
         return `$res`;
       case 'wildcard':
         return '$wildcard';
+      case 'recur':
+        return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])})`;
       default:
         return super.generateExpr(expr);
     }
