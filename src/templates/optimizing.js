@@ -189,14 +189,14 @@ function base() {
       return $out;
     }
 
-    function recursiveSteps(key) {
+    function recursiveSteps(key, $localInvalidatedKeys, $localKey) {
       const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context } = this;
       if ($currentStack.length > 0) {
         const prevKey = $currentStack[$currentStack.length - 1];
         if (!$dependencyMap.has(key)) {
-          $dependencyMap.set(key, new Set());
+          $dependencyMap.set(key, []);
         }
-        $dependencyMap.get(key).add(prevKey);
+        $dependencyMap.get(key).push({ $localInvalidatedKeys, $localKey });
       }
       if ($invalidatedKeys.has(key)) {
         $currentStack.push(key);
@@ -211,9 +211,10 @@ function base() {
       const { $dependencyMap, $invalidatedKeys } = $loop;
       $invalidatedKeys.forEach(key => {
         if ($dependencyMap.has(key)) {
-          $dependencyMap.get(key).forEach(consumedByKey => {
-            $invalidatedKeys.add(consumedByKey);
+          $dependencyMap.get(key).forEach(({ $localInvalidatedKeys, $localKey }) => {
+            invalidate($localInvalidatedKeys, $localKey);
           });
+          $dependencyMap.delete(key);
         }
       });
     }
@@ -242,12 +243,42 @@ function base() {
           $invalidatedKeys.add(key);
         }
         for (let key = 0; key < src.length; key++) {
-          $loop.recursiveSteps(key);
+          $loop.recursiveSteps(key, $invalidatedKeys, key);
         }
       } else {
         cascadeRecursiveInvalidations($loop);
         $invalidatedKeys.forEach(key => {
-          $loop.recursiveSteps(key);
+          $loop.recursiveSteps(key, $invalidatedKeys, key);
+        });
+      }
+      $invalidatedKeys.clear();
+      return $out;
+    }
+
+    function recursiveMapObject($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      if ($new) {
+        $recursiveMapCache.set($out, {
+          $dependencyMap: new Map(),
+          $currentStack: [],
+          $invalidatedKeys,
+          $out,
+          func,
+          src,
+          context,
+          recursiveSteps
+        });
+      }
+      const $loop = $recursiveMapCache.get($out);
+      $loop.context = context;
+      if ($new) {
+        Object.keys(src).forEach(key => $invalidatedKeys.add(key));
+        Object.keys(src).forEach(key => $loop.recursiveSteps(key, $invalidatedKeys, key));
+      } else {
+        cascadeRecursiveInvalidations($loop);
+        $invalidatedKeys.forEach(key => {
+          $loop.recursiveSteps(key, $invalidatedKeys, key);
         });
       }
       $invalidatedKeys.clear();
@@ -760,6 +791,31 @@ function recursiveMap() {
 }
 recursiveMap.collectionFunc = 'recursiveMapArray';
 
+function recursiveMapValues() {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context, loop) {
+    let $changed = false;
+    /* PRETRACKING */
+    const val = src[key];
+    if (!src.hasOwnProperty(key)) {
+      if (acc.hasOwnProperty(key)) {
+        delete acc[key];
+        $changed = true;
+      }
+    } else {
+      const res = $EXPR1;
+      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
+      acc[key] = res;
+      /* TRACKING */
+    }
+    /* INVALIDATES */
+    if ($changed) {
+      triggerInvalidations(acc, key);
+    }
+    /* INVALIDATES-END */
+  }
+}
+recursiveMapValues.collectionFunc = 'recursiveMapObject';
+
 module.exports = {
   base,
   topLevel,
@@ -771,5 +827,6 @@ module.exports = {
   keyBy,
   filter,
   groupBy,
-  recursiveMap
+  recursiveMap,
+  recursiveMapValues
 };

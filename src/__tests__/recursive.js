@@ -59,4 +59,33 @@ describe('testing array', () => {
     expectTapFunctionToHaveBeenCalled(3);
     expect(inst.chain).toEqual([-2, -2, -2, -1, -2, -2]);
   });
+  it('recursiveMapValues', () => {
+    const model = {
+      allDone: root.recursiveMapValues(todo =>
+        and(
+          todo.get('done'),
+          todo
+            .get('subTasks')
+            .any((idx, _, context) => idx.recur(context).not(), loop)
+            .not()
+        ).call('tap')
+      ),
+      setDone: Setter(arg0, 'done'),
+      spliceBlockedBy: Splice(arg0, 'subTasks')
+    };
+    const optModel = eval(compile(model));
+    const initialData = {
+      a: { done: true, subTasks: [] },
+      b: { done: false, subTasks: ['c'] },
+      c: { done: false, subTasks: ['d'] },
+      d: { done: true, subTasks: [] },
+      e: { done: false, subTasks: ['a', 'c'] }
+    };
+    const inst = optModel(initialData, funcLibrary);
+    expect(inst.allDone).toEqual({ a: true, b: false, c: false, d: true, e: false });
+    inst.setDone('c', true);
+    expect(inst.allDone).toEqual({ a: true, b: false, c: true, d: true, e: false });
+    inst.setDone('d', false);
+    expect(inst.allDone).toEqual({ a: true, b: false, c: false, d: false, e: false });
+  });
 });

@@ -9,13 +9,22 @@ const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
 proxyHandler.get = (target, key) => {
   const tokenData = TokenTypeData[key];
-  if (!tokenData && typeof key === 'string' && key !== 'length' && key !== '$type' && Number.isNaN(parseInt(key, 10))) {
-    throw `unknown token: ${key}`;
+  if (
+    !tokenData &&
+    typeof key === 'string' &&
+    key !== '$type' &&
+    key !== 'length' &&
+    key !== 'inspect' &&
+    Number.isNaN(parseInt(key, 10))
+  ) {
+    throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
   }
   if (!tokenData || tokenData.nonVerb || tokenData.nonChained) {
+    // console.log(target, key);
     return Reflect.get(target, key);
   }
   return (...args) => {
+    // console.log(key, args);
     args = [new Token(key), ...args];
     if (tokenData.chainIndex) {
       if (tokenData.collectionVerb && tokenData.chainIndex === 2) {

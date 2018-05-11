@@ -2,6 +2,9 @@ function unwrapableProxies(proxyHandler) {
   const proxyToObjMap = new WeakMap();
 
   function wrap(val) {
+    if (proxyToObjMap.has(val)) {
+      return val;
+    }
     const res = new Proxy(val, proxyHandler);
     proxyToObjMap.set(res, val);
     return res;

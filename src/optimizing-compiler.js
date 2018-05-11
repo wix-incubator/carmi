@@ -15,6 +15,7 @@ const {
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, name) {
     const { getters, setters } = splitSettersGetters(model);
+    // console.log(JSON.stringify(getters, null, 2));
     super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
   }
 
@@ -86,7 +87,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'wildcard':
         return '$wildcard';
       case 'recur':
-        return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])})`;
+        return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
       default:
         return super.generateExpr(expr);
     }
@@ -172,9 +173,9 @@ class OptimizingCompiler extends NaiveCompiler {
         } else if (invalidatedPath[0].$type === 'root') {
           Object.values(this.setters).forEach(setter => {
             if (pathMatches(invalidatedPath, setter)) {
-              const setterPath = setter.map(
-                (t, index) => (t instanceof Token && t.$type !== 'root' ? invalidatedPath[index] : t)
-              );
+              const setterPath = setter
+                .map((t, index) => (t instanceof Token && t.$type !== 'root' && index ? invalidatedPath[index] : t))
+                .slice(0, invalidatedPath.length);
               tracks.push(`// path matched ${JSON.stringify(setter)}`);
               if (setterPath[setterPath.length - 1].$type !== 'wildcard') {
                 tracks.push(
