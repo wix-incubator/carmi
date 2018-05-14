@@ -115,4 +115,24 @@ describe('testing array', () => {
     });
     expectTapFunctionToHaveBeenCalled(20);
   });
+  it('test creation of arrays', () => {
+    const sumsTuple = root.map(item => [item.get(0).plus(item.get(1))]);
+    const mapOfSum = sumsTuple.map(item => item.get(0).call('tap'));
+
+    const model = { mapOfSum, set0: Setter(arg0, 0), set1: Setter(arg0, 1) };
+    const optCode = eval(compile(model));
+    const initialData = [[1, 2], [3, 4], [5, 6]];
+    const inst = optCode(initialData, funcLibrary);
+    expect(inst.mapOfSum).toEqual([3, 7, 11]);
+    expectTapFunctionToHaveBeenCalled(3);
+    inst.set0(0, 7);
+    expect(inst.mapOfSum).toEqual([9, 7, 11]);
+    expectTapFunctionToHaveBeenCalled(1);
+    inst.$startBatch();
+    inst.set0(1, 4);
+    inst.set1(1, 3);
+    inst.$endBatch();
+    expect(inst.mapOfSum).toEqual([9, 7, 11]);
+    expectTapFunctionToHaveBeenCalled(0);
+  });
 });

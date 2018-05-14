@@ -37,7 +37,7 @@ class OptimizingCompiler extends NaiveCompiler {
         };
       case 'array':
         return {
-          ARGS: () => (expr.length - 1) / 2
+          ARGS: () => expr.length - 1
         };
     }
     return {};
@@ -138,7 +138,7 @@ class OptimizingCompiler extends NaiveCompiler {
   buildSetter(setterExpr, name) {
     const args = setterExpr
       .slice(1)
-      .filter(t => typeof t !== 'string')
+      .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
     const taint = new Array(setterExpr.length - 1)
       .fill()
