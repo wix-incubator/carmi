@@ -70,4 +70,60 @@ describe('testing objects', () => {
     expect(inst.inRange).toEqual({ twelve: 'twelve', ten: 'ten', eight: 'eight' });
     expectTapFunctionToHaveBeenCalled(2);
   });
+  it('create objects', () => {
+    const itemsWithKey = root.mapValues((item, key) => {
+      return {
+        key: key,
+        text: item.get('text'),
+        idx: item.get('idx')
+      };
+    });
+    const itemsByIdx = itemsWithKey.values().keyBy(item => item.get('idx'));
+    const model = {
+      itemsByIdx,
+      updateIdx: Setter(arg0, 'idx')
+    };
+    const optModel = eval(compile(model));
+    const initialData = {
+      a: { text: 'A', idx: '0' },
+      b: { text: 'B', idx: '1' },
+      c: { text: 'C', idx: '2' }
+    };
+    const inst = optModel(initialData, funcLibrary);
+    expect(inst.itemsByIdx).toEqual({
+      '0': {
+        idx: '0',
+        key: 'a',
+        text: 'A'
+      },
+      '1': {
+        idx: '1',
+        key: 'b',
+        text: 'B'
+      },
+      '2': {
+        idx: '2',
+        key: 'c',
+        text: 'C'
+      }
+    });
+    inst.updateIdx('a', '4');
+    expect(inst.itemsByIdx).toEqual({
+      '4': {
+        idx: '4',
+        key: 'a',
+        text: 'A'
+      },
+      '1': {
+        idx: '1',
+        key: 'b',
+        text: 'B'
+      },
+      '2': {
+        idx: '2',
+        key: 'c',
+        text: 'C'
+      }
+    });
+  });
 });

@@ -117,6 +117,7 @@ function base() {
     };
 
     function triggerInvalidations($sourceObj, $sourceKey) {
+      $tainted.add($sourceObj);
       if (!$trackingMap.has($sourceObj)) {
         return;
       }
