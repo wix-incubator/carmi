@@ -23,7 +23,29 @@ class OptimizingCompiler extends NaiveCompiler {
     return require('./templates/optimizing.js');
   }
 
+  byTokenTypesPlaceHolders(expr) {
+    const currentToken = expr instanceof Expression ? expr[0] : expr;
+    const tokenType = currentToken.$type;
+    switch (tokenType) {
+      case 'object':
+        return {
+          ARGS: () => {
+            return _.range(1, expr.length, 2)
+              .map(i => `'${expr[i]}'`)
+              .join(',');
+          }
+        };
+      case 'array':
+        return {
+          ARGS: () => (expr.length - 1) / 2
+        };
+    }
+    return {};
+  }
+
   exprTemplatePlaceholders(expr, funcName) {
+    const currentToken = expr instanceof Expression ? expr[0] : expr;
+    const tokenType = currentToken.$type;
     return Object.assign(
       {
         TRACKING: () => this.tracking(expr),
@@ -40,6 +62,7 @@ class OptimizingCompiler extends NaiveCompiler {
           return this.invalidates(this.pathOfExpr(expr)) ? content : '';
         }
       },
+      this.byTokenTypesPlaceHolders(expr),
       super.exprTemplatePlaceholders(expr, funcName)
     );
   }
@@ -57,6 +80,9 @@ class OptimizingCompiler extends NaiveCompiler {
           }
         }
         return super.generateExpr(expr);
+      case 'object':
+      case 'array':
+        return `${tokenType}$${currentToken.$id}($invalidatedKeys,key,${super.generateExpr(expr)})`;
       case 'keys':
       case 'values':
         return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(
@@ -95,6 +121,18 @@ class OptimizingCompiler extends NaiveCompiler {
 
   buildDerived(name) {
     return `$invalidatedRoots.has('${name}') && $${name}Build();`;
+  }
+
+  buildExprFunctionsByTokenType(acc, expr) {
+    const tokenType = expr[0].$type;
+    switch (tokenType) {
+      case 'object':
+      case 'array':
+        this.appendExpr(acc, tokenType, expr, `${tokenType}$${expr[0].$id}`);
+        break;
+      default:
+        super.buildExprFunctionsByTokenType(acc, expr);
+    }
   }
 
   buildSetter(setterExpr, name) {

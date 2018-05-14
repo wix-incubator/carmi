@@ -61,6 +61,15 @@ class NaiveCompiler {
         return `!(${this.generateExpr(expr[1])})`;
       case 'ternary':
         return `((${this.generateExpr(expr[1])})?(${this.generateExpr(expr[2])}):(${this.generateExpr(expr[3])}))`;
+      case 'array':
+        return `[${expr
+          .slice(1)
+          .map(t => this.generateExpr(t))
+          .join(',')}]`;
+      case 'object':
+        return `{${_.range(1, expr.length, 2)
+          .map(idx => `"${expr[idx]}": ${this.generateExpr(expr[idx + 1])}`)
+          .join(',')}}`;
       case 'keys':
       case 'values':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
@@ -96,7 +105,7 @@ class NaiveCompiler {
       case 'recur':
         return `${this.generateExpr(expr[1])}(${this.generateExpr(expr[2])})`;
       case 'func':
-        return currentToken.funcName;
+        return currentToken.$funcId;
       case 'root':
         return '$model';
       case 'val':
@@ -150,7 +159,8 @@ class NaiveCompiler {
       ROOTNAME: expr[0].$rootName,
       FUNCNAME: funcName,
       EXPR1: () => this.generateExpr(expr[1]),
-      EXPR: () => this.generateExpr(expr)
+      EXPR: () => this.generateExpr(expr),
+      ID: () => expr[0].$id
     };
   }
 
@@ -163,25 +173,24 @@ class NaiveCompiler {
     );
   }
 
-  buildExprFunctions(acc, expr, name) {
-    if (!(expr instanceof Expression) || !expr[0]) {
-      return;
-    }
+  buildExprFunctionsByTokenType(acc, expr) {
     const tokenType = expr[0].$type;
     switch (tokenType) {
       case 'func':
-        expr[0].funcName = expr[0]['$funcId'];
+        this.appendExpr(acc, tokenType, expr, expr[0].$funcId);
         break;
     }
+  }
 
-    _.forEach(expr.slice(1), this.buildExprFunctions.bind(this, acc));
-    if (expr[0].funcName) {
-      this.appendExpr(acc, tokenType, expr, expr[0].funcName);
+  buildExprFunctions(acc, expr, name) {
+    if (!(expr instanceof Expression) || !expr[0]) {
+      return acc;
     }
+    _.forEach(expr.slice(1), this.buildExprFunctions.bind(this, acc));
+    this.buildExprFunctionsByTokenType(acc, expr);
     if (typeof name === 'string') {
       this.appendExpr(acc, 'topLevel', expr, name);
     }
-
     return acc;
   }
 

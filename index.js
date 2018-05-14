@@ -7,6 +7,27 @@ const unwrapableProxies = require('./src/unwrapable-proxy');
 const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
+function convertArrayAndObjectsToExpr(v) {
+  if (v.constructor === Object) {
+    return createExpr(
+      new Token('object'),
+      ...Object.keys(v).reduce((acc, key) => {
+        acc.push(key);
+        acc.push(v[key]);
+        return acc;
+      }, [])
+    );
+  } else if (v.constructor === Array) {
+    return createExpr(new Token('array'), ...v);
+  } else {
+    return v;
+  }
+}
+
+function createExpr(...args) {
+  return Expr.apply(null, args.map(convertArrayAndObjectsToExpr));
+}
+
 proxyHandler.get = (target, key) => {
   const tokenData = TokenTypeData[key];
   if (
@@ -31,19 +52,19 @@ proxyHandler.get = (target, key) => {
         if (typeof args[1] === 'function') {
           args[1] = args[1].apply(null, ['val', 'key', 'context', 'loop'].map(t => wrap(new Token(t))));
         } else if (typeof args[1] === 'string') {
-          args[1] = Expr.apply(null, [new Token('get'), args[1], new Token('val')]);
+          args[1] = createExpr(new Token('get'), args[1], new Token('val'));
         }
-        args[1] = Expr.apply(null, [new Token('func'), args[1]]);
+        args[1] = createExpr(new Token('func'), args[1]);
       }
       args.splice(tokenData.chainIndex, 0, target);
     }
-    return wrap(Expr.apply(null, args));
+    return wrap(createExpr(...args));
   };
 };
 
 proxyHandler.apply = (target, thisArg, args) => {
   if (target instanceof Token) {
-    wrap(Expr.apply(null, [new Token(target.$type), ...args]));
+    wrap(createExpr(new Token(target.$type), ...args));
   } else {
     throw `${String(target)} not a function`;
   }
@@ -85,7 +106,7 @@ Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].nonVerb) {
     exported[t] = wrap(new Token(t));
   } else if (TokenTypeData[t].nonChained) {
-    exported[t] = (...args) => wrap(Expr.apply(null, [new Token(t), ...args]));
+    exported[t] = (...args) => wrap(createExpr(new Token(t), ...args));
   }
 });
 

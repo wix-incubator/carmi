@@ -531,6 +531,32 @@ function base() {
       return $out;
     }
 
+    const $arrayCache = new WeakMap();
+    function getEmptyArray($invalidatedKeys, key, token) {
+      if (!$arrayCache.has($invalidatedKeys)) {
+        $arrayCache.set($invalidatedKeys, {});
+      }
+      const $cacheByKey = $arrayCache.get($invalidatedKeys);
+      $cacheByKey[key] = $cacheByKey[key] || new Map();
+      if (!$cacheByKey[key].has(token)) {
+        $cacheByKey[key].set(token, []);
+      }
+      return $cacheByKey[key].get(token);
+    }
+
+    const $objectCache = new WeakMap();
+    function getEmptyObject($invalidatedKeys, key, token) {
+      if (!$objectCache.has($invalidatedKeys)) {
+        $objectCache.set($invalidatedKeys, {});
+      }
+      const $cacheByKey = $objectCache.get($invalidatedKeys);
+      $cacheByKey[key] = $cacheByKey[key] || new Map();
+      if (!$cacheByKey[key].has(token)) {
+        $cacheByKey[key].set(token, {});
+      }
+      return $cacheByKey[key].get(token);
+    }
+
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
     function recalculate() {
@@ -816,6 +842,52 @@ function recursiveMapValues() {
 }
 recursiveMapValues.collectionFunc = 'recursiveMapObject';
 
+function object() {
+  const $FUNCNAMEToken = getUniquePersistenObject(/*ID*/);
+  const $FUNCNAMEKeys = [
+    /*ARGS*/
+  ];
+  const $FUNCNAMELength = $FUNCNAMEKeys.length;
+  function $FUNCNAME($invalidatedKeys, key, newVal) {
+    let $changed = false;
+    const res = getEmptyObject($invalidatedKeys, key, $FUNCNAMEToken);
+    for (let i = 0; i < $FUNCNAMELength; i++) {
+      let name = $FUNCNAMEKeys[i];
+      /* INVALIDATES */
+      if (
+        res.hasOwnProperty(name) &&
+        (res[name] !== newVal[name] || (typeof newVal[name] === 'object' && $tainted.has(newVal[name])))
+      ) {
+        triggerInvalidations(res, name);
+      }
+      /* INVALIDATES-END */
+      res[name] = newVal[name];
+    }
+    return res;
+  }
+}
+
+function array() {
+  const $FUNCNAMEToken = getUniquePersistenObject(/*ID*/);
+  const $FUNCNAMELength = $ARGS;
+  function $FUNCNAME($invalidatedKeys, key, newVal) {
+    let $changed = false;
+    const res = getEmptyArray($invalidatedKeys, key, $FUNCNAMEToken);
+    for (let i = 0; i < $FUNCNAMELength; i++) {
+      /* INVALIDATES */
+      if (
+        res.length === $FUNCNAMELength &&
+        (res[i] !== newVal[i] || (typeof newVal[i] === 'object' && $tainted.has(newVal[i])))
+      ) {
+        triggerInvalidations(res, i);
+      }
+      /* INVALIDATES-END */
+      res[i] = newVal[i];
+    }
+    return res;
+  }
+}
+
 module.exports = {
   base,
   topLevel,
@@ -828,5 +900,7 @@ module.exports = {
   filter,
   groupBy,
   recursiveMap,
-  recursiveMapValues
+  recursiveMapValues,
+  object,
+  array
 };
