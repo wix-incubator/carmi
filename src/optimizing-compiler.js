@@ -171,7 +171,11 @@ class OptimizingCompiler extends NaiveCompiler {
     return `${name}:(${args.concat('value').join(',')}) => {
               ${this.invalidates(setterExpr) ? invalidate : ''}
               ${taint}
-              ${this.pathToString(setterExpr)}  = value;
+              if (typeof value === 'undefined') {
+                delete ${this.pathToString(setterExpr)}
+              } else {
+                ${this.pathToString(setterExpr)}  = value;
+              }
               recalculate();
           }`;
   }

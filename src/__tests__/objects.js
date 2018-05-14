@@ -81,7 +81,8 @@ describe('testing objects', () => {
     const itemsByIdx = itemsWithKey.values().keyBy(item => item.get('idx'));
     const model = {
       itemsByIdx,
-      updateIdx: Setter(arg0, 'idx')
+      updateIdx: Setter(arg0, 'idx'),
+      updateItem: Setter(arg0)
     };
     const optModel = eval(compile(model));
     const initialData = {
@@ -114,6 +115,19 @@ describe('testing objects', () => {
         key: 'a',
         text: 'A'
       },
+      '1': {
+        idx: '1',
+        key: 'b',
+        text: 'B'
+      },
+      '2': {
+        idx: '2',
+        key: 'c',
+        text: 'C'
+      }
+    });
+    inst.updateItem('a'); /// delete key
+    expect(inst.itemsByIdx).toEqual({
       '1': {
         idx: '1',
         key: 'b',

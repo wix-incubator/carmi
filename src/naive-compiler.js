@@ -149,7 +149,11 @@ class NaiveCompiler {
     }`;
     }
     return `${name}:(${args.concat('value').join(',')}) => {
-              ${this.pathToString(setterExpr)} = value;
+              if (typeof value === 'undefined') {
+                delete ${this.pathToString(setterExpr)}
+              } else {
+                ${this.pathToString(setterExpr)} = value;
+              }
               recalculate();
           }`;
   }
