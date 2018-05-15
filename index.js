@@ -73,7 +73,11 @@ proxyHandler.apply = (target, thisArg, args) => {
 function compile(model, naive, name) {
   const Compiler = naive ? NaiveCompiler : OptimzingCompiler;
   const compiler = new Compiler(unwrap(model));
-  const source = prettier.format(compiler.compile());
+  const rawSource = compiler.compile();
+  let source = rawSource;
+  try {
+    source = prettier.format(rawSource);
+  } catch (e) {}
   require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
 
   return `(function () {

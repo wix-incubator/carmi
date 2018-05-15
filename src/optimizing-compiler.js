@@ -81,7 +81,9 @@ class OptimizingCompiler extends NaiveCompiler {
         return super.generateExpr(expr);
       case 'object':
       case 'array':
-        return `${tokenType}$${currentToken.$id}($invalidatedKeys,key,${super.generateExpr(expr)})`;
+        return `${tokenType}($invalidatedKeys,key,${super.generateExpr(expr)}, ${tokenType}$${
+          expr[0].$id
+        }Token, ${tokenType}$${expr[0].$id}Args, ${this.invalidates(this.pathOfExpr(expr))})`;
       case 'keys':
       case 'values':
         return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(

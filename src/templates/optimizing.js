@@ -558,6 +558,37 @@ function base() {
       return $cacheByKey[key].get(token);
     }
 
+    function array($invalidatedKeys, key, newVal, identifier, len, invalidates) {
+      const res = getEmptyArray($invalidatedKeys, key, identifier);
+      for (let i = 0; i < len; i++) {
+        if (
+          invalidates &&
+          res.length === len &&
+          (res[i] !== newVal[i] || (typeof newVal[i] === 'object' && $tainted.has(newVal[i])))
+        ) {
+          triggerInvalidations(res, i);
+        }
+        res[i] = newVal[i];
+      }
+      return res;
+    }
+
+    function object($invalidatedKeys, key, newVal, identifier, keysList, invalidates) {
+      const res = getEmptyObject($invalidatedKeys, key, identifier);
+      for (let i = 0; i < keysList.length; i++) {
+        let name = keysList[i];
+        if (
+          invalidates &&
+          res.hasOwnProperty(name) &&
+          (res[name] !== newVal[name] || (typeof newVal[name] === 'object' && $tainted.has(newVal[name])))
+        ) {
+          triggerInvalidations(res, name);
+        }
+        res[name] = newVal[name];
+      }
+      return res;
+    }
+
     function assignOrDefaults($targetObj, $targetKey, identifier, src, assign) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
       if (!assign) {
@@ -872,48 +903,14 @@ recursiveMapValues.collectionFunc = 'recursiveMapObject';
 
 function object() {
   const $FUNCNAMEToken = getUniquePersistenObject(/*ID*/);
-  const $FUNCNAMEKeys = [
+  const $FUNCNAMEArgs = [
     /*ARGS*/
   ];
-  const $FUNCNAMELength = $FUNCNAMEKeys.length;
-  function $FUNCNAME($invalidatedKeys, key, newVal) {
-    let $changed = false;
-    const res = getEmptyObject($invalidatedKeys, key, $FUNCNAMEToken);
-    for (let i = 0; i < $FUNCNAMELength; i++) {
-      let name = $FUNCNAMEKeys[i];
-      /* INVALIDATES */
-      if (
-        res.hasOwnProperty(name) &&
-        (res[name] !== newVal[name] || (typeof newVal[name] === 'object' && $tainted.has(newVal[name])))
-      ) {
-        triggerInvalidations(res, name);
-      }
-      /* INVALIDATES-END */
-      res[name] = newVal[name];
-    }
-    return res;
-  }
 }
 
 function array() {
   const $FUNCNAMEToken = getUniquePersistenObject(/*ID*/);
-  const $FUNCNAMELength = $ARGS;
-  function $FUNCNAME($invalidatedKeys, key, newVal) {
-    let $changed = false;
-    const res = getEmptyArray($invalidatedKeys, key, $FUNCNAMEToken);
-    for (let i = 0; i < $FUNCNAMELength; i++) {
-      /* INVALIDATES */
-      if (
-        res.length === $FUNCNAMELength &&
-        (res[i] !== newVal[i] || (typeof newVal[i] === 'object' && $tainted.has(newVal[i])))
-      ) {
-        triggerInvalidations(res, i);
-      }
-      /* INVALIDATES-END */
-      res[i] = newVal[i];
-    }
-    return res;
-  }
+  const $FUNCNAMEArgs = $ARGS;
 }
 
 module.exports = {
