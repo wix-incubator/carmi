@@ -1,4 +1,4 @@
-const { currentValues, compile, and, or, context, root, val, key, arg0, Setter, Splice } = require('../../index');
+const { currentValues, compile, and, or, context, root, val, key, arg0, arg1, Setter, Splice } = require('../../index');
 const _ = require('lodash');
 const rand = require('random-seed').create();
 const defaultSeed = 'CARMI';
@@ -133,6 +133,29 @@ describe('testing array', () => {
     inst.set1(1, 3);
     inst.$endBatch();
     expect(inst.mapOfSum).toEqual([9, 7, 11]);
+    expectTapFunctionToHaveBeenCalled(0);
+  });
+  it('test assign/defaults', () => {
+    const model = {
+      assign: root.assign().mapValues(val => val.call('tap')),
+      defaults: root.defaults().mapValues(val => val.call('tap')),
+      set: Setter(arg0),
+      setInner: Setter(arg0, arg1),
+      splice: Splice()
+    };
+    const optCode = eval(compile(model));
+    const initialData = [{ a: 1 }, { b: 2 }, { a: 5 }];
+    const inst = optCode(initialData, funcLibrary);
+    expect(currentValues(inst)).toEqual({ assign: { a: 5, b: 2 }, defaults: { a: 1, b: 2 } });
+    expectTapFunctionToHaveBeenCalled(4);
+    inst.set(0, { a: 7 });
+    expect(currentValues(inst)).toEqual({ assign: { a: 5, b: 2 }, defaults: { a: 7, b: 2 } });
+    expectTapFunctionToHaveBeenCalled(1);
+    inst.setInner(2, 'a', 9);
+    expect(currentValues(inst)).toEqual({ assign: { a: 9, b: 2 }, defaults: { a: 7, b: 2 } });
+    expectTapFunctionToHaveBeenCalled(1);
+    inst.splice(1, 1);
+    expect(currentValues(inst)).toEqual({ assign: { a: 9 }, defaults: { a: 7 } });
     expectTapFunctionToHaveBeenCalled(0);
   });
 });

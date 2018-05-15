@@ -558,6 +558,33 @@ function base() {
       return $cacheByKey[key].get(token);
     }
 
+    function assignOrDefaults($targetObj, $targetKey, identifier, src, assign) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
+      if (!assign) {
+        src = [...src].reverse();
+      }
+      if ($new) {
+        Object.assign($out, ...src);
+      } else {
+        const $invalidatedKeys = $invalidatedMap.get($out);
+        const $keysPendingDelete = new Set(Object.keys($out));
+        const res = Object.assign({}, ...src);
+        Object.keys(res).forEach(key => {
+          $keysPendingDelete.delete(key);
+          if ($out[key] !== res[key] || (typeof res[key] === 'object' && $tainted.has(res[key]))) {
+            triggerInvalidations($out, key);
+          }
+          $out[key] = res[key];
+        });
+        $keysPendingDelete.forEach(key => {
+          delete $out[key];
+          triggerInvalidations($out, key);
+        });
+        $invalidatedKeys.clear();
+      }
+      return $out;
+    }
+
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
     function recalculate() {

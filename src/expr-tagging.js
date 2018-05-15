@@ -183,7 +183,7 @@ function extractAllStaticExpressionsAsValues(getters) {
   _.forEach(allStaticStringsSorted, s => {
     const e = allStaticAsStrings[s];
     if (!namesByExpr[s] && isCollectionExpr(e)) {
-      namesByExpr[s] = '$' + generateName(namesByExpr, e) + nodeIndex++;
+      namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
     }
   });
   const originalGetters = Object.keys(getters);

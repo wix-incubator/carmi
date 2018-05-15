@@ -15,7 +15,6 @@ const {
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, name) {
     const { getters, setters } = splitSettersGetters(model);
-    // console.log(JSON.stringify(getters, null, 2));
     super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
   }
 
@@ -88,6 +87,11 @@ class OptimizingCompiler extends NaiveCompiler {
         return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(
           expr[1]
         )}, ${tokenType === 'values' ? 'true' : 'false'})`;
+      case 'assign':
+      case 'defaults':
+        return `assignOrDefaults(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(expr[1])}, ${
+          tokenType === 'assign' ? 'true' : 'false'
+        })`;
       case 'map':
       case 'any':
       case 'mapValues':

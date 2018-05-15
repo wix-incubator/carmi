@@ -72,6 +72,8 @@ class NaiveCompiler {
           .join(',')}}`;
       case 'keys':
       case 'values':
+      case 'assign':
+      case 'defaults':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
       case 'eq':
       case 'lt':

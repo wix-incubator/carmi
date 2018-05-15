@@ -66,6 +66,14 @@ function base() {
       return Array.from(Object.values(src));
     }
 
+    function assign(src) {
+      return Object.assign({}, ...src);
+    }
+
+    function defaults(src) {
+      return Object.assign({}, ...[...src].reverse());
+    }
+
     function loopFunction(resolved, res, func, src, context, key) {
       if (!resolved[key]) {
         resolved[key] = true;
