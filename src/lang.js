@@ -53,6 +53,8 @@ const TokenTypeData = {
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   values: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
   keys: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
+  size: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
+  range: new TokenTypes({ chainIndex: 1 }),
   assign: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
   defaults: new TokenTypes({ collectionVerb: true, chainIndex: 1 }),
   loop: new TokenTypes({ nonVerb: true }),

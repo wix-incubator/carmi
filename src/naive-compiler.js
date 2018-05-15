@@ -70,10 +70,15 @@ class NaiveCompiler {
         return `{${_.range(1, expr.length, 2)
           .map(idx => `"${expr[idx]}": ${this.generateExpr(expr[idx + 1])}`)
           .join(',')}}`;
+      case 'range':
+        return `range(${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
+          expr.length > 2 ? this.generateExpr(expr[2]) : '1'
+        })`;
       case 'keys':
       case 'values':
       case 'assign':
       case 'defaults':
+      case 'size':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
       case 'eq':
       case 'lt':

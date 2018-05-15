@@ -158,4 +158,60 @@ describe('testing array', () => {
     expect(currentValues(inst)).toEqual({ assign: { a: 9 }, defaults: { a: 7 } });
     expectTapFunctionToHaveBeenCalled(0);
   });
+  it('test range/size', () => {
+    const matches = root.get('items').filter(val => val.eq(root.get('match')));
+    const model = {
+      fizzBuzz: matches
+        .size()
+        .range(1)
+        .map(val =>
+          val
+            .mod(15)
+            .eq(0)
+            .ternary(
+              'fizzbuzz',
+              val
+                .mod(3)
+                .eq(0)
+                .ternary(
+                  'fizz',
+                  val
+                    .mod(5)
+                    .eq(0)
+                    .ternary('buzz', val)
+                )
+            )
+        )
+        .map(val => val.call('tap')),
+      spliceItems: Splice('items'),
+      setMatch: Setter('match')
+    };
+    const initialData = {
+      items: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 2, 2, 2, 2],
+      match: 1
+    };
+    const optCode = eval(compile(model));
+    const inst = optCode(initialData, funcLibrary);
+    expect(inst.fizzBuzz).toEqual([1, 2, 'fizz', 4, 'buzz']);
+    inst.setMatch(0);
+    expect(inst.fizzBuzz).toEqual([
+      1,
+      2,
+      'fizz',
+      4,
+      'buzz',
+      'fizz',
+      7,
+      8,
+      'fizz',
+      'buzz',
+      11,
+      'fizz',
+      13,
+      14,
+      'fizzbuzz'
+    ]);
+    inst.setMatch(2);
+    expect(inst.fizzBuzz).toEqual([1, 2, 'fizz']);
+  });
 });

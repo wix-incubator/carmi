@@ -89,11 +89,17 @@ class OptimizingCompiler extends NaiveCompiler {
         return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(
           expr[1]
         )}, ${tokenType === 'values' ? 'true' : 'false'})`;
+      case 'size':
+        return `size(acc, key, ${this.generateExpr(expr[1])}, getUniquePersistenObject(${expr[0].$id}))`;
       case 'assign':
       case 'defaults':
         return `assignOrDefaults(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
         })`;
+      case 'range':
+        return `range(acc, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
+          expr.length > 2 ? this.generateExpr(expr[2]) : '1'
+        }, getUniquePersistenObject(${expr[0].$id}))`;
       case 'map':
       case 'any':
       case 'mapValues':

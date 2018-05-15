@@ -616,6 +616,44 @@ function base() {
       return $out;
     }
 
+    function size($targetObj, $targetKey, src, identifier) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyArr);
+      if ($new) {
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+      }
+      if (!$new) {
+        const $invalidatedKeys = $invalidatedMap.get($out);
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+        $invalidatedKeys.clear();
+      }
+      return $out[0];
+    }
+
+    function range($targetObj, $targetKey, end, start, step, identifier) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, size, identifier, emptyArr);
+      if ($new) {
+        for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
+          $out.push(val);
+        }
+      } else {
+        let len = 0;
+        for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
+          if ($out[len] !== val) {
+            triggerInvalidations($out, len);
+          }
+          $out[len] = val;
+          len++;
+        }
+        if ($out.length > len) {
+          for (let i = len; i < $out.length; i++) {
+            triggerInvalidations($out, i);
+          }
+          $out.length = len;
+        }
+      }
+      return $out;
+    }
+
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
     function recalculate() {

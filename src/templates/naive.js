@@ -70,6 +70,18 @@ function base() {
       return Object.assign({}, ...src);
     }
 
+    function size(src) {
+      return Array.isArray(src) ? src.length : Object.keys(src).length;
+    }
+
+    function range(end, start = 0, step = 1) {
+      const res = [];
+      for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
+        res.push(val);
+      }
+      return res;
+    }
+
     function defaults(src) {
       return Object.assign({}, ...[...src].reverse());
     }

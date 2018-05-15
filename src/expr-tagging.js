@@ -41,13 +41,16 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
     return [];
   }
   if (expr[0].$type === 'get' || isCollectionExpr(expr)) {
-    const result = annotatePathsThatCanBeInvalidated(expr[chainIndex(expr)], paths, true).concat(
-      isCollectionExpr(expr) ? Wildcard : [expr[1]]
-    );
-    if (!inChain) {
-      paths.set(result, expr[0].$conditional ? expr[0].$id : false);
+    const chainedTo = annotatePathsThatCanBeInvalidated(expr[chainIndex(expr)], paths, true);
+    if (!Array.isArray(chainedTo)) {
+      return [];
+    } else {
+      const result = chainedTo.concat(isCollectionExpr(expr) ? Wildcard : [expr[1]]);
+      if (!inChain) {
+        paths.set(result, expr[0].$conditional ? expr[0].$id : false);
+      }
+      return result;
     }
-    return result;
   } else if (expr[0].$type !== 'func' || !inChain) {
     expr.slice(1).forEach(e => annotatePathsThatCanBeInvalidated(e, paths, false));
   }
