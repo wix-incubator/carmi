@@ -5,3 +5,4 @@ build
 dist/
 benchmark/generated/
 yarn.lock
+/tmp.js
