@@ -473,6 +473,7 @@ function base() {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
+              $out[$keyToIdx[key]] = src[key];
               triggerInvalidations($out, $keyToIdx[key]);
             }
           }
