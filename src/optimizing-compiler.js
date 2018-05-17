@@ -223,6 +223,11 @@ class OptimizingCompiler extends NaiveCompiler {
               `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 1)}
               , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 1])})`
             );
+          } else {
+            tracks.push(
+              `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 2)}
+              , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 2])})`
+            );
           }
         } else if (invalidatedPath[0].$type === 'root') {
           Object.values(this.setters).forEach(setter => {
