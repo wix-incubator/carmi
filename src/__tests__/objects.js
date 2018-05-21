@@ -70,6 +70,24 @@ describe('testing objects', () => {
     expect(inst.inRange).toEqual({ twelve: 'twelve', ten: 'ten', eight: 'eight' });
     expectTapFunctionToHaveBeenCalled(2);
   });
+  it('mapValues', () => {
+    const textsIfDone = root
+      .mapValues(val => val.get('done').ternary(val.get('text'), val.get('missingProp')))
+      .mapValues(text => text.call('tap'));
+    const model = { textsIfDone, update: Setter(arg0, 'done') };
+    const optModel = eval(compile(model));
+    const initialData = {
+      a: { done: true, text: 'a' },
+      b: { done: true, text: 'b' },
+      c: { done: false, text: 'c' }
+    };
+    const inst = optModel(initialData, funcLibrary);
+    expect(inst.textsIfDone).toEqual({ a: 'a', b: 'b', c: undefined });
+    expectTapFunctionToHaveBeenCalled(3);
+    inst.update('b', false);
+    expect(inst.textsIfDone).toEqual({ a: 'a', b: undefined, c: undefined });
+    expectTapFunctionToHaveBeenCalled(1);
+  });
   it('create objects', () => {
     const itemsWithKey = root.mapValues((item, key) => {
       return {

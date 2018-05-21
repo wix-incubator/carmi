@@ -603,7 +603,11 @@ function base() {
         const res = Object.assign({}, ...src);
         Object.keys(res).forEach(key => {
           $keysPendingDelete.delete(key);
-          if ($out[key] !== res[key] || (typeof res[key] === 'object' && $tainted.has(res[key]))) {
+          if (
+            $out[key] !== res[key] ||
+            (typeof res[key] === 'object' && $tainted.has(res[key])) ||
+            (!$out.hasOwnProperty(key) && res[key] === undefined)
+          ) {
             triggerInvalidations($out, key);
           }
           $out[key] = res[key];
@@ -716,7 +720,10 @@ function mapValues() {
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
+      $changed =
+        res !== acc[key] ||
+        (typeof res === 'object' && $tainted.has(res)) ||
+        (!acc.hasOwnProperty(key) && res === undefined);
       acc[key] = res;
       /* TRACKING */
     }
@@ -741,7 +748,10 @@ function filterBy() {
     } else {
       const res = $EXPR1;
       if (res) {
-        $changed = acc[key] !== val || (typeof val === 'object' && $tainted.has(val));
+        $changed =
+          acc[key] !== val ||
+          (typeof val === 'object' && $tainted.has(val)) ||
+          (!acc.hasOwnProperty(key) && val === undefined);
         acc[key] = val;
       } else if (acc.hasOwnProperty(key)) {
         delete acc[key];
@@ -824,7 +834,10 @@ function keyBy() {
     if (key < src.length) {
       const val = src[key];
       res = '' + $EXPR1;
-      const $changed = acc[res] !== val || (typeof val === 'object' && $tainted.has(val));
+      const $changed =
+        acc[res] !== val ||
+        (typeof val === 'object' && $tainted.has(val)) ||
+        (!acc.hasOwnProperty(res) && val === undefined);
       acc[res] = val;
       $idxToKey[key] = res;
       /* TRACKING */
@@ -876,7 +889,10 @@ function groupBy() {
     if (!acc.hasOwnProperty(res)) {
       acc[res] = {};
     }
-    $changed = val !== acc[res][key] || (typeof val === 'object' && $tainted.has(val));
+    $changed =
+      val !== acc[res][key] ||
+      (typeof val === 'object' && $tainted.has(val)) ||
+      (!acc[res].hasOwnProperty(key) && val === undefined);
     acc[res][key] = val;
     /* TRACKING */
     /* INVALIDATES */
@@ -927,7 +943,10 @@ function recursiveMapValues() {
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
+      $changed =
+        res !== acc[key] ||
+        (typeof res === 'object' && $tainted.has(res)) ||
+        (!acc.hasOwnProperty(key) && res === undefined);
       acc[key] = res;
       /* TRACKING */
     }
