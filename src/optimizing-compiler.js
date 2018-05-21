@@ -13,9 +13,9 @@ const {
 } = require('./expr-tagging');
 
 class OptimizingCompiler extends NaiveCompiler {
-  constructor(model, name) {
+  constructor(model, options) {
     const { getters, setters } = splitSettersGetters(model);
-    super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, name);
+    super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, options);
   }
 
   get template() {

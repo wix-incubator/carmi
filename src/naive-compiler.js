@@ -18,13 +18,13 @@ const nativeOps = {
 };
 
 class NaiveCompiler {
-  constructor(model, name) {
+  constructor(model, options) {
     const { getters, setters } = splitSettersGetters(model);
     tagAllExpressions(getters);
     this.getters = getters;
     this.setters = setters;
     // console.log(JSON.stringify(getters, null, 2));
-    this.name = name || 'Model';
+    this.options = options;
   }
 
   get template() {
@@ -226,7 +226,7 @@ class NaiveCompiler {
 
   compile() {
     return this.mergeTemplate(this.template.base, {
-      NAME: this.name,
+      NAME: this.options.name,
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>
         topologicalSortGetters(this.getters)

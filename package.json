@@ -6,14 +6,21 @@
     "test": "node node_modules/jest/bin/jest.js",
     "release": "wnpm-release --no-shrinkwrap"
   },
+  "bin": {
+    "carmi": "./bin/carmi"
+  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "author": "Avi Marcus",
   "license": "MIT",
   "dependencies": {
+    "command-line-args": "^5.0.2",
     "lodash": "^4.17.4",
     "prettier": "^1.8.2",
+    "rollup": "^0.59.1",
+    "rollup-plugin-uglify": "^3.0.0",
+    "rollup-plugin-virtual": "^1.0.1",
     "toposort": "^1.0.6"
   },
   "devDependencies": {

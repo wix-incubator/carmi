@@ -1,6 +1,11 @@
 const { TokenTypeData, Expr, Token, Setter, Expression, Splice } = require('./src/lang');
 const NaiveCompiler = require('./src/naive-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
+const { promisify } = require('util');
+
+const { rollup } = require('rollup');
+const uglify = require('rollup-plugin-uglify');
+const virtual = require('rollup-plugin-virtual');
 const prettier = require('prettier');
 
 const unwrapableProxies = require('./src/unwrapable-proxy');
@@ -72,20 +77,41 @@ proxyHandler.apply = (target, thisArg, args) => {
   }
 };
 
-function compile(model, naive, name) {
-  const Compiler = naive ? NaiveCompiler : OptimzingCompiler;
-  const compiler = new Compiler(unwrap(model));
+function compile(model, options) {
+  if (typeof options === 'boolean' || typeof options === 'undefined') {
+    options = { naive: !!options, name: 'model' };
+  }
+  const Compiler = options.naive ? NaiveCompiler : OptimzingCompiler;
+  const compiler = new Compiler(unwrap(model), options);
   const rawSource = compiler.compile();
   let source = rawSource;
   try {
     source = prettier.format(rawSource);
   } catch (e) {}
   require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
-
-  return `(function () {
-    'use strict';
-    return ${source}
-  })()`;
+  if (!options.format) {
+    return `(function () {
+      'use strict';
+      return ${source}
+    })()`;
+  }
+  const rollupConfig = {
+    input: 'main.js',
+    plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify ? [uglify()] : []),
+    output: {
+      format: options.format,
+      name: options.name
+    }
+  };
+  return rollup(rollupConfig)
+    .then(bundle => bundle.generate(rollupConfig))
+    .then(generated => {
+      if (options.output) {
+        return promisify(require('fs').writeFile)(options.output, generated.code);
+      } else {
+        console.log(generated.code);
+      }
+    });
 }
 
 function currentValues(inst) {

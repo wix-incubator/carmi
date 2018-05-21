@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+'use strict';
+const commandLineArgs = require('command-line-args');
+const carmi = require('../index');
+const path = require('path');
+
+const optionDefinitions = [
+  { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
+  { name: 'output', type: String, defaultValue: '', description: 'output filename' },
+  { name: 'naive', type: Boolean, defaultValue: false, description: 'ouput naive code' },
+  { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
+  { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
+  { name: 'minify', type: Boolean, defaultValue: false, description: 'minify output' },
+  { name: 'help', type: Boolean, defaultValue: false }
+];
+
+const HELP = `carmi [<options>] <src>
+${optionDefinitions
+  .filter(v => v.description)
+  .map(opt => `--${opt.name} - ${opt.description}`)
+  .join('\n')}
+`;
+
+async function run() {
+  const options = commandLineArgs(optionDefinitions);
+  if (options.help) {
+    return console.log(HELP);
+  }
+  let model;
+  try {
+    model = require(path.resolve(process.cwd(), options.source));
+  } catch (e) {
+    console.error(`failed to require ${options.source}`);
+    return;
+  }
+  carmi.compile(model, options);
+}
+
+run();
