@@ -16,7 +16,7 @@ function unwrapableProxies(proxyHandler) {
       res.forEach((val, key) => {
         res[key] = unwrap(val);
       });
-    } else if (typeof res === 'object') {
+    } else if (typeof res === 'object' && res !== null) {
       Object.getOwnPropertyNames(res).forEach(key => {
         res[key] = unwrap(res[key]);
       });

@@ -8,7 +8,9 @@ const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
 function convertArrayAndObjectsToExpr(v) {
-  if (v.constructor === Object) {
+  if (v === null) {
+    return new Token('null');
+  } else if (v.constructor === Object) {
     return createExpr(
       new Token('object'),
       ...Object.keys(v).reduce((acc, key) => {
@@ -87,7 +89,7 @@ function compile(model, naive, name) {
 }
 
 function currentValues(inst) {
-  if (typeof inst !== 'object') {
+  if (typeof inst !== 'object' || inst === null) {
     return inst;
   }
   if (Array.isArray(inst)) {

@@ -115,6 +115,7 @@ class NaiveCompiler {
         return currentToken.$funcId;
       case 'root':
         return '$model';
+      case 'null':
       case 'val':
       case 'key':
       case 'arg0':
