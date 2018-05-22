@@ -83,6 +83,10 @@ function compile(model, options) {
   }
   const Compiler = options.naive ? NaiveCompiler : OptimzingCompiler;
   const compiler = new Compiler(unwrap(model), options);
+  if (options.ast) {
+    console.log(JSON.stringify(compiler.getters, null, 2));
+    return;
+  }
   const rawSource = compiler.compile();
   let source = rawSource;
   try {

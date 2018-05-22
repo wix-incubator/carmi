@@ -11,7 +11,8 @@ const optionDefinitions = [
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'minify', type: Boolean, defaultValue: false, description: 'minify output' },
-  { name: 'help', type: Boolean, defaultValue: false }
+  { name: 'help', type: Boolean, defaultValue: false },
+  { name: 'ast', type: Boolean, defaultValue: false }
 ];
 
 const HELP = `carmi [<options>] <src>

@@ -678,6 +678,12 @@ function base() {
         $endBatch: () => {
           $inBatch = false;
           recalculate();
+        },
+        $runInBatch: func => {
+          $inBatch = true;
+          func();
+          $inBatch = false;
+          recalculate();
         }
       }
     );
