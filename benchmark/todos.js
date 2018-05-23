@@ -6,10 +6,17 @@ function generateTestTodoItems(count) {
   return res;
 }
 
-function benchmark(count, callback) {
-  for (let idx = 0; idx < count; idx++) {
-    callback(idx, { text: `todo_${idx}`, done: idx % 2 === 0, blockedBy: idx % 5 > 3 ? '' + (idx - 1) : null });
+module.exports = {
+  getInitialState: count => {
+    return { todos: generateTestTodoItems(count) };
+  },
+  benchmark: (inst, startCount, endCount) => {
+    for (let idx = startCount; idx < endCount; idx++) {
+      inst.setTodo('' + idx, {
+        text: `todo_${idx}`,
+        done: idx % 2 === 0,
+        blockedBy: idx % 5 > 3 ? '' + (idx - 1) : null
+      });
+    }
   }
-}
-
-module.exports = { generateTestTodoItems, benchmark };
+};
