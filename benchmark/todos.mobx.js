@@ -4,14 +4,16 @@ function todosMobx(initialState) {
   const canBeWorkedOn = {};
   const todosDone = {};
   const canBeWorkedOnComputeds = {};
-  Object.keys(initialState.todos).forEach(idx => {
-    todosDone[idx] = mobx.computed(() => {
-      return todosMap.get('' + idx).done;
-    });
-    canBeWorkedOnComputeds[idx] = mobx.autorun(() => {
-      const item = todosMap.get('' + idx);
-      const result = !item.done && (item.blockedBy === null || todosDone[item.blockedBy].get());
-      canBeWorkedOn[idx] = result;
+  mobx.runInAction(() => {
+    Object.keys(initialState.todos).forEach(idx => {
+      todosDone[idx] = mobx.computed(() => {
+        return todosMap.get('' + idx).done;
+      });
+      canBeWorkedOnComputeds[idx] = mobx.autorun(() => {
+        const item = todosMap.get('' + idx);
+        const result = !item.done && (item.blockedBy === null || todosDone[item.blockedBy].get());
+        canBeWorkedOn[idx] = result;
+      });
     });
   });
   return {

@@ -114,8 +114,11 @@ function base() {
     }
 
     /* ALL_EXPRESSIONS */
-
+    let $inBatch = false;
     function recalculate() {
+      if ($inBatch) {
+        return;
+      }
       /* DERIVED */
     }
     Object.assign(
@@ -123,7 +126,21 @@ function base() {
       {
         /* SETTERS */
       },
-      { $startBatch: () => {}, $endBatch: () => {} }
+      {
+        $startBatch: () => {
+          $inBatch = true;
+        },
+        $endBatch: () => {
+          $inBatch = false;
+          recalculate();
+        },
+        $runInBatch: func => {
+          $inBatch = true;
+          func();
+          $inBatch = false;
+          recalculate();
+        }
+      }
     );
     recalculate();
     return $res;

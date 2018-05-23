@@ -1,5 +1,6 @@
-const { TokenTypeData, Expr, Token, Setter, Expression, Splice } = require('./src/lang');
+const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone } = require('./src/lang');
 const NaiveCompiler = require('./src/naive-compiler');
+const SimpleCompiler = require('./src/simple-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
 const { promisify } = require('util');
 
@@ -77,12 +78,23 @@ proxyHandler.apply = (target, thisArg, args) => {
   }
 };
 
+const compilerTypes = {
+  naive: NaiveCompiler,
+  simple: SimpleCompiler,
+  optimizing: OptimzingCompiler
+};
+
 function compile(model, options) {
   if (typeof options === 'boolean' || typeof options === 'undefined') {
-    options = { naive: !!options, name: 'model' };
+    options = { compiler: !!options ? 'naive' : 'optimizing' };
   }
-  const Compiler = options.naive ? NaiveCompiler : OptimzingCompiler;
-  const compiler = new Compiler(unwrap(model), options);
+  options.name = options.name || 'model';
+  if (options.compiler === 'carmi') {
+    options.compiler = 'optimizing';
+  }
+  model = Clone(unwrap(model));
+  const Compiler = compilerTypes[options.compiler];
+  const compiler = new Compiler(model, options);
   if (options.ast) {
     console.log(JSON.stringify(compiler.getters, null, 2));
     return;

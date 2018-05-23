@@ -112,4 +112,24 @@ AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 
+function cloneHelper(model) {
+  if (model instanceof Token) {
+    return new Token(model.$type);
+  } else if (model instanceof Expression) {
+    return new Expression(...model.map(cloneHelper));
+  } else if (model instanceof SpliceSetterExpression) {
+    return new SpliceSetterExpression(...model.map(cloneHelper));
+  } else if (model instanceof SetterExpression) {
+    return new SetterExpression(...model.map(cloneHelper));
+  }
+  return model;
+}
+
+function Clone(model) {
+  return Object.keys(model).reduce((acc, key) => {
+    acc[key] = cloneHelper(model[key]);
+    return acc;
+  }, {});
+}
+AllTokens.Clone = Clone;
 module.exports = AllTokens;
