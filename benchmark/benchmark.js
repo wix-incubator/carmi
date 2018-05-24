@@ -4,15 +4,16 @@ const { fork } = require('child_process');
 const tests = ['todos'];
 
 const runTypesParams = {
-  justInit: [50000, 0, 0],
-  batched: [50000, 10000, 100],
-  nonBatched: [50000, 10000, 0]
+  justInit: [5000, 0, 0],
+  batched: [5000, 2500, 10],
+  nonBatched: [5000, 250, 0]
 };
 const runTypes = {
-  simple: ['justInit', 'batched'],
+  simple: ['justInit', 'batched', 'nonBatched'],
   mobx: ['justInit', 'batched', 'nonBatched'],
   carmi: ['justInit', 'batched', 'nonBatched']
 };
+const runsCount = 5;
 
 function resolveTestName(testname, type) {
   if (type === 'mobx') {
@@ -45,11 +46,13 @@ function runSingleTest(testname, model, count, changes, batch) {
 async function runBenchmarks(testname) {
   await precompileModel(testname, 'carmi');
   await precompileModel(testname, 'simple');
-  const results = { carmi: {}, simple: {}, mobx: {} };
-  for (let type of ['simple', 'carmi', 'mobx']) {
-    for (let run of runTypes[type]) {
-      const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
-      results[type][run] = vals;
+  const results = [];
+  for (let runIndex = 0; runIndex < runsCount; runIndex++) {
+    for (let type of ['simple', 'carmi', 'mobx']) {
+      for (let run of runTypes[type]) {
+        const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
+        results.push(Object.assign({ type, run }, vals));
+      }
     }
   }
   return results;

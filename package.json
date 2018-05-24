@@ -17,6 +17,7 @@
   "dependencies": {
     "command-line-args": "^5.0.2",
     "lodash": "^4.17.4",
+    "object-hash": "^1.3.0",
     "prettier": "^1.8.2",
     "rollup": "^0.59.1",
     "rollup-plugin-uglify": "^3.0.0",

@@ -4,7 +4,7 @@ function TodosModel() {
   const todos = root.get('todos');
   const todosDone = todos.mapValues(item => item.get('done'));
   const canBeWorkedOn = todos.mapValues(item =>
-    and(item.get('done').not(), or(item.get('blockedBy').not(), todosDone.get(item.get('blockedBy'))))
+    item.get('done').ternary(false, item.get('blockedBy').ternary(todosDone.get(item.get('blockedBy')), true))
   );
   return {
     setTodo: Setter('todos', arg0),
