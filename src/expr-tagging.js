@@ -209,7 +209,7 @@ function tagUnconditionalExpressions(expr, cond) {
   }
   expr[0].$conditional = !!cond;
   const $type = expr[0].$type;
-  if ($type === 'or' || $type === 'and') {
+  if ($type === 'or' || $type === 'and' || $type == 'ternary') {
     tagUnconditionalExpressions(expr[1], cond);
     expr.slice(2).forEach(subExpr => tagUnconditionalExpressions(subExpr, true));
   } else if ($type === 'func') {
