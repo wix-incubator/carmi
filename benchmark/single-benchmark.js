@@ -6,9 +6,8 @@ const countItems = parseInt(args[2], 10);
 const countChanges = parseInt(args[3], 10);
 const batchSize = parseInt(args[4], 10);
 const initialState = test.getInitialState(countItems);
-const cpuUsageAfterInitialState = process.cpuUsage();
-
 const modelFunc = require(args[1]);
+const cpuUsageAfterInitialState = process.cpuUsage();
 const inst = modelFunc(initialState);
 
 console.log(`${process.argv[2]} - ${process.argv[3]}: items:${countItems} ops:${countChanges} inBatches:${batchSize}`);

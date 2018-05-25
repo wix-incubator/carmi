@@ -28,16 +28,19 @@ Object.keys(results).forEach(testname => {
     .value();
   console.log(grouped);
   const permCount = runClassOrders.run.length * runClassOrders.type.length;
+  const maxItemLen = 25;
+  console.log(`|${runClassOrders.type.map(v => _.pad('-', maxItemLen, '-')).join('|')}|`);
+  console.log(`|${runClassOrders.type.map(v => _.pad(v, maxItemLen, ' ')).join('|')}|`);
+  console.log(`|${runClassOrders.type.map(v => _.pad('-', maxItemLen, '-')).join('|')}|`);
+  const line = [];
   for (let perm = 0; perm < permCount; perm++) {
-    const type = runClassOrders.type[Math.floor(perm / runClassOrders.run.length)];
-    const run = runClassOrders.run[perm % runClassOrders.run.length];
-    console.log(run, type, grouped[[run, type].join(':')]);
+    const run = runClassOrders.run[Math.floor(perm / runClassOrders.type.length)];
+    const type = runClassOrders.type[perm % runClassOrders.type.length];
+    line.push(grouped[[run, type].join(':')]);
+    if (line.length === runClassOrders.type.length) {
+      console.log(`|${line.map(v => _.pad(v, maxItemLen, ' ')).join('|')}|`);
+      line.length = 0;
+    }
   }
-  console.log(permCount);
+  console.log(`|${runClassOrders.type.map(v => _.pad('-', maxItemLen, '-')).join('|')}|`);
 });
-/*.mapValues()
-      .map(({ type, run, user, rss }) => {
-        return { type, run, txt: `${user / 1000}ms ${rss / 1000000}MB` };
-      })
-      .groupBy('run')
-      .map(testsByRun => _.keyBy(testsByRun, 'type'))*/
