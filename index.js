@@ -130,23 +130,7 @@ function compile(model, options) {
     });
 }
 
-function currentValues(inst) {
-  if (typeof inst !== 'object' || inst === null) {
-    return inst;
-  }
-  if (Array.isArray(inst)) {
-    return inst.map(currentValues);
-  }
-  return Object.keys(inst)
-    .sort()
-    .filter(k => typeof inst[k] !== 'function' && k.indexOf('$') !== 0)
-    .reduce((acc, k) => {
-      acc[k] = currentValues(inst[k]);
-      return acc;
-    }, {});
-}
-
-const exported = { currentValues, compile, Setter, Expression, Splice };
+const exported = { compile, Setter, Expression, Splice };
 Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].private) {
     return; // privates aren't exported - only used in optimizing code or internally

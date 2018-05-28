@@ -1,27 +1,8 @@
-const { currentValues, compile, and, or, context, root, val, loop, key, arg0, Setter, Splice } = require('../../index');
+const { compile, and, or, context, root, val, loop, key, arg0, Setter, Splice } = require('../../index');
+const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
 const _ = require('lodash');
-const rand = require('random-seed').create();
-const defaultSeed = 'CARMI';
 
 describe('testing array', () => {
-  const funcLibrary = {
-    tap: x => x
-  };
-
-  function expectTapFunctionToHaveBeenCalled(n) {
-    expect(funcLibrary.tap.mock.calls.length).toEqual(n);
-    funcLibrary.tap.mockClear();
-  }
-
-  beforeEach(() => {
-    rand.seed(defaultSeed);
-    jest.spyOn(funcLibrary, 'tap');
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('simple sum', () => {
     const model = {
       sum: root.recursiveMap((val, key, context, loop) =>

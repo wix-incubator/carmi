@@ -1,12 +1,7 @@
-const { currentValues, compile, and, or, context, root, val, key, arg0, Setter } = require('../../index');
+const { compile, and, or, context, root, val, key, arg0, Setter } = require('../../index');
+const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
 
 const _ = require('lodash');
-const rand = require('random-seed').create();
-const defaultSeed = 'CARMI';
-
-beforeEach(() => {
-  rand.seed(defaultSeed);
-});
 
 describe('simple todo', () => {
   function TodosModel() {
