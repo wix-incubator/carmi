@@ -55,7 +55,7 @@ declare class ObjectExpression extends ArrayOrObjectExpression {
 }
 declare class ArrayExpression extends ArrayOrObjectExpression {
   public map(func: string | number | Expression | FuncReturnsExpression, context?: any): ArrayExpression;
-  public recursiveMapValues(
+  public recursiveMap(
     func: string | number | Expression | FuncThatReturnsRecursiveExpression,
     context?: any
   ): ArrayExpression;
