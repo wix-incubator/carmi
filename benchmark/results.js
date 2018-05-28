@@ -9,6 +9,11 @@ const runClassOrders = {
   type: ['simple', 'mobx', 'carmi']
 };
 
+const maxItemLen = 25;
+function printLine(line, prefix, fill = ' ') {
+  console.log(`|${_.pad(prefix, maxItemLen, fill)}|${line.map(v => _.pad(v, maxItemLen, fill)).join('|')}|`);
+}
+
 Object.keys(results).forEach(testname => {
   const testResults = results[testname];
   const keys = Object.keys(testResults[0]);
@@ -28,19 +33,18 @@ Object.keys(results).forEach(testname => {
     .value();
   console.log(grouped);
   const permCount = runClassOrders.run.length * runClassOrders.type.length;
-  const maxItemLen = 25;
-  console.log(`|${runClassOrders.type.map(v => _.pad('-', maxItemLen, '-')).join('|')}|`);
-  console.log(`|${runClassOrders.type.map(v => _.pad(v, maxItemLen, ' ')).join('|')}|`);
-  console.log(`|${runClassOrders.type.map(v => _.pad('-', maxItemLen, '-')).join('|')}|`);
+  printLine(runClassOrders.type.map(v => '-'), '', '-');
+  printLine(runClassOrders.type, '');
+  printLine(runClassOrders.type.map(v => '-'), '', '-');
   const line = [];
   for (let perm = 0; perm < permCount; perm++) {
     const run = runClassOrders.run[Math.floor(perm / runClassOrders.type.length)];
     const type = runClassOrders.type[perm % runClassOrders.type.length];
     line.push(grouped[[run, type].join(':')]);
     if (line.length === runClassOrders.type.length) {
-      console.log(`|${line.map(v => _.pad(v, maxItemLen, ' ')).join('|')}|`);
+      printLine(line, run);
       line.length = 0;
     }
   }
-  console.log(`|${runClassOrders.type.map(v => _.pad('-', maxItemLen, '-')).join('|')}|`);
+  printLine(runClassOrders.type.map(v => '-'), '', '-');
 });
