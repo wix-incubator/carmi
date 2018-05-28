@@ -1,10 +1,10 @@
-const { compile, and, or, context, root, val, key, arg0, arg1, Setter, Splice } = require('../../index');
+const { compile, and, or, root, arg0, arg1, setter, splice } = require('../../index');
 const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
 const _ = require('lodash');
 
 describe('testing array', () => {
   it('simple map', () => {
-    const model = { negated: root.map(val.not().call('tap')), set: Setter(arg0) };
+    const model = { negated: root.map(val => val.not().call('tap')), set: setter(arg0) };
     const optCode = eval(compile(model));
     const inst = optCode([true, true, false, false, false], funcLibrary);
     expect(inst.negated).toEqual([false, false, true, true, true]);
@@ -15,8 +15,8 @@ describe('testing array', () => {
   });
   it('simple any', () => {
     const model = {
-      anyTruthy: root.any(val.call('tap')),
-      set: Setter(arg0)
+      anyTruthy: root.any(val => val.call('tap')),
+      set: setter(arg0)
     };
     const optModel = eval(compile(model));
     const inst = optModel([true, false, false, false, false], funcLibrary);
@@ -40,9 +40,9 @@ describe('testing array', () => {
   });
   it('simple keyBy', () => {
     const model = {
-      itemByIdx: root.keyBy(val.get('idx')).mapValues(val.get('text').call('tap')),
-      set: Setter(arg0),
-      splice: Splice()
+      itemByIdx: root.keyBy(val => val.get('idx')).mapValues(val => val.get('text').call('tap')),
+      set: setter(arg0),
+      splice: splice()
     };
     const optModel = eval(compile(model));
     const inst = optModel([{ idx: 1, text: 'a' }, { idx: 2, text: 'b' }, { idx: 3, text: 'c' }], funcLibrary);
@@ -67,8 +67,8 @@ describe('testing array', () => {
       lessThan: arr.map(val => val.lt(compareTo).call('tap')),
       greaterOrEqual: arr.map(val => val.gte(compareTo).call('tap')),
       lessThanOrEqual: arr.map(val => val.lte(compareTo).call('tap')),
-      setArr: Setter('arr', arg0),
-      setCompareTo: Setter('compareTo')
+      setArr: setter('arr', arg0),
+      setCompareTo: setter('compareTo')
     };
     const optModel = eval(compile(model));
     const inst = optModel({ arr: [0, 1, 2, 3, 4], compareTo: 2 }, funcLibrary);
@@ -100,7 +100,7 @@ describe('testing array', () => {
     const sumsTuple = root.map(item => [item.get(0).plus(item.get(1))]);
     const mapOfSum = sumsTuple.map(item => item.get(0).call('tap'));
 
-    const model = { mapOfSum, set0: Setter(arg0, 0), set1: Setter(arg0, 1) };
+    const model = { mapOfSum, set0: setter(arg0, 0), set1: setter(arg0, 1) };
     const optCode = eval(compile(model));
     const initialData = [[1, 2], [3, 4], [5, 6]];
     const inst = optCode(initialData, funcLibrary);
@@ -120,9 +120,9 @@ describe('testing array', () => {
     const model = {
       assign: root.assign().mapValues(val => val.call('tap')),
       defaults: root.defaults().mapValues(val => val.call('tap')),
-      set: Setter(arg0),
-      setInner: Setter(arg0, arg1),
-      splice: Splice()
+      set: setter(arg0),
+      setInner: setter(arg0, arg1),
+      splice: splice()
     };
     const optCode = eval(compile(model));
     const initialData = [{ a: 1 }, { b: 2 }, { a: 5 }];
@@ -164,8 +164,8 @@ describe('testing array', () => {
             )
         )
         .map(val => val.call('tap')),
-      spliceItems: Splice('items'),
-      setMatch: Setter('match')
+      spliceItems: splice('items'),
+      setMatch: setter('match')
     };
     const initialData = {
       items: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 2, 2, 2, 2],

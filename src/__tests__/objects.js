@@ -1,4 +1,4 @@
-const { compile, and, or, context, root, val, key, arg0, Setter, Splice } = require('../../index');
+const { compile, and, or, root, arg0, setter, splice } = require('../../index');
 const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
 const _ = require('lodash');
 
@@ -12,9 +12,9 @@ describe('testing objects', () => {
         .filterBy(val => and(val.gte(rangeMin), val.lte(rangeMax)))
         .keys()
         .keyBy(val => val.call('tap')),
-      set: Setter('numbers', arg0),
-      setCenter: Setter('center'),
-      setRange: Setter('range')
+      set: setter('numbers', arg0),
+      setCenter: setter('center'),
+      setRange: setter('range')
     };
 
     // const naiveModel = eval(compile(model, true));
@@ -55,7 +55,7 @@ describe('testing objects', () => {
     const textsIfDone = root
       .mapValues(val => val.get('done').ternary(val.get('text'), val.get('missingProp')))
       .mapValues(text => text.call('tap'));
-    const model = { textsIfDone, update: Setter(arg0, 'done') };
+    const model = { textsIfDone, update: setter(arg0, 'done') };
     const optModel = eval(compile(model));
     const initialData = {
       a: { done: true, text: 'a' },
@@ -80,8 +80,8 @@ describe('testing objects', () => {
     const itemsByIdx = itemsWithKey.values().keyBy(item => item.get('idx'));
     const model = {
       itemsByIdx,
-      updateIdx: Setter(arg0, 'idx'),
-      updateItem: Setter(arg0)
+      updateIdx: setter(arg0, 'idx'),
+      updateItem: setter(arg0)
     };
     const optModel = eval(compile(model));
     const initialData = {

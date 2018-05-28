@@ -58,7 +58,8 @@ proxyHandler.get = (target, key) => {
     if (tokenData.chainIndex) {
       if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
         if (typeof args[1] === 'function') {
-          args[1] = args[1].apply(null, ['val', 'key', 'context', 'loop'].map(t => wrap(new Token(t))));
+          const funcArgs = tokenData.recursive ? ['loop', 'val', 'key', 'context'] : ['val', 'key', 'context'];
+          args[1] = args[1].apply(null, funcArgs.map(t => wrap(new Token(t))));
         } else if (typeof args[1] === 'string') {
           args[1] = createExpr(new Token('get'), args[1], new Token('val'));
         }
@@ -130,7 +131,7 @@ function compile(model, options) {
     });
 }
 
-const exported = { compile, Setter, Expression, Splice };
+const exported = { compile, setter: Setter, splice: Splice };
 Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].private) {
     return; // privates aren't exported - only used in optimizing code or internally

@@ -1,4 +1,4 @@
-const { and, or, root, arg0, Setter } = require('../index');
+const { and, or, root, arg0, setter } = require('../index');
 
 function TodosModel() {
   const todos = root.get('todos');
@@ -7,7 +7,7 @@ function TodosModel() {
     item.get('done').ternary(false, item.get('blockedBy').ternary(todosDone.get(item.get('blockedBy')), true))
   );
   return {
-    setTodo: Setter('todos', arg0),
+    setTodo: setter('todos', arg0),
     canBeWorkedOn
   };
 }

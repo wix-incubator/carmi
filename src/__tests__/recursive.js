@@ -1,17 +1,17 @@
-const { compile, and, or, context, root, val, loop, key, arg0, Setter, Splice } = require('../../index');
+const { compile, and, or, root, arg0, setter, splice } = require('../../index');
 const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
 const _ = require('lodash');
 
 describe('testing array', () => {
   it('simple sum', () => {
     const model = {
-      sum: root.recursiveMap((val, key, context, loop) =>
+      sum: root.recursiveMap((loop, val, key) =>
         key
           .gt(0)
           .ternary(val.plus(key.minus(1).recur(loop)), val)
           .call('tap', key)
       ),
-      set: Setter(arg0)
+      set: setter(arg0)
     };
     const optModel = eval(compile(model));
     const inst = optModel([1, 2, 3, 4, 5], funcLibrary);
@@ -23,13 +23,13 @@ describe('testing array', () => {
   });
   it('chains', () => {
     const model = {
-      chain: root.recursiveMap((val, key) =>
+      chain: root.recursiveMap((loop, val, key) =>
         val
           .gte(0)
           .ternary(val.recur(loop), val)
           .call('tap', key)
       ),
-      set: Setter(arg0)
+      set: setter(arg0)
     };
     const optModel = eval(compile(model));
     const initialData = [1, 2, 3, -1, -2, 4];
@@ -42,7 +42,7 @@ describe('testing array', () => {
   });
   it('recursiveMapValues', () => {
     const model = {
-      allDone: root.recursiveMapValues(todo =>
+      allDone: root.recursiveMapValues((loop, todo, idx) =>
         and(
           todo.get('done'),
           todo
@@ -51,8 +51,8 @@ describe('testing array', () => {
             .not()
         ).call('tap')
       ),
-      setDone: Setter(arg0, 'done'),
-      spliceBlockedBy: Splice(arg0, 'subTasks')
+      setDone: setter(arg0, 'done'),
+      spliceBlockedBy: splice(arg0, 'subTasks')
     };
     const optModel = eval(compile(model));
     const initialData = {

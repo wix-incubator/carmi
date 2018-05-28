@@ -27,8 +27,8 @@ const TokenTypeData = {
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
   map: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true }),
-  recursiveMapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2 }),
-  recursiveMap: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true }),
+  recursiveMapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2, recursive: true }),
+  recursiveMap: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true, recursive: true }),
   any: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2,

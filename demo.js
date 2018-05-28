@@ -1,4 +1,4 @@
-const { compile, root, and, or, arg0, Setter, Splice } = require('./index');
+const { compile, root, and, or, arg0, setter, splice } = require('./index');
 const todosByIdx = root.keyBy('idx');
 const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get('done').not());
 const todosDisplayByIdx = todosByIdx.mapValues(todo =>
@@ -8,8 +8,8 @@ const todosDisplay = root.map(todo => todosDisplayByIdx.get(todo.get('idx')));
 const model = {
   todosDisplay,
   anyTodoNotDone,
-  setTodoDone: Setter(arg0, 'done'),
-  spliceTodos: Splice()
+  setTodoDone: setter(arg0, 'done'),
+  spliceTodos: splice()
 };
 
 const todosModel = eval(compile(model));

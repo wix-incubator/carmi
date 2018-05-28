@@ -1,4 +1,4 @@
-const { compile, and, or, context, root, val, key, arg0, Setter } = require('../../index');
+const { compile, and, or, root, arg0, setter } = require('../../index');
 const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
 
 const _ = require('lodash');
@@ -6,25 +6,24 @@ const _ = require('lodash');
 describe('simple todo', () => {
   function TodosModel() {
     const todos = root.get('todos');
-    const pendingTodos = todos.filterBy(val.get('done').not());
-    const blockedBy = todos.mapValues(val.get('blockedBy'));
-    const todosDone = todos.mapValues(val.get('done'));
-    const isNotDone = and(
-      val,
-      todos
-        .get(val)
-        .get('done')
-        .not()
-    );
-    const isNotDone2 = and(val, todosDone.get(val).not());
-    const isNotDone3 = pendingTodos.get(val);
+    const pendingTodos = todos.filterBy(val => val.get('done').not());
+    const blockedBy = todos.mapValues(val => val.get('blockedBy'));
+    const todosDone = todos.mapValues(val => val.get('done'));
+    const isNotDone = val =>
+      and(
+        val,
+        todos
+          .get(val)
+          .get('done')
+          .not()
+      );
+    const isNotDone2 = val => and(val, todosDone.get(val).not());
+    const isNotDone3 = val => pendingTodos.get(val);
     const isBlocked = blockedBy.mapValues(isNotDone);
     const isBlocked2 = blockedBy.mapValues(isNotDone2);
     const isBlocked3 = blockedBy.mapValues(isNotDone3);
-    const canItemBeWorkedOn = and(
-      val.get('done').not(),
-      or(val.get('blockedBy').not(), todosDone.get(val.get('blockedBy')))
-    );
+    const canItemBeWorkedOn = val =>
+      and(val.get('done').not(), or(val.get('blockedBy').not(), todosDone.get(val.get('blockedBy'))));
     const canBeWorkedOn = todos.mapValues(canItemBeWorkedOn);
 
     const shownTodo = or(and(root.get('showCompleted'), canBeWorkedOn), pendingTodos);
@@ -37,7 +36,9 @@ describe('simple todo', () => {
       'not done'
     );
 
-    const blockedGrouped = pendingTodos.mapValues(todos.filterBy(val.get('blockedBy').eq(context), key));
+    const blockedGrouped = pendingTodos.mapValues((val, key) =>
+      todos.filterBy((val, key, context) => val.get('blockedBy').eq(context), key)
+    );
 
     return {
       isBlocked,
@@ -48,9 +49,9 @@ describe('simple todo', () => {
       shownTodo,
       pendingTodos,
       blockedGrouped,
-      setTodo: Setter('todos', arg0),
-      setShowCompleted: Setter('showCompleted'),
-      setCurrentTask: Setter('currentTask')
+      setTodo: setter('todos', arg0),
+      setShowCompleted: setter('showCompleted'),
+      setCurrentTask: setter('currentTask')
     };
   }
   const countItems = 100;

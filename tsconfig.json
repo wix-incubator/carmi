@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "strict": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./typings"]
+  },
+  "compileOnSave": true,
+  "exclude": ["node_modules", ".vscode"]
+}
