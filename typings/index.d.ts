@@ -92,25 +92,9 @@ export const context: Expression;
 
 export function or(...expr: any[]): Expression;
 export function and(...expr: any[]): Expression;
+export function chain(thingToWrap: boolean | number | string): PrimitiveExpression;
 export function chain(thingToWrap: any): Expression;
+
 export function compile(model: Model, options?: any): string | Promise<string>;
 export function setter(...path: PathSegment[]): SetterExpression;
 export function splice(...path: PathSegment[]): SpliceExpression;
-/* {
-  or,
-  and,
-  chain,
-  compile,
-  setter,
-  splice,
-  root,
-  arg0,
-  arg1,
-  arg2,
-  loop,
-  key,
-  val,
-  context,
-
-};
-*/
