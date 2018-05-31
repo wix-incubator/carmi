@@ -224,8 +224,8 @@ class NaiveCompiler {
       .replace(/function\s*\w*\(\)\s*\{\s*([\s\S]+)\}/, (m, i) => i);
   }
 
-  compile() {
-    return this.mergeTemplate(this.template.base, {
+  topLevelOverrides() {
+    return {
       NAME: this.options.name,
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>
@@ -233,7 +233,15 @@ class NaiveCompiler {
           .map(this.buildDerived.bind(this))
           .join('\n'),
       SETTERS: () => _.map(this.setters, this.buildSetter.bind(this)).join(',')
-    });
+    };
+  }
+
+  compile() {
+    return this.mergeTemplate(this.template.base, this.topLevelOverrides());
+  }
+
+  async postProcess(src) {
+    return src;
   }
 }
 

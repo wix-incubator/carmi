@@ -3,6 +3,7 @@
 const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
+const writeFile = require('util').promisify(require('fs').writeFile);
 
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
@@ -39,7 +40,12 @@ async function run() {
     console.error(`failed to require ${options.source}`);
     return;
   }
-  carmi.compile(model, options);
+  const code = await carmi.compile(model, options);
+  if (options.output) {
+    await writeFile(options.output, code);
+  } else {
+    console.log(code);
+  }
 }
 
 run();

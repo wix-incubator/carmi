@@ -3,7 +3,7 @@ const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = 
 const _ = require('lodash');
 
 describe('testing objects', () => {
-  it('values/keys', () => {
+  it('values/keys', async () => {
     const rangeMin = root.get('center').minus(root.get('range'));
     const rangeMax = root.get('center').plus(root.get('range'));
     const model = {
@@ -17,8 +17,8 @@ describe('testing objects', () => {
       setRange: setter('range')
     };
 
-    // const naiveModel = eval(compile(model, true));
-    const optModel = eval(compile(model, false));
+    // const naiveModel = eval(await compile(model, true));
+    const optModel = eval(await compile(model, false));
     const initialData = {
       numbers: {
         eight: 8,
@@ -51,12 +51,12 @@ describe('testing objects', () => {
     expect(inst.inRange).toEqual({ twelve: 'twelve', ten: 'ten', eight: 'eight' });
     expectTapFunctionToHaveBeenCalled(2);
   });
-  it('mapValues', () => {
+  it('mapValues', async () => {
     const textsIfDone = root
       .mapValues(val => val.get('done').ternary(val.get('text'), val.get('missingProp')))
       .mapValues(text => text.call('tap'));
     const model = { textsIfDone, update: setter(arg0, 'done') };
-    const optModel = eval(compile(model));
+    const optModel = eval(await compile(model));
     const initialData = {
       a: { done: true, text: 'a' },
       b: { done: true, text: 'b' },
@@ -69,7 +69,7 @@ describe('testing objects', () => {
     expect(inst.textsIfDone).toEqual({ a: 'a', b: undefined, c: undefined });
     expectTapFunctionToHaveBeenCalled(1);
   });
-  it('create objects', () => {
+  it('create objects', async () => {
     const itemsWithKey = root.mapValues((item, key) => {
       return {
         key: key,
@@ -83,7 +83,7 @@ describe('testing objects', () => {
       updateIdx: setter(arg0, 'idx'),
       updateItem: setter(arg0)
     };
-    const optModel = eval(compile(model));
+    const optModel = eval(await compile(model));
     const initialData = {
       a: { text: 'A', idx: '0' },
       b: { text: 'B', idx: '1' },

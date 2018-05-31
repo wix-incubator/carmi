@@ -2,6 +2,7 @@ const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone } = requir
 const NaiveCompiler = require('./src/naive-compiler');
 const SimpleCompiler = require('./src/simple-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
+const FlowCompiler = require('./src/flow-compiler');
 const { promisify } = require('util');
 
 const { rollup } = require('rollup');
@@ -82,10 +83,11 @@ proxyHandler.apply = (target, thisArg, args) => {
 const compilerTypes = {
   naive: NaiveCompiler,
   simple: SimpleCompiler,
-  optimizing: OptimzingCompiler
+  optimizing: OptimzingCompiler,
+  flow: FlowCompiler
 };
 
-function compile(model, options) {
+async function compile(model, options) {
   if (typeof options === 'boolean' || typeof options === 'undefined') {
     options = { compiler: !!options ? 'naive' : 'optimizing' };
   }
@@ -97,8 +99,7 @@ function compile(model, options) {
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
   if (options.ast) {
-    console.log(JSON.stringify(compiler.getters, null, 2));
-    return;
+    return JSON.stringify(compiler.getters, null, 2);
   }
   const rawSource = compiler.compile();
   let source = rawSource;
@@ -107,10 +108,10 @@ function compile(model, options) {
   } catch (e) {}
   require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
   if (!options.format) {
-    return `(function () {
+    return await compiler.postProcess(`(function () {
       'use strict';
       return ${source}
-    })()`;
+    })()`);
   }
   const rollupConfig = {
     input: 'main.js',
@@ -120,15 +121,10 @@ function compile(model, options) {
       name: options.name
     }
   };
-  return rollup(rollupConfig)
-    .then(bundle => bundle.generate(rollupConfig))
-    .then(generated => {
-      if (options.output) {
-        return promisify(require('fs').writeFile)(options.output, generated.code);
-      } else {
-        console.log(generated.code);
-      }
-    });
+  const bundle = await rollup(rollupConfig);
+  const generated = await bundle.generate(rollupConfig);
+  const code = await compiler.postProcess(generated.code);
+  return code;
 }
 
 const exported = { compile, setter: Setter, splice: Splice };

@@ -3,9 +3,9 @@ const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = 
 const _ = require('lodash');
 
 describe('testing array', () => {
-  it('simple map', () => {
+  it('simple map', async () => {
     const model = { negated: root.map(val => val.not().call('tap')), set: setter(arg0) };
-    const optCode = eval(compile(model));
+    const optCode = eval(await compile(model));
     const inst = optCode([true, true, false, false, false], funcLibrary);
     expect(inst.negated).toEqual([false, false, true, true, true]);
     expectTapFunctionToHaveBeenCalled(inst.$model.length);
@@ -13,12 +13,12 @@ describe('testing array', () => {
     expect(inst.negated).toEqual([false, true, true, true, true]);
     expectTapFunctionToHaveBeenCalled(1);
   });
-  it('simple any', () => {
+  it('simple any', async () => {
     const model = {
       anyTruthy: root.any(val => val.call('tap')),
       set: setter(arg0)
     };
-    const optModel = eval(compile(model));
+    const optModel = eval(await compile(model));
     const inst = optModel([true, false, false, false, false], funcLibrary);
     expectTapFunctionToHaveBeenCalled(1);
     expect(inst.anyTruthy).toEqual(true);
@@ -38,13 +38,13 @@ describe('testing array', () => {
     expectTapFunctionToHaveBeenCalled(1);
     expect(inst.anyTruthy).toEqual(false);
   });
-  it('simple keyBy', () => {
+  it('simple keyBy', async () => {
     const model = {
       itemByIdx: root.keyBy(val => val.get('idx')).mapValues(val => val.get('text').call('tap')),
       set: setter(arg0),
       splice: splice()
     };
-    const optModel = eval(compile(model));
+    const optModel = eval(await compile(model));
     const inst = optModel([{ idx: 1, text: 'a' }, { idx: 2, text: 'b' }, { idx: 3, text: 'c' }], funcLibrary);
     expectTapFunctionToHaveBeenCalled(3);
     expect(inst.itemByIdx).toEqual({ 1: 'a', 2: 'b', 3: 'c' });
@@ -59,7 +59,7 @@ describe('testing array', () => {
     expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
     expectTapFunctionToHaveBeenCalled(0);
   });
-  it('simple comparison operations', () => {
+  it('simple comparison operations', async () => {
     const arr = root.get('arr');
     const compareTo = root.get('compareTo');
     const model = {
@@ -70,7 +70,7 @@ describe('testing array', () => {
       setArr: setter('arr', arg0),
       setCompareTo: setter('compareTo')
     };
-    const optModel = eval(compile(model));
+    const optModel = eval(await compile(model));
     const inst = optModel({ arr: [0, 1, 2, 3, 4], compareTo: 2 }, funcLibrary);
     expect(currentValues(inst)).toEqual({
       greaterThan: [false, false, false, true, true],
@@ -96,12 +96,12 @@ describe('testing array', () => {
     });
     expectTapFunctionToHaveBeenCalled(20);
   });
-  it('test creation of arrays', () => {
+  it('test creation of arrays', async () => {
     const sumsTuple = root.map(item => [item.get(0).plus(item.get(1))]);
     const mapOfSum = sumsTuple.map(item => item.get(0).call('tap'));
 
     const model = { mapOfSum, set0: setter(arg0, 0), set1: setter(arg0, 1) };
-    const optCode = eval(compile(model));
+    const optCode = eval(await compile(model));
     const initialData = [[1, 2], [3, 4], [5, 6]];
     const inst = optCode(initialData, funcLibrary);
     expect(inst.mapOfSum).toEqual([3, 7, 11]);
@@ -116,7 +116,7 @@ describe('testing array', () => {
     expect(inst.mapOfSum).toEqual([9, 7, 11]);
     expectTapFunctionToHaveBeenCalled(0);
   });
-  it('test assign/defaults', () => {
+  it('test assign/defaults', async () => {
     const model = {
       assign: root.assign().mapValues(val => val.call('tap')),
       defaults: root.defaults().mapValues(val => val.call('tap')),
@@ -124,7 +124,7 @@ describe('testing array', () => {
       setInner: setter(arg0, arg1),
       splice: splice()
     };
-    const optCode = eval(compile(model));
+    const optCode = eval(await compile(model));
     const initialData = [{ a: 1 }, { b: 2 }, { a: 5 }];
     const inst = optCode(initialData, funcLibrary);
     expect(currentValues(inst)).toEqual({ assign: { a: 5, b: 2 }, defaults: { a: 1, b: 2 } });
@@ -139,7 +139,7 @@ describe('testing array', () => {
     expect(currentValues(inst)).toEqual({ assign: { a: 9 }, defaults: { a: 7 } });
     expectTapFunctionToHaveBeenCalled(0);
   });
-  it('test range/size', () => {
+  it('test range/size', async () => {
     const matches = root.get('items').filter(val => val.eq(root.get('match')));
     const model = {
       fizzBuzz: matches
@@ -171,7 +171,7 @@ describe('testing array', () => {
       items: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 2, 2, 2, 2],
       match: 1
     };
-    const optCode = eval(compile(model));
+    const optCode = eval(await compile(model));
     const inst = optCode(initialData, funcLibrary);
     expect(inst.fizzBuzz).toEqual([1, 2, 'fizz', 4, 'buzz']);
     inst.setMatch(0);

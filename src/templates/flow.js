@@ -1,15 +1,28 @@
 function base() {
-  function $NAME($model, $funcLib) {
-    const $res = { $model };
+  function $NAME($model /*: Model*/, $funcLib /*: FuncLib*/) {
+    const $res = {};
+    $res.$model = $model;
 
-    function mapValues(func, src, context) {
+    function readOnly /*::<S>*/(src /*: S*/) /*: $ReadOnly<S>*/ {
+      return src;
+    }
+
+    function mapValues /*:: <S, T>*/(
+      func /*: (val: S, key: string, context: any) => T*/,
+      src /*: { [string]: S }*/,
+      context /*: any*/
+    ) /*: { [string]: T }*/ {
       return Object.keys(src).reduce((acc, key) => {
         acc[key] = func(src[key], key, context);
         return acc;
       }, {});
     }
 
-    function filterBy(func, src, context) {
+    function filterBy /*:: <S>*/(
+      func /*: (val: S, key: string, context: any) => boolean*/,
+      src /*: { [string]: S }*/,
+      context /*: any*/
+    ) /*: { [string]: S }*/ {
       return Object.keys(src).reduce((acc, key) => {
         if (func(src[key], key, context)) {
           acc[key] = src[key];
@@ -114,34 +127,9 @@ function base() {
     }
 
     /* ALL_EXPRESSIONS */
-    let $inBatch = false;
-    function recalculate() {
-      if ($inBatch) {
-        return;
-      }
+    function recalculate() /*:void */ {
       /* DERIVED */
     }
-    Object.assign(
-      $res,
-      {
-        /* SETTERS */
-      },
-      {
-        $startBatch: () => {
-          $inBatch = true;
-        },
-        $endBatch: () => {
-          $inBatch = false;
-          recalculate();
-        },
-        $runInBatch: func => {
-          $inBatch = true;
-          func();
-          $inBatch = false;
-          recalculate();
-        }
-      }
-    );
     recalculate();
     return $res;
   }
@@ -154,8 +142,8 @@ function func() {
 }
 
 function topLevel() {
-  function $$FUNCNAME() {
-    return $EXPR;
+  function $$FUNCNAMEBuild() /*:void*/ {
+    $res.$FUNCNAME = readOnly($EXPR);
   }
 }
 
@@ -171,4 +159,4 @@ function recursiveMapValues() {
   }
 }
 
-module.exports = { base, func, topLevel, recursiveMapValues, recursiveMap };
+module.exports = { base, func, topLevel, recursiveMap, recursiveMapValues };
