@@ -7,6 +7,10 @@ function base() {
       return src;
     }
 
+    function annotate /*::<S>*/(src /*:  S */, id /*: number */) /*: S */ {
+      return src;
+    }
+
     function mapValues /*:: <S, T>*/(
       func /*: (val: S, key: string, context: any) => T*/,
       src /*: { [string]: S }*/,
