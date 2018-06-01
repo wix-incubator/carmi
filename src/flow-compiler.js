@@ -75,7 +75,6 @@ class FlowCompiler extends SimpleCompiler {
     const tempDirectory = await mkdtemp(path.join(os.tmpdir(), 'flow-'));
     const tempFilename = path.join(tempDirectory, `${this.options.name}.js`);
     const flowConfigFile = path.join(tempDirectory, '.flowconfig');
-    console.log(tempFilename);
     const srcBeforeFlowSuggest = `// @flow
 type Model = ${this.options.flowModel};
 type FuncLib = ${this.options.flowFuncLib};
@@ -83,9 +82,6 @@ type FuncLib = ${this.options.flowFuncLib};
 `;
     await writeFile(tempFilename, srcBeforeFlowSuggest);
     await writeFile(flowConfigFile, EMPTY_FLOW_CONFIG);
-    // const flowVer = await spawnAsync(flowBin, ['version'], { cwd: tempDirectory });
-    // console.log(flowVer);
-    // const flowDiff = await spawnAsync('flow', ['suggest', tempFilename], { cwd: tempDirectory });
     const postFlowSrc = await spawnAsync(require.resolve('flow-bin/cli'), ['suggest', tempFilename]);
     this.annotations = extractTypes(postFlowSrc);
     console.log(this.annotations);
