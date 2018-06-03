@@ -1,42 +1,38 @@
 const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
-const { applyPatch } = require('diff');
 const { promisify } = require('util');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { readFile, writeFile, mkdtemp, mkdir, rmdir } = _(fs)
-  .pick(['readFile', 'writeFile', 'mkdtemp', 'mkdir', 'rmdir'])
+const { readFile, writeFile, mkdtemp, rmdir, unlink } = _(fs)
+  .pick(['readFile', 'writeFile', 'mkdtemp', 'rmdir', 'unlink'])
   .mapValues(promisify)
   .value();
 const { spawn } = require('child_process');
 const { extractTypes } = require('./flow-types');
 
-function spawnAsync(proc, args) {
+function spawnAsync(proc, args, options) {
   return new Promise((resolve, reject) => {
-    const child = spawn(proc, args);
+    const child = spawn(proc, args, options);
     let results = '';
+    let err = '';
     child.stdout.on('data', msg => {
       results += msg;
+    });
+    child.stderr.on('data', msg => {
+      err += msg;
     });
     child.on('close', code => {
       if (code === 0) {
         resolve(results);
       } else {
+        console.error(err);
         reject(code);
       }
     });
   });
 }
-
-const EMPTY_FLOW_CONFIG = `[ignore]
-[include]
-[libs]
-[lints]
-[options]
-[strict]
-`;
 
 const {
   tagExprWithPaths,
@@ -81,12 +77,14 @@ type FuncLib = ${this.options.flowFuncLib};
     ${src.replace(/\/\*::(.*?)\*\//g, '$1').replace(/\/\*:(.*?)\*\//g, ':$1')}
 `;
     await writeFile(tempFilename, srcBeforeFlowSuggest);
-    await writeFile(flowConfigFile, EMPTY_FLOW_CONFIG);
-    const postFlowSrc = await spawnAsync(require.resolve('flow-bin/cli'), ['suggest', tempFilename]);
+    const flowCliOptions = { cwd: tempDirectory + path.sep };
+    await spawnAsync(require.resolve('flow-bin/cli'), ['init'], flowCliOptions);
+    const postFlowSrc = await spawnAsync(require.resolve('flow-bin/cli'), ['suggest', tempFilename], flowCliOptions);
     this.annotations = extractTypes(postFlowSrc);
-    console.log(this.annotations);
-
-    return postFlowSrc;
+    await unlink(flowConfigFile);
+    await unlink(tempFilename);
+    await rmdir(tempDirectory);
+    return this.annotations;
   }
 }
 
