@@ -67,13 +67,14 @@ class FlowCompiler extends SimpleCompiler {
     super.buildExprFunctionsByTokenType(acc, expr);
   }
 
-  async postProcess(src) {
+  async compile() {
+    const src = await super.compile();
+    console.log(src);
     const tempDirectory = await mkdtemp(path.join(os.tmpdir(), 'flow-'));
     const tempFilename = path.join(tempDirectory, `${this.options.name}.js`);
     const flowConfigFile = path.join(tempDirectory, '.flowconfig');
     const srcBeforeFlowSuggest = `// @flow
-type Model = ${this.options.flowModel};
-type FuncLib = ${this.options.flowFuncLib};
+${this.options.flow};
     ${src.replace(/\/\*::(.*?)\*\//g, '$1').replace(/\/\*:(.*?)\*\//g, ':$1')}
 `;
     await writeFile(tempFilename, srcBeforeFlowSuggest);
@@ -81,10 +82,16 @@ type FuncLib = ${this.options.flowFuncLib};
     await spawnAsync(require.resolve('flow-bin/cli'), ['init'], flowCliOptions);
     const postFlowSrc = await spawnAsync(require.resolve('flow-bin/cli'), ['suggest', tempFilename], flowCliOptions);
     this.annotations = extractTypes(postFlowSrc);
+    console.log(JSON.stringify(this.annotations));
+    console.log(postFlowSrc);
     await unlink(flowConfigFile);
     await unlink(tempFilename);
     await rmdir(tempDirectory);
-    return this.annotations;
+    return postFlowSrc;
+  }
+
+  get lang() {
+    return 'flow';
   }
 }
 

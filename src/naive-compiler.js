@@ -3,6 +3,7 @@ const _ = require('lodash');
 const fs = require('fs');
 const { splitSettersGetters, topologicalSortGetters, tagAllExpressions } = require('./expr-tagging');
 let idx = 0;
+const objectHash = require('object-hash');
 
 const nativeOps = {
   eq: '===',
@@ -236,12 +237,16 @@ class NaiveCompiler {
     };
   }
 
-  compile() {
+  async compile() {
     return this.mergeTemplate(this.template.base, this.topLevelOverrides());
   }
 
-  async postProcess(src) {
-    return src;
+  hash() {
+    return objectHash({ getters: this.getters, setters: this.setters });
+  }
+
+  get lang() {
+    return 'js';
   }
 }
 

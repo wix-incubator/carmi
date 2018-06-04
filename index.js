@@ -3,6 +3,7 @@ const NaiveCompiler = require('./src/naive-compiler');
 const SimpleCompiler = require('./src/simple-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
 const FlowCompiler = require('./src/flow-compiler');
+const RustCompiler = require('./src/rust-compiler');
 const { promisify } = require('util');
 
 const { rollup } = require('rollup');
@@ -84,7 +85,8 @@ const compilerTypes = {
   naive: NaiveCompiler,
   simple: SimpleCompiler,
   optimizing: OptimzingCompiler,
-  flow: FlowCompiler
+  flow: FlowCompiler,
+  rust: RustCompiler
 };
 
 async function compile(model, options) {
@@ -101,30 +103,33 @@ async function compile(model, options) {
   if (options.ast) {
     return JSON.stringify(compiler.getters, null, 2);
   }
-  const rawSource = compiler.compile();
+  const rawSource = await compiler.compile();
   let source = rawSource;
   try {
     source = prettier.format(rawSource);
   } catch (e) {}
   require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
   if (!options.format) {
-    return await compiler.postProcess(`(function () {
+    return `(function () {
       'use strict';
       return ${source}
-    })()`);
+    })()`;
   }
-  const rollupConfig = {
-    input: 'main.js',
-    plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify ? [uglify()] : []),
-    output: {
-      format: options.format,
-      name: options.name
-    }
-  };
-  const bundle = await rollup(rollupConfig);
-  const generated = await bundle.generate(rollupConfig);
-  const code = await compiler.postProcess(generated.code);
-  return code;
+  if (compiler.lang === 'js') {
+    const rollupConfig = {
+      input: 'main.js',
+      plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify ? [uglify()] : []),
+      output: {
+        format: options.format,
+        name: options.name
+      }
+    };
+    const bundle = await rollup(rollupConfig);
+    const generated = await bundle.generate(rollupConfig);
+    return generated.code;
+  } else {
+    return source;
+  }
 }
 
 const exported = { compile, setter: Setter, splice: Splice };
