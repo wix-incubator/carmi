@@ -87,7 +87,7 @@ class RustCompiler extends NaiveCompiler {
       case 'get':
         if (isHashMap(annotated[2])) {
           return `*${this.generateExpr(expr[2])}.get(&${this.generateExpr(expr[1])}${
-            annotated[1].type === 'NullableTypeAnnotation' ? '.unwrap()' : ''
+            annotated[1].type === 'NullableTypeAnnotation' ? '.clone().unwrap()' : ''
           }).unwrap()`;
         } else if (isStruct(annotated[2])) {
           if (annotated[1].type === 'stringLiteralTypeAnnotation') {

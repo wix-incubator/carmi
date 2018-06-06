@@ -1,5 +1,5 @@
 //// base ////
-
+use std::io::{self, Read};
 use std::collections::HashMap;
 extern crate serde;
 extern crate serde_json;
@@ -35,7 +35,7 @@ impl <T: JsBoolConvertable> JsBoolConvertable for Option<T> {
     fn toJsBool(&self) -> bool {
         match *self {
             None => false,
-            Some(x) => x.toJsBool()
+            Some(ref x) => x.toJsBool()
         }
     }
 }
