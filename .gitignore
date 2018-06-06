@@ -6,3 +6,8 @@ dist/
 benchmark/generated/
 yarn.lock
 /tmp.js
+/target/
+**/*.rs.bk
+Cargo.lock
+/rust/src
+/rust/target

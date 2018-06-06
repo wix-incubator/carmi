@@ -1,0 +1,9 @@
+[package]
+name = "carmi"
+version = "0.1.0"
+authors = ["Avi Marcus <avim@wix.com>"]
+
+[dependencies]
+serde = "1.0.66"
+serde_json = "1.0.19"
+serde_derive = "1.0.66"

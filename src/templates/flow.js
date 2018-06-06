@@ -11,10 +11,10 @@ function base() {
       return src;
     }
 
-    function mapValues /*:: <S, T>*/(
-      func /*: (val: S, key: string, context: any) => T*/,
+    function mapValues /*:: <S, T, C>*/(
+      func /*: (val: S, key: string, context: C) => T*/,
       src /*: { [string]: S }*/,
-      context /*: any*/
+      context /*: C*/
     ) /*: { [string]: T }*/ {
       return Object.keys(src).reduce((acc, key) => {
         acc[key] = func(src[key], key, context);
@@ -22,10 +22,10 @@ function base() {
       }, {});
     }
 
-    function filterBy /*:: <S>*/(
-      func /*: (val: S, key: string, context: any) => boolean*/,
+    function filterBy /*:: <S, C>*/(
+      func /*: (val: S, key: string, context: C) => boolean*/,
       src /*: { [string]: S }*/,
-      context /*: any*/
+      context /*: C */
     ) /*: { [string]: S }*/ {
       return Object.keys(src).reduce((acc, key) => {
         if (func(src[key], key, context)) {

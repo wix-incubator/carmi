@@ -11,7 +11,6 @@ const {
   TokenTypeData
 } = require('./lang');
 const Paths = Symbol('Paths');
-const FunctionId = Symbol('FunctionId');
 
 let exprCounter = 0;
 
@@ -58,7 +57,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
 
 function getAllFunctions(sourceExpr) {
   const allExpressions = flattenExpression(sourceExpr);
-  const exprByFunc = _.groupBy(allExpressions, expr => expr[FunctionId]);
+  const exprByFunc = _.groupBy(allExpressions, expr => expr[0].$funcId);
   return _.map(exprByFunc, expressions => expressions[0]);
 }
 
@@ -90,9 +89,8 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
   if (expr[0].$id) {
     return; //Already tagged
   }
-  expr[FunctionId] = name;
   expr[0].$id = exprCounter++;
-  expr[0].$funcId = expr[FunctionId];
+  expr[0].$funcId = name;
   expr[0].$rootName = rootName;
   expr[0].$depth = currentDepth;
   expr[0].$funcType = funcType;
@@ -104,6 +102,11 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
         subExpression[0].$funcType = expr[0].$type;
         tagExpressions(subExpression, name + '$' + expr[0].$id, currentDepth + 1, indexChain, expr[0].$type, rootName);
       }
+    } else if (subExpression instanceof Token) {
+      subExpression.$funcId = name;
+      subExpression.$rootName = rootName;
+      subExpression.$depth = currentDepth;
+      subExpression.$funcType = funcType;
     }
   });
 }
@@ -324,6 +327,14 @@ function splitSettersGetters(model) {
   };
 }
 
+function findFuncExpr(getters, funcId) {
+  return _(getters)
+    .map(getAllFunctions)
+    .flatten()
+    .tap(x => console.log(JSON.stringify(x), funcId, x[0][0].$funcId))
+    .find(e => e[0].$funcId === funcId);
+}
+
 module.exports = {
   findReferencesToPathInAllGetters,
   pathMatches,
@@ -332,5 +343,6 @@ module.exports = {
   tagAllExpressions,
   splitSettersGetters,
   normalizeAndTagAllGetters,
-  allPathsInGetter
+  allPathsInGetter,
+  findFuncExpr
 };

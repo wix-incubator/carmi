@@ -93,7 +93,7 @@ async function compile(model, options) {
   if (typeof options === 'boolean' || typeof options === 'undefined') {
     options = { compiler: !!options ? 'naive' : 'optimizing' };
   }
-  options.name = options.name || 'model';
+  options.name = options.name || 'instance';
   if (options.compiler === 'carmi') {
     options.compiler = 'optimizing';
   }
@@ -109,7 +109,7 @@ async function compile(model, options) {
     source = prettier.format(rawSource);
   } catch (e) {}
   require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
-  if (!options.format) {
+  if (!options.format && compiler.lang === 'js') {
     return `(function () {
       'use strict';
       return ${source}
