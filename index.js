@@ -35,7 +35,16 @@ function convertArrayAndObjectsToExpr(v) {
 }
 
 function createExpr(...args) {
-  return Expr.apply(null, args.map(convertArrayAndObjectsToExpr));
+  args = args.map(convertArrayAndObjectsToExpr);
+  if (args[0] instanceof Token && TokenTypeData[args[0].$type]) {
+    const len = TokenTypeData[args[0].$type].len;
+    if (len && (args.length < len[0] || args.length > len[1])) {
+      throw new Error(
+        `invalid length for expression ${args[0].$type} length:${args.length} expected:${len[0]}-${len[1]}`
+      );
+    }
+  }
+  return Expr.apply(null, args);
 }
 
 function allTokensInOtherFuncs(expr, res, inOtherFunc) {
