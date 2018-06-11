@@ -2,8 +2,11 @@
 name = "carmi"
 version = "0.1.0"
 authors = ["Avi Marcus <avim@wix.com>"]
-
+[features]
 [dependencies]
+# serde_state = "0.4.3"
+#serde_derive_state = "0.4.3"
 serde = "1.0.66"
-serde_json = "1.0.19"
 serde_derive = "1.0.66"
+serde_json = "1.0.19"
+string-interner = "0.6.3"

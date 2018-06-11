@@ -15,7 +15,6 @@ function rustTypeBorrows(annotation) {
     case 'GenericTypeAnnotation':
     case 'ObjectTypeAnnotation':
     case 'UnionTypeAnnotation':
-    case 'StringTypeAnnotation':
       return true;
     default:
       return false;
@@ -42,7 +41,7 @@ function flowAnnotationToRustType(annotation) {
     case 'BooleanTypeAnnotation':
       return 'bool';
     case 'StringTypeAnnotation':
-      return 'String';
+      return 'StringSymbol';
     case 'NumberTypeAnnotation':
       return 'f64';
     case 'NullLiteralTypeAnnotation':

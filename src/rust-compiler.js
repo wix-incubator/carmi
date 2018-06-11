@@ -73,9 +73,9 @@ class RustCompiler extends NaiveCompiler {
     const tokenType = currentToken.$type;
     switch (tokenType) {
       case 'func':
-        return `self.__${currentToken.$id}`;
+        return `Instance::__${currentToken.$id}`;
       case 'root':
-        return `self.model`;
+        return `model`;
       case 'val':
       case 'key':
       case 'arg0':
@@ -83,7 +83,7 @@ class RustCompiler extends NaiveCompiler {
       case 'context':
         return `${tokenType}`;
       case 'topLevel':
-        return `self`;
+        return `topLevel`;
       case 'get':
         if (isHashMap(annotated[2])) {
           return `*${this.generateExpr(expr[2])}.get(&${this.generateExpr(expr[1])}${
@@ -107,9 +107,9 @@ class RustCompiler extends NaiveCompiler {
         return `/* ${JSON.stringify(annotated)}*/
  if ${this.generateExpr(expr[1])} {${this.generateExpr(expr[2])}} else {${this.generateExpr(expr[3])}}`;
       case 'mapValues':
-        return `${this.generateExpr(expr[2])}.iter().map(|(k, v)|(k.clone(),self.__${
+        return `${this.generateExpr(expr[2])}.iter().map(|(k, v)|(k.clone(),Instance::__${
           expr[1][0].$id
-        }(v,k,None))).collect()`;
+        }(model,topLevel,funcLib,interner, v,k.clone(),None))).collect()`;
       /*case 'and':
         return (
           '(' +
@@ -240,7 +240,7 @@ class RustCompiler extends NaiveCompiler {
           .map(
             type => `#[derive(Debug, Serialize, Deserialize, Default)]
 ${flowAnnotationToRustType(type)}
-impl JsBoolConvertable for ${type.name} {
+impl JsConvertable for ${type.name} {
   fn toJsBool(&self) -> bool {
       true
   }
@@ -278,8 +278,8 @@ impl JsBoolConvertable for ${type.name} {
   }
 
   buildDerived(name) {
-    const prefix = name.indexOf('$') === 0 ? '' : `self.${name} = `;
-    return `${prefix} self._${noDollar(name)}();`;
+    const prefix = name.indexOf('$') === 0 ? '' : `self.topLevel.${name} = `;
+    return `${prefix} Instance::_${noDollar(name)}(&self.model,&self.topLevel,&self.funcLib,&mut self.interner);`;
   }
 
   tagTokenAnnotations(expr, name) {
