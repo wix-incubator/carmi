@@ -38,6 +38,7 @@ async function run() {
     model = require(path.resolve(process.cwd(), options.source));
   } catch (e) {
     console.error(`failed to require ${options.source}`);
+    throw e;
     return;
   }
   const code = await carmi.compile(model, options);
