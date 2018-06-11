@@ -180,7 +180,9 @@ class NaiveCompiler {
   appendExpr(acc, type, expr, funcName) {
     acc.push(
       this.mergeTemplate(
-        this.template[type] || this.template[expr[0].$funcType],
+        expr[0].$type === 'func' && this.template[expr[0].$funcType]
+          ? this.template[expr[0].$funcType]
+          : this.template[type],
         this.exprTemplatePlaceholders(expr, funcName)
       )
     );

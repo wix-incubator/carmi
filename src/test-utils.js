@@ -21,8 +21,10 @@ const funcLibrary = {
   tap: x => x
 };
 
-function expectTapFunctionToHaveBeenCalled(n) {
-  expect(funcLibrary.tap.mock.calls.length).toEqual(n);
+function expectTapFunctionToHaveBeenCalled(n, compiler) {
+  if (typeof compiler === 'string' && compiler === 'optimizing') {
+    expect(funcLibrary.tap.mock.calls.length).toEqual(n);
+  }
   funcLibrary.tap.mockClear();
 }
 
@@ -35,4 +37,10 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-module.exports = { currentValues, expectTapFunctionToHaveBeenCalled, funcLibrary, rand };
+function describeCompilers(compilers, tests) {
+  compilers.forEach(compiler => {
+    describe(`compiler:${compiler}`, () => tests(compiler));
+  });
+}
+
+module.exports = { currentValues, expectTapFunctionToHaveBeenCalled, funcLibrary, describeCompilers, rand };
