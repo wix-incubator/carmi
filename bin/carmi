@@ -37,7 +37,7 @@ async function run() {
   try {
     model = require(path.resolve(process.cwd(), options.source));
   } catch (e) {
-    console.error(`failed to require ${options.source}`);
+    console.error(`failed to require ${options.source} ${e.stack}`);
     throw e;
     return;
   }

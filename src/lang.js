@@ -1,8 +1,11 @@
 const TokenTypes = require('./token-type');
-
+const SourceTag = Symbol('SourceTag');
 class Token {
-  constructor(type) {
+  constructor(type, source) {
     this.$type = type;
+    if (source) {
+      this[SourceTag] = source;
+    }
   }
   toJSON() {
     return (
@@ -14,6 +17,10 @@ class Token {
       (this.$path ? `, $path: ${JSON.stringify(this.$path, null, 2)}` : '')
     );
   }
+}
+
+function cloneToken(token) {
+  return new Token(token.$type, token[SourceTag]);
 }
 
 const TokenTypeData = {
@@ -91,7 +98,7 @@ class Expression extends Array {
   constructor(...tokens) {
     const clonedTokens = tokens.map(token => {
       if (token instanceof Token) {
-        return new Token(token.$type);
+        return cloneToken(token);
       } else if (token instanceof Expression) {
         return new Expression(...token);
       }
@@ -114,7 +121,7 @@ AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 
 function cloneHelper(model) {
   if (model instanceof Token) {
-    return new Token(model.$type);
+    return cloneToken(model);
   } else if (model instanceof Expression) {
     return new Expression(...model.map(cloneHelper));
   } else if (model instanceof SpliceSetterExpression) {
@@ -132,4 +139,6 @@ function Clone(model) {
   }, {});
 }
 AllTokens.Clone = Clone;
+AllTokens.cloneToken = cloneToken;
+AllTokens.SourceTag = SourceTag;
 module.exports = AllTokens;

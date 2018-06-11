@@ -1,4 +1,4 @@
-const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone } = require('./src/lang');
+const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone, cloneToken, SourceTag } = require('./src/lang');
 const NaiveCompiler = require('./src/naive-compiler');
 const SimpleCompiler = require('./src/simple-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
@@ -38,6 +38,22 @@ function createExpr(...args) {
   return Expr.apply(null, args.map(convertArrayAndObjectsToExpr));
 }
 
+function allTokensInOtherFuncs(expr, res, inOtherFunc) {
+  res = res || [];
+  inOtherFunc = inOtherFunc || false;
+  if (expr instanceof Expression) {
+    expr.forEach(child => {
+      if (inOtherFunc && child instanceof Token) {
+        res.push(child);
+      }
+      if (child instanceof Expression) {
+        allTokensInOtherFuncs(child, res, inOtherFunc || child[0].$type === 'func');
+      }
+    });
+  }
+  return res;
+}
+
 proxyHandler.get = (target, key) => {
   const tokenData = TokenTypeData[key];
   if (
@@ -45,6 +61,7 @@ proxyHandler.get = (target, key) => {
     typeof key === 'string' &&
     key !== '$type' &&
     key !== 'length' &&
+    key !== 'forEach' &&
     key !== 'inspect' &&
     Number.isNaN(parseInt(key, 10))
   ) {
@@ -60,8 +77,20 @@ proxyHandler.get = (target, key) => {
     if (tokenData.chainIndex) {
       if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
         if (typeof args[1] === 'function') {
+          const origFunction = args[1];
           const funcArgs = tokenData.recursive ? ['loop', 'val', 'key', 'context'] : ['val', 'key', 'context'];
-          args[1] = args[1].apply(null, funcArgs.map(t => wrap(new Token(t))));
+          const funcArgsTokens = funcArgs.map(t => wrap(new Token(t, origFunction)));
+          args[1] = origFunction.apply(null, funcArgsTokens);
+          const allTokensInResult = allTokensInOtherFuncs(args[1]);
+          allTokensInResult.forEach(token => {
+            if (token[SourceTag] && token[SourceTag] === origFunction) {
+              throw new Error(
+                `used ${JSON.stringify(token)} from ${token[
+                  SourceTag
+                ].toString()} inside ${origFunction.toString()} in another function pass in context`
+              );
+            }
+          });
         } else if (typeof args[1] === 'string') {
           args[1] = createExpr(new Token('get'), args[1], new Token('val'));
         }
@@ -75,7 +104,7 @@ proxyHandler.get = (target, key) => {
 
 proxyHandler.apply = (target, thisArg, args) => {
   if (target instanceof Token) {
-    wrap(createExpr(new Token(target.$type), ...args));
+    wrap(createExpr(cloneToken(target), ...args));
   } else {
     throw `${String(target)} not a function`;
   }
