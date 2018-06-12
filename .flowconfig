@@ -1,0 +1,11 @@
+[ignore]
+[include]
+*.flow.js
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]
