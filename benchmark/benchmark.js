@@ -1,5 +1,6 @@
 const carmi = require('../index');
 const path = require('path');
+const fs = require('fs');
 const { fork } = require('child_process');
 const tests = ['todos'];
 
@@ -25,13 +26,13 @@ function resolveTestName(testname, type) {
 
 async function precompileModel(testname, type) {
   const model = require(path.resolve(__dirname, `${testname}.carmi`));
-  await carmi.compile(model, {
-    output: resolveTestName(testname, type) + '.js',
+  const src = await carmi.compile(model, {
     compiler: type,
     format: 'cjs',
     name: testname,
     minify: false
   });
+  fs.writeFileSync(resolveTestName(testname, type) + '.js', src);
 }
 
 function runSingleTest(testname, model, count, changes, batch) {

@@ -10,7 +10,7 @@ const modelFunc = require(args[1]);
 const cpuUsageAfterInitialState = process.cpuUsage();
 const inst = modelFunc(initialState);
 
-console.log(`${process.argv[2]} - ${process.argv[3]}: items:${countItems} ops:${countChanges} inBatches:${batchSize}`);
+console.log(`${args[0]} - ${args[1]}: items:${countItems} ops:${countChanges} inBatches:${batchSize}`);
 if (batchSize > 1) {
   for (let batchCount = 0; batchCount < countChanges / batchSize; batchCount++) {
     inst.$runInBatch(() => {
@@ -28,4 +28,5 @@ const instValues = Object.keys(inst).reduce((acc, key) => {
   return acc;
 }, {});
 const hash = objectHash(instValues);
-process.send(Object.assign({ hash }, cpuUsage, process.memoryUsage()));
+const msg = process.send.bind(process) || console.log.bind(console);
+msg(Object.assign({ hash }, cpuUsage, process.memoryUsage()));
