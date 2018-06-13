@@ -58,11 +58,17 @@ function flowAnnotationToRustType(annotation) {
     case 'GenericTypeAnnotation':
       return annotation.id.name;
     case 'ObjectTypeProperty':
-      return `${annotation.key.name}: ${flowAnnotationToRustType(annotation.value)},`;
+      return `#[serde(deserialize_state)]
+${annotation.key.name}: ${flowAnnotationToRustType(annotation.value)},`;
     case 'ObjectTypeAnnotation':
       if (annotation.indexers.length === 0) {
-        return `struct ${annotation.name} {
-${annotation.properties.map(t => '    ' + flowAnnotationToRustType(t)).join('\n')}
+        return `
+#[derive(Debug, DeserializeState, Default)]
+#[serde(de_parameters = "S")]
+#[serde(bound(deserialize = "S: ToSymbol"))]
+#[serde(deserialize_state = "S")]
+struct ${annotation.name} {
+${annotation.properties.map(t => flowAnnotationToRustType(t)).join('\n')}
 }`;
       } else if (annotation.indexers.length === 1) {
         return `HashMap<${flowAnnotationToRustType(annotation.indexers[0].key)},${flowAnnotationToRustType(
@@ -86,7 +92,7 @@ function sortUnionsAndProperties({ expr, types }) {
 }
 
 function replaceTypeRefsWithFull({ expr, types }) {
-  const nodesWithTypes = collectAllNodes(
+  collectAllNodes(
     { expr, types },
     node => node.type === 'GenericTypeAnnotation' && node.id.type === 'Identifier' && types[node.id.name]
   ).forEach(node => {
@@ -128,10 +134,6 @@ function replaceFullWithTypeRefs({ expr, types }) {
   });
   _.forEach(types, (type, name) => (type.name = name));
   return { expr, types };
-}
-
-function omitIds({ type, expr }) {
-  return omit({ type, expr }, shouldOmit);
 }
 
 const extractionPipeline = [replaceTypeRefsWithFull, sortUnionsAndProperties, replaceFullWithTypeRefs];

@@ -230,16 +230,11 @@ class RustCompiler extends NaiveCompiler {
     return Object.assign({}, super.topLevelOverrides(), {
       NAME: _.upperFirst(this.options.name),
       SETTERS: () => '',
-      MAIN_STRUCT_FIELDS: _.map(
-        this.getters,
-        (getter, name) => `    ${noDollar(name)}: ${flowAnnotationToRustType(this.exprAnnotations[getter[0].$id])},
-`
-      ).join(''),
       STRUCTS: () =>
         Object.values(this.types)
+          .concat([this.topLevelType])
           .map(
-            type => `#[derive(Debug, Serialize, Deserialize, Default)]
-${flowAnnotationToRustType(type)}
+            type => `${flowAnnotationToRustType(type)}
 impl JsConvertable for ${type.name} {
   fn toJsBool(&self) -> bool {
       true
@@ -278,7 +273,7 @@ impl JsConvertable for ${type.name} {
   }
 
   buildDerived(name) {
-    const prefix = name.indexOf('$') === 0 ? '' : `self.topLevel.${name} = `;
+    const prefix = `self.topLevel.${noDollar(name)} = `;
     return `${prefix} Instance::_${noDollar(name)}(&self.model,&self.topLevel,&self.funcLib,&mut self.interner);`;
   }
 
@@ -297,7 +292,7 @@ impl JsConvertable for ${type.name} {
     this.types = this.annotations.types;
     this.exprAnnotations = this.annotations.expr;
     this.topLevelType = {
-      name: 'topLevel',
+      name: 'TopLevel',
       type: 'ObjectTypeAnnotation',
       indexers: [],
       properties: _.map(this.getters, (expr, name) => ({

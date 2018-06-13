@@ -1,16 +1,21 @@
 //// base ////
-
 use std::io::{self, Read};
 use std::collections::HashMap;
-extern crate serde;
-extern crate serde_json;
 extern crate string_interner;
+extern crate serde_json;
+extern crate serde_state as serde;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive_state;
 use string_interner::StringInterner;
 use string_interner::Symbol;
 use serde_json::Error;
 use std::cmp::Ordering;
+use serde::de::{Deserialize, Deserializer, DeserializeState};
+use std::borrow::BorrowMut;
 
-#[derive(PartialEq,PartialOrd,Copy,Eq,Clone,Ord,Hash,Debug,Deserialize,Serialize)]
+#[derive(PartialEq,PartialOrd,Copy,Eq,Clone,Ord,Hash,Debug)]
 struct StringSymbol(usize);
 
 impl Symbol for StringSymbol {
@@ -22,8 +27,24 @@ impl Symbol for StringSymbol {
     }
 }
 
-#[macro_use]
-extern crate serde_derive;
+trait ToSymbol {
+    fn toSymbol(&mut self, source: String) -> StringSymbol;
+}
+
+impl ToSymbol for StringInterner<StringSymbol> {
+    fn toSymbol(&mut self, source: String) -> StringSymbol {
+        self.get_or_intern(source)
+    }
+}
+
+impl<'de, S> DeserializeState<'de, S> for StringSymbol where S: ToSymbol {
+    fn deserialize_state<D>(seed: &mut S, deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(seed.toSymbol( String::deserialize(deserializer).unwrap()))
+    }
+}
 
 trait JsConvertable {
     fn toJsBool(&self) -> bool;
@@ -58,11 +79,6 @@ impl <T: JsConvertable> JsConvertable for Option<T> {
 
 /* STRUCTS */
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-struct TopLevel {
-    /* MAIN_STRUCT_FIELDS */
-}
-
 #[derive(Debug)]
 struct /* NAME */ {
     model: Model,
@@ -82,9 +98,11 @@ impl /* NAME */ {
         instance
     }
     fn newFromJson(json:&str , funcLib: FuncLib) -> /* NAME */ {
-        let model: Model = serde_json::from_str(json).unwrap();
+        let mut interner:StringInterner<StringSymbol>  = StringInterner::<StringSymbol>::new();
+        let mut deserializer = serde_json::Deserializer::from_str(json);
+        interner.get_or_intern("".to_string());
+        let model: Model = Model::deserialize_state(&mut interner,&mut deserializer).unwrap();
         let topLevel = TopLevel::default();
-        let interner:StringInterner<StringSymbol>  = StringInterner::<StringSymbol>::new();
         let mut instance = Self{model:model,funcLib:funcLib,interner:interner,topLevel:topLevel};
         {
             instance.recalculate();
@@ -102,9 +120,9 @@ fn demo()-> Result<(), Error> {
                     "todos": 
                         {
                             "1":{"blockedBy":null,"done":true},
-                            "x":{"blockedBy":null,"done":true},
-                            "y":{"blockedBy":null,"done":true},
-                            "2":{"blockedBy":null,"done":true}
+                            "2":{"blockedBy":"1","done":false},
+                            "3":{"blockedBy":null,"done":true},
+                            "4":{"blockedBy":"2","done":false}
                         }
                 }"#;
     let f: FuncLib = FuncLib{};
@@ -112,7 +130,7 @@ fn demo()-> Result<(), Error> {
     let i: /*NAME*/ = /*NAME*/::newFromJson(data, f);
 
     // Do things just like with any other Rust data structure.
-    println!("Test {:?}", i.model.todos);
+    println!("Test {:?}", i.topLevel);
 
     Ok(())
 }/*,

@@ -91,7 +91,7 @@ function base() {
         $trackingMap.set($sourceObj, {});
       }
       const $track = $trackingMap.get($sourceObj);
-      $track[$sourceKey] = $track.hasOwnProperty($sourceKey) ? $track[$sourceKey] : new Map();
+      $track[$sourceKey] = $track[$sourceKey] || new Map();
       if (!$track[$sourceKey].has($targetKeySet)) {
         $track[$sourceKey].set($targetKeySet, new Set());
       }
