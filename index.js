@@ -144,7 +144,7 @@ async function compile(model, options) {
   const rawSource = await compiler.compile();
   let source = rawSource;
   try {
-    source = prettier.format(rawSource);
+    source = prettier.format(rawSource, { parser: 'babylon' });
   } catch (e) {}
   require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
   if (!options.format && compiler.lang === 'js') {

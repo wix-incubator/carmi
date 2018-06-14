@@ -134,6 +134,9 @@ function base() {
     function recalculate() /*:void */ {
       /* DERIVED */
     }
+    Object.assign($res, {
+      /* SETTERS */
+    });
     recalculate();
     return $res;
   }

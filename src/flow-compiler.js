@@ -34,15 +34,7 @@ function spawnAsync(proc, args, options) {
   });
 }
 
-const {
-  tagExprWithPaths,
-  findReferencesToPathInAllGetters,
-  splitSettersGetters,
-  pathMatches,
-  pathFragmentToString,
-  normalizeAndTagAllGetters,
-  allPathsInGetter
-} = require('./expr-tagging');
+const { splitSettersGetters, normalizeAndTagAllGetters } = require('./expr-tagging');
 
 class FlowCompiler extends SimpleCompiler {
   constructor(model, options) {
