@@ -14,7 +14,14 @@ class Token {
         .filter(k => k !== '$type' && k !== '$path')
         .map(k => `${k}:${JSON.stringify(this[k])}`)
         .join(', ') +
-      (this.$path ? `, $path: ${JSON.stringify(this.$path, null, 2)}` : '')
+      (this.$path
+        ? `, $path: ${JSON.stringify(
+            [...this.$path].map(item => [
+              item[0].map(t => (t instanceof Token ? `*${t.$type}*` : t)).join('.'),
+              item[1]
+            ])
+          )}`
+        : '')
     );
   }
 }

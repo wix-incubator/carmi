@@ -218,17 +218,10 @@ class OptimizingCompiler extends NaiveCompiler {
         );
         const precond = cond ? `$cond_${cond} && ` : '';
         if (invalidatedPath[0].$type === 'topLevel') {
-          if (invalidatedPath[invalidatedPath.length - 1].$type !== 'wildcard') {
-            tracks.push(
-              `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 1)}
+          tracks.push(
+            `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 1)}
               , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 1])})`
-            );
-          } else {
-            tracks.push(
-              `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 2)}
-              , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 2])})`
-            );
-          }
+          );
         } else if (invalidatedPath[0].$type === 'root') {
           Object.values(this.setters).forEach(setter => {
             if (pathMatches(invalidatedPath, setter)) {
@@ -236,11 +229,17 @@ class OptimizingCompiler extends NaiveCompiler {
                 .map((t, index) => (t instanceof Token && t.$type !== 'root' && index ? invalidatedPath[index] : t))
                 .slice(0, invalidatedPath.length);
               tracks.push(`// path matched ${JSON.stringify(setter)}`);
-              if (setterPath[setterPath.length - 1].$type !== 'wildcard') {
-                tracks.push(
-                  `${precond} track($invalidatedKeys, key, ${this.pathToString(
-                    setterPath.slice(0, setterPath.length - 1)
-                  )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
+              try {
+                if (setterPath.length > 1) {
+                  tracks.push(
+                    `${precond} track($invalidatedKeys, key, ${this.pathToString(
+                      setterPath.slice(0, setterPath.length - 1)
+                    )}, ${this.generateExpr(setterPath[setterPath.length - 1])})`
+                  );
+                }
+              } catch (e) {
+                throw new Error(
+                  `${e.toString()} setter:${JSON.stringify(setter)} setterPath:${JSON.stringify(setterPath)}`
                 );
               }
             }

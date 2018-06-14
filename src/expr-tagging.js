@@ -44,7 +44,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
     if (!Array.isArray(chainedTo)) {
       return [];
     } else {
-      const result = chainedTo.concat(isCollectionExpr(expr) ? Wildcard : [expr[1]]);
+      const result = isCollectionExpr(expr) ? chainedTo : chainedTo.concat([expr[1]]);
       if (!inChain) {
         paths.set(result, expr[0].$conditional ? expr[0].$id : false);
       }
