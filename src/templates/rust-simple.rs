@@ -11,9 +11,8 @@ extern crate serde_derive_state;
 use string_interner::StringInterner;
 use string_interner::Symbol;
 use serde_json::Error;
-use std::cmp::Ordering;
 use serde::de::{Deserialize, Deserializer, DeserializeState};
-use std::borrow::BorrowMut;
+use serde::ser::{Serialize, Serializer, SerializeState};
 
 #[derive(PartialEq,PartialOrd,Copy,Eq,Clone,Ord,Hash,Debug)]
 struct StringSymbol(usize);
@@ -43,6 +42,19 @@ impl<'de, S> DeserializeState<'de, S> for StringSymbol where S: ToSymbol {
         D: Deserializer<'de>,
     {
         Ok(seed.toSymbol( String::deserialize(deserializer).unwrap()))
+    }
+}
+
+impl SerializeState<StringInterner<StringSymbol>> for StringSymbol {
+    fn serialize_state<S>(&self, serializer: S, seed: &StringInterner<StringSymbol>) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let data = seed.resolve(*self);
+        match data {
+            None => Err(serde::ser::Error::custom("path contains invalid UTF-8 characters")),
+            Some(ref content) => content.serialize(serializer)
+        }
     }
 }
 
@@ -116,23 +128,32 @@ impl /* NAME */ {
 }
 fn demo()-> Result<(), Error> {
     // Some JSON input data as a &str. Maybe this comes from the user.
-    let data = r#"{
-                    "todos": 
-                        {
-                            "1":{"blockedBy":null,"done":true},
-                            "2":{"blockedBy":"1","done":false},
-                            "3":{"blockedBy":null,"done":true},
-                            "4":{"blockedBy":"2","done":false}
-                        }
-                }"#;
-    let f: FuncLib = FuncLib{};
-
-    let i: /*NAME*/ = /*NAME*/::newFromJson(data, f);
-
-    // Do things just like with any other Rust data structure.
-    println!("Test {:?}", i.topLevel);
-
-    Ok(())
+    // let data = r#"{
+    //                 "todos": 
+    //                     {
+    //                         "1":{"blockedBy":null,"done":true},
+    //                         "2":{"blockedBy":"1","done":false},
+    //                         "3":{"blockedBy":null,"done":true},
+    //                         "4":{"blockedBy":"2","done":false}
+    //                     }
+    //             }"#;
+    let mut data = String::new();
+    
+    match io::stdin().read_line(&mut data) {
+        Ok(len) => {
+            let f: FuncLib = FuncLib{};
+            let i: /*NAME*/ = /*NAME*/::newFromJson(data.as_str(), f);
+            // Do things just like with any other Rust data structure.
+            // println!("Test {:?}", i.topLevel);
+            {
+                let mut serializer = serde_json::ser::Serializer::new(io::stdout());
+                i.topLevel.serialize_state(&mut serializer, &i.interner).unwrap();
+            }
+            Ok(())
+        },
+        _ => Ok(())
+    }
+    
 }/*,
                             "2":{"blockedBy":"1","done":false},
                             "3":{"blockedBy":"2","done":false}*/
@@ -140,7 +161,7 @@ fn demo()-> Result<(), Error> {
 fn main() -> () {
        let r = demo();
        match r {
-           Result::Ok(()) => println!("ok"),
+           Result::Ok(()) => (),
            Error => println!("error"),
        }
 }

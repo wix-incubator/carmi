@@ -59,14 +59,16 @@ function flowAnnotationToRustType(annotation) {
       return annotation.id.name;
     case 'ObjectTypeProperty':
       return `#[serde(deserialize_state)]
+#[serde(serialize_state)]
 ${annotation.key.name}: ${flowAnnotationToRustType(annotation.value)},`;
     case 'ObjectTypeAnnotation':
       if (annotation.indexers.length === 0) {
         return `
-#[derive(Debug, DeserializeState, Default)]
+#[derive(Debug, DeserializeState,SerializeState, Default)]
 #[serde(de_parameters = "S")]
 #[serde(bound(deserialize = "S: ToSymbol"))]
 #[serde(deserialize_state = "S")]
+#[serde(serialize_state = "StringInterner<StringSymbol>")]
 struct ${annotation.name} {
 ${annotation.properties.map(t => flowAnnotationToRustType(t)).join('\n')}
 }`;
