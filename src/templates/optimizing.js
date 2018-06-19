@@ -315,6 +315,43 @@ function base() {
       return $out;
     }
 
+    const $mapKeysCache = new WeakMap();
+
+    function mapKeysObject($targetObj, $targetKey, func, src, context) {
+      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
+      const $invalidatedKeys = $invalidatedMap.get($out);
+      if ($new) {
+        $mapKeysCache.set($out, {});
+      }
+      const $keyToKey = $mapKeysCache.get($out);
+      if ($new) {
+        Object.keys(src).forEach(key => {
+          $keyToKey[key] = func($invalidatedKeys, src, key, $out, context);
+        });
+      } else {
+        const keysPendingDelete = new Set();
+        $invalidatedKeys.forEach(key => {
+          if ($keyToKey.hasOwnProperty(key)) {
+            keysPendingDelete.add($keyToKey[key]);
+            delete $keyToKey[key];
+          }
+        });
+        $invalidatedKeys.forEach(key => {
+          if (src.hasOwnProperty(key)) {
+            const newKey = func($invalidatedKeys, src, key, $out, context);
+            $keyToKey[key] = newKey;
+            keysPendingDelete.delete(newKey);
+          }
+        });
+        keysPendingDelete.forEach(key => {
+          triggerInvalidations($out, key);
+          delete $out[key];
+        });
+      }
+      $invalidatedKeys.clear();
+      return $out;
+    }
+
     const $filterCache = new WeakMap();
 
     function filterArray($targetObj, $targetKey, func, src, context) {
@@ -741,6 +778,29 @@ function mapValues() {
   }
 }
 
+function mapKeys() {
+  function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
+    let $changed = false;
+    /* PRETRACKING */
+    const val = src[key];
+    const newKey = $EXPR1;
+    $changed =
+      val !== acc[newKey] ||
+      (typeof val === 'object' && $tainted.has(val)) ||
+      (!acc.hasOwnProperty(newKey) && val === undefined);
+    acc[newKey] = val;
+    /* TRACKING */
+    /* INVALIDATES */
+    if ($changed) {
+      triggerInvalidations(acc, newKey);
+    }
+    /* INVALIDATES-END */
+    return newKey;
+  }
+}
+
+mapKeys.collectionFunc = 'mapKeysObject';
+
 function filterBy() {
   function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
     let $changed = false;
@@ -981,6 +1041,7 @@ module.exports = {
   base,
   topLevel,
   mapValues,
+  mapKeys,
   filterBy,
   map,
   any,

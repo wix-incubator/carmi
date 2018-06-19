@@ -10,6 +10,47 @@ const _ = require('lodash');
 
 describe('testing objects', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
+    it('mapKey', async () => {
+      const model = {
+        byName: root
+          .mapValues((title, idx) => ({ title, idx }))
+          .mapKeys(item => item.get('title'))
+          .mapValues(item => item.call('tap')),
+
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initalData = { '1': 'One', '2': 'Two', '3': 'Three' };
+      const inst = optModel(initalData, funcLibrary);
+      expect(inst.byName).toEqual({
+        One: { title: 'One', idx: '1' },
+        Two: { title: 'Two', idx: '2' },
+        Three: { title: 'Three', idx: '3' }
+      });
+      expectTapFunctionToHaveBeenCalled(3, compiler);
+      inst.set('3', 'Third');
+      expect(inst.byName).toEqual({
+        One: { title: 'One', idx: '1' },
+        Two: { title: 'Two', idx: '2' },
+        Third: { title: 'Third', idx: '3' }
+      });
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+      inst.set('3');
+      expect(inst.byName).toEqual({
+        One: { title: 'One', idx: '1' },
+        Two: { title: 'Two', idx: '2' }
+      });
+      expectTapFunctionToHaveBeenCalled(0, compiler);
+      inst.$startBatch();
+      inst.set('1', 'Two');
+      inst.set('2', 'One');
+      inst.$endBatch();
+      expect(inst.byName).toEqual({
+        One: { title: 'One', idx: '2' },
+        Two: { title: 'Two', idx: '1' }
+      });
+      expectTapFunctionToHaveBeenCalled(2, compiler);
+    });
     it('values/keys', async () => {
       const rangeMin = root.get('center').minus(root.get('range'));
       const rangeMax = root.get('center').plus(root.get('range'));
