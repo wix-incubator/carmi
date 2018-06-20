@@ -9,6 +9,7 @@ class TokenType {
     this.chainIndex = options.chainIndex || null;
     this.nonChained = options.nonChained || this.nonVerb || false;
     this.recursive = options.recursive || false;
+    this.tryToHoist = options.tryToHoist || this.collectionVerb;
   }
 }
 

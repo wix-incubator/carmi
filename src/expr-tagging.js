@@ -25,6 +25,10 @@ function isCollectionExpr(expr) {
   return tokenData(expr).collectionVerb;
 }
 
+function tryToHoist(expr) {
+  return tokenData(expr).tryToHoist;
+}
+
 function chainIndex(expr) {
   return tokenData(expr).chainIndex;
 }
@@ -188,7 +192,7 @@ function extractAllStaticExpressionsAsValues(getters) {
   let nodeIndex = 0;
   _.forEach(allStaticStringsSorted, s => {
     const e = allStaticAsStrings[s];
-    if (!namesByExpr[s] && isCollectionExpr(e)) {
+    if (!namesByExpr[s] && tryToHoist(e)) {
       namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
     }
   });

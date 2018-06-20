@@ -181,6 +181,6 @@ Object.keys(TokenTypeData).forEach(t => {
     exported[t] = (...args) => wrap(createExpr(new Token(t), ...args));
   }
 });
-exported.chain = wrap;
+exported.chain = val => wrap(convertArrayAndObjectsToExpr(val));
 
 module.exports = exported;

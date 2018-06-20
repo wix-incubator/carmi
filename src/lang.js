@@ -33,8 +33,8 @@ function cloneToken(token) {
 const TokenTypeData = {
   and: new TokenTypes({ nonChained: true, len: [2, Number.MAX_SAFE_INTEGER] }),
   or: new TokenTypes({ nonChained: true, len: [2, Number.MAX_SAFE_INTEGER] }),
-  array: new TokenTypes({ nonChained: true, private: true }),
-  object: new TokenTypes({ nonChained: true, private: true }),
+  array: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
+  object: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
   not: new TokenTypes({ chainIndex: 1, len: [2, 2] }),
   ternary: new TokenTypes({ chainIndex: 1, len: [4, 4] }),
   get: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
