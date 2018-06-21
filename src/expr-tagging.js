@@ -33,30 +33,29 @@ function chainIndex(expr) {
   return tokenData(expr).chainIndex;
 }
 
-function annotatePathsThatCanBeInvalidated(expr, paths, inChain) {
+function annotatePathsThatCanBeInvalidated(expr, paths, inChain, parent) {
+  let currentPath = null;
   if (typeof expr === 'string' || typeof expr === 'number' || typeof expr === 'boolean') {
-    return expr;
-  }
-  if (expr instanceof Token) {
-    if (expr.$type === 'root' || expr.$type === 'val' || expr.$type === 'topLevel') {
-      return [expr];
+    currentPath = expr;
+  } else if (expr instanceof Token) {
+    if (expr.$type === 'root' || expr.$type === 'val' || expr.$type === 'topLevel' || expr.$type === 'context') {
+      currentPath = [expr];
     }
-    return [];
-  }
-  if (expr[0].$type === 'get' || isCollectionExpr(expr)) {
-    const chainedTo = annotatePathsThatCanBeInvalidated(expr[chainIndex(expr)], paths, true);
+  } else if (expr[0].$type === 'get') {
+    const chainedTo = annotatePathsThatCanBeInvalidated(expr[chainIndex(expr)], paths, true, expr);
     if (!Array.isArray(chainedTo)) {
-      return [];
+      currentPath = [];
     } else {
-      const result = isCollectionExpr(expr) ? chainedTo : chainedTo.concat([expr[1]]);
-      if (!inChain) {
-        paths.set(result, expr[0].$conditional ? expr[0].$id : false);
-      }
-      return result;
+      currentPath = chainedTo.concat([expr[1]]);
     }
-  } else if (expr[0].$type !== 'func' || !inChain) {
-    expr.slice(1).forEach(e => annotatePathsThatCanBeInvalidated(e, paths, false));
+  } else if (!parent || expr[0].$type !== 'func') {
+    expr.slice(1).forEach(e => annotatePathsThatCanBeInvalidated(e, paths, false, expr));
   }
+  if (!inChain && Array.isArray(currentPath)) {
+    const relevantExpr = expr instanceof Expression ? expr : parent;
+    paths.set(currentPath, relevantExpr[0].$conditional ? relevantExpr[0].$id : false);
+  }
+  return currentPath;
 }
 
 function getAllFunctions(sourceExpr) {
@@ -85,8 +84,13 @@ function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
     const allPaths = new Map();
     annotatePathsThatCanBeInvalidated(expr, allPaths);
     expr[0].$path = allPaths;
-    // console.log(expr[0].$rootName, expr[0].$id, allPaths.map(pathToString));
+    // console.log(
+    //   expr[0].$rootName,
+    //   expr[0].$id,
+    //   allPaths.forEach((cond, path) => console.log(JSON.stringify(path), cond))
+    // );
   });
+  // console.log(JSON.stringify(sourceExpr, null, 2));
 }
 
 function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName) {
