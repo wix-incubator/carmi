@@ -139,15 +139,19 @@ function cloneHelper(model) {
     return new SpliceSetterExpression(...model.map(cloneHelper));
   } else if (model instanceof SetterExpression) {
     return new SetterExpression(...model.map(cloneHelper));
+  } else if (Array.isArray(model)) {
+    return model.map(t => cloneHelper(t));
+  } else if (typeof model === 'object' && model) {
+    return Object.keys(model).reduce((acc, key) => {
+      acc[key] = cloneHelper(model[key]);
+      return acc;
+    }, {});
   }
   return model;
 }
 
 function Clone(model) {
-  return Object.keys(model).reduce((acc, key) => {
-    acc[key] = cloneHelper(model[key]);
-    return acc;
-  }, {});
+  return cloneHelper(model);
 }
 AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;

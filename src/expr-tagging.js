@@ -21,10 +21,6 @@ function tokenData(expr) {
   return TokenTypeData[expr[0].$type];
 }
 
-function isCollectionExpr(expr) {
-  return tokenData(expr).collectionVerb;
-}
-
 function tryToHoist(expr) {
   return tokenData(expr).tryToHoist;
 }
@@ -51,7 +47,7 @@ function annotatePathsThatCanBeInvalidated(expr, paths, inChain, parent) {
   } else if (!parent || expr[0].$type !== 'func') {
     expr.slice(1).forEach(e => annotatePathsThatCanBeInvalidated(e, paths, false, expr));
   }
-  if (!inChain && Array.isArray(currentPath)) {
+  if (!inChain && Array.isArray(currentPath) && currentPath.length > 0) {
     const relevantExpr = expr instanceof Expression ? expr : parent;
     paths.set(currentPath, relevantExpr[0].$conditional ? relevantExpr[0].$id : false);
   }
@@ -243,7 +239,7 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
       pathMap.forEach((cond, path) => {
         if (_.some(currentSetters, setter => pathMatches(path, setter))) {
           canBeExprBeInvalidated = true;
-        } else {
+        } else if (path[0].$type !== 'context') {
           pathMap.delete(path);
         }
       })

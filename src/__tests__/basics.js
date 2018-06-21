@@ -54,7 +54,7 @@ describe('simple todo', () => {
       setCurrentTask: setter('currentTask')
     };
   }
-  const countItems = 100;
+  const countItems = 20;
 
   function randomTodoItem(idx) {
     return {

@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, setter, splice } = require('../../index');
+const { compile, and, or, root, arg0, setter, chain, splice } = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -10,7 +10,73 @@ const _ = require('lodash');
 
 describe('testing objects', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
-    it('mapKey', async () => {
+    it('mapValues context value', async () => {
+      const model = {
+        shared: root.mapValues(item =>
+          root.filterBy((innerItem, innerKey, outerItem) => innerItem.eq(outerItem), item)
+        ),
+        setItem: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initalData = { One: 1, Two: 2, First: 1, Second: 2 };
+      const inst = optModel(initalData);
+      expect(inst.shared).toEqual({
+        First: { First: 1, One: 1 },
+        One: { First: 1, One: 1 },
+        Second: { Second: 2, Two: 2 },
+        Two: { Second: 2, Two: 2 }
+      });
+      inst.setItem('First', 2);
+      expect(inst.shared).toEqual({
+        First: { First: 2, Second: 2, Two: 2 },
+        One: { One: 1 },
+        Second: { First: 2, Second: 2, Two: 2 },
+        Two: { First: 2, Second: 2, Two: 2 }
+      });
+    });
+    it('mapValues context key', async () => {
+      const model = {
+        shared: root.mapValues((item, key) =>
+          root.filterBy((innerItem, innerKey, outerItem) => innerItem.eq(root.get(outerItem)), key)
+        ),
+        setItem: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initalData = { One: 1, Two: 2, First: 1, Second: 2 };
+      const inst = optModel(initalData);
+      expect(inst.shared).toEqual({
+        First: { First: 1, One: 1 },
+        One: { First: 1, One: 1 },
+        Second: { Second: 2, Two: 2 },
+        Two: { Second: 2, Two: 2 }
+      });
+      inst.setItem('First', 2);
+      expect(inst.shared).toEqual({
+        First: { First: 2, Second: 2, Two: 2 },
+        One: { One: 1 },
+        Second: { First: 2, Second: 2, Two: 2 },
+        Two: { First: 2, Second: 2, Two: 2 }
+      });
+    });
+    it('using simple constant objects', async () => {
+      const translate = chain({ First: 'a', Second: 'b', Third: 'c' });
+      const model = {
+        lookUp: root
+          .get('source')
+          .mapValues(item => or(and(translate.get(item), root.get('results').get(translate.get(item))), '')),
+        setItem: setter('source', arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initalData = {
+        source: { One: 'First', Two: 'Second', Three: 'Unknown' },
+        results: { a: 'A', b: 'B', c: 'C' }
+      };
+      const inst = optModel(initalData);
+      expect(inst.lookUp).toEqual({ One: 'A', Two: 'B', Three: '' });
+      inst.setItem('Three', 'Third');
+      expect(inst.lookUp).toEqual({ One: 'A', Two: 'B', Three: 'C' });
+    });
+    it('mapKeys', async () => {
       const model = {
         byName: root
           .mapValues((title, idx) => ({ title, idx }))

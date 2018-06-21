@@ -1,4 +1,13 @@
-const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
+const {
+  Expr,
+  Token,
+  Setter,
+  Expression,
+  SetterExpression,
+  SpliceSetterExpression,
+  TokenTypeData,
+  Clone
+} = require('./lang');
 const _ = require('lodash');
 const NaiveCompiler = require('./naive-compiler');
 const fs = require('fs');
@@ -118,12 +127,18 @@ class OptimizingCompiler extends NaiveCompiler {
               ? 'forArray'
               : 'forObject'
         }(acc, key, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
-          typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
+          typeof expr[3] === 'undefined'
+            ? null
+            : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],getUniquePersistenObject(${
+                expr[0].$id
+              }),1,true)`
         })`;
       case 'topLevel':
         return `$res`;
       case 'wildcard':
         return '$wildcard';
+      case 'context':
+        return 'context[0]';
       case 'recur':
         return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
       default:
@@ -201,11 +216,12 @@ class OptimizingCompiler extends NaiveCompiler {
   }
 
   pathOfExpr(expr) {
-    return [new Token('topLevel'), expr[0].$rootName].concat(new Array(expr[0].$depth).fill(new Token('key')));
+    return [new Token('topLevel'), expr[0].$rootName].concat(
+      new Array(Math.min(expr[0].$depth, 1)).fill(new Token('key'))
+    );
   }
 
   tracking(expr) {
-    const path = this.pathOfExpr(expr);
     const tracks = [];
     const pathsThatInvalidate = expr[0].$path;
     if (pathsThatInvalidate) {
@@ -217,7 +233,16 @@ class OptimizingCompiler extends NaiveCompiler {
           }`
         );
         const precond = cond ? `$cond_${cond} && ` : '';
-        if (invalidatedPath[0].$type === 'topLevel') {
+        if (invalidatedPath[0].$type === 'context') {
+          if (invalidatedPath.length === 1) {
+            tracks.push(`${precond} track($invalidatedKeys, key, context, 0)`);
+          } else {
+            tracks.push(
+              `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 1)}
+                , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 1])})`
+            );
+          }
+        } else if (invalidatedPath[0].$type === 'topLevel') {
           tracks.push(
             `${precond} track($invalidatedKeys, key, ${this.pathToString(invalidatedPath, 1)}
               , ${this.generateExpr(invalidatedPath[invalidatedPath.length - 1])})`
