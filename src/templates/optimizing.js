@@ -9,6 +9,7 @@ function base() {
     const $parentKeyMap = new WeakMap();
     const $invalidatedRoots = new Set();
     const $wildcard = '*****';
+    const $soft = '=====';
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
@@ -83,7 +84,59 @@ function base() {
       }
     };
 
-    const track = ($targetKeySet, $targetKey, $sourceObj, $sourceKey) => {
+    function setOnObject($target, $key, $val, $invalidates) {
+      let $changed = false;
+      let $hard = false;
+      if ($invalidates) {
+        if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
+          $hard = true;
+        }
+        if (
+          $hard ||
+          $target[$key] !== $val ||
+          (typeof $val === 'object' && $tainted.has($val)) ||
+          (!$target.hasOwnProperty($key) && $target[$key] === undefined)
+        ) {
+          $changed = true;
+          triggerInvalidations($target, $key, $hard);
+        }
+      }
+      $target[$key] = $val;
+      return $changed;
+    }
+
+    function deleteOnObject($target, $key, $invalidates) {
+      let $hard = false;
+      if ($invalidates) {
+        if (typeof $target[$key] === 'object' && $target[$key]) {
+          $hard = true;
+        }
+        triggerInvalidations($target, $key, $hard);
+      }
+      delete $target[$key];
+    }
+
+    function setOnArray($target, $key, $val, $invalidates) {
+      let $hard = false;
+      if ($invalidates) {
+        if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
+          $hard = true;
+        }
+        if (
+          $hard ||
+          $target[$key] !== $val ||
+          (typeof $target[$key] === 'object' && $tainted.has($val)) ||
+          (!$target.hasOwnProperty($key) && $target[$key] === undefined)
+        ) {
+          triggerInvalidations($target, $key, $hard);
+        }
+      }
+      $target[$key] = $val;
+    }
+
+    function trackPath($targetKeySet, $targetKey, $path) {}
+
+    function track($targetKeySet, $targetKey, $sourceObj, $sourceKey) {
       if (!$sourceObj || !$targetKeySet) {
         return;
       }
@@ -102,7 +155,7 @@ function base() {
       const $tracked = $trackedMap.get($targetKeySet);
       $tracked[$targetKey] = $tracked[$targetKey] || [];
       $tracked[$targetKey].push({ $sourceKey, $sourceObj });
-    };
+    }
 
     const untrack = ($targetKeySet, $targetKey) => {
       const $tracked = $trackedMap.get($targetKeySet);
@@ -598,36 +651,24 @@ function base() {
 
     function array($invalidatedKeys, key, newVal, identifier, len, invalidates) {
       const res = getEmptyArray($invalidatedKeys, key, identifier);
+      invalidates = invalidates && res.length === len;
       for (let i = 0; i < len; i++) {
-        if (
-          invalidates &&
-          res.length === len &&
-          (res[i] !== newVal[i] || (typeof newVal[i] === 'object' && $tainted.has(newVal[i])))
-        ) {
-          triggerInvalidations(res, i);
-        }
-        res[i] = newVal[i];
+        setOnArray(res, i, newVal[i], invalidates);
       }
       return res;
     }
 
     function object($invalidatedKeys, key, newVal, identifier, keysList, invalidates) {
       const res = getEmptyObject($invalidatedKeys, key, identifier);
+      invalidates = invalidates && keysList.length && res.hasOwnProperty(keysList[0]);
       for (let i = 0; i < keysList.length; i++) {
-        let name = keysList[i];
-        if (
-          invalidates &&
-          res.hasOwnProperty(name) &&
-          (res[name] !== newVal[name] || (typeof newVal[name] === 'object' && $tainted.has(newVal[name])))
-        ) {
-          triggerInvalidations(res, name);
-        }
-        res[name] = newVal[name];
+        const name = keysList[i];
+        setOnObject(res, name, newVal[name], invalidates);
       }
       return res;
     }
 
-    function assignOrDefaults($targetObj, $targetKey, identifier, src, assign) {
+    function assignOrDefaults($targetObj, $targetKey, identifier, src, assign, invalidates) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
       if (!assign) {
         src = [...src].reverse();
@@ -640,14 +681,7 @@ function base() {
         const res = Object.assign({}, ...src);
         Object.keys(res).forEach(key => {
           $keysPendingDelete.delete(key);
-          if (
-            $out[key] !== res[key] ||
-            (typeof res[key] === 'object' && $tainted.has(res[key])) ||
-            (!$out.hasOwnProperty(key) && res[key] === undefined)
-          ) {
-            triggerInvalidations($out, key);
-          }
-          $out[key] = res[key];
+          setOnObject($out, key, res[key], invalidates);
         });
         $keysPendingDelete.forEach(key => {
           delete $out[key];
@@ -735,46 +769,28 @@ function topLevel() {
     /* PRETRACKING */
     const acc = $res;
     const key = '$FUNCNAME';
-    const prevValue = $res.$FUNCNAME;
     const $invalidatedKeys = $invalidatedRoots;
-    $res.$FUNCNAME = $EXPR;
-    const $changed =
-      prevValue !== $res.$FUNCNAME || (typeof $res.$FUNCNAME === 'object' && $tainted.has($res.$FUNCNAME));
+    const newValue = $EXPR;
+    setOnObject($res, '$FUNCNAME', newValue, $INVALIDATES);
     $invalidatedRoots.delete('$FUNCNAME');
     /* TRACKING */
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, key);
-    }
-    /* INVALIDATES-END */
     return $res.$FUNCNAME;
   }
 }
 
 function mapValues() {
   function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
-    let $changed = false;
     /* PRETRACKING */
     const val = src[key];
     if (!src.hasOwnProperty(key)) {
       if (acc.hasOwnProperty(key)) {
-        delete acc[key];
-        $changed = true;
+        deleteOnObject(acc, key, $INVALIDATES);
       }
     } else {
       const res = $EXPR1;
-      $changed =
-        res !== acc[key] ||
-        (typeof res === 'object' && $tainted.has(res)) ||
-        (!acc.hasOwnProperty(key) && res === undefined);
-      acc[key] = res;
+      setOnObject(acc, key, res, $INVALIDATES);
       /* TRACKING */
     }
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, key);
-    }
-    /* INVALIDATES-END */
   }
 }
 
@@ -784,17 +800,8 @@ function mapKeys() {
     /* PRETRACKING */
     const val = src[key];
     const newKey = $EXPR1;
-    $changed =
-      val !== acc[newKey] ||
-      (typeof val === 'object' && $tainted.has(val)) ||
-      (!acc.hasOwnProperty(newKey) && val === undefined);
-    acc[newKey] = val;
+    setOnObject(acc, newKey, val, $INVALIDATES);
     /* TRACKING */
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, newKey);
-    }
-    /* INVALIDATES-END */
     return newKey;
   }
 }
@@ -803,33 +810,21 @@ mapKeys.collectionFunc = 'mapKeysObject';
 
 function filterBy() {
   function $FUNCNAME($invalidatedKeys, src, key, acc, context) {
-    let $changed = false;
     /* PRETRACKING */
     const val = src[key];
     if (!src.hasOwnProperty(key)) {
       if (acc.hasOwnProperty(key)) {
-        delete acc[key];
-        $changed = true;
+        deleteOnObject(acc, key, $INVALIDATES);
       }
     } else {
       const res = $EXPR1;
       if (res) {
-        $changed =
-          acc[key] !== val ||
-          (typeof val === 'object' && $tainted.has(val)) ||
-          (!acc.hasOwnProperty(key) && val === undefined);
-        acc[key] = val;
+        setOnObject(acc, key, val, $INVALIDATES);
       } else if (acc.hasOwnProperty(key)) {
-        delete acc[key];
-        $changed = true;
+        deleteOnObject(acc, key, $INVALIDATES);
       }
       /* TRACKING */
     }
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, key);
-    }
-    /* INVALIDATES-END */
   }
 }
 
@@ -840,20 +835,13 @@ function map() {
     const val = src[key];
     if (key >= src.length) {
       $changed = true;
-      if (acc.length >= key) {
-        acc.length = src.length;
-      }
+      setOnArray(acc, key, undefined, $INVALIDATES);
+      acc.length = src.length;
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
-      acc[key] = res;
+      setOnArray(acc, key, res, $INVALIDATES);
       /* TRACKING */
     }
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, key);
-    }
-    /* INVALIDATES-END */
   }
 }
 
@@ -900,18 +888,10 @@ function keyBy() {
     if (key < src.length) {
       const val = src[key];
       res = '' + $EXPR1;
-      const $changed =
-        acc[res] !== val ||
-        (typeof val === 'object' && $tainted.has(val)) ||
-        (!acc.hasOwnProperty(res) && val === undefined);
+      setOnObject(acc, res, val, $INVALIDATES);
       acc[res] = val;
       $idxToKey[key] = res;
       /* TRACKING */
-      /* INVALIDATES */
-      if ($changed) {
-        triggerInvalidations(acc, res);
-      }
-      /* INVALIDATES-END */
     }
     return res;
   }
@@ -927,16 +907,10 @@ function filter() {
     const nextItemIdx = res ? prevItemIdx + 1 : prevItemIdx;
     let $changed = false;
     if (nextItemIdx !== prevItemIdx) {
-      $changed = acc[prevItemIdx] !== val || (typeof val === 'object' && $tainted.has(val));
-      acc[prevItemIdx] = val;
+      setOnArray(acc, prevItemIdx, val, $INVALIDATES);
     }
     $idxToIdx[key + 1] = nextItemIdx;
     /* TRACKING */
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, prevItemIdx);
-    }
-    /* INVALIDATES-END */
   }
 }
 filter.collectionFunc = 'filterArray';
@@ -955,18 +929,12 @@ function groupBy() {
     if (!acc.hasOwnProperty(res)) {
       acc[res] = {};
     }
-    $changed =
-      val !== acc[res][key] ||
-      (typeof val === 'object' && $tainted.has(val)) ||
-      (!acc[res].hasOwnProperty(key) && val === undefined);
+    $changed = setOnObject(acc[res], key, val, $INVALIDATES);
     acc[res][key] = val;
     /* TRACKING */
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc[res], key);
+    if ($changed && $INVALIDATES) {
       triggerInvalidations(acc, res);
     }
-    /* INVALIDATES-END */
     return true;
   }
 }
@@ -978,21 +946,15 @@ function recursiveMap() {
     /* PRETRACKING */
     const val = src[key];
     if (key >= src.length) {
-      $changed = true;
+      setOnArray(acc, key, undefined, $INVALIDATES);
       if (acc.length >= key) {
         acc.length = src.length;
       }
     } else {
       const res = $EXPR1;
-      $changed = res !== acc[key] || (typeof res === 'object' && $tainted.has(res));
-      acc[key] = res;
+      setOnArray(acc, key, res, $INVALIDATES);
       /* TRACKING */
     }
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, key);
-    }
-    /* INVALIDATES-END */
   }
 }
 recursiveMap.collectionFunc = 'recursiveMapArray';
@@ -1004,23 +966,14 @@ function recursiveMapValues() {
     const val = src[key];
     if (!src.hasOwnProperty(key)) {
       if (acc.hasOwnProperty(key)) {
-        delete acc[key];
-        $changed = true;
+        deleteOnObject(acc, key, $INVALIDATES);
       }
     } else {
       const res = $EXPR1;
-      $changed =
-        res !== acc[key] ||
-        (typeof res === 'object' && $tainted.has(res)) ||
-        (!acc.hasOwnProperty(key) && res === undefined);
+      setOnObject(acc, key, res, $INVALIDATES);
       acc[key] = res;
       /* TRACKING */
     }
-    /* INVALIDATES */
-    if ($changed) {
-      triggerInvalidations(acc, key);
-    }
-    /* INVALIDATES-END */
   }
 }
 recursiveMapValues.collectionFunc = 'recursiveMapObject';

@@ -66,8 +66,8 @@ class OptimizingCompiler extends NaiveCompiler {
           }
           return '';
         },
-        INVALIDATES: () => (tag, content) => {
-          return this.invalidates(this.pathOfExpr(expr)) ? content : '';
+        INVALIDATES: () => {
+          return this.invalidates(this.pathOfExpr(expr)) ? 'true' : 'false';
         }
       },
       this.byTokenTypesPlaceHolders(expr),
@@ -104,7 +104,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'defaults':
         return `assignOrDefaults(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
-        })`;
+        }, ${this.invalidates(this.pathOfExpr(expr))})`;
       case 'range':
         return `range(acc, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '1'

@@ -202,5 +202,21 @@ describe('testing array', () => {
       inst.setMatch(2);
       expect(inst.fizzBuzz).toEqual([1, 2, 'fizz']);
     });
+    it('branching - soft tracking', async () => {
+      const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
+      const indexes = root.map((item, idx) => idx);
+      const model = {
+        result: indexes.map(idx => valuesInArrays.get(idx).get(0)),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initalData = [{ arr: [1] }, { val: 2 }, { arr: [3] }];
+      const inst = optModel(initalData);
+      expect(inst.result).toEqual([1, 2, 3]);
+      inst.set(0, { val: 4 });
+      expect(inst.result).toEqual([4, 2, 3]);
+      inst.set(1, { arr: [5] });
+      expect(inst.result).toEqual([4, 5, 3]);
+    });
   });
 });
