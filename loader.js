@@ -1,15 +1,23 @@
 // Usage: `require('carmi/loader!./file.carmi')`
 // or just setup as a default loader for `.carmi.js$` files
 
-'use strict'
+'use strict';
 
+const _ = require('lodash');
 const {compile} = require('carmi');
 
+const clearAllCarmiModules = () => {
+    _(require.cache).keys().filter(k => k.endsWith('.carmi.js')).forEach(key => {
+        delete require.cache[key];
+    });
+};
+
 module.exports = function CarmiLoader() {
+    this.cacheable(false);
     const callback = this.async();
-    const carmiModuleSourcePath = this.getDependencies()[0];
-    const carmiModule = require(carmiModuleSourcePath);
-    compile(carmiModule, {compiler: 'optimizing', format: 'cjs'}).then(compiledCode => {
+    const srcPath = this.getDependencies()[0];
+    clearAllCarmiModules();
+    compile(require(srcPath), {compiler: 'optimizing', format: 'cjs'}).then(compiledCode => {
         callback(null, compiledCode);
     }).catch(err => callback(err));
 };
