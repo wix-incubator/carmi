@@ -4,12 +4,11 @@ function base() {
     const $res = { $model };
     const $trackingMap = new WeakMap();
     const $trackedMap = new WeakMap();
+    const $trackingWildcards = new WeakMap();
     const $invalidatedMap = new WeakMap();
     const $parentObjectMap = new WeakMap();
     const $parentKeyMap = new WeakMap();
     const $invalidatedRoots = new Set();
-    const $wildcard = '*****';
-    const $soft = '=====';
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
@@ -74,11 +73,24 @@ function base() {
       console.log(JSON.stringify(serialize(all, { $trackingMap, $invalidatedMap }), null, 2));
     };
 
+    const untrack = ($targetKeySet, $targetKey) => {
+      const $tracked = $trackedMap.get($targetKeySet);
+      if (!$tracked || !$tracked[$targetKey]) {
+        return;
+      }
+      $tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
+        const $trackingSource = $trackingMap.get($sourceObj);
+        $trackingSource[$sourceKey].delete($target);
+      });
+      delete $tracked[$targetKey];
+    };
+
     const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
       }
       $targetKeySet.add($targetKey);
+      untrack($targetKeySet, $targetKey);
       if ($parentObjectMap.has($targetKeySet)) {
         invalidate($parentObjectMap.get($targetKeySet), $parentKeyMap.get($targetKeySet));
       }
@@ -134,55 +146,43 @@ function base() {
       $target[$key] = $val;
     }
 
-    function trackPath($targetKeySet, $targetKey, $path) {}
-
-    function track($targetKeySet, $targetKey, $sourceObj, $sourceKey) {
-      if (!$sourceObj || !$targetKeySet) {
-        return;
-      }
+    function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
       }
       const $track = $trackingMap.get($sourceObj);
       $track[$sourceKey] = $track[$sourceKey] || new Map();
-      if (!$track[$sourceKey].has($targetKeySet)) {
-        $track[$sourceKey].set($targetKeySet, new Set());
-      }
-      $track[$sourceKey].get($targetKeySet).add($targetKey);
-      if (!$trackedMap.has($targetKeySet)) {
-        $trackedMap.set($targetKeySet, {});
-      }
-      const $tracked = $trackedMap.get($targetKeySet);
-      $tracked[$targetKey] = $tracked[$targetKey] || [];
-      $tracked[$targetKey].push({ $sourceKey, $sourceObj });
+      $track[$sourceKey].set($target, $soft);
+      const $tracked = $trackedMap.get($target[0]);
+      $tracked[$target[1]] = $tracked[$target[1]] || [];
+      $tracked[$target[1]].push({ $sourceKey, $sourceObj, $target });
     }
 
-    const untrack = ($targetKeySet, $targetKey) => {
-      const $tracked = $trackedMap.get($targetKeySet);
-      if (!$tracked || !$tracked[$targetKey]) {
-        return;
+    function trackPath($target, $path) {
+      if (!$trackedMap.has($target[0])) {
+        $trackedMap.set($target[0], {});
       }
-      $tracked[$targetKey].forEach(({ $sourceObj, $sourceKey }) => {
-        const $trackingSource = $trackingMap.get($sourceObj);
-        $trackingSource[$sourceKey].get($targetKeySet).delete($targetKey);
-      });
-      delete $tracked[$targetKey];
-    };
+      const $end = $path.length - 2;
+      let $current = $path[0];
+      for (let i = 0; i <= $end; i++) {
+        track($target, $current, $path[i + 1], i !== $end);
+        $current = $current[$path[i + 1]];
+      }
+    }
 
-    function triggerInvalidations($sourceObj, $sourceKey) {
+    function triggerInvalidations($sourceObj, $sourceKey, $hard) {
       $tainted.add($sourceObj);
-      if (!$trackingMap.has($sourceObj)) {
-        return;
-      }
       const $track = $trackingMap.get($sourceObj);
-      if ($track.hasOwnProperty($sourceKey)) {
-        $track[$sourceKey].forEach(($targetInvalidatedKeys, $targetKeySet) => {
-          $targetInvalidatedKeys.forEach($targetKey => invalidate($targetKeySet, $targetKey));
+      if ($track && $track.hasOwnProperty($sourceKey)) {
+        $track[$sourceKey].forEach(($soft, $target) => {
+          if (!$soft || $hard) {
+            invalidate($target[0], $target[1]);
+          }
         });
       }
-      if ($track.hasOwnProperty($wildcard)) {
-        $track[$wildcard].forEach(($targetInvalidatedKeys, $targetKeySet) => {
-          $targetInvalidatedKeys.forEach($targetKey => invalidate($targetKeySet, $sourceKey));
+      if ($trackingWildcards.has($sourceObj)) {
+        $trackingWildcards.get($sourceObj).forEach($targetInvalidatedKeys => {
+          invalidate($targetInvalidatedKeys, $sourceKey);
         });
       }
     }
@@ -205,7 +205,10 @@ function base() {
         $parentObjectMap.set($invalidatedKeys, $parentInvalidatedKeys);
         $parentKeyMap.set($invalidatedKeys, $targetKey);
         $invalidatedMap.set($targetSources[$targetKey], $invalidatedKeys);
-        track($invalidatedKeys, $wildcard, src, $wildcard);
+        if (!$trackingWildcards.has(src)) {
+          $trackingWildcards.set(src, new Set());
+        }
+        $trackingWildcards.get(src).add($invalidatedKeys);
         $new = true;
       }
       const $out = $targetSources[$targetKey];
@@ -766,10 +769,10 @@ function base() {
 function topLevel() {
   $invalidatedRoots.add('$FUNCNAME');
   function $$FUNCNAMEBuild() {
-    /* PRETRACKING */
     const acc = $res;
     const key = '$FUNCNAME';
     const $invalidatedKeys = $invalidatedRoots;
+    /* PRETRACKING */
     const newValue = $EXPR;
     setOnObject($res, '$FUNCNAME', newValue, $INVALIDATES);
     $invalidatedRoots.delete('$FUNCNAME');
