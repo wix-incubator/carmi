@@ -171,7 +171,7 @@ class NaiveCompiler {
     return {
       ROOTNAME: expr[0].$rootName,
       FUNCNAME: funcName,
-      EXPR1: () => this.generateExpr(expr[1]),
+      EXPR1: () => (expr.length > 1 ? this.generateExpr(expr[1]) : ''),
       EXPR: () => this.generateExpr(expr),
       ID: () => expr[0].$id
     };
