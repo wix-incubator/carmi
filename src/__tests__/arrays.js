@@ -20,6 +20,26 @@ describe('testing array', () => {
       expect(inst.negated).toEqual([false, true, true, true, true]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
+    it('map return empty object if falsy', async () => {
+      const model = { orEmpty: root.map(val => or(val, {}).call('tap')), set: setter(arg0) };
+      const optCode = eval(await compile(model, { compiler }));
+      const inst = optCode([{ x: 1 }, false, { x: 2 }], funcLibrary);
+      expect(inst.orEmpty).toEqual([{ x: 1 }, {}, { x: 2 }]);
+      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+      inst.set(2, false);
+      expect(inst.orEmpty).toEqual([{ x: 1 }, {}, {}]);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    });
+    it('map return empty object if falsy', async () => {
+      const model = { orEmpty: root.map(val => or(val, []).call('tap')), set: setter(arg0) };
+      const optCode = eval(await compile(model, { compiler }));
+      const inst = optCode([[1], false, [2]], funcLibrary);
+      expect(inst.orEmpty).toEqual([[1], [], [2]]);
+      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+      inst.set(2, false);
+      expect(inst.orEmpty).toEqual([[1], [], []]);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    });
     it('simple any', async () => {
       const model = {
         anyTruthy: root.any(val => val.call('tap')),
