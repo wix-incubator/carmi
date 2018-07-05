@@ -4,20 +4,25 @@
 'use strict';
 
 const _ = require('lodash');
-const {compile} = require('carmi');
+const { compile } = require('carmi');
 
-const clearAllCarmiModules = () => {
-    _(require.cache).keys().filter(k => k.endsWith('.carmi.js')).forEach(key => {
-        delete require.cache[key];
-    });
+const clearAllModulesLoadedForCarmi = requiredPreCarmi => {
+  Object.keys(require.cache).forEach(key => {
+    if (!requiredPreCarmi.has(key)) {
+      delete require.cache[key];
+    }
+  });
 };
 
 module.exports = function CarmiLoader() {
-    this.cacheable(false);
-    const callback = this.async();
-    const srcPath = this.getDependencies()[0];
-    clearAllCarmiModules();
-    compile(require(srcPath), {compiler: 'optimizing', format: 'cjs'}).then(compiledCode => {
-        callback(null, compiledCode);
-    }).catch(err => callback(err));
+  this.cacheable(false);
+  const callback = this.async();
+  const srcPath = this.getDependencies()[0];
+  const requiredPreCarmi = new Set(Object.keys(require.cache));
+  compile(require(srcPath), { compiler: 'optimizing', format: 'cjs' })
+    .then(compiledCode => {
+      clearAllModulesLoadedForCarmi(requiredPreCarmi);
+      callback(null, compiledCode);
+    })
+    .catch(err => callback(err));
 };
