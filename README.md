@@ -68,5 +68,3 @@ console.log(todos.todosDisplay);
   'write a blog post about carmi - not done' ]
 */
 ```
-
-THIS IS A POC - Do not use for production yet
