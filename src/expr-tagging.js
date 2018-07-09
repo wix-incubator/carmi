@@ -250,7 +250,35 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
   });
 }
 
+function deadCodeElimination(expr) {
+  if (!(expr instanceof Expression)) {
+    return expr;
+  }
+  expr.slice(1).forEach((child, idx) => (expr[idx + 1] = deadCodeElimination(child)));
+  const tokenType = expr[0].$type;
+  switch (tokenType) {
+    case 'or':
+      const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
+      if (firstTruthy === 0) {
+        return expr[1];
+      } else if (firstTruthy > 0) {
+        expr.splice(firstTruthy + 2, expr.length);
+      }
+    case 'and':
+      const firstFalsy = expr
+        .slice(1)
+        .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
+      if (firstFalsy === 0) {
+        return expr[1];
+      } else if (firstFalsy > 0) {
+        expr.splice(firstFalsy + 2, expr.length);
+      }
+  }
+  return expr;
+}
+
 function normalizeAndTagAllGetters(getters, setters) {
+  getters = _.mapValues(getters, deadCodeElimination);
   extractAllStaticExpressionsAsValues(getters);
   tagAllExpressions(getters);
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
