@@ -12,6 +12,8 @@ const parseCompiledFile = code => {
   return functionInAST;
 };
 
+const ALREADY_COMPILED_DIRECTIVE = "carmi-compiled";
+
 module.exports = function carmiBabelTransform({ types: t }) {
   return {
     name: "carmi",
@@ -24,9 +26,16 @@ module.exports = function carmiBabelTransform({ types: t }) {
         if (!this.doWork) return;
         this.programPath = path;
       },
+      DirectiveLiteral(path) {
+        if (!this.doWork) return;
+        this.doWork = path.node.value !== ALREADY_COMPILED_DIRECTIVE;
+      },
       CallExpression(path) {
         if (!this.doWork) return;
-        if (path.node.callee.name === "require") {
+        if (
+          path.node.callee.name === "require" &&
+          path.node.arguments[0].value !== "carmi"
+        ) {
           this.requireExpressions.push(path.node);
         }
       }
@@ -43,7 +52,12 @@ module.exports = function carmiBabelTransform({ types: t }) {
       const expressions = this.requireExpressions
         .concat([moduleExportsAssignment])
         .map(e => t.expressionStatement(e));
-      this.programPath.replaceWith(t.program(expressions));
+      const alreadyCompiledDirective = t.directive(
+        t.directiveLiteral(ALREADY_COMPILED_DIRECTIVE)
+      );
+      this.programPath.replaceWith(
+        t.program(expressions, [alreadyCompiledDirective])
+      );
     }
   };
 };
