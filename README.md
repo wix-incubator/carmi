@@ -27,25 +27,25 @@ cool stuff that is nearly impossible to do automatically using other approachs
 4.  All computation is incremental
 
 ```js
-const { compile, root, and, or, arg0, setter, splice } = require('./index');
-const todosByIdx = root.keyBy('idx');
-const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get('done').not());
+const { compile, root, and, or, arg0, setter, splice } = require("./index");
+const todosByIdx = root.keyBy("idx");
+const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get("done").not());
 const todosDisplayByIdx = todosByIdx.mapValues(todo =>
-  todo.get('task').plus(or(and(todo.get('done'), ' - done'), ' - not done'))
+  todo.get("task").plus(or(and(todo.get("done"), " - done"), " - not done"))
 );
-const todosDisplay = root.map(todo => todosDisplayByIdx.get(todo.get('idx')));
+const todosDisplay = root.map(todo => todosDisplayByIdx.get(todo.get("idx")));
 const model = {
   todosDisplay,
   anyTodoNotDone,
-  setTodoDone: setter(arg0, 'done'),
-  spliceTodos: splice()
+  setTodoDone: setter(arg0, "done"),
+  spliceTodos: splice(),
 };
 
 const todosModel = eval(compile(model));
 const todos = todosModel([
-  { idx: '1', done: false, task: 'write a blog post about carmi' },
-  { idx: '2', done: true, task: 'publish to npm' },
-  { idx: '3', done: false, task: 'write a demo for carmi' }
+  { idx: "1", done: false, task: "write a blog post about carmi" },
+  { idx: "2", done: true, task: "publish to npm" },
+  { idx: "3", done: false, task: "write a demo for carmi" },
 ]);
 console.log(todos.todosDisplay);
 /*
@@ -67,4 +67,71 @@ console.log(todos.todosDisplay);
   'publish to npm - done',
   'write a blog post about carmi - not done' ]
 */
+```
+
+## Usage with Babel
+
+Compiles Carmi files (`xxx.carmi.js`) automatically using Babel. It reserves the external modules, required by `require`,
+in order to help bundlers (like webpack) understand dependencies across Carmi models (and to help them watch the files).
+
+```js
+// model.carmi.js
+
+const { root } = require("carmi");
+const { second } = require("./anotherModel.carmi.js");
+
+module.exports = { first: root.get(0), second };
+```
+
+turns to:
+
+```js
+require("carmi");
+require("./anotherModel.camri.js");
+
+module.exports = CARMI_COMPILATION_RESULT;
+```
+
+### Add to your babel configuration
+
+Add this plugin to your `.babelrc`:
+
+```
+{
+  ... babel conf ...,
+  "plugins": ["carmi/babel"]
+}
+```
+
+> Now you're set! :moneybag:
+
+## Usage with Webpack
+
+Compiles Carmi files on the fly with a fly webpack loader.
+
+### Require using webpack configurations
+
+Add this to your webpack configurations:
+
+```
+module: {
+  rules: [
+    {
+      test: /\.carmi\.js$/,
+      exclude: /(node_modules|bower_components)/,
+      use: {
+        loader: 'carmi/loader'
+      }
+    }
+  ]
+}
+```
+
+Then you can just `require('./model.carmi.js')` like a boss
+
+### Require with explicit loader
+
+```js
+const modelBuilder = require("carmi/loader!./model.carmi.js");
+// modelBuilder is the carmi builder function!
 ```
