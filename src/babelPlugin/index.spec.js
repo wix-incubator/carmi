@@ -50,10 +50,10 @@ it("adds require statements for dependencies", () => {
     filename: resolve(__dirname, "test.carmi.js")
   });
 
-  const re = /require\('([^']+)'\)/g;
-  const reIndividual = /require\('([^']+)'\)/;
+  const requireArgumentRegex = /require\('([^']+)'\)/;
+  const requiresRegex = RegExp(requireArgumentRegex, 'g')
   const dependencies = new Set(
-    code.match(re).map(e => e.match(reIndividual)[1])
+    code.match(requiresRegex).map(e => e.match(requireArgumentRegex)[1])
   );
   expect(dependencies).toEqual(new Set(["carmi", "path", "lodash"]));
 });
