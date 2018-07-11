@@ -4,7 +4,11 @@ const fs = require("fs");
 const { resolve } = require("path");
 const babel = require("babel-core");
 
-const formatCode = code => prettier.format(code, { parser: "babylon" }).trim();
+const formatCode = code =>
+  prettier
+    .format(code, { parser: "babylon" })
+    .trim()
+    .replace(/\n+/g, "\n");
 
 it("compiles carmi files to a module that exposes a function", () => {
   const testFile = resolve(__dirname, "test.carmi.js");
@@ -35,6 +39,25 @@ it(`doesn't compile non-carmi files`, () => {
   expect(formatCode(code)).toEqual(formatCode(original));
 });
 
+it(`idempotent`, () => {
+  const testFile = resolve(__dirname, "test.carmi.js");
+  const original = fs.readFileSync(testFile);
+  const { code } = babel.transform(original, {
+    plugins: [plugin],
+    filename: testFile
+  });
+
+  const compiledTestFile = resolve(__dirname, "test.compiled.carmi.js");
+  fs.writeFileSync(compiledTestFile, code, "utf-8");
+
+  const { code: code2 } = babel.transform(code, {
+    plugins: [plugin],
+    filename: compiledTestFile
+  });
+
+  expect(formatCode(code2)).toEqual(formatCode(code));
+});
+
 it("adds require statements for dependencies", () => {
   jest.mock("./compileFile", () => () => `() => 'carmi result!'`);
   jest.resetModules();
@@ -51,9 +74,9 @@ it("adds require statements for dependencies", () => {
   });
 
   const requireArgumentRegex = /require\('([^']+)'\)/;
-  const requiresRegex = RegExp(requireArgumentRegex, 'g')
+  const requiresRegex = RegExp(requireArgumentRegex, "g");
   const dependencies = new Set(
     code.match(requiresRegex).map(e => e.match(requireArgumentRegex)[1])
   );
-  expect(dependencies).toEqual(new Set(["carmi", "path", "lodash"]));
+  expect(dependencies).toEqual(new Set(["path", "lodash"]));
 });

@@ -11,3 +11,4 @@ yarn.lock
 Cargo.lock
 /rust/src
 /rust/target
+*.compiled.carmi.js
