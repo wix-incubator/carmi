@@ -22,10 +22,10 @@ Object.keys(results).forEach(testname => {
     .groupBy(run => runClass.map(key => run[key]).join(':'))
     .mapValues(runsOfType => {
       return runValues.reduce((acc, key) => {
-        acc[key] =
-          _(runsOfType)
-            .map(key)
-            .sum() / runsOfType.length;
+        const raw = _.map(runsOfType, key);
+        // const val = _.sum(raw) / runsOfType.length;
+        const val = raw.sort()[Math.round(runsOfType.length / 2)];
+        acc[key] = val;
         return acc;
       }, {});
     })

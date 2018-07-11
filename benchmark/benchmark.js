@@ -5,16 +5,16 @@ const { fork } = require('child_process');
 const tests = ['todos'];
 
 const runTypesParams = {
-  justInit: [10000, 0, 0],
-  batched: [10000, 2500, 10],
-  nonBatched: [10000, 250, 0]
+  justInit: [1000, 0, 0],
+  batched: [1000, 250, 5],
+  nonBatched: [1000, 25, 0]
 };
 const runTypes = {
   simple: ['justInit', 'batched', 'nonBatched'],
   mobx: ['justInit', 'batched', 'nonBatched'],
   carmi: ['justInit', 'batched', 'nonBatched']
 };
-const runsCount = 10;
+const runsCount = 30;
 
 function resolveTestName(testname, type) {
   if (type === 'mobx') {
