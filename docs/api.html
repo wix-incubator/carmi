@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>API · CARMI</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="## Exports"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="API · CARMI"/><meta property="og:type" content="website"/><meta property="og:url" content="https://wix-incubator.github.io/carmi/index.html"/><meta property="og:description" content="## Exports"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/carmi/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/carmi/css/main.css"/></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/carmi/"><img class="logo" src="/carmi/img/logo.png" alt="CARMI"/><h2 class="headerTitleWithLogo">CARMI</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/carmi/docs/getting-started.html" target="_self">Getting started</a></li><li class="siteNavItemActive"><a href="/carmi/docs/api.html" target="_self">API</a></li><li class=""><a href="/carmi/docs/design.html" target="_self">Design</a></li><li class=""><a href="/carmi/docs/help.html" target="_self">Help</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">API</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="exports"></a><a href="#exports" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Exports</h2>
+<p>CARMI exports only a few APIs -</p>
+<ol>
+<li>compile(model, {compiler,name,output}) - takes a model (a plain JS object with two types of properties - either a
+state deriviations or a setter) and generate the source code for a function which receives two parameters the
+actuall initial state and an optional function library and returns an object with the defined deriviations and
+setters. Whenever you trigger a setter the deriviations update incrementally</li>
+<li>root - a token which represents the root of your state, which is used to create your derived state Directed Acyclic
+Graph,</li>
+<li>chain(obj/array/primitive) - wrap a native JS object with the declerative APIs that are available on root &amp; every
+deriviation from root</li>
+<li>and()/or() - logical operands for your state deriviations</li>
+<li>setter(...path)/splice(...path) - declare actions which can be triggered on your state to change it (use
+arg0/arg1/arg2 - to define placeholders in the path)</li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="deriving-state-dsl"></a><a href="#deriving-state-dsl" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deriving state DSL</h2>
+<p>Every piece of state <strong>root</strong> <strong>chain()</strong> and everything derived from them using these APIs out of them has the
+following APIs, these are inspired by lodash to make transition to CAMRI easier for developers with frontend experience
+All of them return objects which represent the computation - remember there are no values in compile time.</p>
+<ul>
+<li><strong>get</strong>(key/index) - takes an object/array returns the specific key/index from the object/array</li>
+<li><strong>size</strong>() - expects an object/array returns it's size</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="array-operands"></a><a href="#array-operands" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>array operands</h3>
+<ul>
+<li><strong>map</strong>((item,key,context) =&gt; result&lt;, context&gt;) - takes an array returning a new array with same length with the
+results of calling the function on each item in the array</li>
+<li><strong>any</strong>((item,key,context) =&gt; result&lt;,context&gt;) - returns true if the result of function is true for any of the items
+in the array</li>
+<li><strong>keyBy</strong>((item,key,context) =&gt; result&lt;,context&gt;) - exepcts an array returns an object with keys equal to the result
+of the function for each item and the values are the source items on the array</li>
+<li><strong>filter</strong>((item,key,context) =&gt; result&lt;,context&gt;) - expects an array returns an array with only the items that pass
+the filter function</li>
+</ul>
+<ul>
+<li><strong>assign</strong>() - takes an array returns the result of Object.assign({}, ...array)</li>
+<li><strong>defaults</strong>() - takes an array returns the result of Object.assign({}, ...[...src].reverse())</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="object-operands"></a><a href="#object-operands" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>object operands</h3>
+<ul>
+<li><strong>mapValues</strong>((item,key,context) =&gt; result&lt;,context&gt;) - takes an object returns an object with the same keys but with
+values equal to the result of passing each item in the original object through the function</li>
+<li><strong>mapKeys</strong>((item,key,context) =&gt; result&lt;,context&gt;) - takes an object returns an object with the same values but with
+keys equal to the result of passing each item in the original object through the function</li>
+<li><strong>anyValues</strong>((item,key,context) =&gt; result&lt;,context&gt;) - expects an object returns true if the function evaluates to
+true on any of the properties of the object</li>
+<li><strong>filterBy</strong>((item,key,context) =&gt; result&lt;,context&gt;) - expects an object returns a subset of the object with only the
+properties for which the function evaluated to true</li>
+<li><strong>groupBy</strong>((item,key,context) =&gt; result&lt;,context&gt;) - expects an object returns an object where the keys are the
+results of passing each item in original object through the function and values are the filtered subset of the
+properties on the original object which evaluated to this value</li>
+<li><strong>values</strong>() - expects an object returns an array with all its values</li>
+<li><strong>keys</strong>() - expects an object returns an array with all its keys</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="object-array-recursions"></a><a href="#object-array-recursions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>object/array recursions</h3>
+<ul>
+<li><strong>recursiveMap</strong>((loop, item, key, context) =&gt; result&lt;,context&gt;) - takes an array returning a new array with same
+length with the results of calling the function on each item in the array, and the function can use the loop variable
+(<something>.recur(loop)) to read the values of other indexes in the result array</li>
+<li><strong>recursiveMapValues</strong>((loop, item, key, context) =&gt; result&lt;,context&gt;) - - takes an object returns an object with the
+same keys but with values equal to the result of passing each item in the original object through the function, and
+the function can use the loop variable (<something>.recur(loop)) to read the values of other properties in the result
+object</li>
+<li><strong>recur</strong>(loop): takes a key/index and returns the value of the recursion in that index/key</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="logical-operands"></a><a href="#logical-operands" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>logical operands</h3>
+<ul>
+<li><strong>not</strong>()</li>
+<li><strong>ternary</strong>(valueIfTrue, valueIfFalse)</li>
+<li><strong>eq</strong>(value) - equals value</li>
+<li><strong>gt</strong>(value) - greater than</li>
+<li><strong>lt</strong>(value) - less than</li>
+<li><strong>gte</strong>(value) - greater than or equal</li>
+<li><strong>lte</strong>(value) - less than or equal</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="primitive-operands"></a><a href="#primitive-operands" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>primitive operands</h3>
+<ul>
+<li><strong>plus</strong>(value) - plus value (either numbers or strings)</li>
+<li><strong>minus</strong>(value) - minus value</li>
+<li><strong>mult</strong>(value) - multiply value</li>
+<li><strong>div</strong>(value) - divide by value</li>
+<li><strong>mod</strong>(value) - modulo value</li>
+<li><strong>range</strong>([start = 0][, skip = 1]) - expects an integer end value returns an array with the values [start...end]</li>
+</ul>
+<h4><a class="anchor" aria-hidden="true" id="using-the-function-library"></a><a href="#using-the-function-library" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>using the function library</h4>
+<ul>
+<li><strong>call</strong>(functionName, ...extraArgs) - call a function called functionName from the function library passes the
+current value as the first argument, and extra arguments are well... extra</li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#exports">Exports</a></li><li><a href="#deriving-state-dsl">Deriving state DSL</a><ul class="toc-headings"><li><a href="#array-operands">array operands</a></li><li><a href="#object-operands">object operands</a></li><li><a href="#object-array-recursions">object/array recursions</a></li><li><a href="#logical-operands">logical operands</a></li><li><a href="#primitive-operands">primitive operands</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/carmi/" class="nav-home"><img src="/carmi/img/logo.png" alt="CARMI" width="100" height="28"/></a><div><h5>Docs</h5><a href="/carmi/docs/en/getting-started.html">Getting Started</a><a href="/carmi/docs/en/api.html">API Reference</a></div><div><h5>More</h5><a href="https://github.com/wix-incubator/carmi">GitHub</a><a class="github-button" data-icon="octicon-star" data-count-href="/facebook/docusaurus/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div></section><section class="copyright">Copyright © 2018 Wix</section></footer></div></body></html>
