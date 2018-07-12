@@ -13,7 +13,7 @@ CARMI exports only a few APIs -
     setters. Whenever you trigger a setter the deriviations update incrementally
 2.  root - a token which represents the root of your state, which is used to create your derived state Directed Acyclic
     Graph,
-3.  chain(obj/array/primitive) - wrap a native JS object with the declerative APIs that are available on root & every
+3.  chain(obj/array/primitive) - wrap a native JS object with the declarative APIs that are available on root & every
     deriviation from root
 4.  and()/or() - logical operands for your state deriviations
 5.  setter(...path)/splice(...path) - declare actions which can be triggered on your state to change it (use
