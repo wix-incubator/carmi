@@ -23,8 +23,8 @@ const users = [
 const siteConfig = {
   title: 'CARMI' /* title for your website */,
   tagline: 'Compiler for Automatic Reactive Modelling of Inference',
-  url: 'https://wix-incubator.github.io' /* your website url */,
-  baseUrl: '/carmi/' /* base url for your project */,
+  url: 'https://carmi.js.org' /* your website url */,
+  baseUrl: '/' /* base url for your project */,
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',

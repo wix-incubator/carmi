@@ -20,26 +20,43 @@ model only using the setters you defined.
 /// model.carmi.js
 const { root, arg0 } = require('carmi');
 const model = {
-  doubled: root.map(item => item.mult(2)),
+  doubled: root.map(item => item.mult(2)).call('log'),
   setItem: setter(arg0)
 };
+module.exports = model;
 ```
 
 ```js
 /// you can load your generated code either using a babel loader / a webpack plugin or just add a build step to generate the source
 const modelFunction = require('carmi/loader!./model.carmi');
-const instance = modelFunction([1, 2, 3, 4]);
+const instance = modelFunction([1, 2, 3, 4], { log: val => console.log(val);return val });
+// prints [2, 4, 6, 8]
+// each property defined on the model object generates either a derived value or a setter
 console.log(instance.doubled);
-// [2,4,6,8]
+// prints [2,4,6,8]
 instance.setItem(0, 10);
-console.log(instance.doubled);
-// [20,4,6,8]
+// prints [20,4,6,8]
+instance.setItem(1, 20);
+// prints [20,40,6,8]
 ```
 
-## Why
+## Reactions
 
-There are a few
+While the derived state is always synchronized with the state, sometimes you want reactions triggered, the current
+method to implement these is using the **call** api to trigger the reaction on your values.
 
-## Building your model
+## Batching
 
-All derived state is a The simplest way to integrate CARMI into a project is using the WebPack loader
+If you want to trigger multiple setters on your model at once you can use the batching APIs
+
+```js
+const modelFunction = require('carmi/loader!./model.carmi');
+const instance = modelFunction([1, 2, 3, 4], { log: val => console.log(val);return val });
+// prints [2,4,6,8]
+instance.$startBatch();
+instance.setItem(0, 10);
+instance.setItem(1, 20);
+instance.$endBatch();
+// prints [20,40,6,8]
+// the print only happens once because the setters were batched
+```
