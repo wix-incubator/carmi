@@ -5,6 +5,7 @@ const OptimzingCompiler = require('./src/optimizing-compiler');
 const FlowCompiler = require('./src/flow-compiler');
 const RustCompiler = require('./src/rust-compiler');
 const { promisify } = require('util');
+const { sep } = require('path');
 
 const { rollup } = require('rollup');
 const uglify = require('rollup-plugin-uglify');
@@ -15,12 +16,20 @@ const unwrapableProxies = require('./src/unwrapable-proxy');
 const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
+function currentLine() {
+  const e = new Error();
+  const lines = e.stack.split('\n');
+  const externalLine = lines.slice(1).filter(l => l.indexOf(__filename) === -1 && l.indexOf(':') !== -1)[0];
+  const lineParts = externalLine.split(sep);
+  return lineParts[lineParts.length - 1];
+}
+
 function convertArrayAndObjectsToExpr(v) {
   if (v === null) {
     return new Token('null');
   } else if (v.constructor === Object) {
     return createExpr(
-      new Token('object'),
+      new Token('object', currentLine()),
       ...Object.keys(v).reduce((acc, key) => {
         acc.push(key);
         acc.push(v[key]);
@@ -28,7 +37,7 @@ function convertArrayAndObjectsToExpr(v) {
       }, [])
     );
   } else if (v.constructor === Array) {
-    return createExpr(new Token('array'), ...v);
+    return createExpr(new Token('array', currentLine()), ...v);
   } else {
     return v;
   }
@@ -82,7 +91,7 @@ proxyHandler.get = (target, key) => {
   }
   return (...args) => {
     // console.log(key, args);
-    args = [new Token(key), ...args];
+    args = [new Token(key, currentLine()), ...args];
     if (tokenData.chainIndex) {
       if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
         if (typeof args[1] === 'function') {
@@ -178,7 +187,7 @@ Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].nonVerb) {
     exported[t] = wrap(new Token(t));
   } else if (TokenTypeData[t].nonChained) {
-    exported[t] = (...args) => wrap(createExpr(new Token(t), ...args));
+    exported[t] = (...args) => wrap(createExpr(new Token(t, currentLine()), ...args));
   }
 });
 exported.chain = val => wrap(convertArrayAndObjectsToExpr(val));
