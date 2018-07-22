@@ -144,7 +144,7 @@ function extractAllTypeDeclerations(annotations) {
   for (let i = 0; i < extractionPipeline.length; i++) {
     annotations = extractionPipeline[i](_.cloneDeep(annotations));
   }
-  require('fs').writeFileSync('tmp.json', JSON.stringify(annotations, null, 2));
+  // require('fs').writeFileSync('tmp.json', JSON.stringify(annotations, null, 2));
   return annotations;
 }
 
