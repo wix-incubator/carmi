@@ -1,6 +1,7 @@
 function base() {
   function $NAME($model, $funcLib) {
     const $res = { $model };
+    const $listeners = new Set();
 
     function mapValues(func, src, context) {
       return Object.keys(src).reduce((acc, key) => {
@@ -120,6 +121,7 @@ function base() {
         return;
       }
       /* DERIVED */
+      $listeners.forEach(callback => callback());
     }
     Object.assign(
       $res,
@@ -139,6 +141,12 @@ function base() {
           func();
           $inBatch = false;
           recalculate();
+        },
+        $addListener: func => {
+          $listeners.add(func);
+        },
+        $removeListener: func => {
+          $listeners.delete(func);
         }
       }
     );

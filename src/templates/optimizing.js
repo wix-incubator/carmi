@@ -2,6 +2,7 @@ function base() {
   function $NAME($model, $funcLib) {
     'use strict';
     const $res = { $model };
+    const $listeners = [];
     const $trackingMap = new WeakMap();
     const $trackedMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
@@ -758,6 +759,18 @@ function base() {
           func();
           $inBatch = false;
           recalculate();
+        },
+        $addListener: func => {
+          const idx = $listeners.indexOf(func);
+          if (idx === -1) {
+            $listeners.push(func);
+          }
+        },
+        $removeListener: func => {
+          const idx = $listeners.indexOf(func);
+          if (idx !== -1) {
+            $listeners.splice(idx, 1);
+          }
         }
       }
     );
@@ -982,14 +995,14 @@ function recursiveMapValues() {
 recursiveMapValues.collectionFunc = 'recursiveMapObject';
 
 function object() {
-  const $FUNCNAMEToken = getUniquePersistenObject(/*ID*/);
+  const $FUNCNAMEToken = getUniquePersistenObject($ID);
   const $FUNCNAMEArgs = [
     /*ARGS*/
   ];
 }
 
 function array() {
-  const $FUNCNAMEToken = getUniquePersistenObject(/*ID*/);
+  const $FUNCNAMEToken = getUniquePersistenObject($ID);
   const $FUNCNAMEArgs = $ARGS;
 }
 
