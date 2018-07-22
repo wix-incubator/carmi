@@ -2,7 +2,7 @@ function base() {
   function $NAME($model, $funcLib) {
     'use strict';
     const $res = { $model };
-    const $listeners = [];
+    const $listeners = new Set();
     const $trackingMap = new WeakMap();
     const $trackedMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
@@ -742,6 +742,7 @@ function base() {
       }
       /* DERIVED */
       $tainted = new WeakSet();
+      $listeners.forEach(callback => callback());
     }
     Object.assign(
       $res,
@@ -761,16 +762,10 @@ function base() {
           recalculate();
         },
         $addListener: func => {
-          const idx = $listeners.indexOf(func);
-          if (idx === -1) {
-            $listeners.push(func);
-          }
+          $listeners.add(func);
         },
         $removeListener: func => {
-          const idx = $listeners.indexOf(func);
-          if (idx !== -1) {
-            $listeners.splice(idx, 1);
-          }
+          $listeners.delete(func);
         }
       }
     );
