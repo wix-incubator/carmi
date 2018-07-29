@@ -118,13 +118,60 @@ const Features = props => (
   </Block>
 );
 
+const ComparedRedux = `
+A state container for JavaScript apps without the boilerplate - Just write the selectors (deriviations) and setters you need
+
+If a deriviation isn't exposed it isn't computed and if something in the state isn't writeable it won't be tracked
+`;
+
+const ComparedMobx = `
+Reactive without setters/getters, and without relying on immutability. Plain objects are 5x-10x faster and all calculations are incremental
+
+And unlike Mobx - you don't need to manually define tiny compute functions manually nor remember that you already calculated something in a different part of your codebase so it doesn't get computed twice
+`;
+
+const ComparedLodash = `
+Uses a simple declerative lodash inspired syntax, but because everything is declarative you can write the shared expressions in the context in which they make sense without paying for it in runtime/performance 
+`;
+
+const Compared = props => (
+  <div style={{ marginLeft: '5%', marginRight: '5%' }}>
+    <GridBlock
+      align="center"
+      layout="threeColumn"
+      contents={[
+        {
+          content: ComparedRedux,
+          title: 'A better Redux',
+          image: imgUrl('redux.png'),
+          imageAlign: 'top'
+        },
+        {
+          content: ComparedMobx,
+          title: 'A better Mobx',
+          image: imgUrl('mobx.png'),
+          imageAlign: 'top'
+        },
+        {
+          content: ComparedLodash,
+          title: 'A better Lodash/Ramda',
+          image: imgUrl('lodash.png'),
+          imageAlign: 'top'
+        }
+      ]}
+    />
+  </div>
+);
+
 const IntroText = `
 > Phil Keaton - "There are only two hard things in Computer Science: cache invalidation and naming things"
 
 ## CARMI let's you ignore cache invalidation without sacrifing performance
 
 Write a naive version of your state deriviation in a lodash inspired syntax and get back an optimizied function
-that makes sure all your computation is incremental and super performant
+that makes sure all your computation is incremental and super performant.
+
+CARMI replaces Redux, Mobx, & Lodash
 `;
 
 const Intro = props => (
@@ -182,6 +229,7 @@ class Index extends React.Component {
         <HomeSplash language={language} />
         <div className="mainContainer">
           <Intro />
+          <Compared />
           <Features />
           {/* <LearnHow /> */}
           {/* <TryOut /> */}
