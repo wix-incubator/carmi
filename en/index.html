@@ -3,8 +3,17 @@
 </blockquote>
 <h2><a class="anchor" aria-hidden="true" id="carmi-let-s-you-ignore-cache-invalidation-without-sacrifing-performance"></a><a href="#carmi-let-s-you-ignore-cache-invalidation-without-sacrifing-performance" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>CARMI let's you ignore cache invalidation without sacrifing performance</h2>
 <p>Write a naive version of your state deriviation in a lodash inspired syntax and get back an optimizied function
-that makes sure all your computation is incremental and super performant</p>
-</span></div></div><div class="container paddingBottom paddingTop"><div class="wrapper"><div class="gridBlock"><div class="blockElement alignCenter fourByGridBlock"><div class="blockContent"><h2><div><span><p>Reactive</p>
+that makes sure all your computation is incremental and super performant.</p>
+<p>CARMI replaces Redux, Mobx, &amp; Lodash</p>
+</span></div></div><div style="margin-left:5%;margin-right:5%"><div class="gridBlock"><div class="blockElement alignCenter imageAlignTop threeByGridBlock"><div class="blockImage"><img src="/img/redux.png"/></div><div class="blockContent"><h2><div><span><p>A better Redux</p>
+</span></div></h2><div><span><p>A state container for JavaScript apps without the boilerplate - Just write the selectors (deriviations) and setters you need</p>
+<p>If a deriviation isn't exposed it isn't computed and if something in the state isn't writeable it won't be tracked</p>
+</span></div></div></div><div class="blockElement alignCenter imageAlignTop threeByGridBlock"><div class="blockImage"><img src="/img/mobx.png"/></div><div class="blockContent"><h2><div><span><p>A better Mobx</p>
+</span></div></h2><div><span><p>Reactive without setters/getters, and without relying on immutability. Plain objects are 5x-10x faster and all calculations are incremental</p>
+<p>And unlike Mobx - you don't need to manually define tiny compute functions manually nor remember that you already calculated something in a different part of your codebase so it doesn't get computed twice</p>
+</span></div></div></div><div class="blockElement alignCenter imageAlignTop threeByGridBlock"><div class="blockImage"><img src="/img/lodash.png"/></div><div class="blockContent"><h2><div><span><p>A better Lodash/Ramda</p>
+</span></div></h2><div><span><p>Uses a simple declerative lodash inspired syntax, but because everything is declarative you can write the shared expressions in the context in which they make sense without paying for it in runtime/performance</p>
+</span></div></div></div></div></div><div class="container paddingBottom paddingTop"><div class="wrapper"><div class="gridBlock"><div class="blockElement alignCenter fourByGridBlock"><div class="blockContent"><h2><div><span><p>Reactive</p>
 </span></div></h2><div><span><p>All derived state is always up to date, all computation is incremental</p>
 </span></div></div></div><div class="blockElement alignCenter fourByGridBlock"><div class="blockContent"><h2><div><span><p>Zero Cost Abstraction</p>
 </span></div></h2><div><span><p>Values are not boxed, plain objects are 5x-10x faster</p>
