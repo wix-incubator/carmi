@@ -19,4 +19,8 @@ const instance = modelFunction(initialState, {
 
 If you derived state is incorrect and everything is working when using the Simple compiler it is either a bug in CARMI
 or your state/deriviations were mutated not by using the setters in the model, always treat your deriviations as
-readonly. (A good way to enforce this is to use es6 proxies to make the model readonly in debug mode)
+readonly including anything passed to **call**. (A good way to enforce this is to use es6 proxies to make the model
+readonly in debug mode)
+
+To ease debugging the names of the non exported top level values are based on the filename and line number where they
+are defined
