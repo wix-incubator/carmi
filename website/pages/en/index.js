@@ -107,7 +107,7 @@ const Features = props => (
         title: 'Zero Cost Abstraction'
       },
       {
-        content: 'Uses a simple declerative lodash inspired syntax',
+        content: 'Uses a simple declarative lodash inspired syntax',
         title: 'Easy'
       },
       {
@@ -131,7 +131,7 @@ And unlike Mobx - you don't need to manually define tiny compute functions manua
 `;
 
 const ComparedLodash = `
-Uses a simple declerative lodash inspired syntax, but because everything is declarative you can write the shared expressions in the context in which they make sense without paying for it in runtime/performance 
+Uses a simple declarative lodash inspired syntax, but because everything is declarative you can write the shared expressions in the context in which they make sense without paying for it in runtime/performance 
 `;
 
 const Compared = props => (
