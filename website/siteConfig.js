@@ -50,8 +50,8 @@ const siteConfig = {
 
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',
-  footerIcon: 'img/logo.png',
-  favicon: 'img/favicon.png',
+  // footerIcon: 'img/logo.png',
+  favicon: 'img/favicon.ico',
 
   /* colors for website */
   colors: {
