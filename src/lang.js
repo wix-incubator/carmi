@@ -36,7 +36,7 @@ const TokenTypeData = {
   array: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
   object: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
   not: new TokenTypes({ chainIndex: 1, len: [2, 2] }),
-  ternary: new TokenTypes({ chainIndex: 1, len: [4, 4] }),
+  ternary: new TokenTypes({ nonChained: true, chainIndex: 1, len: [4, 4] }),
   get: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2, len: [3, 4] }),
@@ -123,7 +123,12 @@ class SetterExpression extends Array {}
 class SpliceSetterExpression extends SetterExpression {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
-AllTokens.Setter = (...args) => new SetterExpression(...args);
+AllTokens.Setter = (...args) => {
+  if (args.length === 0) {
+    throw new Error(`Can't build setter on model root`);
+  }
+  return new SetterExpression(...args);
+};
 AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;

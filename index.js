@@ -85,7 +85,7 @@ proxyHandler.get = (target, key) => {
   ) {
     throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
   }
-  if (!tokenData || tokenData.nonVerb || tokenData.nonChained) {
+  if (!tokenData || tokenData.nonVerb || !tokenData.chainIndex) {
     // console.log(target, key);
     return Reflect.get(target, key);
   }
