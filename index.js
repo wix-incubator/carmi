@@ -4,7 +4,6 @@ const SimpleCompiler = require('./src/simple-compiler');
 const OptimzingCompiler = require('./src/optimizing-compiler');
 const FlowCompiler = require('./src/flow-compiler');
 const RustCompiler = require('./src/rust-compiler');
-const { promisify } = require('util');
 const { sep } = require('path');
 
 const { rollup } = require('rollup');
@@ -129,11 +128,11 @@ proxyHandler.apply = (target, thisArg, args) => {
 };
 
 const compilerTypes = {
-  naive: NaiveCompiler,
-  simple: SimpleCompiler,
-  optimizing: OptimzingCompiler,
-  flow: FlowCompiler,
-  rust: RustCompiler
+  naive: './src/naive-compiler',
+  simple: './src/simple-compiler',
+  optimizing: './src/optimizing-compiler',
+  flow: './src/flow-compiler',
+  rust: './src/rust-compiler'
 };
 
 async function compile(model, options) {
@@ -145,7 +144,7 @@ async function compile(model, options) {
     options.compiler = 'optimizing';
   }
   model = Clone(unwrap(model));
-  const Compiler = compilerTypes[options.compiler];
+  const Compiler = require(compilerTypes[options.compiler]);
   const compiler = new Compiler(model, options);
   if (options.ast) {
     return JSON.stringify(compiler.getters, null, 2);
