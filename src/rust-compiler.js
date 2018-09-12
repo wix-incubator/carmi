@@ -3,11 +3,9 @@ const _ = require('lodash');
 const t = require('babel-types');
 const NaiveCompiler = require('./naive-compiler');
 const { splitSettersGetters, normalizeAndTagAllGetters, findFuncExpr } = require('./expr-tagging');
-const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
-const writeFile = promisify(fs.writeFile);
-const readFile = promisify(fs.readFile);
+const { writeFile, readFile } = require('./promise-fs');
 const FlowCompiler = require('./flow-compiler');
 const {
   extractAllTypeDeclerations,

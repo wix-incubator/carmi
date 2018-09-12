@@ -1,14 +1,10 @@
 const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
-const { promisify } = require('util');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { readFile, writeFile, mkdtemp, rmdir, unlink } = _(fs)
-  .pick(['readFile', 'writeFile', 'mkdtemp', 'rmdir', 'unlink'])
-  .mapValues(promisify)
-  .value();
+const { writeFile, mkdtemp, rmdir, unlink } = require('./promise-fs');
 const { spawn } = require('child_process');
 const { extractTypes } = require('./flow-types');
 
