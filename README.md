@@ -69,6 +69,20 @@ console.log(todos.todosDisplay);
 */
 ```
 
+## Usage with Babel Macros
+
+```js
+const carmi = require('carmi/macro')
+
+const modelBuilder = carmi`
+  const { root } = require('carmi')
+  module.exports = { first: root.get(0) }
+`
+
+const model = modelBuilder(["first", "second"])
+console.log(model.first) // prints "first"!
+```
+
 ## Usage with Babel
 
 Compiles Carmi files (`xxx.carmi.js`) automatically using Babel. It reserves the external modules, required by `require`,
