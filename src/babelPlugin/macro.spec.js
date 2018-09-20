@@ -12,7 +12,7 @@ pluginTester({
       const carmi = require('./macro')
 
       const modelBuilder = carmi\`
-        const {root} = require('.')
+        const {root} = require('../..')
         module.exports = {all: root.get('list'), first: root.get('list').get(0)}
       \`
     `
@@ -25,7 +25,7 @@ describe("Macro", () => {
       const carmi = require('./macro')
 
       const modelBuilder = carmi\`
-        const {root} = require('.')
+        const {root} = require('../..')
         module.exports = {all: root.get('list'), first: root.get('list').get(0)}
       \`
 
@@ -38,11 +38,10 @@ describe("Macro", () => {
       plugins: [plugin]
     });
 
-
     global.onModel = model => {
-      expect(model.all).toEqual([1,2,3])
-      expect(model.first).toBe(1)
-    }
+      expect(model.all).toEqual([1, 2, 3]);
+      expect(model.first).toBe(1);
+    };
 
     // eval the script
     eval(transformedCode.code);
