@@ -1,6 +1,5 @@
 const { Expr, Token, Setter, Expression, SetterExpression, TopLevel, SpliceSetterExpression } = require('./lang');
 const _ = require('lodash');
-const fs = require('fs');
 const { splitSettersGetters, topologicalSortGetters, tagAllExpressions } = require('./expr-tagging');
 let idx = 0;
 const objectHash = require('object-hash');

@@ -1,7 +1,6 @@
 const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
 const _ = require('lodash');
 const NaiveCompiler = require('./naive-compiler');
-const fs = require('fs');
 const {
   tagExprWithPaths,
   findReferencesToPathInAllGetters,
