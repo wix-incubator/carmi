@@ -16,6 +16,7 @@
   "author": "Avi Marcus",
   "license": "MIT",
   "dependencies": {
+    "babel-generator": "^6.26.1",
     "babel-plugin-macros": "^2.4.1",
     "babel-traverse": "^6.26.0",
     "babel-types": "^6.26.0",

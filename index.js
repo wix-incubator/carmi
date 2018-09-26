@@ -1,14 +1,25 @@
+'use strict';
 const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone, cloneToken, SourceTag } = require('./src/lang');
-const NaiveCompiler = require('./src/naive-compiler');
-const SimpleCompiler = require('./src/simple-compiler');
-const OptimzingCompiler = require('./src/optimizing-compiler');
-const FlowCompiler = require('./src/flow-compiler');
-const RustCompiler = require('./src/rust-compiler');
+
+const compilerTypes = {};
+try {
+  compilerTypes.naive = require('./src/naive-compiler');
+  compilerTypes.simple = require('./src/simple-compiler');
+  compilerTypes.optimizing = require('./src/optimizing-compiler');
+  compilerTypes.flow = require('./src/flow-compiler');
+  compilerTypes.rust = require('./src/rust-compiler');
+} catch (e) {}
+
 const { sep } = require('path');
 
 const { rollup } = require('rollup');
-const uglify = require('rollup-plugin-uglify');
-const virtual = require('rollup-plugin-virtual');
+
+let uglify;
+try {
+  uglify = require('rollup-plugin-uglify');
+} catch (e) {}
+const virtualReq = require('rollup-plugin-virtual');
+const virtual = virtualReq.default ? virtualReq.default : virtualReq;
 const prettier = require('prettier');
 
 const unwrapableProxies = require('./src/unwrapable-proxy');
@@ -127,14 +138,6 @@ proxyHandler.apply = (target, thisArg, args) => {
   }
 };
 
-const compilerTypes = {
-  naive: './src/naive-compiler',
-  simple: './src/simple-compiler',
-  optimizing: './src/optimizing-compiler',
-  flow: './src/flow-compiler',
-  rust: './src/rust-compiler'
-};
-
 async function compile(model, options) {
   if (typeof options === 'boolean' || typeof options === 'undefined') {
     options = { compiler: !!options ? 'naive' : 'optimizing' };
@@ -144,7 +147,7 @@ async function compile(model, options) {
     options.compiler = 'optimizing';
   }
   model = Clone(unwrap(model));
-  const Compiler = require(compilerTypes[options.compiler]);
+  const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
   if (options.ast) {
     return JSON.stringify(compiler.getters, null, 2);
@@ -164,7 +167,7 @@ async function compile(model, options) {
   if (compiler.lang === 'js') {
     const rollupConfig = {
       input: 'main.js',
-      plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify ? [uglify()] : []),
+      plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify && uglify ? [uglify()] : []),
       output: {
         format: options.format,
         name: options.name
