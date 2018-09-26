@@ -1,12 +1,12 @@
-const pluginTester = require("babel-plugin-tester");
-const plugin = require("babel-plugin-macros");
-const path = require("path");
-const babel = require("babel-core");
+const pluginTester = require('babel-plugin-tester');
+const plugin = require('babel-plugin-macros');
+const path = require('path');
+const babel = require('babel-core');
 
 pluginTester({
   plugin,
   snapshot: true,
-  babelOptions: { filename: path.resolve(__dirname, "temp.js") },
+  babelOptions: { filename: path.resolve(__dirname, 'temp.js') },
   tests: [
     `
       const carmi = require('./macro')
@@ -15,12 +15,18 @@ pluginTester({
         const {root} = require('../..')
         module.exports = {all: root.get('list'), first: root.get('list').get(0)}
       \`
+    `,
     `
+  // @carmi
+  import carmi from './macro'
+  const { root } = require('../../index');
+  module.exports = { first: root.get(0), second: root.get(1) };
+`
   ]
 });
 
-describe("Macro", () => {
-  it("works", () => {
+describe('Macro', () => {
+  it('works', done => {
     const code = `
       const carmi = require('./macro')
 
@@ -41,6 +47,7 @@ describe("Macro", () => {
     global.onModel = model => {
       expect(model.all).toEqual([1, 2, 3]);
       expect(model.first).toBe(1);
+      done();
     };
 
     // eval the script
