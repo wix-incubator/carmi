@@ -21,6 +21,14 @@ pluginTester({
   import carmi from './macro'
   const { root } = require('../../index');
   module.exports = { first: root.get(0), second: root.get(1) };
+`,
+    `
+  // @carmi
+  import macro from './macro'
+  import carmi from '../../index';
+  const {root} = carmi;
+  const model = { first: root.get(0), third: root.get(2) }
+  export default model;
 `
   ]
 });

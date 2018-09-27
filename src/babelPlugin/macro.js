@@ -28,8 +28,12 @@ const wrapWithModuleExports = node => {
   };
 };
 
-const compile = (code, filename) => {
-  const newFilename = path.resolve(filename, '..', `.${path.basename(filename)}.${uuid()}.carmi.js`);
+const compile = (code, filename, isMJS = false) => {
+  const newFilename = path.resolve(
+    filename,
+    '..',
+    `.${path.basename(filename)}.${uuid()}.carmi${isMJS ? '.mjs' : '.js'}`
+  );
   console.log({ newFilename });
   fs.writeFileSync(newFilename, code, 'utf-8');
   const transformed = compileFile(newFilename);
@@ -47,9 +51,9 @@ function macro({ babel, state, references, source, config }) {
     const body = state.file.ast.program.body;
     const importIdx = body.find(node => node.type === 'ImportDeclaration' && node.value === source);
     body.splice(importIdx, 1);
-    const isMJS = body.some(node => node.type === 'ImportDeclaration' || node.type === 'ExportDeclaration');
+    const isMJS = body.some(node => node.type === 'ExportDefaultDeclaration');
     const code = generate.default(state.file.ast).code;
-    const transformed = compile(code, filename);
+    const transformed = compile(code, filename, isMJS);
     const node = extractNodeFromCarmiCode(transformed);
     body.splice(0, body.length, wrapWithModuleExports(node));
     return { keepImports: true };

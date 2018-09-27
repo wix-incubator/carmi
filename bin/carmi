@@ -34,8 +34,14 @@ async function run() {
     return console.log(HELP);
   }
   let model;
+  const absPath = path.resolve(process.cwd(), options.source);
   try {
-    model = require(path.resolve(process.cwd(), options.source));
+    if (path.extname(options.source) === '.mjs') {
+      model = await import(absPath);
+      model = model.default;
+    } else {
+      model = require(absPath);
+    }
   } catch (e) {
     console.error(`failed to require ${options.source} ${e.stack}`);
     throw e;
