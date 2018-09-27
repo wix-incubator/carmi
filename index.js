@@ -26,12 +26,18 @@ const unwrapableProxies = require('./src/unwrapable-proxy');
 const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
+const INDEX_FILE = `${sep}carmi${sep}index.js`;
+const JSX_FILE = `${sep}carmi${sep}jsx.js`;
+
 function currentLine() {
   const e = new Error();
   const lines = e.stack.split('\n');
-  const externalLine = lines.slice(1).filter(l => l.indexOf(__filename) === -1 && l.indexOf(':') !== -1)[0];
+  const externalLine = lines
+    .slice(1)
+    .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0];
   const lineParts = externalLine.split(sep);
-  return lineParts[lineParts.length - 1];
+  const res = lineParts[lineParts.length - 1].replace(/\).*/, '');
+  return res;
 }
 
 function convertArrayAndObjectsToExpr(v) {

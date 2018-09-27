@@ -2,6 +2,7 @@ const { createMacro, MacroError } = require('babel-plugin-macros');
 const compileFile = require('./compileFile');
 const fs = require('fs');
 const babylon = require('babylon');
+const babylonJsx = require('babylon-jsx').default;
 const generate = require('babel-generator');
 
 const path = require('path');
@@ -52,7 +53,8 @@ function macro({ babel, state, references, source, config }) {
     const importIdx = body.find(node => node.type === 'ImportDeclaration' && node.value === source);
     body.splice(importIdx, 1);
     const isMJS = body.some(node => node.type === 'ExportDefaultDeclaration');
-    const code = generate.default(state.file.ast).code;
+    const carmiReact = babylonJsx(state.file.ast, 'createElement');
+    const code = generate.default(carmiReact).code;
     const transformed = compile(code, filename, isMJS);
     const node = extractNodeFromCarmiCode(transformed);
     body.splice(0, body.length, wrapWithModuleExports(node));

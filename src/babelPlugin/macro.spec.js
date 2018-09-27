@@ -6,7 +6,7 @@ const babel = require('babel-core');
 pluginTester({
   plugin,
   snapshot: true,
-  babelOptions: { filename: path.resolve(__dirname, 'temp.js') },
+  babelOptions: { filename: path.resolve(__dirname, 'temp.js'), presets: ['react'] },
   tests: [
     `
       const carmi = require('./macro')
@@ -29,6 +29,14 @@ pluginTester({
   const {root} = carmi;
   const model = { first: root.get(0), third: root.get(2) }
   export default model;
+`,
+    `
+    // @carmi
+    import carmi from './macro'
+    const { root } = require('../../index');
+    const {createElement} = require('../../jsx');
+    const todosList = <div>{root.get(0)}</div>;
+    module.exports = {todosList};
 `
   ]
 });

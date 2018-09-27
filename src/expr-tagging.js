@@ -162,9 +162,11 @@ function rewriteUsingTopLevels(expr, namesByExpr) {
 
 function generateName(namesByExpr, expr) {
   if (expr[0][SourceTag]) {
-    return (
-      '_' + expr[0][SourceTag].split('.js:')[0].replace(/\.carmi$/, '') + '_' + expr[0][SourceTag].split(':')[1] + '_'
-    );
+    const simpleName = expr[0][SourceTag].split('.js:')[0]
+      .replace(/\.carmi$/, '')
+      .split('.')
+      .find(x => x);
+    return '_' + simpleName + '_' + expr[0][SourceTag].split(':')[1] + '_';
   }
   return _(expr)
     .tail()
