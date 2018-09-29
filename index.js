@@ -26,8 +26,8 @@ const unwrapableProxies = require('./src/unwrapable-proxy');
 const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
-const INDEX_FILE = `${sep}carmi${sep}index.js`;
-const JSX_FILE = `${sep}carmi${sep}jsx.js`;
+const INDEX_FILE = __filename;
+const JSX_FILE = INDEX_FILE.replace(/index\.js$/, 'jsx.js');
 
 function currentLine() {
   const e = new Error();
