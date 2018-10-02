@@ -32,9 +32,10 @@ const JSX_FILE = INDEX_FILE.replace(/index\.js$/, 'jsx.js');
 function currentLine() {
   const e = new Error();
   const lines = e.stack.split('\n');
-  const externalLine = lines
-    .slice(1)
-    .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0];
+  const externalLine =
+    lines
+      .slice(1)
+      .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
   const lineParts = externalLine.split(sep);
   const res = lineParts[lineParts.length - 1].replace(/\).*/, '');
   return res;
