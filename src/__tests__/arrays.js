@@ -121,7 +121,7 @@ describe('testing array', () => {
         greaterOrEqual: [false, false, false, false, false],
         lessThanOrEqual: [true, true, true, true, true]
       });
-      expectTapFunctionToHaveBeenCalled(20, compiler);
+      expectTapFunctionToHaveBeenCalled(6, compiler);
     });
     it('test creation of arrays', async () => {
       const sumsTuple = root.map(item => [item.get(0).plus(item.get(1))]);

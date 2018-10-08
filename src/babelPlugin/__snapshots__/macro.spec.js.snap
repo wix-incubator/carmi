@@ -281,8 +281,14 @@ module.exports = function () {
       const res = getEmptyObject($invalidatedKeys, key, identifier);invalidates = invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
         const name = keysList[i];setOnObject(res, name, newVal[name], invalidates);
       }return res;
+    }const $callCache = new WeakMap();function call($invalidatedKeys, key, newVal, identifier, len, invalidates) {
+      const arr = getEmptyArray($invalidatedKeys, key, identifier);invalidates = true;for (let i = 0; i < len; i++) {
+        setOnArray(arr, i, newVal[i], invalidates);
+      }if (!$callCache.has(arr) || $tainted.has(arr)) {
+        $callCache.set(arr, $funcLib[arr[0]].apply($funcLib, arr.slice(1)));
+      }return $callCache.get(arr);
     }$invalidatedRoots.add(\\"todosList\\");function $todosListBuild() {
-      const newValue = $funcLib[\\"createElement\\"]($res[\\"$object_temp_4_1\\"]);setOnObject($res, \\"todosList\\", newValue, false);$invalidatedRoots.delete(\\"todosList\\");return $res.todosList;
+      const key = \\"todosList\\";const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$object_temp_4_1\\"]], getUniquePersistenObject(6), 2, false);setOnObject($res, \\"todosList\\", newValue, false);$invalidatedRoots.delete(\\"todosList\\");return $res.todosList;
     }const object$2Token = getUniquePersistenObject(2);const object$2Args = [\\"type\\", \\"props\\", \\"children\\"];$invalidatedRoots.add(\\"$object_temp_4_1\\");function $object_temp_4_1Build() {
       const key = \\"$object_temp_4_1\\";const $invalidatedKeys = $invalidatedRoots;const newValue = object($invalidatedKeys, key, { type: \\"div\\", props: null, children: $res[\\"$array_temp_4_0\\"] }, object$2Token, object$2Args, false);setOnObject($res, \\"$object_temp_4_1\\", newValue, false);$invalidatedRoots.delete(\\"$object_temp_4_1\\");return $res.$object_temp_4_1;
     }const array$4Token = getUniquePersistenObject(4);const array$4Args = 1;$invalidatedRoots.add(\\"$array_temp_4_0\\");function $array_temp_4_0Build() {

@@ -95,6 +95,13 @@ class OptimizingCompiler extends NaiveCompiler {
         return `${tokenType}($invalidatedKeys,key,${super.generateExpr(expr)}, ${tokenType}$${
           expr[0].$id
         }Token, ${tokenType}$${expr[0].$id}Args, ${this.invalidates(this.pathOfExpr(expr))})`;
+      case 'call':
+        return `call($invalidatedKeys,key,[${expr
+          .slice(1)
+          .map(subExpr => this.generateExpr(subExpr))
+          .join(',')}], getUniquePersistenObject(${expr[0].$id}), ${expr.length - 1}, ${this.invalidates(
+          this.pathOfExpr(expr)
+        )})`;
       case 'keys':
       case 'values':
         return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(

@@ -672,6 +672,19 @@ function base() {
       return res;
     }
 
+    const $callCache = new WeakMap();
+    function call($invalidatedKeys, key, newVal, identifier, len, invalidates) {
+      const arr = getEmptyArray($invalidatedKeys, key, identifier);
+      invalidates = true;
+      for (let i = 0; i < len; i++) {
+        setOnArray(arr, i, newVal[i], invalidates);
+      }
+      if (!$callCache.has(arr) || $tainted.has(arr)) {
+        $callCache.set(arr, $funcLib[arr[0]].apply($funcLib, arr.slice(1)));
+      }
+      return $callCache.get(arr);
+    }
+
     function assignOrDefaults($targetObj, $targetKey, identifier, src, assign, invalidates) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
       if (!assign) {
