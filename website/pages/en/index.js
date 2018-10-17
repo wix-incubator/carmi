@@ -166,7 +166,7 @@ const Compared = props => (
 const IntroText = `
 > Phil Keaton - "There are only two hard things in Computer Science: cache invalidation and naming things"
 
-## CARMI let's you ignore cache invalidation without sacrifing performance
+## CARMI lets you ignore cache invalidation without sacrifing performance
 
 Write a naive version of your state deriviation in a lodash inspired syntax and get back an optimizied function
 that makes sure all your computation is incremental and super performant.
