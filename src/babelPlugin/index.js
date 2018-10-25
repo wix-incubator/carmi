@@ -1,7 +1,7 @@
 "use strict";
 
 const isCarmiRegex = /^(.+\.carmi)(?:\.js)?$/;
-const isCarmi = x => isCarmiRegex.test(x);
+const isCarmiFilename = x => isCarmiRegex.test(x);
 const { relative, resolve } = require("path");
 const compileFile = require("./compileFile");
 const babylon = require("babylon");
@@ -12,23 +12,31 @@ const parseCompiledFile = code => {
   return functionInAST;
 };
 
-const ALREADY_COMPILED_DIRECTIVE = "carmi-compiled";
+const findCarmiDeclarationComment = file => {
+  const program = file.path.find(p => p.type === "Program").node;
+  const comments = program.body[0].comments || program.body[0].leadingComments;
+  if (!comments) return null;
+  return comments.find(comment => comment.value.trim().includes("@carmi"));
+};
 
 module.exports = function carmiBabelTransform({ types: t }) {
   return {
     name: "carmi",
     pre() {
-      this.doWork = isCarmi(this.file.opts.filename);
+      this.carmiDeclarationComment = findCarmiDeclarationComment(this.file);
+      this.doWork =
+        this.carmiDeclarationComment &&
+        isCarmiFilename(this.file.opts.filename);
       this.requireExpressions = [];
     },
     visitor: {
       Program(path, state) {
         if (!this.doWork) return;
         this.programPath = path;
-      },
-      DirectiveLiteral(path) {
-        if (!this.doWork) return;
-        this.doWork = path.node.value !== ALREADY_COMPILED_DIRECTIVE;
+        this.carmiDeclarationComment.value = this.carmiDeclarationComment.value.replace(
+          "@carmi",
+          ""
+        );
       },
       CallExpression(path) {
         if (!this.doWork) return;
@@ -52,12 +60,7 @@ module.exports = function carmiBabelTransform({ types: t }) {
       const expressions = this.requireExpressions
         .concat([moduleExportsAssignment])
         .map(e => t.expressionStatement(e));
-      const alreadyCompiledDirective = t.directive(
-        t.directiveLiteral(ALREADY_COMPILED_DIRECTIVE)
-      );
-      this.programPath.replaceWith(
-        t.program(expressions, [alreadyCompiledDirective])
-      );
+      this.programPath.replaceWith(t.program(expressions, []));
     }
   };
 };

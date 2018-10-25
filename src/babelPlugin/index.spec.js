@@ -63,6 +63,7 @@ it("adds require statements for dependencies", () => {
   jest.resetModules();
   const plugin = require("./index");
   const original = `
+    // @carmi
     const {root} = require('carmi')
     const {resolve} = require('path')
     const _ = require('lodash')
@@ -79,4 +80,20 @@ it("adds require statements for dependencies", () => {
     code.match(requiresRegex).map(e => e.match(requireArgumentRegex)[1])
   );
   expect(dependencies).toEqual(new Set(["path", "lodash"]));
+});
+
+it("skips files without carmi declaration comment", () => {
+  jest.resetModules();
+  const plugin = require("./index");
+  const original = `
+    const {root} = require('carmi')
+    const {resolve} = require('path')
+    const _ = require('lodash')
+    module.exports = {first: root.get(0)}
+  `;
+  const { code } = babel.transform(original, {
+    plugins: [plugin],
+    filename: resolve(__dirname, "test.carmi.js")
+  });
+  expect(formatCode(code)).toEqual(formatCode(original));
 });
