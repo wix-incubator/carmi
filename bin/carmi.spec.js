@@ -1,10 +1,20 @@
 const pify = require("pify");
-const { exec } = require("child_process");
+const { exec } = pify(require("child_process"));
 const path = require("path");
-const asyncExec = pify(exec);
-const BINARY_PATH = path.resolve(__dirname, "carmi");
+const { existsSync } = require("fs");
+const { readFile } = require("../src/promise-fs");
+const { file: tmpFile } = require("tmp-promise");
 
-const runBinary = args => asyncExec(`${BINARY_PATH} ${args}`);
+const runBinary = args => exec(`${BINARY_PATH} ${args}`);
+
+const BINARY_PATH = path.resolve(__dirname, "carmi");
+const CARMI_MODEL = path.resolve(
+  __dirname,
+  "..",
+  "src",
+  "babelPlugin",
+  "test.carmi.js"
+);
 
 describe("carmi binary", () => {
   it("has a help menu", async () => {
@@ -13,15 +23,21 @@ describe("carmi binary", () => {
   });
 
   it("compiles a carmi file", async () => {
-    const filePath = path.resolve(
-      __dirname,
-      "..",
-      "src",
-      "babelPlugin",
-      "test.carmi.js"
-    );
-    const file = await runBinary(`--source ${filePath}`);
+    const file = await runBinary(`--source ${CARMI_MODEL}`);
     eval(file);
     expect(typeof model).toBe("function");
+  });
+
+  it("saves the file", async () => {
+    const { cleanup, path: filepath } = await tmpFile();
+    try {
+      const file = await runBinary(
+        `--source ${CARMI_MODEL} --output ${filepath} --format cjs`
+      );
+      const model = require(filepath);
+      expect(typeof model).toBe("function");
+    } finally {
+      cleanup();
+    }
   });
 });

@@ -3,7 +3,7 @@
 const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
-const writeFile = require('../src/promise-fs');
+const { writeFile } = require('../src/promise-fs');
 
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
