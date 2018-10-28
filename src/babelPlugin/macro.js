@@ -35,7 +35,6 @@ const compile = (code, filename, isMJS = false) => {
     '..',
     `.${path.basename(filename)}.${uuid()}.carmi${isMJS ? '.mjs' : '.js'}`
   );
-  console.log({ newFilename });
   fs.writeFileSync(newFilename, code, 'utf-8');
   const transformed = compileFile(newFilename);
   fs.unlink(newFilename, () => {});
