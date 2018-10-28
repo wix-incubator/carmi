@@ -13,8 +13,7 @@ const parseCompiledFile = code => {
 };
 
 const findCarmiDeclarationComment = file => {
-  const program = file.path.find(p => p.type === "Program").node;
-  const comments = program.body[0].comments || program.body[0].leadingComments;
+  const comments = file.ast.comments;
   if (!comments) return null;
   return comments.find(comment => comment.value.trim().includes("@carmi"));
 };
