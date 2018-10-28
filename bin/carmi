@@ -17,7 +17,7 @@ const optionDefinitions = [
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'minify', type: Boolean, defaultValue: false, description: 'minify output' },
-  { name: 'help', type: Boolean, defaultValue: false },
+  { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
   { name: 'ast', type: Boolean, defaultValue: false }
 ];
 
@@ -36,12 +36,7 @@ async function run() {
   let model;
   const absPath = path.resolve(process.cwd(), options.source);
   try {
-    if (path.extname(options.source) === '.mjs') {
-      model = await import(absPath);
-      model = model.default;
-    } else {
-      model = require(absPath);
-    }
+    model = require(absPath);
   } catch (e) {
     console.error(`failed to require ${options.source} ${e.stack}`);
     throw e;
