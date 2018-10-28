@@ -1,14 +1,17 @@
-const pluginTester = require('babel-plugin-tester');
-const plugin = require('babel-plugin-macros');
-const path = require('path');
-const babel = require('babel-core');
+const pluginTester = require("babel-plugin-tester");
+const plugin = require("babel-plugin-macros");
+const path = require("path");
+const babel = require("babel-core");
 
 pluginTester({
   plugin,
   snapshot: true,
-  babelOptions: { filename: path.resolve(__dirname, 'temp.js'), presets: ['react'] },
-  tests: [
-    `
+  babelOptions: {
+    filename: path.resolve(__dirname, "temp.js"),
+    presets: ["react"]
+  },
+  tests: {
+    "template-literal": `
       const carmi = require('./macro')
 
       const modelBuilder = carmi\`
@@ -16,21 +19,13 @@ pluginTester({
         module.exports = {all: root.get('list'), first: root.get('list').get(0)}
       \`
     `,
-    `
+    "magic-comment": `
   // @carmi
   import carmi from './macro'
   const { root } = require('../../index');
   module.exports = { first: root.get(0), second: root.get(1) };
 `,
-    `
-  // @carmi
-  import macro from './macro'
-  import carmi from '../../index';
-  const {root} = carmi;
-  const model = { first: root.get(0), third: root.get(2) }
-  export default model;
-`,
-    `
+    "carmi-react": `
     // @carmi
     import carmi from './macro'
     const { root } = require('../../index');
@@ -38,11 +33,11 @@ pluginTester({
     const todosList = <div>{root.get(0)}</div>;
     module.exports = {todosList};
 `
-  ]
+  }
 });
 
-describe('Macro', () => {
-  it('works', done => {
+describe("Macro", () => {
+  it("works", done => {
     const code = `
       const carmi = require('./macro')
 
