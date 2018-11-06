@@ -81,13 +81,7 @@ function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
     const allPaths = new Map();
     annotatePathsThatCanBeInvalidated(expr, allPaths);
     expr[0].$path = allPaths;
-    // console.log(
-    //   expr[0].$rootName,
-    //   expr[0].$id,
-    //   allPaths.forEach((cond, path) => console.log(JSON.stringify(path), cond))
-    // );
   });
-  // console.log(JSON.stringify(sourceExpr, null, 2));
 }
 
 function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName) {
@@ -151,7 +145,7 @@ function rewriteUsingTopLevels(expr, namesByExpr) {
     if (!(subExpression instanceof Expression)) {
       return;
     }
-    const str = JSON.stringify(subExpression);
+    const str = stringifyExpr(subExpression);
     rewriteUsingTopLevels(subExpression, namesByExpr);
     if (namesByExpr[str]) {
       expr.splice(index, 1, Expr(Get, namesByExpr[str], TopLevel));
@@ -172,7 +166,7 @@ function generateName(namesByExpr, expr) {
     .tail()
     .reverse()
     .map(e => {
-      const preNamed = namesByExpr[JSON.stringify(e)];
+      const preNamed = namesByExpr[stringifyExpr(e)];
       if (preNamed) {
         return preNamed;
       } else {
@@ -182,15 +176,31 @@ function generateName(namesByExpr, expr) {
     .join('');
 }
 
+let stringifiedMap = new WeakMap();
+
+function stringifyExpr(expr) {
+  if (!(expr instanceof Expression)) {
+    return expr;
+  }
+  if (!stringifiedMap.has(expr)) {
+    stringifiedMap.set(expr, `[${expr.map(stringifyExpr).join(',')}]`);
+  }
+  return stringifiedMap.get(expr);
+}
+
+function clearStringifyMap() {
+  stringifiedMap = new WeakMap();
+}
+
 function extractAllStaticExpressionsAsValues(getters) {
   const allExpressions = flattenExpression(...Object.values(getters));
   const allStaticExpressions = _.filter(allExpressions, isStaticExpression);
   const allStaticAsStrings = allStaticExpressions.reduce((acc, e) => {
-    acc[JSON.stringify(e)] = e;
+    acc[stringifyExpr(e)] = e;
     return acc;
   }, {});
   const namesByExpr = _(getters)
-    .mapValues(e => JSON.stringify(e))
+    .mapValues(e => stringifyExpr(e))
     .invert()
     .value();
   const allStaticStringsSorted = _(allStaticAsStrings)
@@ -204,7 +214,6 @@ function extractAllStaticExpressionsAsValues(getters) {
       namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
     }
   });
-  const originalGetters = Object.keys(getters);
   _(allStaticStringsSorted)
     .reverse()
     .forEach(s => {
@@ -286,6 +295,7 @@ function deadCodeElimination(expr) {
 }
 
 function normalizeAndTagAllGetters(getters, setters) {
+  clearStringifyMap();
   getters = _.mapValues(getters, deadCodeElimination);
   extractAllStaticExpressionsAsValues(getters);
   tagAllExpressions(getters);
@@ -371,7 +381,6 @@ function findFuncExpr(getters, funcId) {
   return _(getters)
     .map(getAllFunctions)
     .flatten()
-    .tap(x => console.log(JSON.stringify(x), funcId, x[0][0].$funcId))
     .find(e => e[0].$funcId === funcId);
 }
 

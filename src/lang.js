@@ -24,6 +24,9 @@ class Token {
         : '')
     );
   }
+  toString() {
+    return `*${this.$type}*`;
+  }
 }
 
 function cloneToken(token) {
@@ -139,7 +142,9 @@ function cloneHelper(model) {
   if (model instanceof Token) {
     return cloneToken(model);
   } else if (model instanceof Expression) {
-    return new Expression(...model.map(cloneHelper));
+    const newExpr = new Expression();
+    newExpr.splice(0, 0, ...model.map(cloneHelper));
+    return newExpr;
   } else if (model instanceof SpliceSetterExpression) {
     return new SpliceSetterExpression(...model.map(cloneHelper));
   } else if (model instanceof SetterExpression) {
