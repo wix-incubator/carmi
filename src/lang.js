@@ -8,21 +8,7 @@ class Token {
     }
   }
   toJSON() {
-    return (
-      `*${this.$type}* : ` +
-      Object.keys(this)
-        .filter(k => k !== '$type' && k !== '$path')
-        .map(k => `${k}:${JSON.stringify(this[k])}`)
-        .join(', ') +
-      (this.$path
-        ? `, $path: ${JSON.stringify(
-            [...this.$path].map(item => [
-              item[0].map(t => (t instanceof Token ? `*${t.$type}*` : t)).join('.'),
-              item[1]
-            ])
-          )}`
-        : '')
-    );
+    return `*${this.$type}*`;
   }
   toString() {
     return `*${this.$type}*`;
