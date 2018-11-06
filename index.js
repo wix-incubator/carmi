@@ -201,4 +201,18 @@ Object.keys(TokenTypeData).forEach(t => {
 });
 exported.chain = val => wrap(convertArrayAndObjectsToExpr(val));
 
+exported.withName = (name, val) => {
+  if (val instanceof Expression) {
+    const tokenType = val[0].$type;
+    const tokenData = TokenTypeData[tokenType];
+    if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
+      name = name.replace(/[\W_]+/g, '');
+      val[0][SourceTag] = name + '__' + val[0][SourceTag];
+    } else {
+      throw new Error('can only name collection functions:' + name);
+    }
+    return val;
+  }
+};
+
 module.exports = exported;
