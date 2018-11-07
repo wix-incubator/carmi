@@ -18,6 +18,12 @@ const optionDefinitions = [
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'minify', type: Boolean, defaultValue: false, description: 'minify output' },
+  {
+    name: 'cache',
+    type: String,
+    defaultValue: '',
+    description: 'caches the generated code in the specified folder if the model did not change'
+  },
   { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
   { name: 'ast', type: Boolean, defaultValue: false }
 ];

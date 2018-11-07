@@ -11,9 +11,10 @@ try {
   compilerTypes.rust = require('./src/rust-compiler');
 } catch (e) {}
 
-const { sep } = require('path');
+const path = require('path');
 
 const { rollup } = require('rollup');
+const objectHash = require('object-hash');
 
 let uglify;
 try {
@@ -37,7 +38,7 @@ function currentLine() {
     lines
       .slice(1)
       .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
-  const lineParts = externalLine.split(sep);
+  const lineParts = externalLine.split(path.sep);
   const res = lineParts[lineParts.length - 1].replace(/\).*/, '');
   return res;
 }
@@ -167,6 +168,18 @@ async function compile(model, options) {
     options.compiler = 'optimizing';
   }
   model = Clone(unwrap(model));
+  const hashFile =
+    options.cache &&
+    !options.ast &&
+    path.resolve(process.cwd(), options.cache, objectHash(JSON.stringify({ model, options })));
+  if (options.cache) {
+    try {
+      const result = require('fs')
+        .readFileSync(hashFile)
+        .toString();
+      return result;
+    } catch (e) {}
+  }
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
   if (options.ast) {
@@ -177,14 +190,13 @@ async function compile(model, options) {
   try {
     source = prettier.format(rawSource, { parser: 'babylon' });
   } catch (e) {}
-  // require('fs').writeFileSync('./tmp.js', `module.exports = ${source}`);
+  let result;
   if (!options.format && compiler.lang === 'js') {
-    return `(function () {
+    result = `(function () {
       'use strict';
       return ${source}
     })()`;
-  }
-  if (compiler.lang === 'js') {
+  } else if (compiler.lang === 'js') {
     const rollupConfig = {
       input: 'main.js',
       plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify && uglify ? [uglify()] : []),
@@ -195,10 +207,14 @@ async function compile(model, options) {
     };
     const bundle = await rollup(rollupConfig);
     const generated = await bundle.generate(rollupConfig);
-    return generated.code;
+    result = generated.code;
   } else {
-    return source;
+    result = source;
   }
+  if (hashFile) {
+    require('fs').writeFileSync(hashFile, result);
+  }
+  return result;
 }
 
 const exported = { compile, setter: Setter, splice: Splice };
