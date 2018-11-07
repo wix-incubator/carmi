@@ -229,6 +229,8 @@ class NaiveCompiler {
   topLevelOverrides() {
     return {
       NAME: this.options.name,
+      AST: () => JSON.stringify(this.getters, null, 2),
+      DEBUG: () => (_whole, block) => (this.options.debug ? block : ''),
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>
         topologicalSortGetters(this.getters)

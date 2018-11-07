@@ -779,7 +779,12 @@ function base() {
         },
         $removeListener: func => {
           $listeners.delete(func);
+        },
+        /* DEBUG */
+        $ast: () => {
+          return $AST;
         }
+        /* DEBUG-END */
       }
     );
     recalculate();

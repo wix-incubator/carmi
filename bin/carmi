@@ -14,6 +14,7 @@ const optionDefinitions = [
     defaultValue: 'optimizing',
     description: 'compiler version to use naive/simple/optimizing'
   },
+  { name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code' },
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'minify', type: Boolean, defaultValue: false, description: 'minify output' },
