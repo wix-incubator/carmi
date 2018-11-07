@@ -180,7 +180,7 @@ let stringifiedMap = new WeakMap();
 
 function stringifyExpr(expr) {
   if (!(expr instanceof Expression)) {
-    return expr;
+    return JSON.stringify(expr);
   }
   if (!stringifiedMap.has(expr)) {
     stringifiedMap.set(expr, `[${expr.map(stringifyExpr).join(',')}]`);
