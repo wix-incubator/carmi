@@ -42,6 +42,9 @@ function currentLine() {
 }
 
 function convertArrayAndObjectsToExpr(v) {
+  if (typeof v === 'undefined') {
+    throw new Error('Carmi expressions can not contain undefined');
+  }
   if (v === null) {
     return new Token('null');
   } else if (v.constructor === Object) {
