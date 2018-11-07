@@ -1,4 +1,14 @@
 'use strict';
+
+const GLOBAL_TOKEN = '__$CARMI$__';
+
+if (global[GLOBAL_TOKEN]) {
+  throw new Error(
+    'require of multiple versions of Carmi is not supported previously loaded from:' + global[GLOBAL_TOKEN]
+  );
+}
+global[GLOBAL_TOKEN] = currentLine();
+
 const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone, cloneToken, SourceTag } = require('./src/lang');
 
 const compilerTypes = {};
