@@ -3,7 +3,7 @@ class TokenType {
     options = options || {};
     this.private = options.private || false;
     this.nonVerb = options.nonVerb || false;
-    this.len = this.len || [1, Number.MAX_SAFE_INTEGER];
+    this.len = options.len || [1, Number.MAX_SAFE_INTEGER];
     this.arrayVerb = options.arrayVerb || false;
     this.collectionVerb = options.collectionVerb || false;
     this.chainIndex = options.chainIndex || null;
