@@ -7,7 +7,7 @@ sidebar_label: Getting Started
 ## Overview
 
 CARMI is a build time tool that transforms a Directed Acyclic Graph of derivations and setters into the source code of
-an optimizied function that calculates your derivations/computed-state and maintains them as long as you change your
+an optimized function that calculates your derivations/computed-state and maintains them as long as you change your
 model only using the setters you defined.
 
 > Phil Keaton - "There are only two hard things in Computer Science: cache invalidation and naming things"

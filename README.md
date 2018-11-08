@@ -2,10 +2,10 @@
 
 ## Compiler for Automatic Reactive Modelling of Inference
 
-This is a POC of an entirely new approach to modelling infered state, there are 4 classic methods of handling
+This is a POC of an entirely new approach to modelling inferred state, there are 4 classic methods of handling
 derivation of state
 
-1.  The naive - compute from scratch everytime the state is changed
+1.  The naive - compute from scratch every time the state is changed
 2.  Handle cache invalidation manually with all the world of hurt that entails.
 3.  Using Immutable data and caching computation based on the identity of the inputs
 4.  Using Functional Reactive Programming to box fragments of your state with getters&setters, running derivations in a
@@ -19,7 +19,7 @@ This project is an attempt at a new approach, a DSL+Compiler which are fed two t
 The compiler generates JS source code which handles all the reactive cache invalidation automatically
 
 Because the compiler knows in advance all the stuff that can be read/written from/to the model, it can do all sort of
-cool stuff that is nearly impossible to do automatically using other approachs
+cool stuff that is nearly impossible to do automatically using other approaches
 
 1.  Track conditional consumption of parts of the model only if used with zero over head
 2.  Hoisting shared sub expressions, so they are only calculated once
