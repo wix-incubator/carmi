@@ -24,7 +24,7 @@ const TokenTypeData = {
   or: new TokenTypes({ nonChained: true, len: [2, Number.MAX_SAFE_INTEGER] }),
   array: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
   object: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
-  not: new TokenTypes({ chainIndex: 1, len: [2, 2] }),
+  not: new TokenTypes({ nonChained: true, chainIndex: 1, len: [2, 2] }),
   ternary: new TokenTypes({ nonChained: true, chainIndex: 1, len: [4, 4] }),
   get: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
   root: new TokenTypes({ nonVerb: true }),
