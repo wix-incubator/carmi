@@ -8,21 +8,21 @@ title: API
 CARMI exports only a few APIs -
 
 1.  compile(model, {compiler,name,output}) - takes a model (a plain JS object with two types of properties - either a
-    state deriviations or a setter) and generate the source code for a function which receives two parameters the
-    actuall initial state and an optional function library and returns an object with the defined deriviations and
-    setters. Whenever you trigger a setter the deriviations update incrementally
+    state derivations or a setter) and generates the source code for a function which receives two parameters - the
+    actual initial state and an optional function library and returns an object with the defined derivations and
+    setters. Whenever you trigger a setter the derivations update incrementally
 2.  root - a token which represents the root of your state, which is used to create your derived state Directed Acyclic
     Graph,
 3.  chain(obj/array/primitive) - wrap a native JS object with the declarative APIs that are available on root & every
-    deriviation from root
-4.  and()/or() - logical operands for your state deriviations
+    derivation from root
+4.  and()/or() - logical operands for your state derivations
 5.  setter(...path)/splice(...path) - declare actions which can be triggered on your state to change it (use
     arg0/arg1/arg2 - to define placeholders in the path)
 
 ## Deriving state DSL
 
 Every piece of state **root** **chain()** and everything derived from them using these APIs out of them has the
-following APIs, these are inspired by lodash to make transition to CAMRI easier for developers with frontend experience
+following APIs, these are inspired by lodash to make transition to CARMI easier for developers with frontend experience
 All of them return objects which represent the computation - remember there are no values in compile time.
 
 - **get**(key/index) - takes an object/array returns the specific key/index from the object/array
@@ -34,7 +34,7 @@ All of them return objects which represent the computation - remember there are 
   results of calling the function on each item in the array
 - **any**((item,key,context) => result<,context>) - returns true if the result of function is true for any of the items
   in the array
-- **keyBy**((item,key,context) => result<,context>) - exepcts an array returns an object with keys equal to the result
+- **keyBy**((item,key,context) => result<,context>) - expects an array returns an object with keys equal to the result
   of the function for each item and the values are the source items on the array
 - **filter**((item,key,context) => result<,context>) - expects an array returns an array with only the items that pass
   the filter function

@@ -261,8 +261,8 @@ describe('testing array', () => {
         set: setter(arg0)
       };
       const optModel = eval(await compile(model, { compiler }));
-      const initalData = [{ arr: [1] }, { val: 2 }, { arr: [3] }];
-      const inst = optModel(initalData);
+      const initialData = [{ arr: [1] }, { val: 2 }, { arr: [3] }];
+      const inst = optModel(initialData);
       expect(inst.result).toEqual([1, 2, 3]);
       inst.set(0, { val: 4 });
       expect(inst.result).toEqual([4, 2, 3]);

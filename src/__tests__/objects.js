@@ -18,8 +18,8 @@ describe('testing objects', () => {
         setItem: setter(arg0)
       };
       const optModel = eval(await compile(model, { compiler }));
-      const initalData = { One: 1, Two: 2, First: 1, Second: 2 };
-      const inst = optModel(initalData);
+      const initialData = { One: 1, Two: 2, First: 1, Second: 2 };
+      const inst = optModel(initialData);
       expect(inst.shared).toEqual({
         First: { First: 1, One: 1 },
         One: { First: 1, One: 1 },

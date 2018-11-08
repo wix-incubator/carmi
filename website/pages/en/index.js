@@ -119,15 +119,15 @@ const Features = props => (
 );
 
 const ComparedRedux = `
-A state container for JavaScript apps without the boilerplate - Just write the selectors (deriviations) and setters you need
+A state container for JavaScript apps without the boilerplate - Just write the selectors (derivations) and setters you need
 
-If a deriviation isn't exposed it isn't computed and if something in the state isn't writeable it won't be tracked
+If a derivation isn't exposed it isn't computed and if something in the state isn't writable it won't be tracked
 `;
 
 const ComparedMobx = `
 Reactive without setters/getters, and without relying on immutability. Plain objects are 5x-10x faster and all calculations are incremental
 
-And unlike Mobx - you don't need to manually define tiny compute functions manually nor remember that you already calculated something in a different part of your codebase so it doesn't get computed twice
+And unlike Mobx - you don't need to manually define tiny compute functions nor remember that you already calculated something in a different part of your codebase so it doesn't get computed twice
 `;
 
 const ComparedLodash = `
@@ -166,9 +166,9 @@ const Compared = props => (
 const IntroText = `
 > Phil Keaton - "There are only two hard things in Computer Science: cache invalidation and naming things"
 
-## CARMI lets you ignore cache invalidation without sacrifing performance
+## CARMI lets you ignore cache invalidation without sacrificing performance
 
-Write a naive version of your state deriviation in a lodash inspired syntax and get back an optimizied function
+Write a naive version of your state derivation in a lodash inspired syntax and get back an optimized function
 that makes sure all your computation is incremental and super performant.
 
 CARMI replaces Redux, Mobx, & Lodash
