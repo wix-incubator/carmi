@@ -22,7 +22,7 @@ CARMI exports only a few APIs -
 ## Deriving state DSL
 
 Every piece of state **root** **chain()** and everything derived from them using these APIs out of them has the
-following APIs, these are inspired by lodash to make transition to CAMRI easier for developers with frontend experience
+following APIs, these are inspired by lodash to make transition to CARMI easier for developers with frontend experience
 All of them return objects which represent the computation - remember there are no values in compile time.
 
 - **get**(key/index) - takes an object/array returns the specific key/index from the object/array
@@ -34,7 +34,7 @@ All of them return objects which represent the computation - remember there are 
   results of calling the function on each item in the array
 - **any**((item,key,context) => result<,context>) - returns true if the result of function is true for any of the items
   in the array
-- **keyBy**((item,key,context) => result<,context>) - exepcts an array returns an object with keys equal to the result
+- **keyBy**((item,key,context) => result<,context>) - expects an array returns an object with keys equal to the result
   of the function for each item and the values are the source items on the array
 - **filter**((item,key,context) => result<,context>) - expects an array returns an array with only the items that pass
   the filter function
