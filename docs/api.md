@@ -8,14 +8,14 @@ title: API
 CARMI exports only a few APIs -
 
 1.  compile(model, {compiler,name,output}) - takes a model (a plain JS object with two types of properties - either a
-    state deriviations or a setter) and generates the source code for a function which receives two parameters - the
-    actual initial state and an optional function library and returns an object with the defined deriviations and
-    setters. Whenever you trigger a setter the deriviations update incrementally
+    state derivations or a setter) and generates the source code for a function which receives two parameters - the
+    actual initial state and an optional function library and returns an object with the defined derivations and
+    setters. Whenever you trigger a setter the derivations update incrementally
 2.  root - a token which represents the root of your state, which is used to create your derived state Directed Acyclic
     Graph,
 3.  chain(obj/array/primitive) - wrap a native JS object with the declarative APIs that are available on root & every
-    deriviation from root
-4.  and()/or() - logical operands for your state deriviations
+    derivation from root
+4.  and()/or() - logical operands for your state derivations
 5.  setter(...path)/splice(...path) - declare actions which can be triggered on your state to change it (use
     arg0/arg1/arg2 - to define placeholders in the path)
 

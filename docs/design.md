@@ -3,17 +3,17 @@ id: design
 title: Design
 ---
 
-There are 4 classic methods of handling deriviation of state
+There are 4 classic methods of handling derivation of state
 
 - The naive - compute from scratch everytime the state is changed
 - Handle cache invalidation manually with all the world of hurt that entails.
 - Using Immutable data and caching computation based on the identity of the inputs
-- Using Functional Reactive Programming to box fragments of your state with getters&setters, running deriviations in a
+- Using Functional Reactive Programming to box fragments of your state with getters&setters, running derivations in a
   way that logs which fragments were read during the computation, and invalidate when one of their setters is invoked
 
 This project is an attempt at a new approach, a DSL+Compiler which are fed two types of inputs:
 
-1.  The deriviation of state you need
+1.  The derivation of state you need
 2.  The paths in the model you want to write to
 
 The compiler generates JS source code which handles all the reactive cache invalidation automatically
@@ -28,7 +28,7 @@ cool stuff that is nearly impossible to do automatically using other approachs
 
 ### CARMI is built from 3 parts:
 
-1.  Frontend which exposes a lodash inspired API for defining the state deriviations needed in your project letting you
+1.  Frontend which exposes a lodash inspired API for defining the state derivations needed in your project letting you
     map/filter, the frontend generates a S-EXPressions (lisp) inspired data strcture which should remain opaque to the
     consumer of this library and is fed into the compiler
 2.  An optimizing pass which hoist shared sub-expressions, eliminates dead code, tag the SEXPs (The naive version of the

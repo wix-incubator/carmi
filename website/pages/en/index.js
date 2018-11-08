@@ -119,9 +119,9 @@ const Features = props => (
 );
 
 const ComparedRedux = `
-A state container for JavaScript apps without the boilerplate - Just write the selectors (deriviations) and setters you need
+A state container for JavaScript apps without the boilerplate - Just write the selectors (derivations) and setters you need
 
-If a deriviation isn't exposed it isn't computed and if something in the state isn't writeable it won't be tracked
+If a derivation isn't exposed it isn't computed and if something in the state isn't writeable it won't be tracked
 `;
 
 const ComparedMobx = `
@@ -168,7 +168,7 @@ const IntroText = `
 
 ## CARMI lets you ignore cache invalidation without sacrifing performance
 
-Write a naive version of your state deriviation in a lodash inspired syntax and get back an optimizied function
+Write a naive version of your state derivation in a lodash inspired syntax and get back an optimizied function
 that makes sure all your computation is incremental and super performant.
 
 CARMI replaces Redux, Mobx, & Lodash
