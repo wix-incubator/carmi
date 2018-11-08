@@ -127,7 +127,7 @@ If a deriviation isn't exposed it isn't computed and if something in the state i
 const ComparedMobx = `
 Reactive without setters/getters, and without relying on immutability. Plain objects are 5x-10x faster and all calculations are incremental
 
-And unlike Mobx - you don't need to manually define tiny compute functions manually nor remember that you already calculated something in a different part of your codebase so it doesn't get computed twice
+And unlike Mobx - you don't need to manually define tiny compute functions nor remember that you already calculated something in a different part of your codebase so it doesn't get computed twice
 `;
 
 const ComparedLodash = `
