@@ -72,7 +72,7 @@ class NaiveCompiler {
           .join(',')}}`;
       case 'range':
         return `range(${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
-          expr.length > 2 ? this.generateExpr(expr[2]) : '1'
+          expr.length > 3 ? this.generateExpr(expr[3]) : '1'
         })`;
       case 'keys':
       case 'values':

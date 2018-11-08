@@ -116,7 +116,7 @@ class OptimizingCompiler extends NaiveCompiler {
         }, ${this.invalidates(this.pathOfExpr(expr))})`;
       case 'range':
         return `range(acc, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
-          expr.length > 2 ? this.generateExpr(expr[2]) : '1'
+          expr.length > 3 ? this.generateExpr(expr[3]) : '1'
         }, getUniquePersistenObject(${expr[0].$id}))`;
       case 'map':
       case 'any':

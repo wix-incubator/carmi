@@ -166,6 +166,37 @@ describe('testing array', () => {
       expect(currentValues(inst)).toEqual({ assign: { a: 9 }, defaults: { a: 7 } });
       expectTapFunctionToHaveBeenCalled(0, compiler);
     });
+    it('ranges', async () => {
+      const model = {
+        range: root
+          .get('end')
+          .range()
+          .map(item => item.call('tap')),
+        rangeStart: root
+          .get('end')
+          .range(root.get('start'))
+          .map(item => item.call('tap')),
+        rangeStep: root
+          .get('end')
+          .range(root.get('start'), root.get('step'))
+          .map(item => item.call('tap')),
+        setEnd: setter('end'),
+        setStep: setter('step'),
+        setStart: setter('start')
+      };
+      const initialData = { start: 2, end: 5, step: 2 };
+      const optCode = eval(await compile(model, { compiler }));
+      const inst = optCode(initialData, funcLibrary);
+      expect(inst.range).toEqual([0, 1, 2, 3, 4]);
+      expect(inst.rangeStart).toEqual([2, 3, 4]);
+      expect(inst.rangeStep).toEqual([2, 4]);
+      expectTapFunctionToHaveBeenCalled(10, compiler);
+      inst.setEnd(7);
+      expect(inst.range).toEqual([0, 1, 2, 3, 4, 5, 6]);
+      expect(inst.rangeStart).toEqual([2, 3, 4, 5, 6]);
+      expect(inst.rangeStep).toEqual([2, 4, 6]);
+      expectTapFunctionToHaveBeenCalled(5, compiler);
+    });
     it('test range/size', async () => {
       const matches = root.get('items').filter(val => val.eq(root.get('match')));
       const model = {
