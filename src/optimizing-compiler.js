@@ -102,6 +102,11 @@ class OptimizingCompiler extends NaiveCompiler {
           .join(',')}], getUniquePersistenObject(${expr[0].$id}), ${expr.length - 1}, ${this.invalidates(
           this.pathOfExpr(expr)
         )})`;
+      case 'bind':
+        return `bind($invalidatedKeys,key,[${expr
+          .slice(1)
+          .map(subExpr => this.generateExpr(subExpr))
+          .join(',')}], getUniquePersistenObject(${expr[0].$id}), ${expr.length - 1})`;
       case 'keys':
       case 'values':
         return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(

@@ -685,6 +685,20 @@ function base() {
       return $callCache.get(arr);
     }
 
+    const $bindCache = new WeakMap();
+    function bind($invalidatedKeys, key, newVal, identifier, len) {
+      const arr = getEmptyArray($invalidatedKeys, key, identifier);
+      for (let i = 0; i < len; i++) {
+        setOnArray(arr, i, newVal[i], false);
+      }
+      if (!$bindCache.has(arr)) {
+        $bindCache.set(arr, (...extraArgs) => {
+          return $funcLib[arr[0]].apply($res, arr.slice(1).concat(extraArgs));
+        });
+      }
+      return $bindCache.get(arr);
+    }
+
     function assignOrDefaults($targetObj, $targetKey, identifier, src, assign, invalidates) {
       const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
       if (!assign) {

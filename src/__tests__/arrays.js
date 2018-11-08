@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, arg1, setter, splice } = require('../../index');
+const { compile, and, or, root, arg0, arg1, setter, splice, bind } = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -268,6 +268,34 @@ describe('testing array', () => {
       expect(inst.result).toEqual([4, 2, 3]);
       inst.set(1, { arr: [5] });
       expect(inst.result).toEqual([4, 5, 3]);
+    });
+    it('test binding', async () => {
+      const model = {
+        doubleFunctions: root.map(item => bind('double', item)).map(item => item.call('tap')),
+        multFunctions: root.map(item => bind('mult', item)).map(item => item.call('tap')),
+        updateFunctions: root.map((item, key) => bind('updateSelf', key, item.mult(2))).map(item => item.call('tap')),
+        set: setter(arg0)
+      };
+      const initialData = [3, 4];
+      const optModel = eval(await compile(model, { compiler }));
+      const extraFn = {
+        double: x => x * 2,
+        mult: (x, y) => x * y,
+        updateSelf: function(index, val) {
+          this.set(index, val);
+        }
+      };
+      const inst = optModel(initialData, { ...extraFn, ...funcLibrary });
+      expect(inst.doubleFunctions[0]()).toEqual(6);
+      expect(inst.doubleFunctions[1]()).toEqual(8);
+      expect(inst.multFunctions[0](5)).toEqual(15);
+      expect(inst.multFunctions[1](5)).toEqual(20);
+      const old = inst.doubleFunctions[0];
+      expectTapFunctionToHaveBeenCalled(6, compiler);
+      inst.updateFunctions[0]();
+      expectTapFunctionToHaveBeenCalled(0, compiler);
+      expect(inst.doubleFunctions[0]()).toEqual(12);
+      expect(inst.doubleFunctions[1]()).toEqual(8);
     });
   });
 });

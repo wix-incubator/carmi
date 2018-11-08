@@ -86,6 +86,7 @@ const TokenTypeData = {
   div: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
   mod: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
   call: new TokenTypes({ chainIndex: 2, len: [3, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
+  bind: new TokenTypes({ nonChained: true, chainIndex: 2, len: [2, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
   wildcard: new TokenTypes({ nonVerb: true, private: true })
 };
 

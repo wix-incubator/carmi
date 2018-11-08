@@ -129,6 +129,11 @@ class NaiveCompiler {
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
           .join('')})`;
+      case 'bind':
+        return `$funcLib[${this.generateExpr(expr[1])}].bind($res${expr
+          .slice(2)
+          .map(subExpr => ',' + this.generateExpr(subExpr))
+          .join('')})`;
       default:
         return JSON.stringify(currentToken);
     }
