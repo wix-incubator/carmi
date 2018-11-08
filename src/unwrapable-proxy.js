@@ -11,7 +11,11 @@ function unwrapableProxies(proxyHandler) {
   }
 
   function unwrap(proxy) {
-    const res = proxyToObjMap.has(proxy) ? proxyToObjMap.get(proxy) : proxy;
+    let res = proxy;
+    while (proxyToObjMap.has(proxy)) {
+      res = proxyToObjMap.get(proxy);
+      proxy = res;
+    }
     if (Array.isArray(res)) {
       res.forEach((val, key) => {
         res[key] = unwrap(val);
