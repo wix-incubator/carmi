@@ -680,7 +680,7 @@ function base() {
         setOnArray(arr, i, newVal[i], invalidates);
       }
       if (!$callCache.has(arr) || $tainted.has(arr)) {
-        $callCache.set(arr, $funcLib[arr[0]].apply($funcLib, arr.slice(1)));
+        $callCache.set(arr, $funcLib[arr[0]].apply($res, arr.slice(1)));
       }
       return $callCache.get(arr);
     }

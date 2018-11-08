@@ -82,7 +82,7 @@ module.exports = function () {
       const arr = getEmptyArray($invalidatedKeys, key, identifier);invalidates = true;for (let i = 0; i < len; i++) {
         setOnArray(arr, i, newVal[i], invalidates);
       }if (!$callCache.has(arr) || $tainted.has(arr)) {
-        $callCache.set(arr, $funcLib[arr[0]].apply($funcLib, arr.slice(1)));
+        $callCache.set(arr, $funcLib[arr[0]].apply($res, arr.slice(1)));
       }return $callCache.get(arr);
     }$invalidatedRoots.add(\\"todosList\\");function $todosListBuild() {
       const key = \\"todosList\\";const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$object_temp_4_1\\"]], getUniquePersistenObject(6), 2, false);setOnObject($res, \\"todosList\\", newValue, false);$invalidatedRoots.delete(\\"todosList\\");return $res.todosList;

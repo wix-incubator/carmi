@@ -125,10 +125,10 @@ class NaiveCompiler {
       case 'topLevel':
         return `$res`;
       case 'call':
-        return `$funcLib[${this.generateExpr(expr[1])}](${expr
+        return `$funcLib[${this.generateExpr(expr[1])}].call($res${expr
           .slice(2)
-          .map(subExpr => this.generateExpr(subExpr))
-          .join(',')})`;
+          .map(subExpr => ',' + this.generateExpr(subExpr))
+          .join('')})`;
       default:
         return JSON.stringify(currentToken);
     }
