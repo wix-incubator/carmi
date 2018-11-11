@@ -689,7 +689,7 @@ function base() {
     function bind($invalidatedKeys, key, newVal, identifier, len) {
       const arr = getEmptyArray($invalidatedKeys, key, identifier);
       for (let i = 0; i < len; i++) {
-        setOnArray(arr, i, newVal[i], false);
+        arr[i] = newVal[i];
       }
       if (!$bindCache.has(arr)) {
         $bindCache.set(arr, (...extraArgs) => {
