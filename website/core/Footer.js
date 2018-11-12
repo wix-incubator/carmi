@@ -20,6 +20,7 @@ class Footer extends React.Component {
 
   render() {
     const currentYear = new Date().getFullYear();
+    const repoUrl = 'https://github.com/' + this.props.config.repoName;
     return (
       <footer className="nav-footer" id="footer">
         <section className="sitemap">
@@ -40,12 +41,12 @@ class Footer extends React.Component {
           </div>
           <div>
             <h5>More</h5>
-            <a href="https://github.com/wix-incubator/carmi">GitHub</a>
+            <a href={repoUrl}>GitHub</a>
             <a
               className="github-button"
-              href={this.props.config.repoUrl}
+              href={repoUrl}
               data-icon="octicon-star"
-              data-count-href="/facebook/docusaurus/stargazers"
+              data-count-href={'/' + this.props.config.repoName + '/stargazers'}
               data-show-count={true}
               data-count-aria-label="# stargazers on GitHub"
               aria-label="Star this project on GitHub"
