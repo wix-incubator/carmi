@@ -27,11 +27,11 @@ cool stuff that is nearly impossible to do automatically using other approaches
 4.  All computation is incremental
 
 ```js
-const { compile, root, and, or, arg0, setter, splice } = require("./index");
+const { compile, root, arg0, setter, splice } = require("carmi");
 const todosByIdx = root.keyBy("idx");
 const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get("done").not());
 const todosDisplayByIdx = todosByIdx.mapValues(todo =>
-  todo.get("task").plus(or(and(todo.get("done"), " - done"), " - not done"))
+  todo.get("task").plus(todo.get("done").ternary(" - done", " - not done"))
 );
 const todosDisplay = root.map(todo => todosDisplayByIdx.get(todo.get("idx")));
 const model = {
@@ -41,7 +41,7 @@ const model = {
   spliceTodos: splice(),
 };
 
-const todosModel = eval(compile(model));
+const todosModel = eval(await compile(model));
 const todos = todosModel([
   { idx: "1", done: false, task: "write a blog post about carmi" },
   { idx: "2", done: true, task: "publish to npm" },
