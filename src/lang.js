@@ -15,6 +15,15 @@ class Token {
   }
 }
 
+class WrappedPrimitive {
+  constructor(value) {
+    this.$value = value;
+  }
+  toJSON() {
+    return this.$value;
+  }
+}
+
 function cloneToken(token) {
   return new Token(token.$type, token[SourceTag]);
 }
@@ -132,6 +141,8 @@ function cloneHelper(model) {
     const newExpr = new Expression();
     newExpr.splice(0, 0, ...model.map(cloneHelper));
     return newExpr;
+  } else if (model instanceof WrappedPrimitive) {
+    return model.toJSON();
   } else if (model instanceof SpliceSetterExpression) {
     return new SpliceSetterExpression(...model.map(cloneHelper));
   } else if (model instanceof SetterExpression) {
@@ -153,4 +164,5 @@ function Clone(model) {
 AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;
 AllTokens.SourceTag = SourceTag;
+AllTokens.WrappedPrimitive = WrappedPrimitive;
 module.exports = AllTokens;

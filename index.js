@@ -1,6 +1,17 @@
 'use strict';
 
-const { TokenTypeData, Expr, Token, Setter, Expression, Splice, Clone, cloneToken, SourceTag } = require('./src/lang');
+const {
+  TokenTypeData,
+  Expr,
+  Token,
+  Setter,
+  Expression,
+  Splice,
+  Clone,
+  cloneToken,
+  SourceTag,
+  WrappedPrimitive
+} = require('./src/lang');
 
 const compilerTypes = {};
 try {
@@ -69,6 +80,8 @@ function convertArrayAndObjectsToExpr(v) {
     );
   } else if (v.constructor === Array) {
     return createExpr(new Token('array', currentLine()), ...v);
+  } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
+    return new WrappedPrimitive(v);
   } else {
     return v;
   }

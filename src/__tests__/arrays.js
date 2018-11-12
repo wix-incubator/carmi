@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, arg1, setter, splice, bind } = require('../../index');
+const { compile, and, or, root, arg0, arg1, setter, splice, bind, chain } = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -252,6 +252,23 @@ describe('testing array', () => {
       ]);
       inst.setMatch(2);
       expect(inst.fizzBuzz).toEqual([1, 2, 'fizz']);
+    });
+    it('range from primitive', async () => {
+      const model = {
+        result: chain(10)
+          .range()
+          .filter(item => item.mod(root.get('skip')).eq(0))
+          .map(item => item.call('tap')),
+        set: setter('skip')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = { skip: 3 };
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual([0, 3, 6, 9]);
+      expectTapFunctionToHaveBeenCalled(4, compiler);
+      inst.set(6);
+      expect(inst.result).toEqual([0, 6]);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
     });
     it('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
