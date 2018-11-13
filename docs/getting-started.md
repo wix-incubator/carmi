@@ -10,7 +10,7 @@ CARMI is a build time tool that transforms a Directed Acyclic Graph of derivatio
 an optimized function that calculates your derivations/computed-state and maintains them as long as you change your
 model only using the setters you defined.
 
-> Phil Keaton - "There are only two hard things in Computer Science: cache invalidation and naming things"
+> Phil Karlton - "There are only two hard things in Computer Science: cache invalidation and naming things"
 >
 > I can't help you much with naming stuff (although you tend to name significantly fewer things in CARMI as you just let
 > the data flow from one derivation to the next) - but I sure you hope we never have to think of cache invalidation

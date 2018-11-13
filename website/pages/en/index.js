@@ -164,7 +164,7 @@ const Compared = props => (
 );
 
 const IntroText = `
-> Phil Keaton - "There are only two hard things in Computer Science: cache invalidation and naming things"
+> Phil Karlton - "There are only two hard things in Computer Science: cache invalidation and naming things"
 
 ## CARMI lets you ignore cache invalidation without sacrificing performance
 
