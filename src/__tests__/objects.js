@@ -1,4 +1,6 @@
 const { compile, and, or, root, arg0, setter, chain, splice } = require('../../index');
+const { getIn } = require('../../sugarLib');
+
 const {
   describeCompilers,
   currentValues,
@@ -250,6 +252,18 @@ describe('testing objects', () => {
           text: 'C'
         }
       });
+    });
+    it('getIn', async () => {
+      const model = {
+        defined: getIn(root, 'a', 'b'),
+        notDefined: getIn(root, 'c', 'b')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = {a: {b: 1}};
+
+      const inst = optModel(initialData);
+      expect(inst.defined).toEqual(1);
+      expect(inst.notDefined).not.toBeDefined();
     });
   });
 });
