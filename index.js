@@ -13,6 +13,13 @@ const {
   WrappedPrimitive
 } = require('./src/lang');
 
+const sugar = require('./src/sugar');
+Object.keys(sugar).forEach(key => {
+  if (TokenTypeData[key]) {
+    throw new Error(`There is a builtin token with this sugar name ${key}`);
+  }
+});
+
 const compilerTypes = {};
 try {
   compilerTypes.naive = require('./src/naive-compiler');
@@ -116,6 +123,8 @@ function allTokensInOtherFuncs(expr, res, inOtherFunc) {
   return res;
 }
 
+const chain = val => wrap(convertArrayAndObjectsToExpr(val));
+
 proxyHandler.get = (target, key) => {
   const tokenData = TokenTypeData[key];
   if (
@@ -127,6 +136,9 @@ proxyHandler.get = (target, key) => {
     key !== 'inspect' &&
     Number.isNaN(parseInt(key, 10))
   ) {
+    if (sugar[key]) {
+      return (...args) => sugar[key](chain(target), ...args);
+    }
     throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
   }
   if (!tokenData || tokenData.nonVerb || !tokenData.chainIndex) {
@@ -241,7 +253,7 @@ Object.keys(TokenTypeData).forEach(t => {
     exported[t] = (...args) => wrap(createExpr(new Token(t, currentLine()), ...args));
   }
 });
-exported.chain = val => wrap(convertArrayAndObjectsToExpr(val));
+exported.chain = chain;
 
 exported.withName = (name, val) => {
   if (val instanceof Expression) {
