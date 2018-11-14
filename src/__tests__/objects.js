@@ -254,8 +254,8 @@ describe('testing objects', () => {
     });
     it('getIn', async () => {
       const model = {
-        defined: root.getIn('a', 'b'),
-        notDefined: root.getIn('c', 'b')
+        defined: root.getIn(['a', 'b']),
+        notDefined: root.getIn(['c', 'b'])
       };
       const optModel = eval(await compile(model, { compiler }));
       const initialData = { a: { b: 1 } };
