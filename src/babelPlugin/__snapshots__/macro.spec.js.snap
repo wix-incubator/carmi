@@ -32,17 +32,17 @@ module.exports = function () {
       }
     };function setOnObject($target, $key, $val, $invalidates) {
       let $changed = false;let $hard = false;if ($invalidates) {
-        if (typeof $target[$key] === \\"object\\" && $target[$key] && $target[$key] !== $val) {
+        if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $val === \\"object\\" && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           $changed = true;triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;return $changed;
     }function setOnArray($target, $key, $val, $invalidates) {
       let $hard = false;if ($invalidates) {
-        if (typeof $target[$key] === \\"object\\" && $target[$key] && $target[$key] !== $val) {
+        if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $target[$key] === \\"object\\" && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
@@ -74,14 +74,14 @@ module.exports = function () {
       }if (!$callCache.has(arr) || $tainted.has(arr)) {
         $callCache.set(arr, $funcLib[arr[0]].apply($res, arr.slice(1)));
       }return $callCache.get(arr);
-    }$invalidatedRoots.add(\\"todosList\\");function $todosListBuild() {
-      const key = \\"todosList\\";const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$array_temp_4_0\\"]], getUniquePersistenObject(4), 2, false);setOnObject($res, \\"todosList\\", newValue, false);$invalidatedRoots.delete(\\"todosList\\");return $res.todosList;
-    }const array$2Token = getUniquePersistenObject(2);const array$2Args = 3;$invalidatedRoots.add(\\"$array_temp_4_0\\");function $array_temp_4_0Build() {
-      const key = \\"$array_temp_4_0\\";const $invalidatedKeys = $invalidatedRoots;const newValue = array($invalidatedKeys, key, [\\"div\\", null, $model[0]], array$2Token, array$2Args, false);setOnObject($res, \\"$array_temp_4_0\\", newValue, false);$invalidatedRoots.delete(\\"$array_temp_4_0\\");return $res.$array_temp_4_0;
+    }$invalidatedRoots.add('todosList');function $todosListBuild() {
+      const key = 'todosList';const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$array_temp_4_0\\"]], getUniquePersistenObject(4), 2, false);setOnObject($res, 'todosList', newValue, false);$invalidatedRoots.delete('todosList');return $res.todosList;
+    }const array$2Token = getUniquePersistenObject(2);const array$2Args = 3;$invalidatedRoots.add('$array_temp_4_0');function $array_temp_4_0Build() {
+      const key = '$array_temp_4_0';const $invalidatedKeys = $invalidatedRoots;const newValue = array($invalidatedKeys, key, [\\"div\\", null, $model[0]], array$2Token, array$2Args, false);setOnObject($res, '$array_temp_4_0', newValue, false);$invalidatedRoots.delete('$array_temp_4_0');return $res.$array_temp_4_0;
     }let $inBatch = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has(\\"$array_temp_4_0\\") && $array_temp_4_0Build();$invalidatedRoots.has(\\"todosList\\") && $todosListBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
+      }$invalidatedRoots.has('$array_temp_4_0') && $array_temp_4_0Build();$invalidatedRoots.has('todosList') && $todosListBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
         $inBatch = false;recalculate();
       }, $runInBatch: func => {
@@ -122,9 +122,9 @@ module.exports = function () {
       }
     };function setOnObject($target, $key, $val, $invalidates) {
       let $changed = false;let $hard = false;if ($invalidates) {
-        if (typeof $target[$key] === \\"object\\" && $target[$key] && $target[$key] !== $val) {
+        if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $val === \\"object\\" && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           $changed = true;triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;return $changed;
@@ -140,14 +140,14 @@ module.exports = function () {
           invalidate($targetInvalidatedKeys, $sourceKey);
         });
       }
-    }$invalidatedRoots.add(\\"first\\");function $firstBuild() {
-      const newValue = $model[0];setOnObject($res, \\"first\\", newValue, false);$invalidatedRoots.delete(\\"first\\");return $res.first;
-    }$invalidatedRoots.add(\\"second\\");function $secondBuild() {
-      const newValue = $model[1];setOnObject($res, \\"second\\", newValue, false);$invalidatedRoots.delete(\\"second\\");return $res.second;
+    }$invalidatedRoots.add('first');function $firstBuild() {
+      const newValue = $model[0];setOnObject($res, 'first', newValue, false);$invalidatedRoots.delete('first');return $res.first;
+    }$invalidatedRoots.add('second');function $secondBuild() {
+      const newValue = $model[1];setOnObject($res, 'second', newValue, false);$invalidatedRoots.delete('second');return $res.second;
     }let $inBatch = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has(\\"first\\") && $firstBuild();$invalidatedRoots.has(\\"second\\") && $secondBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
+      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
         $inBatch = false;recalculate();
       }, $runInBatch: func => {
@@ -190,9 +190,9 @@ const modelBuilder = (function () {
       }
     };function setOnObject($target, $key, $val, $invalidates) {
       let $changed = false;let $hard = false;if ($invalidates) {
-        if (typeof $target[$key] === \\"object\\" && $target[$key] && $target[$key] !== $val) {
+        if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $val === \\"object\\" && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           $changed = true;triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;return $changed;
@@ -208,14 +208,14 @@ const modelBuilder = (function () {
           invalidate($targetInvalidatedKeys, $sourceKey);
         });
       }
-    }$invalidatedRoots.add(\\"all\\");function $allBuild() {
-      const newValue = $model[\\"list\\"];setOnObject($res, \\"all\\", newValue, false);$invalidatedRoots.delete(\\"all\\");return $res.all;
-    }$invalidatedRoots.add(\\"first\\");function $firstBuild() {
-      const newValue = $res[\\"all\\"][0];setOnObject($res, \\"first\\", newValue, false);$invalidatedRoots.delete(\\"first\\");return $res.first;
+    }$invalidatedRoots.add('all');function $allBuild() {
+      const newValue = $model[\\"list\\"];setOnObject($res, 'all', newValue, false);$invalidatedRoots.delete('all');return $res.all;
+    }$invalidatedRoots.add('first');function $firstBuild() {
+      const newValue = $res[\\"all\\"][0];setOnObject($res, 'first', newValue, false);$invalidatedRoots.delete('first');return $res.first;
     }let $inBatch = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has(\\"all\\") && $allBuild();$invalidatedRoots.has(\\"first\\") && $firstBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
+      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
         $inBatch = false;recalculate();
       }, $runInBatch: func => {

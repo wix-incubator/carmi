@@ -212,9 +212,11 @@ async function compile(model, options) {
   }
   const rawSource = await compiler.compile();
   let source = rawSource;
-  try {
-    source = prettier.format(rawSource, { parser: 'babylon' });
-  } catch (e) {}
+  if (options.prettier) {
+    try {
+      source = prettier.format(rawSource, { parser: 'babylon' });
+    } catch (e) {}
+  }
   let result;
   if (!options.format && compiler.lang === 'js') {
     result = `(function () {
