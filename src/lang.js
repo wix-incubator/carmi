@@ -134,13 +134,18 @@ AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 
+let cloneCacheMap = new WeakMap();
+
 function cloneHelper(model) {
   if (model instanceof Token) {
     return cloneToken(model);
   } else if (model instanceof Expression) {
-    const newExpr = new Expression();
-    newExpr.splice(0, 0, ...model.map(cloneHelper));
-    return newExpr;
+    if (!cloneCacheMap.has(model)) {
+      const newExpr = new Expression();
+      cloneCacheMap.set(model, newExpr)
+      newExpr.splice(0, 0, ...model.map(cloneHelper));
+    }
+    return cloneCacheMap.get(model);
   } else if (model instanceof WrappedPrimitive) {
     return model.toJSON();
   } else if (model instanceof SpliceSetterExpression) {
@@ -159,6 +164,7 @@ function cloneHelper(model) {
 }
 
 function Clone(model) {
+  cloneCacheMap = new WeakMap();
   return cloneHelper(model);
 }
 AllTokens.Clone = Clone;

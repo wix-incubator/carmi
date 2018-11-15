@@ -12,6 +12,7 @@ const {
   SourceTag
 } = require('./lang');
 const Paths = Symbol('Paths');
+const objectHash = require('object-hash')
 
 let exprCounter = 0;
 
@@ -177,19 +178,25 @@ function generateName(namesByExpr, expr) {
 }
 
 let stringifiedMap = new WeakMap();
+let stringsToHashes = {};
 
 function stringifyExpr(expr) {
   if (!(expr instanceof Expression)) {
     return JSON.stringify(expr);
   }
   if (!stringifiedMap.has(expr)) {
-    stringifiedMap.set(expr, `[${expr.map(stringifyExpr).join(',')}]`);
+    const str = expr.map(stringifyExpr).join(',');
+    if (!stringsToHashes[str]) {
+      stringsToHashes[str] = objectHash(str);
+    }
+    stringifiedMap.set(expr, stringsToHashes[str]);
   }
   return stringifiedMap.get(expr);
 }
 
 function clearStringifyMap() {
   stringifiedMap = new WeakMap();
+  stringsToHashes = {};
 }
 
 function extractAllStaticExpressionsAsValues(getters) {
