@@ -3,6 +3,7 @@
 const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
+const esm = require('esm');
 const { writeFile } = require('../src/promise-fs');
 
 const optionDefinitions = [
@@ -44,7 +45,8 @@ async function run() {
   let model;
   const absPath = path.resolve(process.cwd(), options.source);
   try {
-    model = require(absPath);
+    const loader = esm(module);
+    model = loader(absPath);
   } catch (e) {
     console.error(`failed to require ${options.source} ${e.stack}`);
     throw e;
