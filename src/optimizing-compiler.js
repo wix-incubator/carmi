@@ -11,11 +11,9 @@ const {
 const _ = require('lodash');
 const NaiveCompiler = require('./naive-compiler');
 const {
-  tagExprWithPaths,
   findReferencesToPathInAllGetters,
   splitSettersGetters,
   pathMatches,
-  pathFragmentToString,
   normalizeAndTagAllGetters,
   allPathsInGetter
 } = require('./expr-tagging');
