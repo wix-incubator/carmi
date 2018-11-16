@@ -12,7 +12,7 @@ const {
   TokenTypeData,
   SourceTag
 } = require('./lang');
-const memoize = require('./memoize');
+const { memoizeExprFunc, memoize } = require('./memoize');
 const objectHash = require('object-hash')
 
 let exprCounter = 0;
@@ -143,20 +143,13 @@ const isStaticExpression = memoize((expr) => {
 });
 
 const getRewriteUsingTopLevels = (namesByExpr) => {
-  let rewriteUsingTopLevels, rewriteUsingTopLevelsMemoized;
-  rewriteUsingTopLevels = (expr) => {
-    if (!(expr instanceof Expression)) {
-      return expr;
-    }
-    return rewriteUsingTopLevelsMemoized(expr);
-  }
-  rewriteUsingTopLevelsMemoized = memoize(expr => {
+  const rewriteUsingTopLevels = memoizeExprFunc(expr => {
     const str = stringifyExpr(expr);
     if (namesByExpr[str]) {
       return Expr(Get, namesByExpr[str], TopLevel);
     }
     return expr.map(child => rewriteUsingTopLevels(child))
-  });
+  }, token => token)
   return rewriteUsingTopLevels;
 }
 
@@ -282,10 +275,7 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
   });
 }
 
-function deadCodeElimination(expr) {
-  if (!(expr instanceof Expression)) {
-    return expr;
-  }
+const deadCodeElimination = memoizeExprFunc((expr) => {
   const children = expr.map((child, idx) => deadCodeElimination(child));
   const tokenType = expr[0].$type;
   switch (tokenType) {
@@ -307,7 +297,7 @@ function deadCodeElimination(expr) {
       }
   }
   return children;
-}
+}, token => token)
 
 function normalizeAndTagAllGetters(getters, setters) {
   clearStringifyMap();
@@ -321,7 +311,7 @@ function normalizeAndTagAllGetters(getters, setters) {
   return getters;
 }
 
-function allPathsInGetter(getter) {
+const allPathsInGetter = memoize(getter => {
   return _(flattenExpression([getter]))
     .filter(e => e instanceof Expression && e[0].$path)
     .map(e => Array.from(e[0].$path.entries()))
@@ -330,7 +320,7 @@ function allPathsInGetter(getter) {
       acc.set(item[0], item[1]);
       return acc;
     }, new Map());
-}
+})
 
 function pathMatches(srcPath, trgPath) {
   // console.log('pathMatches', srcPath, trgPath);
