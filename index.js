@@ -115,12 +115,14 @@ function createExpr(...args) {
 function allTokensInOtherFuncs(expr, res, inOtherFunc) {
   res = res || [];
   inOtherFunc = inOtherFunc || false;
+  const visited = new WeakMap();
   if (expr instanceof Expression) {
+    visited.set(expr, true);
     expr.forEach(child => {
       if (inOtherFunc && child instanceof Token) {
         res.push(child);
       }
-      if (child instanceof Expression) {
+      if (child instanceof Expression && !visited.has(child)) {
         allTokensInOtherFuncs(child, res, inOtherFunc || child[0].$type === 'func');
       }
     });
