@@ -7,11 +7,12 @@ const {
   TopLevel,
   Root,
   Get,
+  Clone,
   Wildcard,
   TokenTypeData,
   SourceTag
 } = require('./lang');
-const Paths = Symbol('Paths');
+const memoize = require('./memoize');
 const objectHash = require('object-hash')
 
 let exprCounter = 0;
@@ -126,33 +127,37 @@ function flattenExpression(...expressions) {
   return output;
 }
 
-function isStaticExpression(expr) {
-  return _.every(expr, token => {
+const isStaticExpression = memoize((expr) => {
+  let res = true;
+  const areChildrenStatic = expr.map(token => {
     if (token instanceof Expression) {
-      if (token[0].$type === 'func') {
-        return true;
-      } else {
-        return isStaticExpression(token);
-      }
+      return isStaticExpression(token)
     } else if (token.$type === 'val' || token.$type === 'key' || token.$type === 'context') {
       return false;
     }
     return true;
+  })
+  return _.every(areChildrenStatic, (isChildStatic, index) => {
+    return isChildStatic || expr[index] instanceof Expression && expr[index][0].$type === 'func';
   });
-}
+});
 
-function rewriteUsingTopLevels(expr, namesByExpr) {
-  expr.forEach((subExpression, index) => {
-    if (!(subExpression instanceof Expression)) {
-      return;
+const getRewriteUsingTopLevels = (namesByExpr) => {
+  let rewriteUsingTopLevels, rewriteUsingTopLevelsMemoized;
+  rewriteUsingTopLevels = (expr) => {
+    if (!(expr instanceof Expression)) {
+      return expr;
     }
-    const str = stringifyExpr(subExpression);
-    rewriteUsingTopLevels(subExpression, namesByExpr);
+    return rewriteUsingTopLevelsMemoized(expr);
+  }
+  rewriteUsingTopLevelsMemoized = memoize(expr => {
+    const str = stringifyExpr(expr);
     if (namesByExpr[str]) {
-      expr.splice(index, 1, Expr(Get, namesByExpr[str], TopLevel));
+      return Expr(Get, namesByExpr[str], TopLevel);
     }
+    return expr.map(child => rewriteUsingTopLevels(child))
   });
-  return expr;
+  return rewriteUsingTopLevels;
 }
 
 function generateName(namesByExpr, expr) {
@@ -221,13 +226,16 @@ function extractAllStaticExpressionsAsValues(getters) {
       namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
     }
   });
-  _(allStaticStringsSorted)
-    .reverse()
-    .forEach(s => {
-      if (namesByExpr[s]) {
-        getters[namesByExpr[s]] = rewriteUsingTopLevels(allStaticAsStrings[s], namesByExpr);
-      }
-    });
+  const rewriteUsingTopLevels = getRewriteUsingTopLevels(namesByExpr);
+  const newGetters = {};
+  _.forEach(namesByExpr, (name, hash) => {
+    newGetters[name] = allStaticAsStrings[hash].map(rewriteUsingTopLevels)
+  })
+  return newGetters;
+}
+
+function cloneExpressions(getters) {
+  return _.mapValues(getters, getter => Clone(getter));
 }
 
 function tagAllExpressions(getters) {
@@ -278,33 +286,34 @@ function deadCodeElimination(expr) {
   if (!(expr instanceof Expression)) {
     return expr;
   }
-  expr.slice(1).forEach((child, idx) => (expr[idx + 1] = deadCodeElimination(child)));
+  const children = expr.map((child, idx) => deadCodeElimination(child));
   const tokenType = expr[0].$type;
   switch (tokenType) {
     case 'or':
       const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
       if (firstTruthy === 0) {
-        return expr[1];
+        return children[1];
       } else if (firstTruthy > 0) {
-        expr.splice(firstTruthy + 2, expr.length);
+        return Expr(...children.slice(0, firstTruthy + 2))
       }
     case 'and':
       const firstFalsy = expr
         .slice(1)
         .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
       if (firstFalsy === 0) {
-        return expr[1];
+        return children[1];
       } else if (firstFalsy > 0) {
-        expr.splice(firstFalsy + 2, expr.length);
+        return Expr(...children.slice(0, firstFalsy + 2))
       }
   }
-  return expr;
+  return children;
 }
 
 function normalizeAndTagAllGetters(getters, setters) {
   clearStringifyMap();
   getters = _.mapValues(getters, deadCodeElimination);
-  extractAllStaticExpressionsAsValues(getters);
+  getters = extractAllStaticExpressionsAsValues(getters);
+  getters = cloneExpressions(getters);
   tagAllExpressions(getters);
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));

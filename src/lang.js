@@ -106,15 +106,7 @@ const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
 
 class Expression extends Array {
   constructor(...tokens) {
-    const clonedTokens = tokens.map(token => {
-      if (token instanceof Token) {
-        return cloneToken(token);
-      } else if (token instanceof Expression) {
-        return new Expression(...token);
-      }
-      return token;
-    });
-    super(...clonedTokens);
+    super(...tokens);
   }
 }
 
@@ -134,39 +126,16 @@ AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 
-let cloneCacheMap = new WeakMap();
 
-function cloneHelper(model) {
+function Clone(model) {
   if (model instanceof Token) {
     return cloneToken(model);
   } else if (model instanceof Expression) {
-    if (!cloneCacheMap.has(model)) {
-      const newExpr = new Expression();
-      cloneCacheMap.set(model, newExpr)
-      newExpr.splice(0, 0, ...model.map(cloneHelper));
-    }
-    return cloneCacheMap.get(model);
-  } else if (model instanceof WrappedPrimitive) {
-    return model.toJSON();
-  } else if (model instanceof SpliceSetterExpression) {
-    return new SpliceSetterExpression(...model.map(cloneHelper));
-  } else if (model instanceof SetterExpression) {
-    return new SetterExpression(...model.map(cloneHelper));
-  } else if (Array.isArray(model)) {
-    return model.map(t => cloneHelper(t));
-  } else if (typeof model === 'object' && model) {
-    return Object.keys(model).reduce((acc, key) => {
-      acc[key] = cloneHelper(model[key]);
-      return acc;
-    }, {});
+    return new Expression(...model.map(Clone));
   }
   return model;
 }
 
-function Clone(model) {
-  cloneCacheMap = new WeakMap();
-  return cloneHelper(model);
-}
 AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;
 AllTokens.SourceTag = SourceTag;

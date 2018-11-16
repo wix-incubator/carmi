@@ -7,7 +7,6 @@ const {
   Setter,
   Expression,
   Splice,
-  Clone,
   cloneToken,
   SourceTag,
   WrappedPrimitive
@@ -21,10 +20,10 @@ Object.keys(sugar).forEach(key => {
 });
 
 const compilerTypes = {};
+compilerTypes.naive = require('./src/naive-compiler');
+compilerTypes.simple = require('./src/simple-compiler');
+compilerTypes.optimizing = require('./src/optimizing-compiler');
 try {
-  compilerTypes.naive = require('./src/naive-compiler');
-  compilerTypes.simple = require('./src/simple-compiler');
-  compilerTypes.optimizing = require('./src/optimizing-compiler');
   compilerTypes.flow = require('./src/flow-compiler');
   compilerTypes.rust = require('./src/rust-compiler');
 } catch (e) {}
@@ -95,7 +94,13 @@ function convertArrayAndObjectsToExpr(v) {
 }
 
 function createExpr(...args) {
-  args = args.map(convertArrayAndObjectsToExpr);
+  args = args.map(token => {
+    token = convertArrayAndObjectsToExpr(token);
+    if (token instanceof WrappedPrimitive) {
+      return token.toJSON();
+    }
+    return token;
+  });
   if (args[0] instanceof Token && TokenTypeData[args[0].$type]) {
     const len = TokenTypeData[args[0].$type].len;
     if (len && (args.length < len[0] || args.length > len[1])) {
@@ -139,6 +144,7 @@ proxyHandler.get = (target, key) => {
     if (sugar[key]) {
       return (...args) => sugar[key](chain(target), ...args);
     }
+    return Reflect.get(target, key);
     throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
   }
   if (!tokenData || tokenData.nonVerb || !tokenData.chainIndex) {
@@ -192,7 +198,7 @@ async function compile(model, options) {
   if (options.compiler === 'carmi') {
     options.compiler = 'optimizing';
   }
-  model = Clone(unwrap(model));
+  model = unwrap(model);
   const hashFile =
     options.cache &&
     !options.ast &&
