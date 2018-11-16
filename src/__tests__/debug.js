@@ -24,4 +24,15 @@ describe('testing array', () => {
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
   });
+  describe('throw on invalids reuse of key/val/loop/context inside other functions', () => {
+    expect(() => {
+      root.map(item => item.map(child => child.eq(item)))
+    }).toThrowError();
+    expect(() => {
+      root.map((item,val) => item.map(child => child.eq(val)))
+    }).toThrowError();
+    expect(() => {
+      root.map((item,val,context) => item.map(child => child.eq(context)), root.get(1))
+    }).toThrowError();
+  })
 });

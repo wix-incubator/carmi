@@ -112,22 +112,27 @@ function createExpr(...args) {
   return Expr.apply(null, args);
 }
 
-function allTokensInOtherFuncs(expr, res, inOtherFunc) {
-  res = res || [];
-  inOtherFunc = inOtherFunc || false;
-  const visited = new WeakMap();
-  if (expr instanceof Expression) {
-    visited.set(expr, true);
-    expr.forEach(child => {
-      if (inOtherFunc && child instanceof Token) {
-        res.push(child);
-      }
-      if (child instanceof Expression && !visited.has(child)) {
-        allTokensInOtherFuncs(child, res, inOtherFunc || child[0].$type === 'func');
-      }
-    });
+const tokensNotAllowedToReuseFromOtherExpressions = {
+  'val':true,
+  'key': true,
+  'loop': true,
+  'context': true
+}
+
+function throwOnTokensFromOtherFuncs(expr, tag) {
+  const pending = [expr];
+  while (pending.length) {
+    const current = pending.shift();
+    if (current instanceof Token && current[SourceTag] && current[SourceTag] !== tag && tokensNotAllowedToReuseFromOtherExpressions[current.$type]) {
+      throw new Error(
+        `used ${JSON.stringify(current)} from ${current[
+          SourceTag
+        ].toString()} inside ${tag.toString()} in another function pass in context`
+      );
+    } else if (current instanceof Expression && current[0].$type !== 'func') {
+      current.forEach(child => pending.push(child));
+    }
   }
-  return res;
 }
 
 const chain = val => wrap(convertArrayAndObjectsToExpr(val));
@@ -141,12 +146,12 @@ proxyHandler.get = (target, key) => {
     key !== 'length' &&
     key !== 'forEach' &&
     key !== 'inspect' &&
+    key !== 'toJSON' &&
     Number.isNaN(parseInt(key, 10))
   ) {
     if (sugar[key]) {
       return (...args) => sugar[key](chain(target), ...args);
     }
-    return Reflect.get(target, key);
     throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
   }
   if (!tokenData || tokenData.nonVerb || !tokenData.chainIndex) {
@@ -155,24 +160,16 @@ proxyHandler.get = (target, key) => {
   }
   return (...args) => {
     // console.log(key, args);
-    args = [new Token(key, currentLine()), ...args];
+    const sourceTag = currentLine()
+    args = [new Token(key, sourceTag), ...args];
     if (tokenData.chainIndex) {
       if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
         if (typeof args[1] === 'function') {
           const origFunction = args[1];
           const funcArgs = tokenData.recursive ? ['loop', 'val', 'key', 'context'] : ['val', 'key', 'context'];
-          const funcArgsTokens = funcArgs.map(t => wrap(new Token(t, origFunction)));
+          const funcArgsTokens = funcArgs.map(t => wrap(new Token(t, sourceTag)));
           args[1] = origFunction.apply(null, funcArgsTokens);
-          const allTokensInResult = allTokensInOtherFuncs(args[1]);
-          allTokensInResult.forEach(token => {
-            if (token[SourceTag] && token[SourceTag] === origFunction) {
-              throw new Error(
-                `used ${JSON.stringify(token)} from ${token[
-                  SourceTag
-                ].toString()} inside ${origFunction.toString()} in another function pass in context`
-              );
-            }
-          });
+          throwOnTokensFromOtherFuncs(args[1], sourceTag);
         } else if (typeof args[1] === 'string') {
           args[1] = createExpr(new Token('get'), args[1], new Token('val'));
         }
