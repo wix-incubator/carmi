@@ -115,11 +115,13 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
 function flattenExpression(...expressions) {
   const nextExpr = expressions;
   const output = [];
+  const visited = new WeakMap();
   while (nextExpr.length) {
     const currentExpr = nextExpr.shift();
+    visited.set(currentExpr, true);
     output.push(currentExpr);
     currentExpr.forEach(subExpression => {
-      if (subExpression instanceof Expression) {
+      if (subExpression instanceof Expression && !visited.has(subExpression)) {
         nextExpr.push(subExpression);
       }
     });
