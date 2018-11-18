@@ -10,6 +10,7 @@
   "bin": {
     "carmi": "./bin/carmi"
   },
+  "files": ["bin", "src", "typings", "babel.js", "index.js", "jsx.js", "loader.js", "macro.js"],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
