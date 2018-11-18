@@ -1,6 +1,7 @@
 node_modules
 build
 .idea
+*.iml
 .vscode/
 dist/
 benchmark/generated/

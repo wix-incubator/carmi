@@ -1,10 +1,10 @@
 {
   "name": "carmi",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "main": "./index.js",
   "typings": "./typings/index.d.ts",
   "scripts": {
-    "test": "node node_modules/jest/bin/jest.js",
+    "test": "jest",
     "release": "wnpm-release --no-shrinkwrap"
   },
   "bin": {
