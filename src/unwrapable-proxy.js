@@ -1,6 +1,8 @@
 function unwrapableProxies(proxyHandler) {
   const proxyToObjMap = new WeakMap();
 
+  const unwrappedDeep = new WeakMap();
+
   function wrap(val) {
     if (proxyToObjMap.has(val)) {
       return val;
@@ -17,13 +19,19 @@ function unwrapableProxies(proxyHandler) {
       proxy = res;
     }
     if (Array.isArray(res)) {
-      res.forEach((val, key) => {
-        res[key] = unwrap(val);
-      });
+      if (!unwrappedDeep.has(res)) {
+        unwrappedDeep.set(res, true);
+        res.forEach((val, key) => {
+          res[key] = unwrap(val);
+        });
+      }
     } else if (typeof res === 'object' && res !== null) {
-      Object.getOwnPropertyNames(res).forEach(key => {
-        res[key] = unwrap(res[key]);
-      });
+      if (!unwrappedDeep.has(res)) {
+        unwrappedDeep.set(res, true);
+        Object.getOwnPropertyNames(res).forEach(key => {
+          res[key] = unwrap(res[key]);
+        });
+      }
     }
     return res;
   }
