@@ -130,7 +130,7 @@ class NaiveCompiler {
           .map(subExpr => ',' + this.generateExpr(subExpr))
           .join('')})`;
       case 'bind':
-        return `$funcLib[${this.generateExpr(expr[1])}].bind($res${expr
+        return `($funcLib[${this.generateExpr(expr[1])}] || $res[${this.generateExpr(expr[1])}]).bind($res${expr
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
           .join('')})`;

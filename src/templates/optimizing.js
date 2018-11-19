@@ -693,7 +693,8 @@ function base() {
       }
       if (!$bindCache.has(arr)) {
         $bindCache.set(arr, (...extraArgs) => {
-          return $funcLib[arr[0]].apply($res, arr.slice(1).concat(extraArgs));
+          const fn = $funcLib[arr[0]] || $res[arr[0]];
+          return fn.apply($res, arr.slice(1).concat(extraArgs));
         });
       }
       return $bindCache.get(arr);
