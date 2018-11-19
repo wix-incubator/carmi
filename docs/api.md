@@ -22,7 +22,7 @@ CARMI exports only a few APIs -
 ## Deriving state DSL
 
 Every piece of state **root** **chain()** and everything derived from them using these APIs out of them has the
-following APIs, these are inspired by lodash to make transition to CARMI easier for developers with frontend experience
+following APIs, these are inspired by lodash to make transition to CARMI easier for developers with frontend experience.
 All of them return objects which represent the computation - remember there are no values in compile time.
 
 - **get**(key/index) - takes an object/array returns the specific key/index from the object/array
@@ -92,3 +92,6 @@ All of them return objects which represent the computation - remember there are 
 
 - **call**(functionName, ...extraArgs) - call a function called functionName from the function library passes the
   current value as the first argument, and extra arguments are well... extra
+
+- **bind**(functionName, ...args) - Creates a function that invokes functionName from the function library with args 
+  prepended to the arguments it receives.
