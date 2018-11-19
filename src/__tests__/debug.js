@@ -24,6 +24,20 @@ describe('testing array', () => {
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
   });
+  describe('expect to hoist shared expressions', async () => {
+    const once = root.map(val => val.call('tap'));
+    const twice = root.map(val => val.call('tap')).filter(val => val);
+    const model = {once, twice, set: setter(arg0) };
+    const optCode = eval(await compile(model, { compiler }));
+    const inst = optCode([false, 1, 0], funcLibrary);
+    expect(inst.once).toEqual([false, 1, 0]);
+    expect(inst.twice).toEqual([1]);
+    expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+    inst.set(2, true);
+    expect(inst.once).toEqual([false, 1, true]);
+    expect(inst.twice).toEqual([1, true]);
+    expectTapFunctionToHaveBeenCalled(1, compiler);
+  })
   describe('throw on invalids reuse of key/val/loop/context inside other functions', () => {
     expect(() => {
       root.map(item => item.map(child => child.eq(item)))
