@@ -4,6 +4,7 @@ const path = require("path");
 const { existsSync } = require("fs");
 const { readFile } = require("../src/promise-fs");
 const { file: tmpFile } = require("tmp-promise");
+const invert = require('invert-promise');
 
 const runBinary = args => exec(`${BINARY_PATH} ${args}`);
 
@@ -39,5 +40,13 @@ describe("carmi binary", () => {
     } finally {
       cleanup();
     }
+  });
+
+  it('exits with exit code 1 in case carmi fails', async () => {
+    const error = await invert(runBinary(
+      `--source dummy.js --output irrelevant --format cjs`
+    ));
+
+    expect(error.code).toBe(1);
   });
 });
