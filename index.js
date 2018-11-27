@@ -141,6 +141,7 @@ proxyHandler.get = (target, key) => {
     !tokenData &&
     typeof key === 'string' &&
     key !== '$type' &&
+    key !== '$primitive' && 
     key !== 'length' &&
     key !== 'forEach' &&
     key !== 'inspect' &&

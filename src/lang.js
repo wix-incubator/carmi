@@ -17,10 +17,10 @@ class Token {
 
 class WrappedPrimitive {
   constructor(value) {
-    this.$value = value;
+    this.$primitive = value;
   }
   toJSON() {
-    return this.$value;
+    return this.$primitive;
   }
 }
 

@@ -35,6 +35,18 @@ describe('testing array', () => {
       expect(inst.doubleNegated).toEqual([true, false, false, false, false]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
+    it('chain should work in loop and on primitives', async () => {
+      const model = {
+        test1: chain({test: true}),
+        test2: chain({test: chain(true)}),
+        test3: chain({test: chain(true).not()})
+      }
+      const optCode = eval(await compile(model, { compiler }));
+      const inst = optCode([], funcLibrary);
+      expect(inst.test1).toEqual({test:true});
+      expect(inst.test2).toEqual({test:true});
+      expect(inst.test3).toEqual({test:false});
+    });
   });
   describe('expect to hoist shared expressions', async () => {
     const once = root.map(val => val.call('tap'));
