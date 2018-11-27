@@ -798,6 +798,9 @@ function base() {
         /* DEBUG */
         $ast: () => {
           return $AST;
+        },
+        $source: () => {
+          return /* SOURCE_FILES */;
         }
         /* DEBUG-END */
       }

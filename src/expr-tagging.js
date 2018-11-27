@@ -14,6 +14,7 @@ const {
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
 const objectHash = require('object-hash')
+const path = require('path');
 
 let exprCounter = 0;
 
@@ -155,13 +156,20 @@ const getRewriteUsingTopLevels = (namesByExpr) => {
   return rewriteUsingTopLevels;
 }
 
+function tagToSimpleFilename(tag) {
+  const lineParts = tag.split(path.sep);
+  const fileName = lineParts[lineParts.length - 1].replace(/\).*/, '');
+  const simpleName = fileName.split('.js:')[0]
+    .replace(/\.carmi$/, '')
+    .split('.')
+    .find(x => x);
+  return simpleName;
+}
+
 function generateName(namesByExpr, expr) {
   if (expr[0][SourceTag]) {
-    const simpleName = expr[0][SourceTag].split('.js:')[0]
-      .replace(/\.carmi$/, '')
-      .split('.')
-      .find(x => x);
-    return '_' + simpleName + '_' + expr[0][SourceTag].split(':')[1] + '_';
+    const tag = expr[0][SourceTag];
+    return '_' + [tagToSimpleFilename(tag)].concat(tag.split(':').slice(1)).join('_') + '_';
   }
   return _(expr)
     .tail()
@@ -401,5 +409,6 @@ module.exports = {
   splitSettersGetters,
   normalizeAndTagAllGetters,
   allPathsInGetter,
-  findFuncExpr
+  findFuncExpr,
+  tagToSimpleFilename
 };

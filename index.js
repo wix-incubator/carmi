@@ -26,7 +26,7 @@ compilerTypes.optimizing = require('./src/optimizing-compiler');
 try {
   compilerTypes.flow = require('./src/flow-compiler');
   compilerTypes.rust = require('./src/rust-compiler');
-} catch (e) {}
+} catch (e) { }
 
 const path = require('path');
 
@@ -36,7 +36,7 @@ const objectHash = require('object-hash');
 let uglify;
 try {
   uglify = require('rollup-plugin-uglify');
-} catch (e) {}
+} catch (e) { }
 const virtualReq = require('rollup-plugin-virtual');
 const virtual = virtualReq.default ? virtualReq.default : virtualReq;
 const prettier = require('prettier');
@@ -55,9 +55,7 @@ function currentLine() {
     lines
       .slice(1)
       .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
-  const lineParts = externalLine.split(path.sep);
-  const res = lineParts[lineParts.length - 1].replace(/\).*/, '');
-  return res;
+  return externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? '' + parseInt(str, 10) : str).join(':')
 }
 
 const GLOBAL_TOKEN = '__$CARMI$__';
@@ -113,7 +111,7 @@ function createExpr(...args) {
 }
 
 const tokensNotAllowedToReuseFromOtherExpressions = {
-  'val':true,
+  'val': true,
   'key': true,
   'loop': true,
   'context': true
@@ -208,7 +206,7 @@ async function compile(model, options) {
         .readFileSync(hashFile)
         .toString();
       return result;
-    } catch (e) {}
+    } catch (e) { }
   }
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
@@ -220,7 +218,7 @@ async function compile(model, options) {
   if (options.prettier) {
     try {
       source = prettier.format(rawSource, { parser: 'babylon' });
-    } catch (e) {}
+    } catch (e) { }
   }
   let result;
   if (!options.format && compiler.lang === 'js') {
@@ -268,7 +266,7 @@ exported.withName = (name, val) => {
     const tokenData = TokenTypeData[tokenType];
     if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
       name = name.replace(/[\W_]+/g, '');
-      val[0][SourceTag] = name + '__' + val[0][SourceTag];
+      val[0][SourceTag] = val[0][SourceTag] + ":" + name;
     } else {
       throw new Error('can only name collection functions:' + name);
     }

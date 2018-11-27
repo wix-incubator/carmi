@@ -1,7 +1,6 @@
-const { Expr, Token, Setter, Expression, SetterExpression, TopLevel, SpliceSetterExpression } = require('./lang');
+const { Expr, Token, Expression, SpliceSetterExpression, SourceTag } = require('./lang');
 const _ = require('lodash');
-const { splitSettersGetters, topologicalSortGetters, tagAllExpressions } = require('./expr-tagging');
-let idx = 0;
+const { splitSettersGetters, topologicalSortGetters, tagAllExpressions, tagToSimpleFilename } = require('./expr-tagging');
 const objectHash = require('object-hash');
 
 const nativeOps = {
@@ -73,7 +72,7 @@ class NaiveCompiler {
       case 'range':
         return `range(${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
           expr.length > 3 ? this.generateExpr(expr[3]) : '1'
-        })`;
+          })`;
       case 'keys':
       case 'values':
       case 'assign':
@@ -106,7 +105,7 @@ class NaiveCompiler {
       case 'recursiveMapValues':
         return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
-        })`;
+          })`;
       case 'loop':
         return 'loop';
       case 'recur':
@@ -236,6 +235,15 @@ class NaiveCompiler {
       NAME: this.options.name,
       AST: () => JSON.stringify(this.getters, null, 2),
       DEBUG: () => (_whole, block) => (this.options.debug ? block : ''),
+      SOURCE_FILES: () => () => this.options.debug ? (JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
+        const tag = getter instanceof Expression && getter[0][SourceTag];
+        const simpleFileName = tag && tagToSimpleFilename(tag);
+        if (simpleFileName && !acc[simpleFileName]) {
+          const fileName = getter[0][SourceTag].split(':')[0]
+          acc[simpleFileName] = require('fs').readFileSync(fileName).toString();
+        }
+        return acc;
+      }, {}))) : '',
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>
         topologicalSortGetters(this.getters)

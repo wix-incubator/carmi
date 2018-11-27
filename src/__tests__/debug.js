@@ -10,6 +10,18 @@ const _ = require('lodash');
 
 describe('testing array', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
+    it('should store source files and ast in debug mode', async () => {
+      const makeSureThisCanBeFound = root.map(item => item.mult(2));
+      const res = makeSureThisCanBeFound.map(item => item.plus(80));
+      const model = { res, set: setter(arg0) }
+      const optCode = eval(await compile(model, { compiler, debug: true }));
+      const inst = optCode([1, 2, 3], funcLibrary);
+      expect(inst.res).toEqual([82, 84, 86]);
+      const sources = JSON.stringify(inst.$source());
+      const ast = JSON.stringify(inst.$ast());
+      // expect(sources.indexOf('makeSureThisCanBeFound')).toBeGreaterThan(-1)
+      expect(ast.indexOf('80')).toBeGreaterThan(-1)
+    });
     it('withName', async () => {
       const negated = withName('negated', root.map(val => val.not()));
       const model = { doubleNegated: negated.map(val => val.not().call('tap')), set: setter(arg0) };
@@ -27,7 +39,7 @@ describe('testing array', () => {
   describe('expect to hoist shared expressions', async () => {
     const once = root.map(val => val.call('tap'));
     const twice = root.map(val => val.call('tap')).filter(val => val);
-    const model = {once, twice, set: setter(arg0) };
+    const model = { once, twice, set: setter(arg0) };
     const optCode = eval(await compile(model, { compiler }));
     const inst = optCode([false, 1, 0], funcLibrary);
     expect(inst.once).toEqual([false, 1, 0]);
@@ -43,10 +55,10 @@ describe('testing array', () => {
       root.map(item => item.map(child => child.eq(item)))
     }).toThrowError();
     expect(() => {
-      root.map((item,val) => item.map(child => child.eq(val)))
+      root.map((item, val) => item.map(child => child.eq(val)))
     }).toThrowError();
     expect(() => {
-      root.map((item,val,context) => item.map(child => child.eq(context)), root.get(1))
+      root.map((item, val, context) => item.map(child => child.eq(context)), root.get(1))
     }).toThrowError();
   })
 });
