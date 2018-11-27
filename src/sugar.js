@@ -6,4 +6,8 @@ function getIn(obj, path) {
     }, obj);
 }
 
-module.exports = { getIn };
+function includes(collection, val) {
+  return collection.anyValues(item => item.eq(val));
+}
+
+module.exports = { getIn, includes };
