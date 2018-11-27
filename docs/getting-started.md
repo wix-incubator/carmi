@@ -32,12 +32,19 @@ Create your first model
 
 ```js
 /// model.carmi.js
-const { root, arg0 } = require('carmi');
+const { root, arg0, setter } = require('carmi');
 const model = {
   doubled: root.map(item => item.mult(2)),
   setItem: setter(arg0)
 };
 module.exports = model;
+```
+
+
+CLI usage
+
+```bash
+npx carmi --source ./model.carmi.js --output ./model.js --format cjs
 ```
 
 Configure webpack
