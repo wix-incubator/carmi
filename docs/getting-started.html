@@ -16,12 +16,15 @@ again</p>
 </code></pre>
 <p>Create your first model</p>
 <pre><code class="hljs css languages- js"><span class="hljs-comment">/// model.carmi.js</span>
-<span class="hljs-keyword">const</span> { root, arg0 } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'carmi'</span>);
+<span class="hljs-keyword">const</span> { root, arg0, setter } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'carmi'</span>);
 <span class="hljs-keyword">const</span> model = {
   <span class="hljs-attr">doubled</span>: root.map(<span class="hljs-function"><span class="hljs-params">item</span> =&gt;</span> item.mult(<span class="hljs-number">2</span>)),
   <span class="hljs-attr">setItem</span>: setter(arg0)
 };
 <span class="hljs-built_in">module</span>.exports = model;
+</code></pre>
+<p>CLI usage</p>
+<pre><code class="hljs css languages- bash">npx carmi --<span class="hljs-built_in">source</span> ./model.carmi.js --output ./model.js --format cjs
 </code></pre>
 <p>Configure webpack</p>
 <p>Within your webpack configuration object, you'll need to add the Carmi loader to the list of modules:</p>
@@ -64,7 +67,7 @@ inputs as read only otherwise bugs will happen</li>
 derived state to the external world, the current method to implement these is using the <strong>call</strong> api to trigger the
 reaction on your values.</p>
 <pre><code class="hljs css languages- js"><span class="hljs-comment">/// model-reactions.carmi.js</span>
-<span class="hljs-keyword">const</span> { root, arg0 } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'carmi'</span>);
+<span class="hljs-keyword">const</span> { root, arg0, setter } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'carmi'</span>);
 <span class="hljs-keyword">const</span> model = {
   <span class="hljs-attr">doubled</span>: root.map(<span class="hljs-function">(<span class="hljs-params">item, idx</span>) =&gt;</span> item.mult(<span class="hljs-number">2</span>).call(<span class="hljs-string">'logItemChanged'</span>, idx)).call(<span class="hljs-string">'logArrayChanged'</span>),
   <span class="hljs-attr">setItem</span>: setter(arg0)
