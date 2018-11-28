@@ -12,13 +12,6 @@ const {
   WrappedPrimitive
 } = require('./src/lang');
 
-const sugar = require('./src/sugar');
-Object.keys(sugar).forEach(key => {
-  if (TokenTypeData[key]) {
-    throw new Error(`There is a builtin token with this sugar name ${key}`);
-  }
-});
-
 const compilerTypes = {};
 compilerTypes.naive = require('./src/naive-compiler');
 compilerTypes.simple = require('./src/simple-compiler');
@@ -134,6 +127,14 @@ function throwOnTokensFromOtherFuncs(expr, tag) {
 }
 
 const chain = val => wrap(convertArrayAndObjectsToExpr(val));
+
+const sugar = require('./src/sugar')(chain);
+Object.keys(sugar).forEach(key => {
+  if (TokenTypeData[key]) {
+    throw new Error(`There is a builtin token with this sugar name ${key}`);
+  }
+});
+
 
 proxyHandler.get = (target, key) => {
   const tokenData = TokenTypeData[key];
