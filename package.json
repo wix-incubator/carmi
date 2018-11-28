@@ -48,7 +48,7 @@
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",
     "invert-promise": "^1.0.1",
-    "jest": "^21.2.1",
+    "jest": "^23.6.0",
     "mobx": "^5.0.2",
     "random-seed": "^0.3.0",
     "tmp-promise": "^1.0.5",
