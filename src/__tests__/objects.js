@@ -264,5 +264,17 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
+    it('assignIn', async () => {
+      const model = {
+        defined: root.assignIn([{a: 'women'}]),
+        notDefined: root.assignIn([{x: 'men'}])
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = { a: { b: 1 } };
+
+      const inst = optModel(initialData);
+      expect(inst.defined.a).toEqual('women');
+      expect(inst.notDefined.x).toEqual('men');
+    });
   });
 });
