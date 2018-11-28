@@ -99,7 +99,7 @@ reaction on your values.
 
 ```js
 /// model-reactions.carmi.js
-const { root, arg0 } = require('carmi');
+const { root, arg0, setter } = require('carmi');
 const model = {
   doubled: root.map((item, idx) => item.mult(2).call('logItemChanged', idx)).call('logArrayChanged'),
   setItem: setter(arg0)
