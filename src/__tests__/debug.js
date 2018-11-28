@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, arg1, setter, splice, withName } = require('../../index');
+const { compile, chain, root, arg0, arg1, setter, splice, withName } = require('../../index');
 const {
   describeCompilers,
   currentValues,
