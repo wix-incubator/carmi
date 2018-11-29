@@ -16,6 +16,9 @@ const nativeOps = {
   mod: '%'
 };
 
+const nativeFunctions = {
+  startsWith: 'String.prototype.startsWith'
+}
 class NaiveCompiler {
   constructor(model, options) {
     const { getters, setters } = splitSettersGetters(model);
@@ -90,6 +93,8 @@ class NaiveCompiler {
       case 'div':
       case 'mod':
         return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
+      case 'startsWith':
+        return `(${nativeFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'get':
         return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
       case 'mapValues':
