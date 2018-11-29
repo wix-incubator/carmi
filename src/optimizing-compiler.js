@@ -221,7 +221,7 @@ class OptimizingCompiler extends NaiveCompiler {
 
   invalidates(path) {
     const refsToPath = findReferencesToPathInAllGetters(path, this.getters);
-    if (!_.isEmpty(refsToPath)) {
+    if (!_.isEmpty(refsToPath) || path[1].indexOf('$') === -1) {
       return true;
     }
     return false;
