@@ -18,6 +18,10 @@ module.exports = function(chain) {
         ]).assign();
     }
 
-  return { getIn, includes, assignIn };
+    function reduce(collection, predicate, initialValue) {
+        return collection.recursiveMap((loop, value, index) => predicate(index.eq(0).ternary(initialValue, index.minus(1).recur(loop)), value, index)).get(collection.size().minus(1))
+    }
+
+    return { getIn, includes, assignIn, reduce };
 };
 

@@ -270,6 +270,20 @@ describe('testing array', () => {
       expect(inst.result).toEqual([0, 6]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
+    it('reduce', async () => {
+      const model = {
+        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [1, 3, 5];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(9);
+      expectTapFunctionToHaveBeenCalled(3, compiler);
+      inst.set(2, 1);
+      expect(inst.result).toEqual(5);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    });
     it('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
       const indexes = root.map((item, idx) => idx);
@@ -314,5 +328,6 @@ describe('testing array', () => {
       expect(inst.doubleFunctions[0]()).toEqual(12);
       expect(inst.doubleFunctions[1]()).toEqual(8);
     });
+
   });
 });
