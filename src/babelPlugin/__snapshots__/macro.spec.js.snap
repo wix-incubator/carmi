@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`carmi-react 1`] = `
+exports[`macros carmi-react: carmi-react 1`] = `
 "
 // @carmi
 import carmi from './macro'
@@ -96,7 +96,7 @@ module.exports = function () {
 "
 `;
 
-exports[`magic-comment 1`] = `
+exports[`macros magic-comment: magic-comment 1`] = `
 "
 // @carmi
 import carmi from './macro'
@@ -162,7 +162,7 @@ module.exports = function () {
 "
 `;
 
-exports[`template-literal 1`] = `
+exports[`macros template-literal: template-literal 1`] = `
 "
 const carmi = require('./macro')
 
