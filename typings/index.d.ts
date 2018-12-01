@@ -1,101 +1,103 @@
 export as namespace carmi;
-
-type StringNumberPrimitive = string | number | PrimitiveExpression;
-
-declare class BaseExpression {
-  public not(): PrimitiveExpression;
-  public ternary(ifTrueValue: any, elseValue: any): Expression;
-  public recur(loopExpression: Expression): Expression;
-  public call(functionName: string, ...args: any[]): Expression;
+interface ExpressionLoopContext {}
+interface Expression {
+  call(functionName: string, ...args: any[]) : GetterExpression
+  bind(functionName: string, ...args: any[]) : GetterExpression    
 }
 
-declare class PrimitiveExpression extends BaseExpression {
-  public range(): ArrayExpression;
-  public eq(compareTo: Expression): PrimitiveExpression;
-  public gt(compareTo: Expression): PrimitiveExpression;
-  public lt(compareTo: Expression): PrimitiveExpression;
-  public gte(compareTo: Expression): PrimitiveExpression;
-  public lte(compareTo: Expression): PrimitiveExpression;
-  public plus(to: Expression): PrimitiveExpression;
-  public minus(to: Expression): PrimitiveExpression;
-  public mult(to: Expression): PrimitiveExpression;
-  public div(to: Expression): PrimitiveExpression;
-  public mod(to: Expression): PrimitiveExpression;
+type MapPredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ContextType extends Expression> =
+  (value?: ValueType, key?: KeyType, context?: ContextType) => ReturnType
+
+type RecursePredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ContextType extends Expression> =
+  (loop: ExpressionLoopContext, value?: ValueType, key?: KeyType, context?: ContextType) => ReturnType
+
+interface PrimitiveExpression extends Expression {
+  not(): BoolExpression
+  ternary(consequence: Expression, alternate: Expression): void
+  eq(other: PrimitiveExpression): BoolExpression
+  gt(other: StringOrNumberArgument): BoolExpression
+  gte(other: StringOrNumberArgument): BoolExpression
+  lt(other: StringOrNumberArgument): BoolExpression
+  lte(other: StringOrNumberArgument): BoolExpression
+  recur(loop: ExpressionLoopContext): GetterExpression
 }
 
-declare class ArrayOrObjectExpression extends BaseExpression {
-  public get(idx: StringNumberPrimitive): Expression;
-  public size(): PrimitiveExpression;
+interface StringExpression extends PrimitiveExpression {
+  startsWith(s: StringArgument) : BoolExpression
+  endsWith(s: StringArgument) : BoolExpression
+  plus(num: StringArgument): StringExpression
+  toUpperCase(): StringExpression
+  toLowerCase(): StringExpression
 }
 
-type FuncReturnsExpression = (
-  val: Expression,
-  key: PrimitiveExpression,
-  context: Expression
-) => ArrayExpression | ObjectExpression | PrimitiveExpression;
-type FuncThatReturnsRecursiveExpression = (
-  loop: PrimitiveExpression,
-  val: Expression,
-  key: PrimitiveExpression,
-  context: Expression
-) => ArrayExpression | ObjectExpression | PrimitiveExpression;
-
-declare class ObjectExpression extends ArrayOrObjectExpression {
-  public mapValues(func: string | number | Expression | FuncReturnsExpression, context?: any): ObjectExpression;
-  public recursiveMapValues(
-    func: string | number | Expression | FuncThatReturnsRecursiveExpression,
-    context?: any
-  ): ObjectExpression;
-  public anyValues(func: string | number | Expression | FuncReturnsExpression, context?: any): PrimitiveExpression;
-  public filterBy(func: string | number | Expression | FuncReturnsExpression, context?: any): ObjectExpression;
-  public mapKeys(func: string | number | Expression | FuncReturnsExpression, context?: any): ObjectExpression;
-  public groupBy(func: string | number | Expression | FuncReturnsExpression, context?: any): ObjectExpression;
-  public values(): ArrayExpression;
-  public keys(): ArrayExpression;
+interface NumberExpression extends PrimitiveExpression {
+  minus(value: StringOrNumberArgument): NumberExpression
+  mult(value: StringOrNumberArgument): NumberExpression
+  plus(num: StringOrNumberArgument): NumberExpression
+  plus(str: StringArgument): StringExpression
+  div(value: StringOrNumberArgument): NumberExpression
+  mod(value: StringOrNumberArgument): NumberExpression
+  range(start?: NumberArgument, skip?: NumberArgument): ArrayExpression<NumberExpression>
 }
-declare class ArrayExpression extends ArrayOrObjectExpression {
-  public map(func: string | number | Expression | FuncReturnsExpression, context?: any): ArrayExpression;
-  public recursiveMap(
-    func: string | number | Expression | FuncThatReturnsRecursiveExpression,
-    context?: any
-  ): ArrayExpression;
-  public any(func: string | number | Expression | FuncReturnsExpression, context?: any): PrimitiveExpression;
-  public keyBy(func: string | number | Expression | FuncReturnsExpression, context?: any): ObjectExpression;
-  public filter(func: string | number | Expression | FuncReturnsExpression, context?: any): ArrayExpression;
-  public assign(): ObjectExpression;
-  public defaults(): ObjectExpression;
+type StringArgument = StringExpression | string
+type NumberArgument = NumberExpression | number
+type StringOrNumberArgument = StringArgument | NumberArgument
+interface BoolExpression extends PrimitiveExpression {
 }
 
-type Expression = ArrayExpression & ObjectExpression & PrimitiveExpression;
-
-declare class Token {
-  private $type;
+interface ObjectOrArrayExpression<ValueType extends Expression> extends Expression {
+  get(index: StringOrNumberArgument): ValueType
+  size(): NumberExpression
 }
 
-type PathSegment = Token | string | number;
+interface ArrayExpression<ValueType extends Expression> extends ObjectOrArrayExpression<ValueType> {
+  map<ContextType extends Expression, RetType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, RetType, ContextType>, context?: ContextType): ArrayExpression<RetType>
+  any<ContextType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ContextType>, context?: ContextType): BoolExpression
+  keyBy<ContextType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, StringExpression | NumberExpression, ContextType>, context?: ContextType): ObjectExpression<ValueType>
+  filter<ContextType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ContextType>, context?: ContextType): ArrayExpression<ValueType>
+  assign(): ObjectExpression<ValueType>
+  defaults(): ObjectExpression<ValueType>
+  recursiveMap<ContextType extends Expression, RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ContextType>, context?: ContextType): ArrayExpression<RetType> 
+  reduce<ContextType extends Expression, RetType extends Expression>(predicate: (aggregate: RetType, value: ValueType, key: NumberExpression) => RetType, initialValue: RetType, context: ContextType): RetType
+  concat(...arrays: ArrayExpression<ValueType>[]): ArrayExpression<ValueType>
+}
 
+interface ObjectExpression<ValueType extends Expression> extends ObjectOrArrayExpression<ValueType> {
+  mapValues<ContextType extends Expression, RetType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, RetType, ContextType>, context?: ContextType): ObjectExpression<RetType>
+  mapKeys<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ContextType>, context?: ContextType): ObjectExpression<ValueType>
+  anyValues<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ContextType>, context?: ContextType): BoolExpression
+  filterBy<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ContextType>, context?: ContextType): ObjectExpression<ValueType>
+  groupBy<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ContextType>, context?: ContextType): ObjectExpression<ObjectExpression<ValueType>>
+  values(): ArrayExpression<ValueType>
+  keys(): ArrayExpression<StringExpression | NumberExpression>
+  recursiveMapValues<ContextType extends Expression, RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ContextType>, context?: ContextType): ObjectExpression<RetType>
+}
+
+type AnyLeafExpression = BoolExpression & NumberExpression & StringExpression
+type AnyExpression<T extends Expression> = ObjectExpression<T> & ArrayExpression<T> & AnyLeafExpression
+type GetterExpression = AnyExpression<AnyExpression<AnyLeafExpression>>
+
+export function chain(str: string) : StringExpression
+export function chain(n: number) : NumberExpression
+export function chain(b: boolean) : BoolExpression
+export function chain<T extends Expression>(o: object) : ObjectExpression<T> | ArrayExpression<T>
+declare class Token {private $type: string}
+type PathSegment = Token | string | number
 declare class SetterExpression {}
 declare class SpliceExpression {}
+export function and<A extends Expression, B extends Expression>(a: A, b: B): A | B
+export function or<A extends Expression, B extends Expression>(a: A, b: B): A | B
+export function and(...args: Expression[]): GetterExpression
+export function or(...args: Expression[]): GetterExpression
+type GetterOrSetterExpression = SetterExpression | SpliceExpression | GetterExpression
 
-declare interface Model {
-  [name: string]: Expression | SetterExpression | SpliceExpression;
-}
 
-export const root: Expression;
-export const arg0: Token;
-export const arg1: Token;
-export const arg2: Token;
-export const loop: PrimitiveExpression;
-export const key: PrimitiveExpression;
-export const val: Expression;
-export const context: Expression;
-
-export function or(...expr: any[]): Expression;
-export function and(...expr: any[]): Expression;
-export function chain(thingToWrap: boolean | number | string): PrimitiveExpression;
-export function chain(thingToWrap: any[]): ArrayExpression;
-export function chain(thingToWrap: { [id: string]: any }): ObjectExpression;
-
-export function compile(model: Model, options?: any): string | Promise<string>;
-export function setter(...path: PathSegment[]): SetterExpression;
-export function splice(...path: PathSegment[]): SpliceExpression;
+export function setter(...path: PathSegment[]) : SetterExpression
+export function splice(...path: PathSegment[]) : SpliceExpression
+export function compile(transformations: {[name: string]: GetterOrSetterExpression}, options?: object) : string | Promise<String>
+export const root : GetterExpression
+export const arg0 : Token
+export const arg1 : Token
+export const arg2 : Token
+export const key: PrimitiveExpression
+export const val: GetterExpression
