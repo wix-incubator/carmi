@@ -35,6 +35,10 @@ module.exports = function(chain) {
     return collection.values().filter((val, key) => predicate(val, key, ctx)).get(0)
   }
 
-    return { getIn, includes, assignIn, reduce, concat, find };
+  function join(arr, seperator) {
+    return reduce(arr, (acc, value, index) => index.eq(0).ternary(acc.plus(value), acc.plus(seperator).plus(value)), '')
+  }
+
+    return { getIn, includes, assignIn, reduce, concat, find, join };
 };
 
