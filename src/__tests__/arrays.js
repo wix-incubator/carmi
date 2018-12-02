@@ -294,6 +294,28 @@ describe('testing array', () => {
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(0);
     });
+    it('sum', async () => {
+      const model = {
+        result: root.sum(),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [1, 3, 5];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(9);
+      inst.set(2, 1);
+      expect(inst.result).toEqual(5);
+    });
+    it('sum with empty array', async () => {
+      const model = {
+        result: root.sum(),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(0);
+    });
     it('concat', async () => {
       const model = {
         result: root.get('a').concat(root.get('b')),

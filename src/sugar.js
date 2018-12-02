@@ -39,6 +39,10 @@ module.exports = function(chain) {
     return reduce(arr, (acc, value, index) => index.eq(0).ternary(acc.plus(value), acc.plus(seperator).plus(value)), '')
   }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join };
+  function sum(arr) {
+      return reduce(arr, (acc, value) => acc.plus(value), 0)
+  }
+
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum };
 };
 
