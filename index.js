@@ -276,4 +276,6 @@ exported.withName = (name, val) => {
   }
 };
 
+exported.inferFromModel = (rootExpression, exampleModel) => rootExpression
+
 module.exports = exported;

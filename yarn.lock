@@ -3278,6 +3278,11 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
+typescript@^3.2.1:
+  version "3.2.1"
+  resolved "https://repo.dev.wixpress.com/artifactory/api/npm/npm-repos/typescript/-/typescript-3.2.1.tgz#0b7a04b8cf3868188de914d9568bd030f0c56192"
+  integrity sha1-C3oEuM84aBiN6RTZVovQMPDFYZI=
+
 typical@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/typical/-/typical-2.6.1.tgz#5c080e5d661cbbe38259d2e70a3c7253e873881d"
