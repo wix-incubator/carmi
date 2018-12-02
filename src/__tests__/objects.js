@@ -264,6 +264,50 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
+    it('includes', async () => {
+      const model = {
+        includes: root.includes('something'),
+        notIncludes: root.includes('nothing')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = { a: 'something' };
+
+      const inst = optModel(initialData);
+      expect(inst.includes).toEqual(true);
+      expect(inst.notIncludes).toEqual(false);
+    });
+    describe('find', () => {
+      it('should find value if exists', async () => {
+        const initialData = { a: 'nothing', b: 'something' };
+        const model = {
+          find: root.find(val => val.eq('something')),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.find).toEqual('something');
+      });
+      it('should return undefined if not exists', async () => {
+        const initialData = { a: 'nothing', b: 'something' };
+        const model = {
+          find: root.find(val => val.eq('notExists')),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.find).toEqual(undefined);
+      });
+      it('should find using context', async () => {
+        const initialData = { a: 'nothing', b: 'something' };
+        const model = {
+          find: root.find((val, key, ctx) => val.eq(ctx), root.get('b')),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.find).toEqual('something');
+      });
+    })
     it('assignIn', async () => {
       const model = {
         defined: root.assignIn([{a: 'women'}]),
