@@ -9,3 +9,4 @@ export var splice = carmi.splice
 export var chain = carmi.chain
 export var and = carmi.and
 export var or = carmi.or
+export var forModel = carmi.forModel

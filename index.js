@@ -276,4 +276,6 @@ exported.withName = (name, val) => {
   }
 };
 
+exported.forModel = () => root
+
 module.exports = exported;

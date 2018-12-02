@@ -5,11 +5,11 @@ interface Expression {
   bind(functionName: string, ...args: any[]) : GetterExpression    
 }
 
-type MapPredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ContextType extends Expression> =
-  (value?: ValueType, key?: KeyType, context?: ContextType) => ReturnType
+type MapPredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
+  (value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
 
-type RecursePredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ContextType extends Expression> =
-  (loop: ExpressionLoopContext, value?: ValueType, key?: KeyType, context?: ContextType) => ReturnType
+type RecursePredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
+  (loop: ExpressionLoopContext, value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
 
 interface PrimitiveExpression extends Expression {
   not(): BoolExpression
@@ -45,32 +45,32 @@ type StringOrNumberArgument = StringArgument | NumberArgument
 interface BoolExpression extends PrimitiveExpression {
 }
 
-interface ObjectOrArrayExpression<ValueType extends Expression> extends Expression {
-  get(index: StringOrNumberArgument): ValueType
+interface ObjectOrArrayExpression<ValueType extends Expression, ModelType> extends Expression {
+  get<IndexType>(index: IndexType): IndexType extends keyof ModelType ? NativeToExpression<ModelType[IndexType]> : ValueType
   size(): NumberExpression
 }
 
-interface ArrayExpression<ValueType extends Expression> extends ObjectOrArrayExpression<ValueType> {
-  map<ContextType extends Expression, RetType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, RetType, ContextType>, context?: ContextType): ArrayExpression<RetType>
-  any<ContextType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ContextType>, context?: ContextType): BoolExpression
-  keyBy<ContextType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, StringExpression | NumberExpression, ContextType>, context?: ContextType): ObjectExpression<ValueType>
-  filter<ContextType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ContextType>, context?: ContextType): ArrayExpression<ValueType>
+interface ArrayExpression<ValueType extends Expression, ModelType = ValueType[]> extends ObjectOrArrayExpression<ValueType, ModelType> {
+  map<ScopeType extends Expression, RetType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, RetType, ScopeType>, scope?: ScopeType): ArrayExpression<RetType>
+  any<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): BoolExpression
+  keyBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
+  filter<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): ArrayExpression<ValueType>
   assign(): ObjectExpression<ValueType>
   defaults(): ObjectExpression<ValueType>
-  recursiveMap<ContextType extends Expression, RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ContextType>, context?: ContextType): ArrayExpression<RetType> 
-  reduce<ContextType extends Expression, RetType extends Expression>(predicate: (aggregate: RetType, value: ValueType, key: NumberExpression) => RetType, initialValue: RetType, context: ContextType): RetType
+  recursiveMap<ScopeType extends Expression, RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ScopeType>, scope?: ScopeType): ArrayExpression<RetType> 
+  reduce<ScopeType extends Expression, RetType extends Expression>(predicate: (aggregate: RetType, value: ValueType, key: NumberExpression) => RetType, initialValue: RetType, scope: ScopeType): RetType
   concat(...arrays: ArrayExpression<ValueType>[]): ArrayExpression<ValueType>
 }
 
-interface ObjectExpression<ValueType extends Expression> extends ObjectOrArrayExpression<ValueType> {
-  mapValues<ContextType extends Expression, RetType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, RetType, ContextType>, context?: ContextType): ObjectExpression<RetType>
-  mapKeys<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ContextType>, context?: ContextType): ObjectExpression<ValueType>
-  anyValues<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ContextType>, context?: ContextType): BoolExpression
-  filterBy<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ContextType>, context?: ContextType): ObjectExpression<ValueType>
-  groupBy<ContextType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ContextType>, context?: ContextType): ObjectExpression<ObjectExpression<ValueType>>
+interface ObjectExpression<ValueType extends Expression, ModelType = {[name: string]: ValueType}> extends ObjectOrArrayExpression<ValueType, ModelType> {
+  mapValues<ScopeType extends Expression, RetType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, RetType, ScopeType>, scope?: ScopeType): ObjectExpression<RetType>
+  mapKeys<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
+  anyValues<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): BoolExpression
+  filterBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
+  groupBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ObjectExpression<ValueType>>
   values(): ArrayExpression<ValueType>
   keys(): ArrayExpression<StringExpression | NumberExpression>
-  recursiveMapValues<ContextType extends Expression, RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ContextType>, context?: ContextType): ObjectExpression<RetType>
+  recursiveMapValues<ScopeType extends Expression, RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ScopeType>, scope?: ScopeType): ObjectExpression<RetType>
 }
 
 type AnyLeafExpression = BoolExpression & NumberExpression & StringExpression
@@ -101,3 +101,15 @@ export const arg1 : Token
 export const arg2 : Token
 export const key: PrimitiveExpression
 export const val: GetterExpression
+
+interface NativeArrayToExpression<T, A> extends ArrayExpression<NativeToExpression<T>, A> {}
+interface NativeObjectToExpression<T, O> extends ObjectExpression<NativeToExpression<T>, O> {}
+type NativeToExpression<T> =
+                T extends any[] ? NativeArrayToExpression<T[keyof T], T> : 
+                T extends object ? NativeObjectToExpression<T[keyof T], T> :
+                T extends number ? NumberExpression :
+                T extends string ? StringExpression :
+                T extends boolean ? BoolExpression : 
+                GetterExpression
+
+export function forModel<T>(v: T) : NativeToExpression<T>
