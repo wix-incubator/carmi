@@ -318,6 +318,24 @@ describe('testing array', () => {
       inst.set(2, 1);
       expect(inst.result).toEqual([1, 3, 1]);
     });
+    it('join', async () => {
+      const initialData = ['a', 'b', 'c'];
+      const model = {
+        result: root.join('~')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual('a~b~c');
+    });
+    it('join with empty array', async () => {
+      const initialData = [];
+      const model = {
+        result: root.join('~')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual('');
+    });
     it('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
       const indexes = root.map((item, idx) => idx);
