@@ -27,6 +27,10 @@ module.exports = function(chain) {
                 .get(collection.size().minus(1)))
     }
 
-    return { getIn, includes, assignIn, reduce };
+    function concat(a, b) {
+        return a.size().plus(b.size()).range().map(v => v.lt(a.size()).ternary(a.get(v), b.get(v.minus(a.size()))))
+    }
+
+    return { getIn, includes, assignIn, reduce, concat };
 };
 
