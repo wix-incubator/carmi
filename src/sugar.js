@@ -31,6 +31,10 @@ module.exports = function(chain) {
         return a.size().plus(b.size()).range().map(v => v.lt(a.size()).ternary(a.get(v), b.get(v.minus(a.size()))))
     }
 
-    return { getIn, includes, assignIn, reduce, concat };
+  function find(collection, predicate, ctx) {
+    return collection.values().filter((val, key) => predicate(val, key, ctx)).get(0)
+  }
+
+    return { getIn, includes, assignIn, reduce, concat, find };
 };
 
