@@ -164,19 +164,17 @@ class NaiveCompiler {
       .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:$setter((${args.concat(['len', '...newItems']).join(',')}) => {
         ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
-        recalculate();
-    }`;
+    })`;
     }
-    return `${name}:(${args.concat('value').join(',')}) => {
+    return `${name}:$setter((${args.concat('value').join(',')}) => {
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}
               } else {
                 ${this.pathToString(setterExpr)} = value;
               }
-              recalculate();
-          }`;
+          })`;
   }
 
   exprTemplatePlaceholders(expr, funcName) {

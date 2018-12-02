@@ -1,5 +1,5 @@
 function base() {
-  function $NAME($model, $funcLib) {
+  function $NAME($model, $funcLib, $batchingStrategy) {
     'use strict';
     const $res = { $model };
     const $listeners = new Set();
@@ -764,6 +764,8 @@ function base() {
 
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
+    let $batchPending = [];
+
     function recalculate() {
       if ($inBatch) {
         return;
@@ -772,6 +774,22 @@ function base() {
       $tainted = new WeakSet();
       $listeners.forEach(callback => callback());
     }
+
+    function $setter(func) {
+      return (...args) => {
+        if (!$inBatch && $batchingStrategy) {
+          $batchingStrategy.call($res);
+          $inBatch = true;
+        }
+        if ($inBatch) {
+          $batchPending.push({func, args})
+        } else {
+          func.apply($res, args);
+          recalculate();
+        }
+      }
+    }
+
     Object.assign(
       $res,
       {
@@ -781,13 +799,16 @@ function base() {
         $startBatch: () => ($inBatch = true),
         $endBatch: () => {
           $inBatch = false;
+          $batchPending.forEach(({func, args}) => {
+            func.apply($res, args);
+          });
+          $batchPending = [];
           recalculate();
         },
         $runInBatch: func => {
-          $inBatch = true;
+          $res.$startBatch();
           func();
-          $inBatch = false;
-          recalculate();
+          $res.$endBatch();
         },
         $addListener: func => {
           $listeners.add(func);
