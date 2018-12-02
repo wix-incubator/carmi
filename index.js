@@ -166,7 +166,7 @@ proxyHandler.get = (target, key) => {
       if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
         if (typeof args[1] === 'function') {
           const origFunction = args[1];
-          const funcArgs = tokenData.recursive ? ['loop', 'val', 'key', 'context'] : ['val', 'key', 'context'];
+          const funcArgs = tokenData.deepCollectionVerb ? ['loop', 'val', 'context'] : (tokenData.recursive ? ['loop', 'val', 'key', 'context'] : ['val', 'key', 'context']);
           const funcArgsTokens = funcArgs.map(t => wrap(new Token(t, sourceTag)));
           args[1] = origFunction.apply(null, funcArgsTokens);
           throwOnTokensFromOtherFuncs(args[1], sourceTag);

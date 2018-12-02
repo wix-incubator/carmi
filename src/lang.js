@@ -40,6 +40,7 @@ const TokenTypeData = {
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2, len: [3, 4] }),
   map: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true, len: [3, 4] }),
   recursiveMapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2, recursive: true, len: [3, 4] }),
+  tree: new TokenTypes({ collectionVerb: true, deepCollectVerb: true, chainIndex: 2, recursive: true, len: [3, 4]}),
   recursiveMap: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true, recursive: true, len: [3, 4] }),
   any: new TokenTypes({
     collectionVerb: true,
@@ -75,6 +76,7 @@ const TokenTypeData = {
   defaults: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   loop: new TokenTypes({ nonVerb: true }),
   recur: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
+  traverse: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
   context: new TokenTypes({ nonVerb: true }),
   func: new TokenTypes({ private: true }),
   val: new TokenTypes({ nonVerb: true }),

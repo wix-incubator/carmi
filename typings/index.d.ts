@@ -1,5 +1,6 @@
 declare namespace carmi {
-  interface ExpressionLoopContext { }
+  interface LoopContext<ValueType> { }
+  interface TraverseContext<ValueType> { }
   interface Expression {
     call(functionName: string, ...args: any[]): GetterExpression
     bind(functionName: string, ...args: any[]): GetterExpression
@@ -9,7 +10,10 @@ declare namespace carmi {
     (value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
 
   type RecursePredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
-    (loop: ExpressionLoopContext, value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
+    (loop: LoopContext<ReturnType>, value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
+
+  type TreePredicate<ValueType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
+    (loop: TraverseContext<ReturnType>, value?: ValueType, scope?: ScopeType) => ReturnType
 
   interface PrimitiveExpression extends Expression {
     not(): BoolExpression
@@ -19,7 +23,7 @@ declare namespace carmi {
     gte(other: StringOrNumberArgument): BoolExpression
     lt(other: StringOrNumberArgument): BoolExpression
     lte(other: StringOrNumberArgument): BoolExpression
-    recur(loop: ExpressionLoopContext): GetterExpression
+    recur<ReturnType extends Expression>(loop: LoopContext<ReturnType>): ReturnType
   }
 
   interface StringExpression extends PrimitiveExpression {
@@ -50,6 +54,8 @@ declare namespace carmi {
     // TODO: deep resolving of getIn
     getIn<FirstArgType extends keyof ExampleModelType, NextArgTypes extends keyof ExampleModelType>(path: [FirstArgType, ...(NextArgTypes[])]) :
       GetterOrSetterExpression
+    tree<ScopeType extends Expression, ReturnType extends Expression>(predicate: TreePredicate<asExpression<ExampleModelType>, ReturnType, ScopeType>, scope?: ScopeType) : ReturnType
+    traverse<ReturnType>(context: TraverseContext<ReturnType>) : ReturnType 
     size(): NumberExpression
   }
 

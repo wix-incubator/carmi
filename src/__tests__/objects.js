@@ -10,7 +10,7 @@ const {
 const _ = require('lodash');
 
 describe('testing objects', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['optimizing'], compiler => {
     it('mapValues context value', async () => {
       const model = {
         shared: root.mapValues(item =>

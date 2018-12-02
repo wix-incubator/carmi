@@ -104,6 +104,14 @@ function base() {
       return res;
     }
 
+    function traverse(func, context, value) {
+      return func(value, context, traverse.bind(null, func, context));
+    }
+
+    function tree(func, src, context) {
+      return func(src, context, traverse.bind(null, func, context));
+    }
+
     function recursiveMapValues(func, src, context) {
       const res = {};
       const resolved = {};
@@ -211,10 +219,16 @@ function recursiveMap() {
   }
 }
 
+function tree() {
+  function $FUNCNAME(val, context, loop) {
+    return $EXPR1;
+  }
+}
+
 function recursiveMapValues() {
   function $FUNCNAME(val, key, context, loop) {
     return $EXPR1;
   }
 }
 
-module.exports = { base, func, topLevel, recursiveMapValues, recursiveMap };
+module.exports = { base, func, topLevel, recursiveMapValues, recursiveMap, tree };

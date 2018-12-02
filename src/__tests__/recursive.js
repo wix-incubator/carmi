@@ -76,5 +76,141 @@ describe('testing array', () => {
       inst.setDone('d', false);
       expect(inst.allDone).toEqual({ a: true, b: false, c: false, d: false, e: false });
     });
+    describe('tree', () => {
+      it('basic', async() => {
+        const model = {
+          visibleOnly: root.get('menu').tree(
+            (traverseContext, value) => 
+              value.mapValues((value, key, traverseContext) => 
+                key.eq('items').ternary(value.map((subItem, key, traverseContext) => subItem.traverse(traverseContext), traverseContext).filter(item => item.get('state').eq('visible')), value), traverseContext)
+              ).tree((traverseContext, value) =>
+                value.filterBy((val, key, traverseContext) => key.eq('state').not()).mapValues((subItem, key, traverseContext) => 
+                  key.eq('items').ternary(subItem.map((subItem, key, traverseContext) => subItem.traverse(traverseContext), traverseContext), subItem), traverseContext)),
+          update: setter('menu', 'items', arg0, 'state')
+        }
+
+        const initialData = {
+          menu: {
+            name: 'something',
+            state: 'visible',
+            items: [
+              {
+                name: 'abc',
+                state: 'visible',              
+                items: [
+                  {
+                    name: 'def',
+                    items: []
+                  },
+                  {
+                    name: 'zee',
+                    state: 'visible',
+                    items: []
+                  }
+                ]
+              },
+              {
+                name: 'ghi'
+              }
+            ]
+          }
+        }
+      const code = await compile(model, { compiler })
+      const optModel = eval(code);
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.visibleOnly).toEqual({name: 'something', items: [{name: 'abc', items: [{name: 'zee', items: []}]}]});
+      inst.update(1, 'visible');
+      expect(inst.visibleOnly).toEqual({name: 'something', items: [{name: 'abc', items: [{name: 'zee', items: []}]}, {name: 'ghi'}]});
+
+      })
+      it('implicit dependencies', async() => {
+        const model = {
+          treeState: root.get('menu').tree((traverse, value) =>
+                value.mapValues((subItem, key, context) => 
+                  key.eq('items').ternary(subItem.map((subItem, key, traverseContext) => subItem.traverse(traverseContext), context.get('traverse')), 
+                  key.eq('state').ternary(root.get('statePerItem').get(context.get('name')), subItem)), {traverse, name: value.get('name')})
+                  .filterBy(value => value)),
+          update: setter('statePerItem', arg0)
+        }
+
+        const initialData = {
+          statePerItem: {abc: 'initial'},
+          menu: {
+            name: 'something',
+            state: 'visible',
+            items: [
+              {
+                name: 'abc',
+                state: 'visible',              
+                items: [
+                  {
+                    name: 'def',
+                    items: []
+                  },
+                  {
+                    name: 'zee',
+                    state: 'visible',
+                    items: []
+                  }
+                ]
+              },
+              {
+                name: 'ghi'
+              }
+            ]
+          }
+        }
+      const code = await compile(model, { compiler })
+      const optModel = eval(code);
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.treeState).toEqual({
+        name: 'something',
+        items: [
+          {
+            name: 'abc',
+            state: 'initial',
+            items: [
+              {
+                name: 'def',
+                items: []
+              },
+              {
+                name: 'zee',
+                items: []
+              }
+            ]
+          },
+          {
+            name: 'ghi'
+          }
+        ]
+      });
+      inst.update('zee', 'state3');
+      expect(inst.treeState).toEqual(({
+        name: 'something',
+        items: [
+          {
+            name: 'abc',
+            state: 'initial',  
+            items: [
+              {
+                name: 'def',
+                items: []
+              },
+              {
+                name: 'zee',
+                state: 'state3',
+                items: []
+              }
+            ]
+          },
+          {
+            name: 'ghi'
+          }
+        ]
+      }))
+
+      })
+    })
   });
 });

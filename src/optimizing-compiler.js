@@ -131,6 +131,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'groupBy':
       case 'keyBy':
       case 'filter':
+      case 'tree':
       case 'mapKeys':
         return `${
           this.template[tokenType].collectionFunc
@@ -153,6 +154,8 @@ class OptimizingCompiler extends NaiveCompiler {
         return 'context[0]';
       case 'recur':
         return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
+      case 'traverse':
+        return `(${this.generateExpr(expr[1])})(${this.generateExpr(expr[2])}, acc, key)`;
       default:
         return super.generateExpr(expr);
     }

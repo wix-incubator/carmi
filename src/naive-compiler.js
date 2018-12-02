@@ -111,6 +111,7 @@ class NaiveCompiler {
       case 'filter':
       case 'keyBy':
       case 'anyValues':
+      case 'tree':
       case 'recursiveMap':
       case 'recursiveMapValues':
         return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
@@ -119,6 +120,7 @@ class NaiveCompiler {
       case 'loop':
         return 'loop';
       case 'recur':
+      case 'traverse':
         return `${this.generateExpr(expr[1])}(${this.generateExpr(expr[2])})`;
       case 'func':
         return currentToken.$funcId;

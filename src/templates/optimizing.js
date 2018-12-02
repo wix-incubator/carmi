@@ -313,8 +313,12 @@ function base() {
       return $out;
     }
 
+    function traverseTree($targetObj, $targetKey, func, src, context) {
+      return func({}, $targetObj, $targetKey, src, context, (val, acc, key) => traverseTree(acc, key, func, val, context))
+    }
+
     function recursiveMapObject($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
+    const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       const $invalidatedKeys = $invalidatedMap.get($out);
       if ($new) {
         $recursiveMapCache.set($out, {
@@ -781,6 +785,14 @@ function base() {
       }
     }
 
+    function traverseFunction(func, context, value) {
+      return func(value, context, traverseFunction.bind(null, func, context));
+    }
+
+    function traverse(func, src, context) {
+      return func(src, context, traverseFunction.bind(null, func, context));
+    }
+
     function $setter(func, ...args) {
       if (!$inBatch && $batchingStrategy) {
         $batchingStrategy.call($res);
@@ -1059,6 +1071,13 @@ function object() {
   ];
 }
 
+function tree() {
+  function $FUNCNAME($invalidatedKeys, acc, key, val, context, loop) {
+    return $EXPR1
+  }
+}
+tree.collectionFunc = 'traverseTree';
+
 function array() {
   const $FUNCNAMEToken = getUniquePersistenObject($ID);
   const $FUNCNAMEArgs = $ARGS;
@@ -1079,5 +1098,6 @@ module.exports = {
   recursiveMap,
   recursiveMapValues,
   object,
+  tree,
   array
 };
