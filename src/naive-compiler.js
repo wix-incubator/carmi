@@ -16,7 +16,7 @@ const nativeOps = {
   mod: '%'
 };
 
-const nativeFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'substring'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
+const nativeFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'substring', 'split'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
 class NaiveCompiler {
   constructor(model, options) {
     const { getters, setters } = splitSettersGetters(model);
@@ -96,6 +96,7 @@ class NaiveCompiler {
         return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
       case 'startsWith':
       case 'endsWith':
+      case 'split':
         return `(${nativeFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'substring':
         return `(${nativeFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`;
