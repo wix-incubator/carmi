@@ -194,7 +194,7 @@ class OptimizingCompiler extends NaiveCompiler {
       .join('');
 
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:$setter((${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
           const arr = ${this.pathToString(setterExpr, 1)};
           const origLength = arr.length;
           const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
@@ -206,7 +206,7 @@ class OptimizingCompiler extends NaiveCompiler {
           ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
       })`;
     }
-    return `${name}:$setter((${args.concat('value').join(',')}) => {
+    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
               ${this.invalidates(setterExpr) ? invalidate : ''}
               ${taint}
               if (typeof value === 'undefined') {

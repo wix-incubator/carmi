@@ -765,28 +765,32 @@ function base() {
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
     let $batchPending = [];
+    let $inRecalculate = false;
 
     function recalculate() {
       if ($inBatch) {
         return;
       }
+      $inRecalculate = true;
       /* DERIVED */
       $tainted = new WeakSet();
       $listeners.forEach(callback => callback());
+      $inRecalculate = false;
+      if ($batchPending.length) {
+        $res.$endBatch();
+      }
     }
 
-    function $setter(func) {
-      return (...args) => {
-        if (!$inBatch && $batchingStrategy) {
-          $batchingStrategy.call($res);
-          $inBatch = true;
-        }
-        if ($inBatch) {
-          $batchPending.push({func, args})
-        } else {
-          func.apply($res, args);
-          recalculate();
-        }
+    function $setter(func, ...args) {
+      if (!$inBatch && $batchingStrategy) {
+        $batchingStrategy.call($res);
+        $inBatch = true;
+      }
+      if ($inBatch || $inRecalculate) {
+        $batchPending.push({ func, args });
+      } else {
+        func.apply($res, args);
+        recalculate();
       }
     }
 
@@ -799,11 +803,13 @@ function base() {
         $startBatch: () => ($inBatch = true),
         $endBatch: () => {
           $inBatch = false;
-          $batchPending.forEach(({func, args}) => {
-            func.apply($res, args);
-          });
-          $batchPending = [];
-          recalculate();
+          if ($batchPending.length) {
+            $batchPending.forEach(({ func, args }) => {
+              func.apply($res, args);
+            });
+            $batchPending = [];
+            recalculate();
+          }
         },
         $runInBatch: func => {
           $res.$startBatch();

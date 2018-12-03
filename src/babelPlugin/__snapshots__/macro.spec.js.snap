@@ -82,11 +82,15 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('$array_temp_4_19_0') && $array_temp_4_19_0Build();$invalidatedRoots.has('todosList') && $todosListBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
+      }$invalidatedRoots.has('$array_temp_4_19_0') && $array_temp_4_19_0Build();$invalidatedRoots.has('todosList') && $todosListBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
+        $res.$endBatch();
+      }
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
-        $inBatch = false;$batchPending.forEach(({ func, args }) => {
-          func.apply($res, args);
-        });$batchPending = [];recalculate();
+        $inBatch = false;if ($batchPending.length) {
+          $batchPending.forEach(({ func, args }) => {
+            func.apply($res, args);
+          });$batchPending = [];recalculate();
+        }
       }, $runInBatch: func => {
         $res.$startBatch();func();$res.$endBatch();
       }, $addListener: func => {
@@ -150,11 +154,15 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
+      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
+        $res.$endBatch();
+      }
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
-        $inBatch = false;$batchPending.forEach(({ func, args }) => {
-          func.apply($res, args);
-        });$batchPending = [];recalculate();
+        $inBatch = false;if ($batchPending.length) {
+          $batchPending.forEach(({ func, args }) => {
+            func.apply($res, args);
+          });$batchPending = [];recalculate();
+        }
       }, $runInBatch: func => {
         $res.$startBatch();func();$res.$endBatch();
       }, $addListener: func => {
@@ -220,11 +228,15 @@ const modelBuilder = (function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());
+      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
+        $res.$endBatch();
+      }
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
-        $inBatch = false;$batchPending.forEach(({ func, args }) => {
-          func.apply($res, args);
-        });$batchPending = [];recalculate();
+        $inBatch = false;if ($batchPending.length) {
+          $batchPending.forEach(({ func, args }) => {
+            func.apply($res, args);
+          });$batchPending = [];recalculate();
+        }
       }, $runInBatch: func => {
         $res.$startBatch();func();$res.$endBatch();
       }, $addListener: func => {

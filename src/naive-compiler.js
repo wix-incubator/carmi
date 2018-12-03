@@ -164,11 +164,11 @@ class NaiveCompiler {
       .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:$setter((${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
         ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
     })`;
     }
-    return `${name}:$setter((${args.concat('value').join(',')}) => {
+    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}
               } else {
