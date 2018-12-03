@@ -165,9 +165,9 @@ function base() {
           }
         },
         $runInBatch: func => {
-          this.$startBatch();
+          $res.$startBatch();
           func();
-          this.$endBatch();
+          $res.$endBatch();
         },
         $addListener: func => {
           $listeners.add(func);
