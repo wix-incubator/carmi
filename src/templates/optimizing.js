@@ -258,8 +258,8 @@ function base() {
       }
       if ($invalidatedKeys.has(key)) {
         $currentStack.push(key);
-        $invalidatedKeys.delete(key);
         func($invalidatedKeys, src, key, $out, context, this);
+        $invalidatedKeys.delete(key);
         $currentStack.pop();
       }
       return $out[key];
