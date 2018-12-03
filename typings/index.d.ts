@@ -26,6 +26,7 @@ declare namespace carmi {
     startsWith(s: StringArgument): BoolExpression
     endsWith(s: StringArgument): BoolExpression
     plus(num: StringArgument): StringExpression
+    split(s: StringArgument): ArrayExpression<StringExpression>
     toUpperCase(): StringExpression
     toLowerCase(): StringExpression
   }
@@ -47,7 +48,7 @@ declare namespace carmi {
   interface ObjectOrArrayExpression<ValueType extends Expression, ExampleModelType> extends Expression {
     get<IndexType extends keyof ExampleModelType>(index: IndexType): asExpression<ExampleModelType[IndexType]>
     // TODO: deep resolving of getIn
-    getIn<FirstArgType extends keyof ExampleModelType, NextArgTypes extends keyof ExampleModelType>(path: [FirstArgType, ...(NextArgTypes[])]) : 
+    getIn<FirstArgType extends keyof ExampleModelType, NextArgTypes extends keyof ExampleModelType>(path: [FirstArgType, ...(NextArgTypes[])]) :
       GetterOrSetterExpression
     size(): NumberExpression
   }

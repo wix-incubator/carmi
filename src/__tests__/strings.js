@@ -34,5 +34,12 @@ describe('testing string functions', () => {
     testStringFunction('abcde', 'substring', [1, 3], 'bc')
     testStringFunction('abcde', 'toUpperCase', [], 'ABCDE')
     testStringFunction('abcDE', 'toLowerCase', [], 'abcde')
+
+    describe('String.split', () => {
+      testStringFunction('ab/cd/e', 'split', ['/'], ['ab','cd','e'])
+      testStringFunction('ab', 'split', ['/'], ['ab'])
+      //String.split(RegExp) does not work yet:
+      //testStringFunction('abfoobar', 'split', [/foo/], ['ab', 'bar'])
+    })
   })
 })
