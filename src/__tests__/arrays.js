@@ -358,15 +358,6 @@ describe('testing array', () => {
       const inst = optModel(initialData);
       expect(inst.result).toEqual('');
     });
-    it('append', async () => {
-      const initialData = ['a', 'b', 'c'];
-      const model = {
-        result: root.append('d')
-      };
-      const optModel = eval(await compile(model, { compiler }));
-      const inst = optModel(initialData);
-      expect(inst.result).toEqual(['a', 'b', 'c', 'd']);
-    });
     it('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
       const indexes = root.map((item, idx) => idx);
