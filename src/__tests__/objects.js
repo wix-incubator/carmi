@@ -308,6 +308,44 @@ describe('testing objects', () => {
         expect(inst.find).toEqual('something');
       });
     })
+    describe('setIn', () => {
+      it('should setIn simple with array', async () => {
+        const initialData = { data: {a: 1}};
+        const path = ['b']
+        const value = {}
+        const model = {
+          setIn: root.get('data').setIn(path, value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+      it('should setIn deep with array', async () => {
+        const initialData = { data: {a: 1}};
+        const path = ['a', 'b']
+        const value = {}
+        const model = {
+          setIn: root.get('data').setIn(path, value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+      it('should setIn deep without destroying other properties with array', async () => {
+        const initialData = { data: {a: 1, b: {c: 'hey'}}};
+        const path = ['a', 'b', 'z', 'd']
+        const value = 'hello'
+        const model = {
+          setIn: root.get('data').setIn(path, value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+    })
     it('assignIn', async () => {
       const model = {
         defined: root.assignIn([{a: 'women'}]),
