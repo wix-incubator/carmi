@@ -309,45 +309,9 @@ describe('testing objects', () => {
       });
     })
     describe('set', () => {
-      it('should set with empty array', async () => {
-        const initialData = { data: {a: 1}};
-        const path = []
-        const value = {}
-        const model = {
-          set: root.get('data').set(path, value),
-        };
-        const optModel = eval(await compile(model, { compiler }));
-
-        const inst = optModel(initialData);
-        expect(inst.set).toEqual(_.set(initialData.data, path, value));
-      });
-      it('should set with empty string', async () => {
-        const initialData = { data: {a: 1}};
-        const path = ''
-        const value = {}
-        const model = {
-          set: root.get('data').set(path, value),
-        };
-        const optModel = eval(await compile(model, { compiler }));
-
-        const inst = optModel(initialData);
-        expect(inst.set).toEqual(_.set(initialData.data, path, value));
-      });
       it('should set simple with array', async () => {
         const initialData = { data: {a: 1}};
         const path = ['b']
-        const value = {}
-        const model = {
-          set: root.get('data').set(path, value),
-        };
-        const optModel = eval(await compile(model, { compiler }));
-
-        const inst = optModel(initialData);
-        expect(inst.set).toEqual(_.set(initialData.data, path, value));
-      });
-      it('should set simple with string', async () => {
-        const initialData = { data: {a: 1}};
-        const path = 'b'
         const value = {}
         const model = {
           set: root.get('data').set(path, value),
@@ -369,33 +333,9 @@ describe('testing objects', () => {
         const inst = optModel(initialData);
         expect(inst.set).toEqual(_.set(initialData.data, path, value));
       });
-      it('should set deep with string', async () => {
-        const initialData = { data: {a: 1}};
-        const path = 'a.b'
-        const value = {}
-        const model = {
-          set: root.get('data').set(path, value),
-        };
-        const optModel = eval(await compile(model, { compiler }));
-
-        const inst = optModel(initialData);
-        expect(inst.set).toEqual(_.set(initialData.data, path, value));
-      });
       it('should set deep without destroying other properties with array', async () => {
         const initialData = { data: {a: 1, b: {c: 'hey'}}};
         const path = ['a', 'b', 'z', 'd']
-        const value = 'hello'
-        const model = {
-          set: root.get('data').set(path, value),
-        };
-        const optModel = eval(await compile(model, { compiler }));
-
-        const inst = optModel(initialData);
-        expect(inst.set).toEqual(_.set(initialData.data, path, value));
-      });
-      it('should set deep without destroying other properties with string', async () => {
-        const initialData = { data: {a: 1, b: {c: 'hey'}}};
-        const path = 'a.b.z.d'
         const value = 'hello'
         const model = {
           set: root.get('data').set(path, value),

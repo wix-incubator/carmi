@@ -127,8 +127,18 @@ function throwOnTokensFromOtherFuncs(expr, tag) {
 }
 
 const chain = val => wrap(convertArrayAndObjectsToExpr(val));
-
-const sugar = require('./src/sugar')(chain);
+const frontend = {chain}
+Object.keys(TokenTypeData).forEach(t => {
+  if (TokenTypeData[t].private) {
+    return; // privates aren't exported - only used in optimizing code or internally
+  }
+  if (TokenTypeData[t].nonVerb) {
+    frontend[t] = wrap(new Token(t));
+  } else if (TokenTypeData[t].nonChained) {
+    frontend[t] = (...args) => wrap(createExpr(new Token(t, currentLine()), ...args));
+  }
+});
+const sugar = require('./src/sugar')(frontend);
 Object.keys(sugar).forEach(key => {
   if (TokenTypeData[key]) {
     throw new Error(`There is a builtin token with this sugar name ${key}`);
@@ -250,18 +260,7 @@ async function compile(model, options) {
 }
 
 const exported = { compile, setter: Setter, splice: Splice };
-Object.keys(TokenTypeData).forEach(t => {
-  if (TokenTypeData[t].private) {
-    return; // privates aren't exported - only used in optimizing code or internally
-  }
-  if (TokenTypeData[t].nonVerb) {
-    exported[t] = wrap(new Token(t));
-  } else if (TokenTypeData[t].nonChained) {
-    exported[t] = (...args) => wrap(createExpr(new Token(t, currentLine()), ...args));
-  }
-});
-exported.chain = chain;
-
+Object.assign(exported, frontend);
 exported.withName = (name, val) => {
   if (val instanceof Expression) {
     const tokenType = val[0].$type;

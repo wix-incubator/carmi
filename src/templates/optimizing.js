@@ -188,32 +188,46 @@ function base() {
       }
     }
 
+    const $cacheOutputs = new WeakMap();
+
     function initOutput($targetObj, $targetKey, src, func, createDefaultValue) {
       let $new = false;
-      func.output = func.output || new WeakMap();
-      if (!func.output.has($targetObj)) {
-        func.output.set($targetObj, new WeakMap());
+      if (!$cacheOutputs.has($targetObj)) {
+        $cacheOutputs.set($targetObj, {});
       }
-      const $targetOutputs = func.output.get($targetObj);
-      if (!$targetOutputs.has(src)) {
-        $targetOutputs.set(src, {});
-      }
-      const $targetSources = $targetOutputs.get(src);
-      if (!$targetSources.hasOwnProperty($targetKey)) {
-        $targetSources[$targetKey] = createDefaultValue();
+      const $cachePerTargetObj = $cacheOutputs.get($targetObj);
+      $cachePerTargetObj[$targetKey] = $cachePerTargetObj[$targetKey] || new WeakMap();
+      const $cachePerTargetKey = $cachePerTargetObj[$targetKey];
+      if (!$cachePerTargetKey.has(func)) {
+        const $resultObj = createDefaultValue();
         const $parentInvalidatedKeys = $invalidatedMap.get($targetObj);
         const $invalidatedKeys = new Set();
         $parentObjectMap.set($invalidatedKeys, $parentInvalidatedKeys);
         $parentKeyMap.set($invalidatedKeys, $targetKey);
-        $invalidatedMap.set($targetSources[$targetKey], $invalidatedKeys);
+        $invalidatedMap.set($resultObj, $invalidatedKeys);
+        $cachePerTargetKey.set(func, [$resultObj, null, $invalidatedKeys]);
+        $new = true;
+      }
+      const $cachedByFunc = $cachePerTargetKey.get(func);
+      const $invalidatedKeys = $cachedByFunc[2];
+      const $prevSrc = $cachedByFunc[1];
+      if ($prevSrc !== src) {
+        if ($prevSrc) { // prev mapped to a different collection
+          $trackingWildcards.get($prevSrc).delete($invalidatedKeys);
+          if (Array.isArray($prevSrc)) {
+            $prevSrc.forEach((_item, index) => $invalidatedKeys.add(index));
+          } else {
+            Object.keys($prevSrc).forEach(key => $invalidatedKeys.add(key));
+          }
+        }
         if (!$trackingWildcards.has(src)) {
           $trackingWildcards.set(src, new Set());
         }
         $trackingWildcards.get(src).add($invalidatedKeys);
-        $new = true;
+        $cachedByFunc[1] = src;
       }
-      const $out = $targetSources[$targetKey];
-      return { $out, $new };
+      const $out = $cachedByFunc[0];
+      return { $out, $new, $invalidatedKeys };
     }
 
     const emptyObj = () => {
@@ -222,8 +236,7 @@ function base() {
     const emptyArr = () => [];
 
     function forObject($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
         func($invalidatedKeys, src, key, $out, context);
       });
@@ -232,8 +245,7 @@ function base() {
     }
 
     function forArray($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       if ($new) {
         for (let key = 0; key < src.length; key++) {
           func($invalidatedKeys, src, key, $out, context);
@@ -258,8 +270,8 @@ function base() {
       }
       if ($invalidatedKeys.has(key)) {
         $currentStack.push(key);
-        func($invalidatedKeys, src, key, $out, context, this);
         $invalidatedKeys.delete(key);
+        func($invalidatedKeys, src, key, $out, context, this);
         $currentStack.pop();
       }
       return $out[key];
@@ -280,8 +292,7 @@ function base() {
     const $recursiveMapCache = new WeakMap();
 
     function recursiveMapArray($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       if ($new) {
         $recursiveMapCache.set($out, {
           $dependencyMap: new Map(),
@@ -314,8 +325,7 @@ function base() {
     }
 
     function recursiveMapObject($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       if ($new) {
         $recursiveMapCache.set($out, {
           $dependencyMap: new Map(),
@@ -346,8 +356,7 @@ function base() {
     const $keyByCache = new WeakMap();
 
     function keyByArray($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       if ($new) {
         $keyByCache.set($out, []);
       }
@@ -375,8 +384,7 @@ function base() {
     const $mapKeysCache = new WeakMap();
 
     function mapKeysObject($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       if ($new) {
         $mapKeysCache.set($out, {});
       }
@@ -412,8 +420,7 @@ function base() {
     const $filterCache = new WeakMap();
 
     function filterArray($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       if ($new) {
         $filterCache.set($out, [0]);
       }
@@ -439,8 +446,7 @@ function base() {
     }
 
     function anyObject($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       // $out has at most 1 key - the one that stopped the previous run because it was truthy
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
@@ -469,8 +475,7 @@ function base() {
     }
 
     function anyArray($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyArr);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyArr);
       // $out has at most 1 key - the one that stopped the previous run because it was truthy
       if ($new) {
         for (let key = 0; key < src.length; key++) {
@@ -503,8 +508,7 @@ function base() {
     const $groupByCache = new WeakMap();
 
     function groupByObject($targetObj, $targetKey, func, src, context) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, func, emptyObj);
-      const $invalidatedKeys = $invalidatedMap.get($out);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyObj);
       if ($new) {
         $groupByCache.set($out, {});
       }
@@ -544,7 +548,7 @@ function base() {
     const $valuesOrKeysCache = new WeakMap();
 
     function valuesOrKeysForObject($targetObj, $targetKey, identifier, src, getValues) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyArr);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, identifier, emptyArr);
       if ($new) {
         const $keyToIdx = {};
         const $idxToKey = [];
@@ -555,7 +559,6 @@ function base() {
           $keyToIdx[key] = idx;
         });
       } else {
-        const $invalidatedKeys = $invalidatedMap.get($out);
         const { $keyToIdx, $idxToKey } = $valuesOrKeysCache.get($out);
         const $deletedKeys = [];
         const $addedKeys = [];
@@ -701,14 +704,13 @@ function base() {
     }
 
     function assignOrDefaults($targetObj, $targetKey, identifier, src, assign, invalidates) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, identifier, emptyObj);
       if (!assign) {
         src = [...src].reverse();
       }
       if ($new) {
         Object.assign($out, ...src);
       } else {
-        const $invalidatedKeys = $invalidatedMap.get($out);
         const $keysPendingDelete = new Set(Object.keys($out));
         const res = Object.assign({}, ...src);
         Object.keys(res).forEach(key => {
@@ -725,12 +727,11 @@ function base() {
     }
 
     function size($targetObj, $targetKey, src, identifier) {
-      const { $out, $new } = initOutput($targetObj, $targetKey, src, identifier, emptyArr);
+      const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, identifier, emptyArr);
       if ($new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
       }
       if (!$new) {
-        const $invalidatedKeys = $invalidatedMap.get($out);
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
         $invalidatedKeys.clear();
       }

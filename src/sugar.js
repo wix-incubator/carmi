@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-module.exports = function(chain) {
+module.exports = function({chain, or, and}) {
     function getIn(obj, path) {
         return _.reduce(path, (acc, val) => {
             return acc.ternary(acc.get(val), acc)
@@ -48,23 +48,26 @@ module.exports = function(chain) {
     }
 
     function set(obj, path, value) {
-      const simpleSet = (key, value) => assignIn(chain({}), [chain({placeholder: key}).mapKeys(() => key).mapValues(() => value)])
+      if (!Array.isArray(path) || path.length === 0) {
+          throw new Error('only set with array paths');
+      }
+      path.forEach(val => {
+          if (typeof val !== 'string') {
+              throw new Error('all path parts in set should be strings');
+          }
+      })
 
-      if(_.isEmpty(path)) {
-        return obj
+      function step(base, part, value) {
+          return chain([base, {[part]: value}]).assign()
       }
 
-      const safePath = _.isString(path) ? _.split(path, '.') : path
-      const transformedPath = _(safePath).transform((acc, key, index) => index === 0 ? acc.push([key]) :  acc.push(_.concat(acc[index - 1], [key])), []).reverse()
+      const currentValues = path.map((part, index) => 
+        or(getIn(obj, path.slice(0, index)), chain({}))
+      )
 
-      const values = transformedPath.reduce((acc, innerPath, index) => {
-        const originalValue = obj.getIn(innerPath).ternary(obj.getIn(innerPath), chain({}))
-        acc.push(simpleSet(_.last(innerPath), index === 0 ? value : assignIn(originalValue, [acc[index - 1]])))
-
-        return acc
-      }, [])
-
-      return assignIn(obj, [_.last(values)])
+      return path.reduceRight((acc, part, index) => {
+          return step(currentValues[index], part, acc)
+      }, value)
     }
 
     return { getIn, includes, assignIn, reduce, concat, find, join, sum, push, set };
