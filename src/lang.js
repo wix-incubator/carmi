@@ -120,10 +120,25 @@ class SetterExpression extends Array {}
 class SpliceSetterExpression extends SetterExpression {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
-AllTokens.Setter = (...args) => {
+
+function validateSetterArguments(args) {
   if (args.length === 0) {
-    throw new Error(`Can't build setter on model root`);
+    throw new Error(`Invalid arguments for setter - must receive a path`);
   }
+
+  const invalidArgs = args.filter(arg =>
+    typeof arg !== 'string' &&
+    typeof arg !== 'number' &&
+    !(arg instanceof Token &&
+      (arg.$type === 'arg0' || arg.$type === 'arg1' || arg.$type === 'arg2')));
+
+  if (invalidArgs.length > 0) {
+    throw new Error(`Invalid arguments for setter - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+  }
+}
+
+AllTokens.Setter = (...args) => {
+  validateSetterArguments(args);
   return new SetterExpression(...args);
 };
 AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
