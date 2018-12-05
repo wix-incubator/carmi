@@ -122,10 +122,6 @@ AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 
 function validatePathSegmentArguments(args) {
-  if (args.length === 0) {
-    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
-  }
-
   const invalidArgs = args.filter(arg =>
     typeof arg !== 'string' &&
     typeof arg !== 'number' &&
@@ -138,6 +134,9 @@ function validatePathSegmentArguments(args) {
 }
 
 AllTokens.Setter = (...args) => {
+  if (args.length === 0) {
+    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
+  }
   validatePathSegmentArguments(args);
   return new SetterExpression(...args);
 };
