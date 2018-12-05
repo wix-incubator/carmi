@@ -8,7 +8,7 @@ const {
 } = require('../test-utils');
 const _ = require('lodash');
 
-describe('testing array', () => {
+describe('Tests for usability and debugging carmi', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
     it('should store source files and ast in debug mode', async () => {
       const makeSureThisCanBeFound = root.map(item => item.mult(2));
@@ -47,30 +47,38 @@ describe('testing array', () => {
       expect(inst.test2).toEqual({test:true});
       expect(inst.test3).toEqual({test:false});
     });
+    it('throw on invalid arguments in setter function', async () => {
+      const args = ['store', arg0, true]
+      expect(() => setter(...args)).toThrowError(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+    });
+    it('throw on invalid arguments in splice function', async () => {
+      const args = ['store', arg0, true]
+      expect(() => splice(...args)).toThrowError(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+    });
+    it('throw on invalids reuse of key/val/loop/context inside other functions', () => {
+      expect(() => {
+        root.map(item => item.map(child => child.eq(item)))
+      }).toThrowError();
+      expect(() => {
+        root.map((item, val) => item.map(child => child.eq(val)))
+      }).toThrowError();
+      expect(() => {
+        root.map((item, val, context) => item.map(child => child.eq(context)), root.get(1))
+      }).toThrowError();
+    })
+    it('expect to hoist shared expressions', async () => {
+      const once = root.map(val => val.call('tap'));
+      const twice = root.map(val => val.call('tap')).filter(val => val);
+      const model = { once, twice, set: setter(arg0) };
+      const optCode = eval(await compile(model, { compiler }));
+      const inst = optCode([false, 1, 0], funcLibrary);
+      expect(inst.once).toEqual([false, 1, 0]);
+      expect(inst.twice).toEqual([1]);
+      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+      inst.set(2, true);
+      expect(inst.once).toEqual([false, 1, true]);
+      expect(inst.twice).toEqual([1, true]);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    })
   });
-  describe('expect to hoist shared expressions', async () => {
-    const once = root.map(val => val.call('tap'));
-    const twice = root.map(val => val.call('tap')).filter(val => val);
-    const model = { once, twice, set: setter(arg0) };
-    const optCode = eval(await compile(model, { compiler }));
-    const inst = optCode([false, 1, 0], funcLibrary);
-    expect(inst.once).toEqual([false, 1, 0]);
-    expect(inst.twice).toEqual([1]);
-    expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
-    inst.set(2, true);
-    expect(inst.once).toEqual([false, 1, true]);
-    expect(inst.twice).toEqual([1, true]);
-    expectTapFunctionToHaveBeenCalled(1, compiler);
-  })
-  describe('throw on invalids reuse of key/val/loop/context inside other functions', () => {
-    expect(() => {
-      root.map(item => item.map(child => child.eq(item)))
-    }).toThrowError();
-    expect(() => {
-      root.map((item, val) => item.map(child => child.eq(val)))
-    }).toThrowError();
-    expect(() => {
-      root.map((item, val, context) => item.map(child => child.eq(context)), root.get(1))
-    }).toThrowError();
-  })
 });
