@@ -26,6 +26,7 @@
   "author": "Avi Marcus",
   "license": "MIT",
   "dependencies": {
+    "acorn": "^6.0.4",
     "babel-generator": "^6.26.1",
     "babel-plugin-macros": "^2.4.1",
     "babel-preset-react": "^6.24.1",
@@ -41,8 +42,9 @@
     "pify": "^4.0.1",
     "prettier": "^1.13.5",
     "rollup": "^0.59.1",
-    "rollup-plugin-uglify": "^3.0.0",
+    "rollup-plugin-uglify": "^6.0.0",
     "rollup-plugin-virtual": "^1.0.1",
+    "source-map": "^0.7.3",
     "toposort": "^1.0.6",
     "typescript": "^3.2.1"
   },

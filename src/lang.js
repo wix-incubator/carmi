@@ -142,10 +142,7 @@ AllTokens.Setter = (...args) => {
   validatePathSegmentArguments(args);
   return new SetterExpression(...args);
 };
-AllTokens.Splice = (...args) => {
-  validatePathSegmentArguments(args);
-  return new SpliceSetterExpression(...args, new Token('key'));
-}
+AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;

@@ -42,6 +42,20 @@ describe("carmi binary", () => {
     }
   });
 
+  it("include source maps", async () => {
+    const { cleanup, path: filepath } = await tmpFile();
+    try {
+      const file = await runBinary(
+        `--source ${CARMI_MODEL} --output ${filepath} --format cjs --sourceMaps inline`
+      );
+
+      const text = await readFile(filepath)
+      expect(text.toString()).toMatch(/\/\/# sourceMappingURL=/)
+    } finally {
+      cleanup();
+    }
+  });
+
   it('exits with exit code 1 in case carmi fails', async () => {
     const error = await invert(runBinary(
       `--source dummy.js --output irrelevant --format cjs`

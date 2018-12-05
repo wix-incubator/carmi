@@ -39,6 +39,7 @@ const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
 const INDEX_FILE = __filename;
+const SUGAR_FILE = `${__dirname}/src/sugar.js`
 const JSX_FILE = INDEX_FILE.replace(/index\.js$/, 'jsx.js');
 
 function currentLine() {
@@ -47,7 +48,7 @@ function currentLine() {
   const externalLine =
     lines
       .slice(1)
-      .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
+      .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(SUGAR_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
   return externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? '' + parseInt(str, 10) : str).join(':')
 }
 
@@ -203,10 +204,15 @@ async function compile(model, options) {
   if (typeof options === 'boolean' || typeof options === 'undefined') {
     options = { compiler: !!options ? 'naive' : 'optimizing' };
   }
+
+  options.basePath = options.basePath || process.cwd()
   options.name = options.name || 'instance';
   if (options.compiler === 'carmi') {
     options.compiler = 'optimizing';
   }
+
+  options.sourceMaps = options.sourceMaps || 'none'
+
   model = unwrap(model);
   const hashFile =
     options.cache &&
@@ -256,7 +262,20 @@ async function compile(model, options) {
   if (hashFile) {
     require('fs').writeFileSync(hashFile, result);
   }
-  return result;
+
+  if (options.sourceMaps === 'none') {
+    return result
+  }
+
+  if (options.sourceMaps === 'inline') {
+    const sourceMap = JSON.stringify(compiler.generateSourceMap(result))
+    const base64 = new Buffer(sourceMap).toString('base64')
+    const dataUrl = `//# sourceMappingURL=data:application/json;charset=utf8;base64,${base64}`
+    return `${result}
+${dataUrl}`
+  }
+
+  return {code: result, map: compiler.generateSourceMap(result)};
 }
 
 const exported = { compile, setter: Setter, splice: Splice };

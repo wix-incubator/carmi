@@ -9,6 +9,7 @@ const { writeFile } = require('../src/promise-fs');
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
   { name: 'output', type: String, defaultValue: '', description: 'output filename' },
+  { name: 'sourceMaps', type: String, defaultValue: 'none', description: 'whether to generate source-maps. Options: inline|external|none'},
   {
     name: 'compiler',
     type: String,
@@ -19,7 +20,6 @@ const optionDefinitions = [
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
-  { name: 'minify', type: Boolean, defaultValue: false, description: 'minify output' },
   {
     name: 'cache',
     type: String,
@@ -52,8 +52,15 @@ async function run() {
     throw e;
     return;
   }
-  const code = await carmi.compile(model, options);
+  let code = await carmi.compile(model, options);
   if (options.output) {
+    if (options.sourceMaps === 'json') {
+      await writeFile(`${options.output}.map`, JSON.stringify(code.map))  
+      const relativeMapFile = path.relative(path.dirname(options.output), `${options.output}.map`)
+      code = `${code.code}
+  //# sourceMappingURL=${relativeMapFile}`
+    }
+
     await writeFile(options.output, code);
   } else {
     console.log(code);

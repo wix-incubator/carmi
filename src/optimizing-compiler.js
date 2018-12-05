@@ -76,7 +76,7 @@ class OptimizingCompiler extends NaiveCompiler {
     );
   }
 
-  generateExpr(expr) {
+  generateExprInternal(expr) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
     switch (tokenType) {
@@ -88,10 +88,10 @@ class OptimizingCompiler extends NaiveCompiler {
             return `${this.generateExpr(expr[2])}[($cond_${expr[0].$id} = true && ${this.generateExpr(expr[1])})]`;
           }
         }
-        return super.generateExpr(expr);
+        return super.generateExprInternal(expr);
       case 'object':
       case 'array':
-        return `${tokenType}($invalidatedKeys,key,${super.generateExpr(expr)}, ${tokenType}$${
+        return `${tokenType}($invalidatedKeys,key,${super.generateExprInternal(expr)}, ${tokenType}$${
           expr[0].$id
         }Token, ${tokenType}$${expr[0].$id}Args, ${this.invalidates(this.pathOfExpr(expr))})`;
       case 'call':
@@ -155,7 +155,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'recur':
         return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
       default:
-        return super.generateExpr(expr);
+        return super.generateExprInternal(expr);
     }
   }
 

@@ -2,6 +2,10 @@ const { Expr, Token, Expression, SpliceSetterExpression, SourceTag } = require('
 const _ = require('lodash');
 const { splitSettersGetters, topologicalSortGetters, tagAllExpressions, tagToSimpleFilename } = require('./expr-tagging');
 const objectHash = require('object-hash');
+const {SourceMapGenerator} = require('source-map')
+const acorn  = require('acorn')
+const fs = require('fs')
+const PATH = require('path')
 
 const nativeOps = {
   eq: '===',
@@ -17,6 +21,7 @@ const nativeOps = {
 };
 
 const nativeFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'substring', 'split'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
+
 class NaiveCompiler {
   constructor(model, options) {
     const { getters, setters } = splitSettersGetters(model);
@@ -25,13 +30,70 @@ class NaiveCompiler {
     this.setters = setters;
     // console.log(JSON.stringify(getters, null, 2));
     this.options = options;
+    this.sourceLocations = []
   }
 
   get template() {
     return require('./templates/naive.js');
   }
 
+  generateSourceMap(code) {
+    const {sourceMaps, source, basePath, includeSources} = this.options
+    if (sourceMaps === 'none') {
+    return null
+    }
+
+    const sourcePath = source && PATH.resolve(basePath, source)
+    const sourceRoot = sourcePath ? PATH.dirname(sourcePath) : basePath
+    const filename = sourcePath && PATH.relative(sourceRoot, sourcePath)
+    const generator = new SourceMapGenerator({filename, sourceRoot})
+    const addedFiles = new Set()
+    acorn.parse(code, {locations: true, onComment: (isBlock, text, start, end, startLoc, endLocForDirectiveComment) => {
+      const regex = /#\<(\d+)\>/g
+      if (text.match(regex)) {
+        const index = +text.replace(regex, '$1')
+        const loc = this.sourceLocations[index]
+        const sourceFile = PATH.relative(sourceRoot, loc.filename)
+        if (includeSources) {
+          if (!addedFiles.has(loc.filename)) {
+            generator.setSourceContent(sourceFile, fs.readFileSync(loc.filename).toString('utf8'))
+            addedFiles.add(loc.filename)
+          }
+        }
+  
+        if (!addedFiles.has(loc.filename)) {
+          generator.setSourceContent(sourceFile, fs.readFileSync(loc.filename).toString('utf8'))
+          addedFiles.add(loc.filename)
+        }
+
+        generator.addMapping({
+          generated: {line: endLocForDirectiveComment.line, column: endLocForDirectiveComment.column},
+          name: loc.name,
+          original: {line: loc.line, column: loc.column},
+          source: sourceFile
+        })
+      }
+    }})
+    return generator.toJSON()
+  }
+
   generateExpr(expr) {
+    const internalExpression = this.generateExprInternal(expr)
+    const currentToken = expr instanceof Expression ? expr[0] : expr;
+    const sourceLocation = currentToken[SourceTag]
+    if (!sourceLocation || this.options.sourceMaps === 'none') {
+      return internalExpression
+    }
+
+    const sourceIndex = this.sourceLocations.length
+    const match = /([^:]+):(\d+):(\d+)/.exec(sourceLocation)
+    const location = {filename: match[1], line: +match[2], column: +match[3], name: currentToken.$type}
+    this.sourceLocations.push(location)
+
+    return `((() => { /*#<${sourceIndex}>*/ return (${internalExpression})})())`
+  }
+
+  generateExprInternal(expr) {
     // console.log(JSON.stringify(expr, null, 2));
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     // console.log(expr);
