@@ -121,9 +121,9 @@ class SpliceSetterExpression extends SetterExpression {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 
-function validateSetterArguments(args) {
+function validatePathSegmentArguments(args) {
   if (args.length === 0) {
-    throw new Error(`Invalid arguments for setter - must receive a path`);
+    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
   }
 
   const invalidArgs = args.filter(arg =>
@@ -133,15 +133,18 @@ function validateSetterArguments(args) {
       (arg.$type === 'arg0' || arg.$type === 'arg1' || arg.$type === 'arg2')));
 
   if (invalidArgs.length > 0) {
-    throw new Error(`Invalid arguments for setter - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+    throw new Error(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
   }
 }
 
 AllTokens.Setter = (...args) => {
-  validateSetterArguments(args);
+  validatePathSegmentArguments(args);
   return new SetterExpression(...args);
 };
-AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
+AllTokens.Splice = (...args) => {
+  validatePathSegmentArguments(args);
+  return new SpliceSetterExpression(...args, new Token('key'));
+}
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
