@@ -3,6 +3,8 @@ declare namespace carmi {
   interface Expression {
     call(functionName: string, ...args: any[]): GetterExpression
     bind(functionName: string, ...args: any[]): GetterExpression
+    breakpoint(): this
+    trace(logLevel?: StringArgument): this
   }
 
   type MapPredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
