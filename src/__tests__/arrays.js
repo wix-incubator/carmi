@@ -314,5 +314,35 @@ describe('testing array', () => {
       expect(inst.doubleFunctions[0]()).toEqual(12);
       expect(inst.doubleFunctions[1]()).toEqual(8);
     });
+    it('test reverse', async () => {
+      const model = {
+        numbers: root.reverse()
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [1, 2, 3, 4, 5];
+
+      const inst = optModel(initialData);
+      expect(inst.numbers).toEqual(initialData.reverse());
+    });
+    it('test head', async () => {
+      const model = {
+        first: root.head()
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = ['a', 2, 3, 4, 5];
+
+      const inst = optModel(initialData);
+      expect(inst.first).toEqual(initialData[0]);
+    });
+    it('test last', async () => {
+      const model = {
+        last: root.last()
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [1, 2, 3, 4, 5];
+
+      const inst = optModel(initialData);
+      expect(inst.last).toEqual(initialData[initialData.length - 1]);
+    });
   });
 });
