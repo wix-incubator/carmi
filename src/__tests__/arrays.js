@@ -270,6 +270,112 @@ describe('testing array', () => {
       expect(inst.result).toEqual([0, 6]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
+    it('reduce', async () => {
+      const model = {
+        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [1, 3, 5];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(9);
+      expectTapFunctionToHaveBeenCalled(3, compiler);
+      inst.set(2, 1);
+      expect(inst.result).toEqual(5);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    });
+    it('reduce with empty array', async () => {
+      const model = {
+        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(0);
+    });
+    it('sum', async () => {
+      const model = {
+        result: root.sum(),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [1, 3, 5];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(9);
+      inst.set(2, 1);
+      expect(inst.result).toEqual(5);
+    });
+    it('sum with empty array', async () => {
+      const model = {
+        result: root.sum(),
+        set: setter(arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = [];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(0);
+    });
+    it('concat', async () => {
+      const model = {
+        result: root.get('a').concat(root.get('b')),
+        set: setter('a', arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = {a: [1, 3, 5], b: [2, 6]};
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual([1, 3, 5, 2, 6]);
+      inst.set(2, 1);
+      expect(inst.result).toEqual([1, 3, 1, 2, 6]);
+    });
+    it('concat with empty array', async () => {
+      const model = {
+        result: root.get('a').concat(root.get('b')),
+        set: setter('a', arg0)
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = {a: [1, 3, 5], b: []};
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual([1, 3, 5]);
+      inst.set(2, 1);
+      expect(inst.result).toEqual([1, 3, 1]);
+    });
+    it('join', async () => {
+      const initialData = ['a', 'b', 'c'];
+      const model = {
+        result: root.join('~')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual('a~b~c');
+    });
+    it('join with empty array', async () => {
+      const initialData = [];
+      const model = {
+        result: root.join('~')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual('');
+    });
+    it('append with primitive', async () => {
+      const initialData = ['a', 'b', 'c'];
+      const model = {
+        result: root.append('d')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual(['a', 'b', 'c', 'd']);
+    });
+    it('append with array', async () => {
+      const initialData = ['a', 'b', 'c'];
+      const model = {
+        result: root.append(['d'])
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual(['a', 'b', 'c', ['d']]);
+    });
     it('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
       const indexes = root.map((item, idx) => idx);

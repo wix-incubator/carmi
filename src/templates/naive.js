@@ -1,5 +1,5 @@
 function base() {
-  function $NAME($model, $funcLib) {
+  function $NAME($model, $funcLib, $batchingStrategy) {
     const $res = { $model };
     const $listeners = new Set();
 
@@ -116,13 +116,35 @@ function base() {
 
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
+    let $batchPending = [];
+    let $inRecalculate = false;
+
     function recalculate() {
       if ($inBatch) {
         return;
       }
+      $inRecalculate = true;
       /* DERIVED */
       $listeners.forEach(callback => callback());
+      $inRecalculate = false;
+      if ($batchPending.length) {
+        $res.$endBatch();
+      }
     }
+
+    function $setter(func, ...args) {
+      if (!$inBatch && $batchingStrategy) {
+        $batchingStrategy.call($res);
+        $inBatch = true;
+      }
+      if ($inBatch || $inRecalculate) {
+        $batchPending.push({ func, args });
+      } else {
+        func.apply($res, args);
+        recalculate();
+      }
+    }
+
     Object.assign(
       $res,
       {
@@ -134,19 +156,27 @@ function base() {
         },
         $endBatch: () => {
           $inBatch = false;
-          recalculate();
+          if ($batchPending.length) {
+            $batchPending.forEach(({ func, args }) => {
+              func.apply($res, args);
+            });
+            $batchPending = [];
+            recalculate();
+          }
         },
         $runInBatch: func => {
-          $inBatch = true;
+          $res.$startBatch();
           func();
-          $inBatch = false;
-          recalculate();
+          $res.$endBatch();
         },
         $addListener: func => {
           $listeners.add(func);
         },
         $removeListener: func => {
           $listeners.delete(func);
+        },
+        $setBatchingStrategy: func => {
+          $batchingStrategy = func;
         },
         /* DEBUG */
         $ast: () => {

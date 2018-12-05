@@ -96,6 +96,12 @@ const TokenTypeData = {
   mod: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
   call: new TokenTypes({ nonChained: true, chainIndex: 2, len: [3, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
   bind: new TokenTypes({ nonChained: true, chainIndex: 2, len: [2, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
+  startsWith: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
+  endsWith: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
+  toUpperCase: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
+  toLowerCase: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
+  substring: new TokenTypes({nonChained: true, chainIndex: 1, len: [4, 4]}),
+  split: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
   wildcard: new TokenTypes({ nonVerb: true, private: true })
 };
 
@@ -114,13 +120,31 @@ class SetterExpression extends Array {}
 class SpliceSetterExpression extends SetterExpression {}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
-AllTokens.Setter = (...args) => {
+
+function validatePathSegmentArguments(args) {
   if (args.length === 0) {
-    throw new Error(`Can't build setter on model root`);
+    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
   }
+
+  const invalidArgs = args.filter(arg =>
+    typeof arg !== 'string' &&
+    typeof arg !== 'number' &&
+    !(arg instanceof Token &&
+      (arg.$type === 'arg0' || arg.$type === 'arg1' || arg.$type === 'arg2')));
+
+  if (invalidArgs.length > 0) {
+    throw new Error(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+  }
+}
+
+AllTokens.Setter = (...args) => {
+  validatePathSegmentArguments(args);
   return new SetterExpression(...args);
 };
-AllTokens.Splice = (...args) => new SpliceSetterExpression(...args, new Token('key'));
+AllTokens.Splice = (...args) => {
+  validatePathSegmentArguments(args);
+  return new SpliceSetterExpression(...args, new Token('key'));
+}
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;

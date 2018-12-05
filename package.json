@@ -43,7 +43,8 @@
     "rollup": "^0.59.1",
     "rollup-plugin-uglify": "^3.0.0",
     "rollup-plugin-virtual": "^1.0.1",
-    "toposort": "^1.0.6"
+    "toposort": "^1.0.6",
+    "typescript": "^3.2.1"
   },
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",

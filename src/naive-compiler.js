@@ -16,6 +16,7 @@ const nativeOps = {
   mod: '%'
 };
 
+const nativeFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'substring', 'split'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
 class NaiveCompiler {
   constructor(model, options) {
     const { getters, setters } = splitSettersGetters(model);
@@ -79,6 +80,9 @@ class NaiveCompiler {
       case 'defaults':
       case 'size':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
+      case 'toUpperCase':
+      case 'toLowerCase':
+        return `(${nativeFunctions[tokenType]}).call(${this.generateExpr(expr[1])})`;
       case 'eq':
       case 'lt':
       case 'lte':
@@ -90,6 +94,12 @@ class NaiveCompiler {
       case 'div':
       case 'mod':
         return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
+      case 'startsWith':
+      case 'endsWith':
+      case 'split':
+        return `(${nativeFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+      case 'substring':
+        return `(${nativeFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`;
       case 'get':
         return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
       case 'mapValues':
@@ -155,19 +165,17 @@ class NaiveCompiler {
       .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
         ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
-        recalculate();
-    }`;
+    })`;
     }
-    return `${name}:(${args.concat('value').join(',')}) => {
+    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}
               } else {
                 ${this.pathToString(setterExpr)} = value;
               }
-              recalculate();
-          }`;
+          })`;
   }
 
   exprTemplatePlaceholders(expr, funcName) {

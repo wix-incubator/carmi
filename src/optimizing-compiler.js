@@ -194,7 +194,7 @@ class OptimizingCompiler extends NaiveCompiler {
       .join('');
 
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:(${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
           const arr = ${this.pathToString(setterExpr, 1)};
           const origLength = arr.length;
           const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
@@ -204,10 +204,9 @@ class OptimizingCompiler extends NaiveCompiler {
           ${this.invalidates(setterExpr) ? invalidate : ''}
           ${taint}
           ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
-          recalculate();
-      }`;
+      })`;
     }
-    return `${name}:(${args.concat('value').join(',')}) => {
+    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
               ${this.invalidates(setterExpr) ? invalidate : ''}
               ${taint}
               if (typeof value === 'undefined') {
@@ -215,13 +214,12 @@ class OptimizingCompiler extends NaiveCompiler {
               } else {
                 ${this.pathToString(setterExpr)}  = value;
               }
-              recalculate();
-          }`;
+          })`;
   }
 
   invalidates(path) {
     const refsToPath = findReferencesToPathInAllGetters(path, this.getters);
-    if (!_.isEmpty(refsToPath)) {
+    if (!_.isEmpty(refsToPath) || path[1].indexOf('$') === -1) {
       return true;
     }
     return false;

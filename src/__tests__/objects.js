@@ -264,5 +264,99 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
+    it('includes', async () => {
+      const model = {
+        includes: root.includes('something'),
+        notIncludes: root.includes('nothing')
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = { a: 'something' };
+
+      const inst = optModel(initialData);
+      expect(inst.includes).toEqual(true);
+      expect(inst.notIncludes).toEqual(false);
+    });
+    describe('find', () => {
+      it('should find value if exists', async () => {
+        const initialData = { a: 'nothing', b: 'something' };
+        const model = {
+          find: root.find(val => val.eq('something')),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.find).toEqual('something');
+      });
+      it('should return undefined if not exists', async () => {
+        const initialData = { a: 'nothing', b: 'something' };
+        const model = {
+          find: root.find(val => val.eq('notExists')),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.find).toEqual(undefined);
+      });
+      it('should find using context', async () => {
+        const initialData = { a: 'nothing', b: 'something' };
+        const model = {
+          find: root.find((val, key, ctx) => val.eq(ctx), root.get('b')),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.find).toEqual('something');
+      });
+    })
+    describe('setIn', () => {
+      it('should setIn simple with array', async () => {
+        const initialData = { data: {a: 1}};
+        const path = ['b']
+        const value = {}
+        const model = {
+          setIn: root.get('data').setIn(path, value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+      it('should setIn deep with array', async () => {
+        const initialData = { data: {a: 1}};
+        const path = ['a', 'b']
+        const value = {}
+        const model = {
+          setIn: root.get('data').setIn(path, value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+      it('should setIn deep without destroying other properties with array', async () => {
+        const initialData = { data: {a: 1, b: {c: 'hey'}}};
+        const path = ['a', 'b', 'z', 'd']
+        const value = 'hello'
+        const model = {
+          setIn: root.get('data').setIn(path, value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+    })
+    it('assignIn', async () => {
+      const model = {
+        defined: root.assignIn([{a: 'women'}]),
+        notDefined: root.assignIn([{x: 'men'}])
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = { a: { b: 1 } };
+
+      const inst = optModel(initialData);
+      expect(inst.defined.a).toEqual('women');
+      expect(inst.notDefined.x).toEqual('men');
+    });
   });
 });
