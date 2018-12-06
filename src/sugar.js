@@ -68,11 +68,19 @@ module.exports = function({chain, or, and}) {
     }
 
     function includesValue(collection, val) {
-      return collection.anyValues((item, key, ctx) => item.eq(ctx), val)
+      if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
+          return collection.anyValues((item, key, ctx) => item.eq(val))
+      } else {
+        return collection.anyValues((item, key, ctx) => item.eq(ctx), val)
+      }
     }
 
     function includes(collection, val) {
-      return collection.any((item, key, ctx) => item.eq(ctx), val)
+        if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
+            return collection.any((item, key, ctx) => item.eq(val))
+        } else {
+            return collection.any((item, key, ctx) => item.eq(ctx), val)
+        }
     }
 
     function pickBy(obj, func, context = null) {
