@@ -57,7 +57,10 @@ class OptimizingCompiler extends NaiveCompiler {
         PRETRACKING: () => {
           if (expr[0].$path) {
             const conditionals = new Set();
-            Array.from(expr[0].$path.values()).filter(cond => cond).forEach(cond => conditionals.add(cond));
+            _(Array.from(expr[0].$path.values()))
+              .filter(cond => cond)
+              .flatten()
+              .forEach(cond => conditionals.add(cond));
             return (
               `let $tracked = [$invalidatedKeys,key];` + Array.from(conditionals).map(cond => `let $cond_${cond} = false;`).join('')
             );
@@ -81,7 +84,7 @@ class OptimizingCompiler extends NaiveCompiler {
         if (expr[0].$conditional && expr[0].$rootName) {
           const getter = this.getters[expr[0].$rootName];
           const paths = allPathsInGetter(getter);
-          if (Array.from(paths.values()).filter(k => k === expr[0].$id).length) {
+          if (Array.from(paths.values()).filter(k => _.includes(k,expr[0].$id)).length) {
             return `${this.generateExpr(expr[2])}[($cond_${expr[0].$id} = true && ${this.generateExpr(expr[1])})]`;
           }
         }
@@ -236,11 +239,11 @@ class OptimizingCompiler extends NaiveCompiler {
       //console.log(pathsThatInvalidate);
       pathsThatInvalidate.forEach((cond, invalidatedPath) => {
         tracks.push(
-          `// invalidatedPath: ${JSON.stringify(invalidatedPath)}, ${cond}, ${
+          `// invalidatedPath: ${JSON.stringify(invalidatedPath)}, ${JSON.stringify(cond)}, ${
             invalidatedPath[invalidatedPath.length - 1].$type
           }`
         );
-        const precond = cond ? `$cond_${cond} && ` : '';
+        const precond = cond ? `(${cond.map(item => `$cond_${item}`).join(' || ')}) && ` : '';
         if (invalidatedPath[0].$type === 'context') {
           const activePath = [0].concat(invalidatedPath.slice(1));
           tracks.push(

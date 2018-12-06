@@ -33,6 +33,14 @@ function chainIndex(expr) {
   return tokenData(expr).chainIndex;
 }
 
+// function printPaths(paths) {
+//   const output = []
+//   paths.forEach((cond,path) => {
+//     output.push([path.map(stringifyExpr).join(','), cond]);
+//   })
+//   console.log(output);
+// }
+
 function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   const paths = new Map();
   const allGettersChains = exprsByFunc.filter(
@@ -59,8 +67,23 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
         paths.set([token], expr[0].$conditional ? expr[0].$id : false)
       }
     })
+  });
+  const groupedPaths = {};
+  paths.forEach((cond, path) => {
+    const pathAsStr = path.map(stringifyExpr).join(',');
+    groupedPaths[pathAsStr] = groupedPaths[pathAsStr] || [];
+    groupedPaths[pathAsStr].push(path);
+  });
+  const outputPaths = new Map();
+  _.forEach(groupedPaths, (similiarPaths, pathAsStr) => {
+    const conditionals = similiarPaths.map(path => paths.get(path));
+    if (conditionals.some(cond => cond === false)) { // one of the usages of the path is unconditional
+      outputPaths.set(similiarPaths[0], false);
+    } else {
+      outputPaths.set(similiarPaths[0], _.uniq(conditionals));
+    }
   })
-  return paths;
+  return outputPaths;
 }
 
 function getAllFunctions(sourceExpr) {
