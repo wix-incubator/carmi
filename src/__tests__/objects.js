@@ -418,6 +418,30 @@ describe('testing objects', () => {
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
       });
     })
+    describe('has', () => {
+      it('should return true if contain key', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const key = 'b'
+        const model = {
+          has: root.get('data').has(key),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.has).toEqual(_.has(initialData.data, key));
+      });
+      it('should return false if not contain key', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const key = 'd'
+        const model = {
+          has: root.get('data').has(key),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.has).toEqual(_.has(initialData.data, key));
+      });
+    })
     it('assignIn', async () => {
       const model = {
         defined: root.assignIn([{a: 'women'}]),

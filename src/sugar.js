@@ -88,6 +88,10 @@ module.exports = function({chain, or, and}) {
       return chain(projection).filterBy(item => item);
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue};
+    function has(obj, key) {
+      return obj.get(key).not().not()
+    }
+
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue, has};
 };
 
