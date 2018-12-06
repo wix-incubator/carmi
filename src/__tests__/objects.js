@@ -264,6 +264,20 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
+    it('getIn getter', async () => {
+      const a = root.get('a');
+      const model = {
+        a,
+        defined: a.getIn(['b','c','d']),
+        notDefined: root.getIn(['b','e', 'b'])
+      };
+      const optModel = eval(await compile(model, { compiler }));
+      const initialData = { a: { b: {c: {d: 1}} } };
+
+      const inst = optModel(initialData);
+      expect(inst.defined).toEqual(1);
+      expect(inst.notDefined).not.toBeDefined();
+    });
     it('includes', async () => {
       const model = {
         includes: root.includes('something'),

@@ -56,12 +56,10 @@ class OptimizingCompiler extends NaiveCompiler {
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
           if (expr[0].$path) {
+            const conditionals = new Set();
+            Array.from(expr[0].$path.values()).filter(cond => cond).forEach(cond => conditionals.add(cond));
             return (
-              `let $tracked = [$invalidatedKeys,key];` +
-              Array.from(expr[0].$path.values())
-                .filter(cond => cond)
-                .map(cond => `let $cond_${cond} = false;`)
-                .join('')
+              `let $tracked = [$invalidatedKeys,key];` + Array.from(conditionals).map(cond => `let $cond_${cond} = false;`).join('')
             );
           }
           return '';
