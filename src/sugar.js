@@ -7,10 +7,6 @@ module.exports = function({chain, or, and}) {
         }, obj);
     }
 
-    function includes(collection, val) {
-        return collection.anyValues(item => item.eq(val));
-    }
-
     function assignIn(obj, args) {
         return chain([
             obj,
@@ -47,6 +43,10 @@ module.exports = function({chain, or, and}) {
       return arr.size().plus(1).range().map(v => v.lt(arr.size()).ternary(arr.get(v), value))
     }
 
+    function simpleSet(base, part, value) {
+      return chain([base, {[part]: value}]).assign()
+    }
+
     function setIn(obj, path, value) {
       if (!Array.isArray(path) || path.length === 0) {
           throw new Error('only set with array paths');
@@ -57,19 +57,32 @@ module.exports = function({chain, or, and}) {
           }
       })
 
-      function step(base, part, value) {
-          return chain([base, {[part]: value}]).assign()
-      }
 
       const currentValues = path.map((part, index) => 
         or(getIn(obj, path.slice(0, index)), chain({}))
       )
 
       return path.reduceRight((acc, part, index) => {
-          return step(currentValues[index], part, acc)
+          return simpleSet(currentValues[index], part, acc)
       }, value)
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn };
+    function includesValue(collection, val) {
+      return collection.anyValues((item, key, ctx) => item.eq(ctx), val)
+    }
+
+    function includes(collection, val) {
+      return collection.any((item, key, ctx) => item.eq(ctx), val)
+    }
+
+    function pickBy(obj, func, context = {}) {
+      return obj.filterBy((item, key, ctx) => func(item, key, ctx), context)
+    }
+
+    function pick(obj, arr) {
+      return pickBy(obj, (item, key, ctx) => includes(ctx, key), arr)
+    }
+
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, pickBy, includes, includesValue};
 };
 

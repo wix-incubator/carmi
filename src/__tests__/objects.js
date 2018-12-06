@@ -278,18 +278,6 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
-    it('includes', async () => {
-      const model = {
-        includes: root.includes('something'),
-        notIncludes: root.includes('nothing')
-      };
-      const optModel = eval(await compile(model, { compiler }));
-      const initialData = { a: 'something' };
-
-      const inst = optModel(initialData);
-      expect(inst.includes).toEqual(true);
-      expect(inst.notIncludes).toEqual(false);
-    });
     describe('find', () => {
       it('should find value if exists', async () => {
         const initialData = { a: 'nothing', b: 'something' };
@@ -358,6 +346,140 @@ describe('testing objects', () => {
 
         const inst = optModel(initialData);
         expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+    })
+    describe('includesValue', () => {
+      it('should return true if includes value', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const value = 1
+        const model = {
+          includesValue: root.get('data').includesValue(value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.includesValue).toEqual(_.includes(initialData.data, value));
+      });
+      it('should return false if not includes value', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const value = 3
+        const model = {
+          includesValue: root.get('data').includesValue(value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.includesValue).toEqual(_.includes(initialData.data, value));
+      });
+    })
+    describe('pick', () => {
+      it('should pick simple', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const path = ['b']
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+      it('should pick with non-exisiting props', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const path = ['c']
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+      it('should pick with empty array', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const path = []
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+      it('should pick with complex', async () => {
+        const initialData = { data: {a: 1, b: 2, c: {d: 1}, e: [1,2,3,4]}};
+        const path = ['c', 'd', 'e' , 'f']
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+    })
+    describe('pickBy', () => {
+      it('should pickBy with non-existing value', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const carmiFunc = value => value.eq(3)
+        const lodashFunc = value => value === 3
+        const model = {
+          pickBy: root.get('data').pickBy(carmiFunc),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pickBy).toEqual(_.pickBy(initialData.data, lodashFunc));
+      });
+      it('should pickBy value', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const carmiFunc = value => value.eq(1)
+        const lodashFunc = value => value === 1
+        const model = {
+          pickBy: root.get('data').pickBy(carmiFunc),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pickBy).toEqual(_.pickBy(initialData.data, lodashFunc));
+      });
+      it('should pickBy key', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const carmiFunc = (value, key) => key.eq('a')
+        const lodashFunc = (value, key) => key === 'a'
+        const model = {
+          pickBy: root.get('data').pickBy(carmiFunc),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pickBy).toEqual(_.pickBy(initialData.data, lodashFunc));
+      });
+      it('should pickBy with context', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const context = {a: 1}
+        const carmiFunc = (value, key, context) => and(key.eq(context.keys().get(0)), value.eq(context.get('a')))
+        const lodashFunc = (value, key) => key === _.keys(context)[0] && value === context.a
+        const model = {
+          pickBy: root.get('data').pickBy(carmiFunc, context),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pickBy).toEqual(_.pickBy(initialData.data, lodashFunc));
+      });
+      it('should pickBy array', async () => {
+        const initialData = { data: [{a: 1}, {b: 2}, {c: 3}]};
+        const context = 2
+        const carmiFunc = (item, key, context) => item.values().includes(context)
+        const lodashFunc = (item) => _.includes(_.values(item), context)
+        const model = {
+          pickBy: root.get('data').pickBy(carmiFunc, context),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pickBy).toEqual(_.pickBy(initialData.data, lodashFunc));
       });
     })
     it('assignIn', async () => {
