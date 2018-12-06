@@ -83,15 +83,11 @@ module.exports = function({chain, or, and}) {
         }
     }
 
-    function pickBy(obj, func, context = null) {
-      return obj.filterBy(func, context)
-    }
-
     function pick(obj, arr) {
       const projection = Object.assign({},...arr.map(key => ({[key]: obj.get(key)})));
       return chain(projection).filterBy(item => item);
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, pickBy, includes, includesValue};
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue};
 };
 
