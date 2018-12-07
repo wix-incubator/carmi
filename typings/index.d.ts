@@ -3,6 +3,8 @@ declare namespace carmi {
   interface Expression {
     call(functionName: string, ...args: any[]): GetterExpression
     bind(functionName: string, ...args: any[]): GetterExpression
+    breakpoint(): this
+    trace(logLevel?: StringArgument): this
   }
 
   type MapPredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
@@ -57,8 +59,11 @@ declare namespace carmi {
     map<ScopeType extends Expression,
       RetType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, RetType, ScopeType>, scope?: ScopeType): ArrayExpression<RetType>
     any<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): BoolExpression
+    includes(value: ValueType): BoolExpression
+    append(value: ValueType): ArrayExpression<ValueType>
     keyBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
     filter<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): ArrayExpression<ValueType>
+    find<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): ValueType
     assign<V>(): ValueType extends ObjectExpression<infer V> ? ObjectExpression<V> : never
     assign<V>(): ValueType extends ObjectExpression<infer V> ? ObjectExpression<V> : never
     recursiveMap<ScopeType extends Expression,
@@ -76,9 +81,13 @@ declare namespace carmi {
     mapKeys<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
     anyValues<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): BoolExpression
     filterBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
+    includesValue(value: ValueType): BoolExpression
+    has(key: StringExpression): BoolExpression
+    pick(array: ArrayExpression<StringExpression>): ObjectExpression<ValueType>
     groupBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, StringExpression | NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ObjectExpression<ValueType>>
     values(): ArrayExpression<ValueType>
     assignIn<FirstObject extends object, NextObject extends object>(obj: FirstObject, args: NextObject[]) : asExpression<FirstObject & NextObject>
+    setIn(path: ArrayExpression<StringExpression>) : ObjectExpression<ValueType>
     keys(): ArrayExpression<StringExpression | NumberExpression>
     recursiveMapValues<ScopeType extends Expression,
       RetType extends Expression>(predicate: RecursePredicate<ValueType, NumberExpression, RetType, ScopeType>, scope?: ScopeType): ObjectExpression<RetType>

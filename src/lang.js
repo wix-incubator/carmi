@@ -35,6 +35,7 @@ const TokenTypeData = {
   object: new TokenTypes({ nonChained: true, private: true, tryToHoist: true }),
   not: new TokenTypes({ nonChained: true, chainIndex: 1, len: [2, 2] }),
   ternary: new TokenTypes({ nonChained: true, chainIndex: 1, len: [4, 4] }),
+  trace: new TokenTypes({chainIndex: 2, len: [2, 3]}),
   get: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2, len: [3, 4] }),
@@ -94,6 +95,7 @@ const TokenTypeData = {
   mult: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
   div: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
   mod: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
+  breakpoint: new TokenTypes({chainIndex: 1, len: [2, 2]}),
   call: new TokenTypes({ nonChained: true, chainIndex: 2, len: [3, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
   bind: new TokenTypes({ nonChained: true, chainIndex: 2, len: [2, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
   startsWith: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
@@ -122,10 +124,6 @@ AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 
 function validatePathSegmentArguments(args) {
-  if (args.length === 0) {
-    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
-  }
-
   const invalidArgs = args.filter(arg =>
     typeof arg !== 'string' &&
     typeof arg !== 'number' &&
@@ -138,6 +136,9 @@ function validatePathSegmentArguments(args) {
 }
 
 AllTokens.Setter = (...args) => {
+  if (args.length === 0) {
+    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
+  }
   validatePathSegmentArguments(args);
   return new SetterExpression(...args);
 };

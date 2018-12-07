@@ -376,6 +376,30 @@ describe('testing array', () => {
       const inst = optModel(initialData);
       expect(inst.result).toEqual(['a', 'b', 'c', ['d']]);
     });
+    describe('includes', () => {
+      it('should return true if includes value', async () => {
+        const initialData = { data: [1, 2, 3]};
+        const value = 1
+        const model = {
+          includes: root.get('data').includes(value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.includes).toEqual(_.includes(initialData.data, value));
+      });
+      it('should return false if not includes value', async () => {
+        const initialData = { data: [1, 2, 3]};
+        const value = 4
+        const model = {
+          includes: root.get('data').includes(value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.includes).toEqual(_.includes(initialData.data, value));
+      });
+    })
     it('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
       const indexes = root.map((item, idx) => idx);

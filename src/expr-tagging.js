@@ -13,7 +13,7 @@ const {
   SourceTag
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
-const objectHash = require('object-hash')
+const objectHash = require('object-hash');
 const path = require('path');
 
 let exprCounter = 0;
@@ -33,29 +33,57 @@ function chainIndex(expr) {
   return tokenData(expr).chainIndex;
 }
 
-function annotatePathsThatCanBeInvalidated(expr, paths, inChain, parent) {
-  let currentPath = null;
-  if (typeof expr === 'string' || typeof expr === 'number' || typeof expr === 'boolean') {
-    currentPath = expr;
-  } else if (expr instanceof Token) {
-    if (expr.$type === 'root' || expr.$type === 'val' || expr.$type === 'topLevel' || expr.$type === 'context') {
-      currentPath = [expr];
+// function printPaths(paths) {
+//   const output = []
+//   paths.forEach((cond,path) => {
+//     output.push([path.map(stringifyExpr).join(','), cond]);
+//   })
+//   console.log(output);
+// }
+
+function annotatePathsThatCanBeInvalidated(exprsByFunc) {
+  const paths = new Map();
+  const allGettersChains = exprsByFunc.filter(
+    expr => expr[0].$type === 'get' && (!expr[0].$parent || expr[0].$parent[0].$type !== 'get')
+  );
+  const foundByType = { root: false, context: false };
+  _.forEach(allGettersChains, chainedGetter => {
+    let currentStep = chainedGetter;
+    let path = [];
+    while (currentStep instanceof Expression && currentStep[0].$type === 'get') {
+      path.unshift(currentStep[1]);
+      currentStep = currentStep[2];
     }
-  } else if (expr[0].$type === 'get') {
-    const chainedTo = annotatePathsThatCanBeInvalidated(expr[chainIndex(expr)], paths, true, expr);
-    if (!Array.isArray(chainedTo)) {
-      currentPath = [];
+    if (currentStep instanceof Token) {
+      foundByType[currentStep.$type] = true;
+    }
+    path.unshift(currentStep);
+    paths.set(path, chainedGetter[0].$conditional ? chainedGetter[0].$id : false);
+  });
+  exprsByFunc.forEach(expr => {
+    expr.forEach(token => {
+      if (token instanceof Token && foundByType[token.$type] === false) {
+        foundByType[token.$type] = true;
+        paths.set([token], expr[0].$conditional ? expr[0].$id : false)
+      }
+    })
+  });
+  const groupedPaths = {};
+  paths.forEach((cond, path) => {
+    const pathAsStr = path.map(stringifyExpr).join(',');
+    groupedPaths[pathAsStr] = groupedPaths[pathAsStr] || [];
+    groupedPaths[pathAsStr].push(path);
+  });
+  const outputPaths = new Map();
+  _.forEach(groupedPaths, (similiarPaths, pathAsStr) => {
+    const conditionals = similiarPaths.map(path => paths.get(path));
+    if (conditionals.some(cond => cond === false)) { // one of the usages of the path is unconditional
+      outputPaths.set(similiarPaths[0], false);
     } else {
-      currentPath = chainedTo.concat([expr[1]]);
+      outputPaths.set(similiarPaths[0], _.uniq(conditionals));
     }
-  } else if (!parent || expr[0].$type !== 'func') {
-    expr.slice(1).forEach(e => annotatePathsThatCanBeInvalidated(e, paths, false, expr));
-  }
-  if (!inChain && Array.isArray(currentPath) && currentPath.length > 0) {
-    const relevantExpr = expr instanceof Expression ? expr : parent;
-    paths.set(currentPath, relevantExpr[0].$conditional ? relevantExpr[0].$id : false);
-  }
-  return currentPath;
+  })
+  return outputPaths;
 }
 
 function getAllFunctions(sourceExpr) {
@@ -77,13 +105,22 @@ function pathFragmentToString(token) {
 function pathToString(path) {
   return path.map(pathFragmentToString).join('.');
 }
+/*
+function exprContains(expr, str) {
+  if (expr === str) {
+    return true;
+  } else if (expr instanceof Expression) {
+    return expr.some(child => exprContains(child, str));
+  }
+}
+*/
 
 function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
   const exprFuncs = getAllFunctions(sourceExpr);
-  _.forEach(exprFuncs, expr => {
-    const allPaths = new Map();
-    annotatePathsThatCanBeInvalidated(expr, allPaths);
-    expr[0].$path = allPaths;
+  _.forEach(exprFuncs, func => {
+    const allExprs = flattenExpression(func);
+    const allExprsInFunc = _.filter(allExprs, expr => func[0].$funcId === expr[0].$funcId);
+    func[0].$path = annotatePathsThatCanBeInvalidated(allExprsInFunc);
   });
 }
 
@@ -96,6 +133,7 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
   expr[0].$rootName = rootName;
   expr[0].$depth = currentDepth;
   expr[0].$funcType = funcType;
+  expr[0].$parent = null;
   expr.forEach((subExpression, childIndex) => {
     if (subExpression instanceof Expression) {
       if (subExpression[0].$type !== 'func') {
@@ -104,6 +142,7 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
         subExpression[0].$funcType = expr[0].$type;
         tagExpressions(subExpression, name + '$' + expr[0].$id, currentDepth + 1, indexChain, expr[0].$type, rootName);
       }
+      subExpression[0].$parent = expr;
     } else if (subExpression instanceof Token) {
       subExpression.$funcId = name;
       subExpression.$rootName = rootName;
@@ -130,36 +169,40 @@ function flattenExpression(...expressions) {
   return output;
 }
 
-const isStaticExpression = memoize((expr) => {
+const isStaticExpression = memoize(expr => {
   let res = true;
   const areChildrenStatic = expr.map(token => {
     if (token instanceof Expression) {
-      return isStaticExpression(token)
+      return isStaticExpression(token);
     } else if (token.$type === 'val' || token.$type === 'key' || token.$type === 'context') {
       return false;
     }
     return true;
-  })
+  });
   return _.every(areChildrenStatic, (isChildStatic, index) => {
-    return isChildStatic || expr[index] instanceof Expression && expr[index][0].$type === 'func';
+    return isChildStatic || (expr[index] instanceof Expression && expr[index][0].$type === 'func');
   });
 });
 
-const getRewriteUsingTopLevels = (namesByExpr) => {
-  const rewriteUsingTopLevels = memoizeExprFunc(expr => {
-    const str = stringifyExpr(expr);
-    if (namesByExpr[str]) {
-      return Expr(Get, namesByExpr[str], TopLevel);
-    }
-    return expr.map(child => rewriteUsingTopLevels(child))
-  }, token => token)
+const getRewriteUsingTopLevels = namesByExpr => {
+  const rewriteUsingTopLevels = memoizeExprFunc(
+    expr => {
+      const str = stringifyExpr(expr);
+      if (namesByExpr[str]) {
+        return Expr(Get, namesByExpr[str], TopLevel);
+      }
+      return expr.map(child => rewriteUsingTopLevels(child));
+    },
+    token => token
+  );
   return rewriteUsingTopLevels;
-}
+};
 
 function tagToSimpleFilename(tag) {
   const lineParts = tag.split(path.sep);
   const fileName = lineParts[lineParts.length - 1].replace(/\).*/, '');
-  const simpleName = fileName.split('.js:')[0]
+  const simpleName = fileName
+    .split('.js:')[0]
     .replace(/\.carmi$/, '')
     .split('.')
     .find(x => x);
@@ -232,8 +275,8 @@ function extractAllStaticExpressionsAsValues(getters) {
   const rewriteUsingTopLevels = getRewriteUsingTopLevels(namesByExpr);
   const newGetters = {};
   _.forEach(namesByExpr, (name, hash) => {
-    newGetters[name] = allStaticAsStrings[hash].map(rewriteUsingTopLevels)
-  })
+    newGetters[name] = allStaticAsStrings[hash].map(rewriteUsingTopLevels);
+  });
   return newGetters;
 }
 
@@ -285,29 +328,32 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
   });
 }
 
-const deadCodeElimination = memoizeExprFunc((expr) => {
-  const children = expr.map((child, idx) => deadCodeElimination(child));
-  const tokenType = expr[0].$type;
-  switch (tokenType) {
-    case 'or':
-      const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
-      if (firstTruthy === 0) {
-        return children[1];
-      } else if (firstTruthy > 0) {
-        return Expr(...children.slice(0, firstTruthy + 2))
-      }
-    case 'and':
-      const firstFalsy = expr
-        .slice(1)
-        .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
-      if (firstFalsy === 0) {
-        return children[1];
-      } else if (firstFalsy > 0) {
-        return Expr(...children.slice(0, firstFalsy + 2))
-      }
-  }
-  return children;
-}, token => token)
+const deadCodeElimination = memoizeExprFunc(
+  expr => {
+    const children = expr.map((child, idx) => deadCodeElimination(child));
+    const tokenType = expr[0].$type;
+    switch (tokenType) {
+      case 'or':
+        const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
+        if (firstTruthy === 0) {
+          return children[1];
+        } else if (firstTruthy > 0) {
+          return Expr(...children.slice(0, firstTruthy + 2));
+        }
+      case 'and':
+        const firstFalsy = expr
+          .slice(1)
+          .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
+        if (firstFalsy === 0) {
+          return children[1];
+        } else if (firstFalsy > 0) {
+          return Expr(...children.slice(0, firstFalsy + 2));
+        }
+    }
+    return children;
+  },
+  token => token
+);
 
 function normalizeAndTagAllGetters(getters, setters) {
   clearStringifyMap();
@@ -330,7 +376,7 @@ const allPathsInGetter = memoize(getter => {
       acc.set(item[0], item[1]);
       return acc;
     }, new Map());
-})
+});
 
 function pathMatches(srcPath, trgPath) {
   // console.log('pathMatches', srcPath, trgPath);

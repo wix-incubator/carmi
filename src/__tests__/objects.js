@@ -264,17 +264,19 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
-    it('includes', async () => {
+    it('getIn getter', async () => {
+      const a = root.get('a');
       const model = {
-        includes: root.includes('something'),
-        notIncludes: root.includes('nothing')
+        a,
+        defined: a.getIn(['b','c','d']),
+        notDefined: root.getIn(['b','e', 'b'])
       };
       const optModel = eval(await compile(model, { compiler }));
-      const initialData = { a: 'something' };
+      const initialData = { a: { b: {c: {d: 1}} } };
 
       const inst = optModel(initialData);
-      expect(inst.includes).toEqual(true);
-      expect(inst.notIncludes).toEqual(false);
+      expect(inst.defined).toEqual(1);
+      expect(inst.notDefined).not.toBeDefined();
     });
     describe('find', () => {
       it('should find value if exists', async () => {
@@ -344,6 +346,100 @@ describe('testing objects', () => {
 
         const inst = optModel(initialData);
         expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
+      });
+    })
+    describe('includesValue', () => {
+      it('should return true if includes value', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const value = 1
+        const model = {
+          includesValue: root.get('data').includesValue(value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.includesValue).toEqual(_.includes(initialData.data, value));
+      });
+      it('should return false if not includes value', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const value = 3
+        const model = {
+          includesValue: root.get('data').includesValue(value),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.includesValue).toEqual(_.includes(initialData.data, value));
+      });
+    })
+    describe('pick', () => {
+      it('should pick simple', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const path = ['b']
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+      it('should pick with non-exisiting props', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const path = ['c']
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+      it('should pick with empty array', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const path = []
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+      it('should pick with complex', async () => {
+        const initialData = { data: {a: 1, b: 2, c: {d: 1}, e: [1,2,3,4]}};
+        const path = ['c', 'd', 'e' , 'f']
+        const model = {
+          pick: root.get('data').pick(path),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
+    })
+    describe('has', () => {
+      it('should return true if contain key', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const key = 'b'
+        const model = {
+          has: root.get('data').has(key),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.has).toEqual(_.has(initialData.data, key));
+      });
+      it('should return false if not contain key', async () => {
+        const initialData = { data: {a: 1, b: 2}};
+        const key = 'd'
+        const model = {
+          has: root.get('data').has(key),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.has).toEqual(_.has(initialData.data, key));
       });
     })
     it('assignIn', async () => {
