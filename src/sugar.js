@@ -17,7 +17,7 @@ module.exports = function({chain, or, and}) {
     function reduce(collection, predicate, initialValue) {
         return collection.size().eq(0).ternary(
             initialValue,
-            collection.recursiveMap((loop, value, index) => 
+            collection.recursiveMap((loop, value, index) =>
                 predicate(index.eq(0).ternary(
                     initialValue, index.minus(1).recur(loop)), value, index))
                 .get(collection.size().minus(1)))
@@ -58,7 +58,7 @@ module.exports = function({chain, or, and}) {
       })
 
 
-      const currentValues = path.map((part, index) => 
+      const currentValues = path.map((part, index) =>
         or(getIn(obj, path.slice(0, index)), chain({}))
       )
 
@@ -67,6 +67,18 @@ module.exports = function({chain, or, and}) {
       }, value)
     }
 
+    function head(array) {
+      return array.get(0)
+    }
+
+    function last(array) {
+      return array.get(array.size().minus(1))
+    }
+  
+    function reverse(array) {
+      return array.map((item, index) => array.get(array.size().minus(index.plus(1))))
+    }
+  
     function includesValue(collection, val) {
       if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
           return collection.anyValues((item, key, ctx) => item.eq(val))
@@ -92,6 +104,5 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).not().not()
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue, has};
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue, has, reverse};
 };
-
