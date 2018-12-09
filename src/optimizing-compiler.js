@@ -148,8 +148,6 @@ class OptimizingCompiler extends NaiveCompiler {
         })`;
       case 'topLevel':
         return `$res`;
-      case 'wildcard':
-        return '$wildcard';
       case 'context':
         return 'context[0]';
       case 'recur':

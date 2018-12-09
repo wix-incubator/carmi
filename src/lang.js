@@ -103,8 +103,7 @@ const TokenTypeData = {
   toUpperCase: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   toLowerCase: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   substring: new TokenTypes({nonChained: true, chainIndex: 1, len: [4, 4]}),
-  split: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
-  wildcard: new TokenTypes({ nonVerb: true, private: true })
+  split: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]})
 };
 
 const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
