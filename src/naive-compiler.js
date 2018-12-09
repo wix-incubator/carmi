@@ -145,11 +145,12 @@ class NaiveCompiler {
         return tokenType;
       case 'topLevel':
         return `$res`;
+      case 'effect':
       case 'call':
-        return `$funcLib[${this.generateExpr(expr[1])}].call($res${expr
+        return `($funcLib[${this.generateExpr(expr[1])}].call($res${expr
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
-          .join('')})`;
+          .join('')}) ${tokenType === 'effect' ? ' && void 0': ''})`;
       case 'bind':
         return `($funcLib[${this.generateExpr(expr[1])}] || $res[${this.generateExpr(expr[1])}]).bind($res${expr
           .slice(2)
