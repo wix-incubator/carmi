@@ -149,6 +149,9 @@ AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 
+AllTokens.isSetterExpression = expression => expression instanceof SetterExpression;
+AllTokens.isSpliceExpression = expression => expression instanceof SpliceSetterExpression;
+AllTokens.isExpression = expression => expression instanceof Expression;
 
 function Clone(model) {
   if (model instanceof Token) {

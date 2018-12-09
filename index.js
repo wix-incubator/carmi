@@ -9,10 +9,12 @@ const {
   Splice,
   cloneToken,
   SourceTag,
+  isSetterExpression,
+  isSpliceExpression,
+  isExpression,
   WrappedPrimitive
 } = require('./src/lang');
 
-const {isSetterExpression, isSpliceExpression} = require('./src/carmiIs');
 
 const compilerTypes = {};
 compilerTypes.naive = require('./src/naive-compiler');
@@ -285,6 +287,7 @@ module.exports = {
   splice: Splice,
   isSetterExpression,
   isSpliceExpression,
+  isExpression,
   withName,
   inferFromModel,
   ...frontend
