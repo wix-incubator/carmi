@@ -104,5 +104,5 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).not().not()
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue, has, reverse};
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue, has, reverse, last, head};
 };
