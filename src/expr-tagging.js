@@ -1,14 +1,12 @@
 const {
   Expr,
   Token,
-  Setter,
   Expression,
   SetterExpression,
   TopLevel,
   Root,
   Get,
   Clone,
-  Wildcard,
   TokenTypeData,
   SourceTag
 } = require('./lang');
