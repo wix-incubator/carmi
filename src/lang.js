@@ -117,8 +117,16 @@ class Expression extends Array {
   }
 }
 
-class SetterExpression extends Array {}
-class SpliceSetterExpression extends SetterExpression {}
+class SetterExpression extends Array {
+  toJSON() {
+    return ['*setter*'].concat(this)
+  }
+}
+class SpliceSetterExpression extends SetterExpression {
+  toJSON() {
+    return ['*splice*'].concat(this)
+  }
+}
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(...args);
 
