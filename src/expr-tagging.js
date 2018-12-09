@@ -11,7 +11,7 @@ const {
   SourceTag
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
-const objectHash = require('object-hash');
+const exprHash = require('./expr-hash');
 const path = require('path');
 
 let exprCounter = 0;
@@ -34,7 +34,7 @@ function chainIndex(expr) {
 // function printPaths(paths) {
 //   const output = []
 //   paths.forEach((cond,path) => {
-//     output.push([path.map(stringifyExpr).join(','), cond]);
+//     output.push([path.map(exprHash).join(','), cond]);
 //   })
 //   console.log(output);
 // }
@@ -68,7 +68,7 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   });
   const groupedPaths = {};
   paths.forEach((cond, path) => {
-    const pathAsStr = path.map(stringifyExpr).join(',');
+    const pathAsStr = path.map(exprHash).join(',');
     groupedPaths[pathAsStr] = groupedPaths[pathAsStr] || [];
     groupedPaths[pathAsStr].push(path);
   });
@@ -185,7 +185,7 @@ const isStaticExpression = memoize(expr => {
 const getRewriteUsingTopLevels = namesByExpr => {
   const rewriteUsingTopLevels = memoizeExprFunc(
     expr => {
-      const str = stringifyExpr(expr);
+      const str = exprHash(expr);
       if (namesByExpr[str]) {
         return Expr(Get, namesByExpr[str], TopLevel);
       }
@@ -216,7 +216,7 @@ function generateName(namesByExpr, expr) {
     .tail()
     .reverse()
     .map(e => {
-      const preNamed = namesByExpr[stringifyExpr(e)];
+      const preNamed = namesByExpr[exprHash(e)];
       if (preNamed) {
         return preNamed;
       } else {
@@ -226,46 +226,19 @@ function generateName(namesByExpr, expr) {
     .join('');
 }
 
-let stringifiedMap = new WeakMap();
-let stringsToHashes = {};
-
-function stringifyExpr(expr) {
-  if (!(expr instanceof Expression)) {
-    return JSON.stringify(expr);
-  }
-  if (!stringifiedMap.has(expr)) {
-    const str = expr.map(stringifyExpr).join(',');
-    if (!stringsToHashes[str]) {
-      stringsToHashes[str] = objectHash(str);
-    }
-    stringifiedMap.set(expr, stringsToHashes[str]);
-  }
-  return stringifiedMap.get(expr);
-}
-
-function clearStringifyMap() {
-  stringifiedMap = new WeakMap();
-  stringsToHashes = {};
-}
-
 function extractAllStaticExpressionsAsValues(getters) {
   const allExpressions = flattenExpression(...Object.values(getters));
   const allStaticExpressions = _.filter(allExpressions, isStaticExpression);
   const allStaticAsStrings = allStaticExpressions.reduce((acc, e) => {
-    acc[stringifyExpr(e)] = e;
+    acc[exprHash(e)] = e;
     return acc;
   }, {});
   const namesByExpr = _(getters)
-    .mapValues(e => stringifyExpr(e))
+    .mapValues(e => exprHash(e))
     .invert()
     .value();
-  const allStaticStringsSorted = _(allStaticAsStrings)
-    .keys()
-    .sortBy(s => s.length)
-    .value();
-  let nodeIndex = 0;
-  _.forEach(allStaticStringsSorted, s => {
-    const e = allStaticAsStrings[s];
+  let nodeIndex = 1;
+  _.forEach(allStaticAsStrings, (e,s) => {
     if (!namesByExpr[s] && tryToHoist(e)) {
       namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
     }
@@ -354,7 +327,6 @@ const deadCodeElimination = memoizeExprFunc(
 );
 
 function normalizeAndTagAllGetters(getters, setters) {
-  clearStringifyMap();
   getters = _.mapValues(getters, deadCodeElimination);
   getters = extractAllStaticExpressionsAsValues(getters);
   getters = cloneExpressions(getters);

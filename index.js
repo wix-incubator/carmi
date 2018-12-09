@@ -24,7 +24,7 @@ try {
 const path = require('path');
 
 const { rollup } = require('rollup');
-const objectHash = require('object-hash');
+const exprHash = require('./src/expr-hash');
 
 let uglify;
 try {
@@ -211,7 +211,7 @@ async function compile(model, options) {
   const hashFile =
     options.cache &&
     !options.ast &&
-    path.resolve(process.cwd(), options.cache, objectHash(JSON.stringify({ model, options })));
+    path.resolve(process.cwd(), options.cache, exprHash({ model, options }));
   if (options.cache) {
     try {
       const result = require('fs')
