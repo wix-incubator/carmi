@@ -350,10 +350,14 @@ const allPathsInGetter = memoize(getter => {
 
 function pathMatches(srcPath, trgPath) {
   // console.log('pathMatches', srcPath, trgPath);
-  return srcPath.every(
-    (part, idx) =>
-      typeof trgPath[idx] === 'undefined' || pathFragmentToString(part) === pathFragmentToString(trgPath[idx])
-  );
+  return srcPath.every((part, idx) => {
+    if (typeof trgPath[idx] === 'undefined') {
+      return true;
+    }
+    const srcFrag = pathFragmentToString(part);
+    const trgFrag = pathFragmentToString(trgPath[idx]);
+    return srcFrag === trgFrag || srcFrag === '*' || trgFrag === '*';
+  });
 }
 
 function findReferencesToPathInAllGetters(path, getters) {
