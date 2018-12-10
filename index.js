@@ -9,8 +9,12 @@ const {
   Splice,
   cloneToken,
   SourceTag,
+  isSetterExpression,
+  isSpliceExpression,
+  isExpression,
   WrappedPrimitive
 } = require('./src/lang');
+
 
 const compilerTypes = {};
 compilerTypes.naive = require('./src/naive-compiler');
@@ -152,7 +156,7 @@ proxyHandler.get = (target, key) => {
     !tokenData &&
     typeof key === 'string' &&
     key !== '$type' &&
-    key !== '$primitive' && 
+    key !== '$primitive' &&
     key !== 'length' &&
     key !== 'forEach' &&
     key !== 'inspect' &&
@@ -259,9 +263,7 @@ async function compile(model, options) {
   return result;
 }
 
-const exported = { compile, setter: Setter, splice: Splice };
-Object.assign(exported, frontend);
-exported.withName = (name, val) => {
+function withName(name, val) {
   if (val instanceof Expression) {
     const tokenType = val[0].$type;
     const tokenData = TokenTypeData[tokenType];
@@ -273,8 +275,20 @@ exported.withName = (name, val) => {
     }
     return val;
   }
+}
+
+function inferFromModel(rootExpression, exampleModel) {
+  return rootExpression
+}
+
+module.exports = {
+  compile,
+  setter: Setter,
+  splice: Splice,
+  isSetterExpression,
+  isSpliceExpression,
+  isExpression,
+  withName,
+  inferFromModel,
+  ...frontend
 };
-
-exported.inferFromModel = (rootExpression, exampleModel) => rootExpression
-
-module.exports = exported;
