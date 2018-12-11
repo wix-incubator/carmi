@@ -525,8 +525,10 @@ function base() {
       } else {
         const keysPendingDelete = {};
         $invalidatedKeys.forEach(key => {
-          keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
-          keysPendingDelete[$keyToKey[key]].add(key);
+          if ($keyToKey[key]) {
+              keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
+              keysPendingDelete[$keyToKey[key]].add(key);
+          }
         });
         $invalidatedKeys.forEach(key => {
           if (func($invalidatedKeys, $keyToKey, src, key, $out, context)) {

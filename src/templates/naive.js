@@ -22,8 +22,13 @@ function base() {
     function groupBy(func, src, context) {
       return Object.keys(src).reduce((acc, key) => {
         const newKey = func(src[key], key, context);
-        acc[newKey] = acc[newKey] || [];
-        acc[newKey].push(src[key]);
+        if (Array.isArray(src)) {
+            acc[newKey] = acc[newKey] || [];
+            acc[newKey].push(src[key]);
+        } else {
+            acc[newKey] = acc[newKey] || {};
+            acc[newKey][key] = src[key];
+        }
         return acc;
       }, {});
     }
