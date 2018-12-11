@@ -1,5 +1,9 @@
 const {
   Expr,
+  Gte,
+  Or,
+  Eq,
+  Cond,
   Token,
   Expression,
   SetterExpression,
@@ -31,13 +35,38 @@ function chainIndex(expr) {
   return tokenData(expr).chainIndex;
 }
 
-// function printPaths(paths) {
-//   const output = []
-//   paths.forEach((cond,path) => {
-//     output.push([path.map(exprHash).join(','), cond]);
-//   })
-//   console.log(output);
-// }
+function printPaths(title, paths) {
+  const output = []
+  paths.forEach((cond,path) => {
+    let condValue = cond
+    if (cond instanceof Expression) {
+      condValue = JSON.parse(JSON.stringify(cond))
+    } else if (cond) {
+      condValue = [cond[0].$id, cond[1]]
+    }
+    output.push([path.map(exprHash).join(','), condValue]);
+  })
+  console.log(title, output);
+}
+
+function generatePathCondExpr(pathExpressions, pathAsStr, outputPaths) {
+  const anyNotConditional = _.some(pathExpressions, (expr) => !expr[0].$conditional);
+  if (anyNotConditional) {
+    return false;
+  } else {
+    const conds = pathExpressions.map(expr => {
+      const condId = expr[0].$conditional[0][0].$id;
+      const condBranch = expr[0].$conditional[1];
+      const condIsTernary = expr[0].$conditional[0][0].$type === 'ternary';
+      return Expr(condIsTernary ? Eq : Gte, Expr(Cond, condId), condBranch);
+    });
+    if (conds.length === 1) {
+      return conds[0];
+    } else {
+      return Expr(Or, ...conds);
+    }
+  }
+}
 
 function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   const paths = new Map();
@@ -56,13 +85,13 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
       foundByType[currentStep.$type] = true;
     }
     path.unshift(currentStep);
-    paths.set(path, chainedGetter[0].$conditional ? chainedGetter[0].$id : false);
+    paths.set(path, chainedGetter);
   });
   exprsByFunc.forEach(expr => {
     expr.forEach(token => {
       if (token instanceof Token && foundByType[token.$type] === false) {
         foundByType[token.$type] = true;
-        paths.set([token], expr[0].$conditional ? expr[0].$id : false)
+        paths.set([token], expr)
       }
     })
   });
@@ -73,14 +102,12 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
     groupedPaths[pathAsStr].push(path);
   });
   const outputPaths = new Map();
-  _.forEach(groupedPaths, (similiarPaths, pathAsStr) => {
-    const conditionals = similiarPaths.map(path => paths.get(path));
-    if (conditionals.some(cond => cond === false)) { // one of the usages of the path is unconditional
-      outputPaths.set(similiarPaths[0], false);
-    } else {
-      outputPaths.set(similiarPaths[0], _.uniq(conditionals));
-    }
-  })
+  Array.from(Object.keys(groupedPaths))
+    .sort()
+    .forEach(pathAsStr => {
+      const similiarPaths = groupedPaths[pathAsStr];
+      outputPaths.set(similiarPaths[0], generatePathCondExpr(similiarPaths.map(path => paths.get(path)), pathAsStr, outputPaths));
+    });
   return outputPaths;
 }
 
@@ -131,6 +158,7 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
   expr[0].$rootName = rootName;
   expr[0].$depth = currentDepth;
   expr[0].$funcType = funcType;
+  expr[0].$tracked = false;
   expr[0].$parent = null;
   expr.forEach((subExpression, childIndex) => {
     if (subExpression instanceof Expression) {
@@ -263,11 +291,11 @@ function tagUnconditionalExpressions(expr, cond) {
   if (!(expr instanceof Expression)) {
     return;
   }
-  expr[0].$conditional = !!cond;
+  expr[0].$conditional = cond;
   const $type = expr[0].$type;
   if ($type === 'or' || $type === 'and' || $type == 'ternary') {
     tagUnconditionalExpressions(expr[1], cond);
-    expr.slice(2).forEach(subExpr => tagUnconditionalExpressions(subExpr, true));
+    expr.slice(2).forEach((subExpr,subIndex) => tagUnconditionalExpressions(subExpr, [expr, subIndex+2]));
   } else if ($type === 'func') {
     tagUnconditionalExpressions(expr[1], false);
   } else {
@@ -275,27 +303,60 @@ function tagUnconditionalExpressions(expr, cond) {
   }
 }
 
+function parentFunction(expr) {
+  if (expr[0].$type === 'func' || !expr[0].$parent) {
+    return expr;
+  } else {
+    return parentFunction(expr[0].$parent);
+  }
+}
+
 function unmarkPathsThatHaveNoSetters(getters, setters) {
   const currentSetters = Object.values(setters);
   topologicalSortGetters(getters).forEach(name => {
     const getter = getters[name];
-    const exprPathsMaps = _(flattenExpression([getter]))
+    const allExprInGetter = flattenExpression([getter])
+    const exprPathsMaps = _(allExprInGetter)
       .filter(e => e instanceof Expression && e[0].$path)
       .map(e => e[0].$path)
       .value();
     let canBeExprBeInvalidated = false;
+    const condsThatAreTracked = new Set();
     exprPathsMaps.forEach(pathMap =>
       pathMap.forEach((cond, path) => {
+        let trackCond = false;
         if (_.some(currentSetters, setter => pathMatches(path, setter))) {
           canBeExprBeInvalidated = true;
+          trackCond = true;
         } else if (path[0].$type !== 'context') {
           pathMap.delete(path);
+        } else {
+          trackCond = true;
+        }
+        if (cond && trackCond) {
+          const conditionalsByPath = flattenExpression([cond]).filter(e => e instanceof Expression && e[0].$type === 'cond');
+          conditionalsByPath.forEach(condPath => condsThatAreTracked.add(condPath[1]));
         }
       })
     );
     if (canBeExprBeInvalidated) {
       currentSetters.push([TopLevel, name]);
     }
+    if (condsThatAreTracked.size) {
+      allExprInGetter.forEach(e => {
+        if (e instanceof Expression && condsThatAreTracked.has(e[0].$id)) {
+          e[0].$tracked = true;
+          const parent = parentFunction(e);
+          parent[0].$trackedExpr = parent[0].$trackedExpr || new Set();
+          parent[0].$trackedExpr.add(e[0].$id);
+        }
+      })
+    }
+    allExprInGetter.forEach(expr => {
+      if (expr instanceof Expression) {
+        expr[0].$invalidates = canBeExprBeInvalidated;
+      }
+    })
   });
 }
 
@@ -360,18 +421,6 @@ function pathMatches(srcPath, trgPath) {
   });
 }
 
-function findReferencesToPathInAllGetters(path, getters) {
-  const pathsInAllGetters = _.mapValues(getters, getter => Array.from(allPathsInGetter(getter).keys()));
-  const res = _(pathsInAllGetters).reduce((accAllGetters, allPaths, name) => {
-    const getterRelevant = _.filter(allPaths, exprPath => pathMatches(path, exprPath));
-    if (getterRelevant.length) {
-      accAllGetters[name] = getterRelevant;
-    }
-    return accAllGetters;
-  }, {});
-  return res;
-}
-
 function collectAllTopLevelInExpr(expr, acc) {
   acc = acc || {};
   if (expr[0].$type === 'get' && expr[2] instanceof Token && expr[2].$type === 'topLevel') {
@@ -421,7 +470,6 @@ function findFuncExpr(getters, funcId) {
 }
 
 module.exports = {
-  findReferencesToPathInAllGetters,
   pathMatches,
   topologicalSortGetters,
   pathFragmentToString,

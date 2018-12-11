@@ -11,11 +11,9 @@ const {
 const _ = require('lodash');
 const NaiveCompiler = require('./naive-compiler');
 const {
-  findReferencesToPathInAllGetters,
   splitSettersGetters,
   pathMatches,
-  normalizeAndTagAllGetters,
-  allPathsInGetter
+  normalizeAndTagAllGetters
 } = require('./expr-tagging');
 
 class OptimizingCompiler extends NaiveCompiler {
@@ -55,20 +53,16 @@ class OptimizingCompiler extends NaiveCompiler {
       {
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
-          if (expr[0].$path) {
-            const conditionals = new Set();
-            _(Array.from(expr[0].$path.values()))
-              .filter(cond => cond)
-              .flatten()
-              .forEach(cond => conditionals.add(cond));
+          if (expr[0].$path && expr[0].$path.size) {
+            const conditionals = expr[0].$trackedExpr ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`) : [];
             return (
-              `let $tracked = [$invalidatedKeys,key];` + Array.from(conditionals).map(cond => `let $cond_${cond} = false;`).join('')
+              `let $tracked = [$invalidatedKeys,key];` + conditionals.join('')
             );
           }
           return '';
         },
         INVALIDATES: () => {
-          return !!this.invalidates(this.pathOfExpr(expr));
+          return !!this.invalidates(expr);
         }
       },
       this.byTokenTypesPlaceHolders(expr),
@@ -76,30 +70,49 @@ class OptimizingCompiler extends NaiveCompiler {
     );
   }
 
+  wrapExprCondPart(expr, indexInExpr) {
+    if (!expr[0].$tracked) {
+      return `(${this.generateExpr(expr[indexInExpr])})`
+    } else {
+      return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`
+    }
+  }
+
   generateExpr(expr) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
     switch (tokenType) {
-      case 'get':
-        if (expr[0].$conditional && expr[0].$rootName) {
-          const getter = this.getters[expr[0].$rootName];
-          const paths = allPathsInGetter(getter);
-          if (Array.from(paths.values()).filter(k => _.includes(k,expr[0].$id)).length) {
-            return `${this.generateExpr(expr[2])}[($cond_${expr[0].$id} = true && ${this.generateExpr(expr[1])})]`;
-          }
-        }
-        return super.generateExpr(expr);
+      case 'and':
+        return (
+          '(' +
+          expr
+            .slice(1)
+            .map((t,index)=> this.wrapExprCondPart(expr, index+1))
+            .join('&&') +
+          ')'
+        );
+      case 'or':
+        return (
+          '(' +
+          expr
+            .slice(1)
+            .map((t,index)=> this.wrapExprCondPart(expr, index+1))
+            .join('||') +
+          ')'
+        );
+      case 'ternary':
+        return `((${this.generateExpr(expr[1])})?${this.wrapExprCondPart(expr, 2)}:(${this.wrapExprCondPart(expr, 3)}))`;
       case 'object':
       case 'array':
         return `${tokenType}($invalidatedKeys,key,${super.generateExpr(expr)}, ${tokenType}$${
           expr[0].$id
-        }Token, ${tokenType}$${expr[0].$id}Args, ${this.invalidates(this.pathOfExpr(expr))})`;
+        }Token, ${tokenType}$${expr[0].$id}Args, ${this.invalidates(expr)})`;
       case 'call':
         return `call($invalidatedKeys,key,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
           .join(',')}], getUniquePersistenObject(${expr[0].$id}), ${expr.length - 1}, ${this.invalidates(
-          this.pathOfExpr(expr)
+          expr
         )})`;
       case 'bind':
         return `bind($invalidatedKeys,key,[${expr
@@ -117,7 +130,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'defaults':
         return `assignOrDefaults(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
-        }, ${this.invalidates(this.pathOfExpr(expr))})`;
+        }, ${this.invalidates(expr)})`;
       case 'range':
         return `range(acc, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
           expr.length > 3 ? this.generateExpr(expr[3]) : '1'
@@ -200,13 +213,13 @@ class OptimizingCompiler extends NaiveCompiler {
           for (let i = key; i < end; i++ ) {
             triggerInvalidations(arr, i, true);
           }
-          ${this.invalidates(setterExpr) ? invalidate : ''}
+          ${invalidate}
           ${taint}
           ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
       })`;
     }
     return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
-              ${this.invalidates(setterExpr) ? invalidate : ''}
+              ${invalidate}
               ${taint}
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}
@@ -216,12 +229,8 @@ class OptimizingCompiler extends NaiveCompiler {
           })`;
   }
 
-  invalidates(path) {
-    const refsToPath = findReferencesToPathInAllGetters(path, this.getters);
-    if (!_.isEmpty(refsToPath) || path[1].indexOf('$') === -1) {
-      return true;
-    }
-    return false;
+  invalidates(expr) {
+    return expr[0].$invalidates;
   }
 
   pathOfExpr(expr) {
@@ -241,7 +250,7 @@ class OptimizingCompiler extends NaiveCompiler {
             invalidatedPath[invalidatedPath.length - 1].$type
           }`
         );
-        const precond = cond ? `(${cond.map(item => `$cond_${item}`).join(' || ')}) && ` : '';
+        const precond = cond ? `(${this.generateExpr(cond)} ) && ` : '';
         if (invalidatedPath[0].$type === 'context') {
           const activePath = [0].concat(invalidatedPath.slice(1));
           tracks.push(

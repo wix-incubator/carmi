@@ -145,6 +145,8 @@ class NaiveCompiler {
         return tokenType;
       case 'topLevel':
         return `$res`;
+      case 'cond':
+          return `$cond_${this.generateExpr(expr[1])}`
       case 'effect':
       case 'call':
         return `($funcLib[${this.generateExpr(expr[1])}].call($res${expr

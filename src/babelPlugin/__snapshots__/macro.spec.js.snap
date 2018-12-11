@@ -76,7 +76,7 @@ module.exports = function () {
         $callCache.set(arr, $funcLib[arr[0]].apply($res, arr.slice(1)));
       }return $callCache.get(arr);
     }$invalidatedRoots.add('todosList');function $todosListBuild() {
-      const key = 'todosList';const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$array_temp_4_19_1\\"]], getUniquePersistenObject(4), 2, true);setOnObject($res, 'todosList', newValue, true);$invalidatedRoots.delete('todosList');return $res.todosList;
+      const key = 'todosList';const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$array_temp_4_19_1\\"]], getUniquePersistenObject(4), 2, false);setOnObject($res, 'todosList', newValue, false);$invalidatedRoots.delete('todosList');return $res.todosList;
     }const array$2Token = getUniquePersistenObject(2);const array$2Args = 3;$invalidatedRoots.add('$array_temp_4_19_1');function $array_temp_4_19_1Build() {
       const key = '$array_temp_4_19_1';const $invalidatedKeys = $invalidatedRoots;const newValue = array($invalidatedKeys, key, [\\"div\\", null, $model[0]], array$2Token, array$2Args, false);setOnObject($res, '$array_temp_4_19_1', newValue, false);$invalidatedRoots.delete('$array_temp_4_19_1');return $res.$array_temp_4_19_1;
     }let $inBatch = false;let $batchPending = [];function recalculate() {
@@ -148,9 +148,9 @@ module.exports = function () {
         });
       }
     }$invalidatedRoots.add('first');function $firstBuild() {
-      const newValue = $model[0];setOnObject($res, 'first', newValue, true);$invalidatedRoots.delete('first');return $res.first;
+      const newValue = $model[0];setOnObject($res, 'first', newValue, false);$invalidatedRoots.delete('first');return $res.first;
     }$invalidatedRoots.add('second');function $secondBuild() {
-      const newValue = $model[1];setOnObject($res, 'second', newValue, true);$invalidatedRoots.delete('second');return $res.second;
+      const newValue = $model[1];setOnObject($res, 'second', newValue, false);$invalidatedRoots.delete('second');return $res.second;
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
@@ -222,9 +222,9 @@ const modelBuilder = (function () {
         });
       }
     }$invalidatedRoots.add('all');function $allBuild() {
-      const newValue = $model[\\"list\\"];setOnObject($res, 'all', newValue, true);$invalidatedRoots.delete('all');return $res.all;
+      const newValue = $model[\\"list\\"];setOnObject($res, 'all', newValue, false);$invalidatedRoots.delete('all');return $res.all;
     }$invalidatedRoots.add('first');function $firstBuild() {
-      const newValue = $res[\\"all\\"][0];setOnObject($res, 'first', newValue, true);$invalidatedRoots.delete('first');return $res.first;
+      const newValue = $res[\\"all\\"][0];setOnObject($res, 'first', newValue, false);$invalidatedRoots.delete('first');return $res.first;
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;

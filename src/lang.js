@@ -84,6 +84,7 @@ const TokenTypeData = {
   arg1: new TokenTypes({ nonVerb: true }),
   arg2: new TokenTypes({ nonVerb: true }),
   topLevel: new TokenTypes({ nonVerb: true, private: true }),
+  cond: new TokenTypes({ private: true }),
   null: new TokenTypes({ nonVerb: true, private: true }),
   eq: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
   gt: new TokenTypes({ chainIndex: 1, len: [3, 3] }),
