@@ -11,6 +11,38 @@ const _ = require('lodash');
 
 describe('testing objects', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
+    describe('get', () => {
+      it('not passing', async () => {
+        const model = {
+          set: setter('model', arg0),
+          result: root.get('model').get('kofnae')
+          // model: root.get('model')
+        };
+        const optModel = eval(await compile(model, { compiler }));
+        const initialData = {
+          model: {}
+        };
+
+        const inst = optModel(initialData);
+        inst.set('kofnae', 'meod');
+        expect(inst.result).toEqual('meod');
+      });
+      it('passing', async () => {
+        const model = {
+          set: setter('model', arg0),
+          result: root.get('model').get('kofnae'),
+          model: root.get('model') // TODO Reut - this is the only difference
+        };
+        const optModel = eval(await compile(model, { compiler }));
+        const initialData = {
+          model: {}
+        };
+
+        const inst = optModel(initialData);
+        inst.set('kofnae', 'meod')
+        expect(inst.result).toEqual('meod');
+      });
+    });
     it('mapValues context value', async () => {
       const model = {
         shared: root.mapValues(item =>
