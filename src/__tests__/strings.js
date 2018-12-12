@@ -34,6 +34,7 @@ describe('testing string functions', () => {
     testStringFunction('abcde', 'substring', [1, 3], 'bc')
     testStringFunction('abcde', 'toUpperCase', [], 'ABCDE')
     testStringFunction('abcDE', 'toLowerCase', [], 'abcde')
+    testStringFunction('0xff', 'parseInt', [16], 255)
 
     describe('String.split', () => {
       testStringFunction('ab/cd/e', 'split', ['/'], ['ab','cd','e'])
