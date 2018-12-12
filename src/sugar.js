@@ -96,6 +96,14 @@ module.exports = function({chain, or, and}) {
         }
     }
 
+    function findIndex(collection, predicate) {
+      const filtered = collection.map((item, index) => predicate(item, index).ternary(index, chain(-1))).filter(item => item.gt(-1));
+      return filtered.size().ternary(
+        filtered.get(0),
+        -1
+      );
+    }
+
     function pick(obj, arr) {
       const projection = Object.assign({},...arr.map(key => ({[key]: obj.get(key)})));
       return chain(projection).filterBy(item => item);
@@ -105,5 +113,5 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).not().not()
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, includesValue, has, reverse, last, head};
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head};
 };
