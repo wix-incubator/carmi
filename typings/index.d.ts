@@ -10,6 +10,9 @@ declare namespace carmi {
   type MapPredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
     (value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
 
+  type BasicMapPredicate<ValueType extends Expression, ReturnType extends Expression> =
+    (value?: ValueType) => ReturnType
+
   type RecursePredicate<ValueType extends Expression, KeyType extends Expression, ReturnType extends Expression, ScopeType extends Expression> =
     (loop: ExpressionLoopContext, value?: ValueType, key?: KeyType, scope?: ScopeType) => ReturnType
 
@@ -60,6 +63,7 @@ declare namespace carmi {
       RetType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, RetType, ScopeType>, scope?: ScopeType): ArrayExpression<RetType>
     any<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): BoolExpression
     includes(value: ValueType): BoolExpression
+    findIndex(predicate: BasicMapPredicate<ValueType, BoolExpression>): NumberExpression
     append(value: ValueType): ArrayExpression<ValueType>
     keyBy<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, StringExpression | NumberExpression, ScopeType>, scope?: ScopeType): ObjectExpression<ValueType>
     filter<ScopeType extends Expression>(predicate: MapPredicate<ValueType, NumberExpression, BoolExpression, ScopeType>, scope?: ScopeType): ArrayExpression<ValueType>
