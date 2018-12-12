@@ -13,7 +13,7 @@ class SimpleCompiler extends NaiveCompiler {
   }
 
   buildDerived(name) {
-    return `$${name}Build();`;
+    return `$res.${name} = ${this.generateExpr(this.getters[name])};`;
   }
 
   get template() {

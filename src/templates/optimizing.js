@@ -1077,8 +1077,11 @@ function array() {
   const $FUNCNAMEArgs = $ARGS;
 }
 
+function library() {}
+
 module.exports = {
   base,
+  library,
   topLevel,
   mapValues,
   mapKeys,

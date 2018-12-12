@@ -267,6 +267,7 @@ class NaiveCompiler {
         }
         return acc;
       }, {}))) : '',
+      LIBRARY: () => this.mergeTemplate(this.template.library, {}),
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>
         topologicalSortGetters(this.getters)
