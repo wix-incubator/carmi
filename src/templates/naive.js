@@ -20,10 +20,13 @@ function base() {
     }
 
     function groupBy(func, src, context) {
+      if (Array.isArray(src)) {
+        throw new Error('groupBy only works on objects');
+      }
       return Object.keys(src).reduce((acc, key) => {
         const newKey = func(src[key], key, context);
-        acc[newKey] = acc[newKey] || [];
-        acc[newKey].push(src[key]);
+        acc[newKey] = acc[newKey] || {};
+        acc[newKey][key] = src[key];
         return acc;
       }, {});
     }

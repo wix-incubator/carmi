@@ -91,6 +91,41 @@ describe('testing objects', () => {
         Two: { First: 2, Second: 2, Two: 2 }
       });
     });
+    it('groupBy', async () => {
+      const numOfDoneItems = root.groupBy('done').get('true').call('tap').size();
+      const model = {numOfDoneItems, update: setter(arg0, 'done')};
+      const optModel = eval(await compile(model, {compiler}));
+      const initialData = {
+        a: {done: true, text: 'a'},
+        b: {done: true, text: 'b'},
+        c: {done: false, text: 'c'}
+      };
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.numOfDoneItems).toEqual(2);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+      inst.update('b', false);
+      expect(inst.numOfDoneItems).toEqual(1);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+  })
+  it('groupBy when initial data is empty', async () => {
+      const doneItems = root.get('data').groupBy('done').get('true').call('tap');
+      const model = {doneItems, update: setter('data')};
+      const optModel = eval(await compile(model, {compiler}));
+      const initialData = {
+          data: {}
+      };
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.doneItems).toEqual(undefined);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+      const updateData = {
+        a: {done: true, text: 'a'},
+        b: {done: true, text: 'b'},
+        c: {done: false, text: 'c'}
+      };
+      inst.update(updateData);
+      expect(inst.doneItems).toEqual(_.pick(updateData, ['a', 'b']));
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+  })
     it('using simple constant objects', async () => {
       const translate = chain({ First: 'a', Second: 'b', Third: 'c' });
       const model = {

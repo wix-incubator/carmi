@@ -516,6 +516,9 @@ function base() {
 
     function groupByObject($targetObj, $targetKey, func, src, context) {
       const { $out, $new, $invalidatedKeys } = initOutput($targetObj, $targetKey, src, func, emptyObj);
+      if (Array.isArray(src)) {
+        throw new Error('groupBy only works on objects');
+      }
       if ($new) {
         $groupByCache.set($out, {});
       }
@@ -525,8 +528,10 @@ function base() {
       } else {
         const keysPendingDelete = {};
         $invalidatedKeys.forEach(key => {
-          keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
-          keysPendingDelete[$keyToKey[key]].add(key);
+          if ($keyToKey[key]) {
+            keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
+            keysPendingDelete[$keyToKey[key]].add(key);
+          }
         });
         $invalidatedKeys.forEach(key => {
           if (func($invalidatedKeys, $keyToKey, src, key, $out, context)) {
