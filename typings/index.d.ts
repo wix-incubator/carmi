@@ -32,6 +32,7 @@ declare namespace carmi {
     toUpperCase(): StringExpression
     toLowerCase(): StringExpression
     parseInt(radix?: number): NumberExpression
+    toNumber(): NumberExpression
   }
 
   interface NumberExpression extends PrimitiveExpression {
@@ -42,7 +43,11 @@ declare namespace carmi {
     div(value: StringOrNumberArgument): NumberExpression
     mod(value: StringOrNumberArgument): NumberExpression
     range(start?: NumberArgument, skip?: NumberArgument): ArrayExpression<NumberExpression>
+    floor(): NumberExpression
+    ceil(): NumberExpression
+    round(): NumberExpression
   }
+
   type StringArgument = StringExpression | string
   type NumberArgument = NumberExpression | number
   type StringOrNumberArgument = StringArgument | NumberArgument
