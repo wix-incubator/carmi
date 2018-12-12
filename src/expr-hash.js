@@ -18,7 +18,7 @@ const exprHash = memoizeNonPrimitives(
       return objectHash(_.map(obj, val => exprHash(val)).join(','));
     } else if (_.isPlainObject(obj)) {
       const keys = Object.keys(obj).sort();
-      return _.map(keys, key => `${key}:${exprHash(obj[key])}`).join(',');
+      return objectHash(_.map(keys, key => `${key}:${exprHash(obj[key])}`).join(','));
     } else {
       return hashString(JSON.stringify(obj));
     }
