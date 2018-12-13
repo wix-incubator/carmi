@@ -5,12 +5,18 @@ const test = require('./' + args[0]);
 const countItems = parseInt(args[2], 10);
 const countChanges = parseInt(args[3], 10);
 const batchSize = parseInt(args[4], 10);
+const shouldProfile = args[5] === 'true';
 const initialState = test.getInitialState(countItems);
 const modelFunc = require(args[1]);
 const cpuUsageAfterInitialState = process.cpuUsage();
-const inst = modelFunc(initialState);
 
 console.log(`${args[0]} - ${args[1]}: items:${countItems} ops:${countChanges} inBatches:${batchSize}`);
+
+if (shouldProfile) {
+  console.profile('run');
+}
+const inst = modelFunc(initialState);
+
 if (batchSize > 1) {
   for (let batchCount = 0; batchCount < countChanges / batchSize; batchCount++) {
     inst.$runInBatch(() => {
@@ -19,6 +25,9 @@ if (batchSize > 1) {
   }
 } else {
   test.benchmark(inst, 0, countChanges);
+}
+if (shouldProfile) {
+  console.profileEnd('run');
 }
 const cpuUsage = process.cpuUsage(cpuUsageAfterInitialState);
 const instValues = Object.keys(inst).reduce((acc, key) => {

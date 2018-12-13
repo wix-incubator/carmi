@@ -2,12 +2,15 @@ const carmi = require('../index');
 const path = require('path');
 const fs = require('fs');
 const { fork } = require('child_process');
-const tests = ['todos'];
-
+const tests = ['todos', 'names'];
+const testsConfigs = {
+  names: ['simple', 'carmi'],
+  todos: ['simple', 'carmi', 'mobx']
+}
 const runTypesParams = {
   justInit: [1000, 0, 0],
   batched: [1000, 250, 5],
-  nonBatched: [1000, 25, 0]
+  nonBatched: [1000, 50, 0]
 };
 const runTypes = {
   simple: ['justInit', 'batched', 'nonBatched'],
@@ -49,7 +52,7 @@ async function runBenchmarks(testname) {
   await precompileModel(testname, 'simple');
   const results = [];
   for (let runIndex = 0; runIndex < runsCount; runIndex++) {
-    for (let type of ['simple', 'carmi', 'mobx']) {
+    for (let type of testsConfigs[testname]) {
       for (let run of runTypes[type]) {
         const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
         results.push(Object.assign({ type, run }, vals));
