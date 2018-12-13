@@ -281,7 +281,7 @@ function inferFromModel(rootExpression, exampleModel) {
   return rootExpression
 }
 
-module.exports = {
+const API = {
   compile,
   setter: Setter,
   splice: Splice,
@@ -290,5 +290,13 @@ module.exports = {
   isExpression,
   withName,
   inferFromModel,
+  withSchema,
   ...frontend
 };
+
+module.exports = API
+
+
+function withSchema() {
+  return API  
+}
