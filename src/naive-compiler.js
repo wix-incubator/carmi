@@ -16,7 +16,7 @@ const nativeOps = {
   mod: '%'
 };
 
-const nativeStringFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'toNumber', 'substring', 'split'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
+const nativeStringFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'substring', 'split'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
 const nativeMathFunctions = ['floor', 'ceil', 'round'].map(name => ({[name]: `Math.${name}`})).reduce(_.assign)
 class NaiveCompiler {
   constructor(model, options) {
@@ -95,7 +95,6 @@ class NaiveCompiler {
         return `${tokenType}(${this.generateExpr(expr[1])})`;
       case 'toUpperCase':
       case 'toLowerCase':
-      case 'toNumber':
         return `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])})`;
       case 'floor':
       case 'ceil':

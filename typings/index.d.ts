@@ -35,7 +35,6 @@ declare namespace carmi {
     toUpperCase(): StringExpression
     toLowerCase(): StringExpression
     parseInt(radix?: number): NumberExpression
-    toNumber(): NumberExpression
   }
 
   interface NumberExpression extends PrimitiveExpression {
