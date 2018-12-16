@@ -7,10 +7,11 @@ function base() {
     const $trackedMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
     const $invalidatedMap = new WeakMap();
-    const $parentObjectMap = new WeakMap();
-    const $parentKeyMap = new WeakMap();
     const $invalidatedRoots = new Set();
-    const $cacheOutputs = new WeakMap();
+    $invalidatedRoots.$subKeys = {};
+    $invalidatedRoots.$parentKey = null;
+    $invalidatedRoots.$parent = null;
+    let $first = true;
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
@@ -93,15 +94,15 @@ function base() {
       }
       $targetKeySet.add($targetKey);
       untrack($targetKeySet, $targetKey);
-      if ($parentObjectMap.has($targetKeySet)) {
-        invalidate($parentObjectMap.get($targetKeySet), $parentKeyMap.get($targetKeySet));
+      if ($targetKeySet.$parent) {
+        invalidate($targetKeySet.$parent, $targetKeySet.$parentKey);
       }
     };
 
     function setOnObject($target, $key, $val, $invalidates) {
       let $changed = false;
       let $hard = false;
-      if ($invalidates) {
+      if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }
@@ -127,16 +128,16 @@ function base() {
         }
         triggerInvalidations($target, $key, $hard);
       }
-      if ($cacheOutputs.has($target)) {
-        const $cacheOutputsByKey = $cacheOutputs.get($target);
-        delete $cacheOutputsByKey[$key];
+      const $invalidatedKeys = $invalidatedMap.get($target);
+      if ($invalidatedKeys) {
+        delete $invalidatedKeys.$subKeys[$key]
       }
       delete $target[$key];
     }
 
     function setOnArray($target, $key, $val, $invalidates) {
       let $hard = false;
-      if ($invalidates) {
+      if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }
@@ -193,20 +194,16 @@ function base() {
       }
     }
 
-    function initOutput($targetObj, $targetKey, src, func, createDefaultValue) {
+    function initOutput($parentInvalidatedKeys, $targetKey, src, func, createDefaultValue) {
       let $new = false;
-      if (!$cacheOutputs.has($targetObj)) {
-        $cacheOutputs.set($targetObj, {});
-      }
-      const $cachePerTargetObj = $cacheOutputs.get($targetObj);
-      $cachePerTargetObj[$targetKey] = $cachePerTargetObj[$targetKey] || new WeakMap();
-      const $cachePerTargetKey = $cachePerTargetObj[$targetKey];
+      const subKeys = $parentInvalidatedKeys.$subKeys;
+      const $cachePerTargetKey = subKeys[$targetKey] = subKeys[$targetKey] || new Map();
       if (!$cachePerTargetKey.has(func)) {
         const $resultObj = createDefaultValue();
-        const $parentInvalidatedKeys = $invalidatedMap.get($targetObj);
         const $invalidatedKeys = new Set();
-        $parentObjectMap.set($invalidatedKeys, $parentInvalidatedKeys);
-        $parentKeyMap.set($invalidatedKeys, $targetKey);
+        $invalidatedKeys.$subKeys = {};
+        $invalidatedKeys.$parentKey = $targetKey;
+        $invalidatedKeys.$parent = $parentInvalidatedKeys;
         $invalidatedMap.set($resultObj, $invalidatedKeys);
         $cachePerTargetKey.set(func, [$resultObj, null, $invalidatedKeys]);
         $new = true;
@@ -642,30 +639,22 @@ function base() {
       return $out;
     }
 
-    const $arrayCache = new WeakMap();
-    function getEmptyArray($invalidatedKeys, key, token) {
-      if (!$arrayCache.has($invalidatedKeys)) {
-        $arrayCache.set($invalidatedKeys, {});
+    function getEmptyArray($invalidatedKeys, $targetKey, token) {
+      const subKeys = $invalidatedKeys.$subKeys;
+      const $cachePerTargetKey = subKeys[$targetKey] = subKeys[$targetKey] || new Map();
+      if (!$cachePerTargetKey.has(token)) {
+        $cachePerTargetKey.set(token, []);
       }
-      const $cacheByKey = $arrayCache.get($invalidatedKeys);
-      $cacheByKey[key] = $cacheByKey[key] || new Map();
-      if (!$cacheByKey[key].has(token)) {
-        $cacheByKey[key].set(token, []);
-      }
-      return $cacheByKey[key].get(token);
+      return $cachePerTargetKey.get(token);
     }
 
-    const $objectCache = new WeakMap();
-    function getEmptyObject($invalidatedKeys, key, token) {
-      if (!$objectCache.has($invalidatedKeys)) {
-        $objectCache.set($invalidatedKeys, {});
+    function getEmptyObject($invalidatedKeys, $targetKey, token) {
+      const subKeys = $invalidatedKeys.$subKeys;
+      const $cachePerTargetKey = subKeys[$targetKey] = subKeys[$targetKey] || new Map();
+      if (!$cachePerTargetKey.has(token)) {
+        $cachePerTargetKey.set(token, {});
       }
-      const $cacheByKey = $objectCache.get($invalidatedKeys);
-      $cacheByKey[key] = $cacheByKey[key] || new Map();
-      if (!$cacheByKey[key].has(token)) {
-        $cacheByKey[key].set(token, {});
-      }
-      return $cacheByKey[key].get(token);
+      return $cachePerTargetKey.get(token);
     }
 
     function array($invalidatedKeys, key, newVal, identifier, len, invalidates) {
@@ -787,6 +776,7 @@ function base() {
       $inRecalculate = true;
       /* DERIVED */
       $tainted = new WeakSet();
+      $first = false;
       $listeners.forEach(callback => callback());
       $inRecalculate = false;
       if ($batchPending.length) {

@@ -121,18 +121,18 @@ class OptimizingCompiler extends NaiveCompiler {
           .join(',')}], getUniquePersistenObject(${expr[0].$id}), ${expr.length - 1})`;
       case 'keys':
       case 'values':
-        return `valuesOrKeysForObject(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(
+        return `valuesOrKeysForObject($invalidatedKeys, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(
           expr[1]
         )}, ${tokenType === 'values' ? 'true' : 'false'})`;
       case 'size':
-        return `size(acc, key, ${this.generateExpr(expr[1])}, getUniquePersistenObject(${expr[0].$id}))`;
+        return `size($invalidatedKeys, key, ${this.generateExpr(expr[1])}, getUniquePersistenObject(${expr[0].$id}))`;
       case 'assign':
       case 'defaults':
-        return `assignOrDefaults(acc, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(expr[1])}, ${
+        return `assignOrDefaults($invalidatedKeys, key, getUniquePersistenObject(${expr[0].$id}), ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
         }, ${this.invalidates(expr)})`;
       case 'range':
-        return `range(acc, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
+        return `range($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
           expr.length > 3 ? this.generateExpr(expr[3]) : '1'
         }, getUniquePersistenObject(${expr[0].$id}))`;
       case 'map':
@@ -152,7 +152,7 @@ class OptimizingCompiler extends NaiveCompiler {
             : TokenTypeData[tokenType].arrayVerb
               ? 'forArray'
               : 'forObject'
-        }(acc, key, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
+        }($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined'
             ? null
             : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],getUniquePersistenObject(${
