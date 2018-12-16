@@ -11,16 +11,17 @@ const _ = require('lodash');
 describe('testing string functions', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
     function testStringFunction(str, func, args, expected) {
-        it(`string function: ${func}`, async() => {
-            const model = { transform: root.map(val => val[func](...args).call('tap')) };
-            const optCode = eval(await compile(model, { compiler }));
-            const inst = optCode([str], funcLibrary);
-            expect(inst.transform[0]).toEqual(expected);
-            expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
-        })
-    }
+      it(`string function: ${func}`, async() => {
+          const model = { transform: root.map(val => val[func](...args).call('tap')) };
+          const optCode = eval(await compile(model, { compiler }));
+          const inst = optCode([str], funcLibrary);
+          expect(inst.transform[0]).toEqual(expected);
+          expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+      })
+  }
+}
 
-    it('startsWith', async () => {
+it('startsWith', async () => {
       const model = { withWith: root.filter(val => val.startsWith('with-').call('tap')), set: setter(arg0) };
       const optCode = eval(await compile(model, { compiler }));
       const inst = optCode(['garbage', 'with-prefix', 'with-something', 'nothing'], funcLibrary);
@@ -34,6 +35,8 @@ describe('testing string functions', () => {
     testStringFunction('abcde', 'substring', [1, 3], 'bc')
     testStringFunction('abcde', 'toUpperCase', [], 'ABCDE')
     testStringFunction('abcDE', 'toLowerCase', [], 'abcde')
+    testStringFunction('0xff', 'parseInt', [16], 255)
+    testStringFunction('100', 'toNumber', [], 100)
 
     describe('String.split', () => {
       testStringFunction('ab/cd/e', 'split', ['/'], ['ab','cd','e'])
