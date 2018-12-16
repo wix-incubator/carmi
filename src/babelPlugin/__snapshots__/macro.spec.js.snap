@@ -15,7 +15,7 @@ module.exports = function () {
   'use strict';
   function model($model, $funcLib, $batchingStrategy) {
     const $res = { $model };
-    const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $parentObjectMap = new WeakMap();const $parentKeyMap = new WeakMap();const $invalidatedRoots = new Set();let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const $uniquePersistentObjects = new Map();const getUniquePersistenObject = id => {
+    const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const $uniquePersistentObjects = new Map();const getUniquePersistenObject = id => {
       if (!$uniquePersistentObjects.has(id)) {
         $uniquePersistentObjects.set(id, {});
       }return $uniquePersistentObjects.get(id);
@@ -28,11 +28,11 @@ module.exports = function () {
     };const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
-      }$targetKeySet.add($targetKey);untrack($targetKeySet, $targetKey);if ($parentObjectMap.has($targetKeySet)) {
-        invalidate($parentObjectMap.get($targetKeySet), $parentKeyMap.get($targetKeySet));
+      }$targetKeySet.add($targetKey);untrack($targetKeySet, $targetKey);if ($targetKeySet.$parent) {
+        invalidate($targetKeySet.$parent, $targetKeySet.$parentKey);
       }
     };function setOnObject($target, $key, $val, $invalidates) {
-      let $changed = false;let $hard = false;if ($invalidates) {
+      let $changed = false;let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
@@ -40,7 +40,7 @@ module.exports = function () {
         }
       }$target[$key] = $val;return $changed;
     }function setOnArray($target, $key, $val, $invalidates) {
-      let $hard = false;if ($invalidates) {
+      let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }if ($hard || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
@@ -59,12 +59,10 @@ module.exports = function () {
           invalidate($targetInvalidatedKeys, $sourceKey);
         });
       }
-    }const $arrayCache = new WeakMap();function getEmptyArray($invalidatedKeys, key, token) {
-      if (!$arrayCache.has($invalidatedKeys)) {
-        $arrayCache.set($invalidatedKeys, {});
-      }const $cacheByKey = $arrayCache.get($invalidatedKeys);$cacheByKey[key] = $cacheByKey[key] || new Map();if (!$cacheByKey[key].has(token)) {
-        $cacheByKey[key].set(token, []);
-      }return $cacheByKey[key].get(token);
+    }function getEmptyArray($invalidatedKeys, $targetKey, token) {
+      const subKeys = $invalidatedKeys.$subKeys;const $cachePerTargetKey = subKeys[$targetKey] = subKeys[$targetKey] || new Map();if (!$cachePerTargetKey.has(token)) {
+        $cachePerTargetKey.set(token, []);
+      }return $cachePerTargetKey.get(token);
     }function array($invalidatedKeys, key, newVal, identifier, len, invalidates) {
       const res = getEmptyArray($invalidatedKeys, key, identifier);invalidates = invalidates && res.length === len;for (let i = 0; i < len; i++) {
         setOnArray(res, i, newVal[i], invalidates);
@@ -82,7 +80,7 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('$array_temp_4_19_1') && $array_temp_4_19_1Build();$invalidatedRoots.has('todosList') && $todosListBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$invalidatedRoots.has('$array_temp_4_19_1') && $array_temp_4_19_1Build();$invalidatedRoots.has('todosList') && $todosListBuild();$tainted = new WeakSet();$first = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
@@ -115,7 +113,7 @@ module.exports = { first: root.get(0), second: root.get(1) };
 module.exports = function () {
   'use strict';
   function model($model, $funcLib, $batchingStrategy) {
-    const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $parentObjectMap = new WeakMap();const $parentKeyMap = new WeakMap();const $invalidatedRoots = new Set();let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const untrack = ($targetKeySet, $targetKey) => {
+    const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const untrack = ($targetKeySet, $targetKey) => {
       const $tracked = $trackedMap.get($targetKeySet);if (!$tracked || !$tracked[$targetKey]) {
         return;
       }$tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
@@ -124,11 +122,11 @@ module.exports = function () {
     };const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
-      }$targetKeySet.add($targetKey);untrack($targetKeySet, $targetKey);if ($parentObjectMap.has($targetKeySet)) {
-        invalidate($parentObjectMap.get($targetKeySet), $parentKeyMap.get($targetKeySet));
+      }$targetKeySet.add($targetKey);untrack($targetKeySet, $targetKey);if ($targetKeySet.$parent) {
+        invalidate($targetKeySet.$parent, $targetKeySet.$parentKey);
       }
     };function setOnObject($target, $key, $val, $invalidates) {
-      let $changed = false;let $hard = false;if ($invalidates) {
+      let $changed = false;let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
@@ -154,7 +152,7 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$tainted = new WeakSet();$first = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
@@ -189,7 +187,7 @@ const modelBuilder = carmi\`
 const modelBuilder = (function () {
   'use strict';
   function model($model, $funcLib, $batchingStrategy) {
-    const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $parentObjectMap = new WeakMap();const $parentKeyMap = new WeakMap();const $invalidatedRoots = new Set();let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const untrack = ($targetKeySet, $targetKey) => {
+    const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const untrack = ($targetKeySet, $targetKey) => {
       const $tracked = $trackedMap.get($targetKeySet);if (!$tracked || !$tracked[$targetKey]) {
         return;
       }$tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
@@ -198,11 +196,11 @@ const modelBuilder = (function () {
     };const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
-      }$targetKeySet.add($targetKey);untrack($targetKeySet, $targetKey);if ($parentObjectMap.has($targetKeySet)) {
-        invalidate($parentObjectMap.get($targetKeySet), $parentKeyMap.get($targetKeySet));
+      }$targetKeySet.add($targetKey);untrack($targetKeySet, $targetKey);if ($targetKeySet.$parent) {
+        invalidate($targetKeySet.$parent, $targetKeySet.$parentKey);
       }
     };function setOnObject($target, $key, $val, $invalidates) {
-      let $changed = false;let $hard = false;if ($invalidates) {
+      let $changed = false;let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
@@ -228,7 +226,7 @@ const modelBuilder = (function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$tainted = new WeakSet();$first = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
     }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
