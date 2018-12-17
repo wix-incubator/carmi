@@ -10,11 +10,7 @@ const {
 } = require('./lang');
 const _ = require('lodash');
 const NaiveCompiler = require('./naive-compiler');
-const {
-  splitSettersGetters,
-  pathMatches,
-  normalizeAndTagAllGetters
-} = require('./expr-tagging');
+const { splitSettersGetters, pathMatches, normalizeAndTagAllGetters } = require('./expr-tagging');
 
 class OptimizingCompiler extends NaiveCompiler {
   constructor(model, options) {
@@ -54,10 +50,10 @@ class OptimizingCompiler extends NaiveCompiler {
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
           if (expr[0].$path && expr[0].$path.size) {
-            const conditionals = expr[0].$trackedExpr ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`) : [];
-            return (
-              `let $tracked = [$invalidatedKeys,key];` + conditionals.join('')
-            );
+            const conditionals = expr[0].$trackedExpr
+              ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
+              : [];
+            return `let $tracked = [$invalidatedKeys,key];` + conditionals.join('');
           }
           return '';
         },
@@ -72,14 +68,14 @@ class OptimizingCompiler extends NaiveCompiler {
 
   wrapExprCondPart(expr, indexInExpr) {
     if (!expr[0].$tracked) {
-      return `(${this.generateExpr(expr[indexInExpr])})`
+      return `(${this.generateExpr(expr[indexInExpr])})`;
     } else {
-      return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`
+      return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`;
     }
   }
 
   uniqueId(expr, extra = '') {
-    return `'${expr[0].$id}${extra}'`
+    return `'${expr[0].$id}${extra}'`;
   }
 
   generateExpr(expr) {
@@ -91,7 +87,7 @@ class OptimizingCompiler extends NaiveCompiler {
           '(' +
           expr
             .slice(1)
-            .map((t,index)=> this.wrapExprCondPart(expr, index+1))
+            .map((t, index) => this.wrapExprCondPart(expr, index + 1))
             .join('&&') +
           ')'
         );
@@ -100,60 +96,48 @@ class OptimizingCompiler extends NaiveCompiler {
           '(' +
           expr
             .slice(1)
-            .map((t,index)=> this.wrapExprCondPart(expr, index+1))
+            .map((t, index) => this.wrapExprCondPart(expr, index + 1))
             .join('||') +
           ')'
         );
       case 'ternary':
-        return `((${this.generateExpr(expr[1])})?${this.wrapExprCondPart(expr, 2)}:(${this.wrapExprCondPart(expr, 3)}))`;
+        return `((${this.generateExpr(expr[1])})?${this.wrapExprCondPart(expr, 2)}:(${this.wrapExprCondPart(
+          expr,
+          3
+        )}))`;
       case 'object':
-      return `object($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(
-        expr
-      )}, object$${expr[0].$id}Args, ${this.invalidates(expr)})`;
+        return `object($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, object$${
+          expr[0].$id
+        }Args, ${this.invalidates(expr)})`;
       case 'array':
-        return `array($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(
-          expr
-        )}, ${expr.length - 1}, ${this.invalidates(expr)})`;
+        return `array($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, ${expr.length -
+          1}, ${this.invalidates(expr)})`;
       case 'call':
         return `call($invalidatedKeys,key,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
-          .join(',')}], ${this.uniqueId(
-            expr
-          )}, ${expr.length - 1}, ${this.invalidates(
-          expr
-        )})`;
+          .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1}, ${this.invalidates(expr)})`;
       case 'bind':
         return `bind($invalidatedKeys,key,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
-          .join(',')}], ${this.uniqueId(
-            expr
-          )}, ${expr.length - 1})`;
+          .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`;
       case 'keys':
       case 'values':
-        return `valuesOrKeysForObject($invalidatedKeys, key, ${this.uniqueId(
-          expr
-        )}, ${this.generateExpr(
-          expr[1]
-        )}, ${tokenType === 'values' ? 'true' : 'false'})`;
+        return `valuesOrKeysForObject($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
+          tokenType === 'values' ? 'true' : 'false'
+        })`;
       case 'size':
-        return `size($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${this.uniqueId(
-          expr
-        )})`;
+        return `size($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':
       case 'defaults':
-        return `assignOrDefaults($invalidatedKeys, key, ${this.uniqueId(
-          expr
-        )}, ${this.generateExpr(expr[1])}, ${
+        return `assignOrDefaults($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
         }, ${this.invalidates(expr)})`;
       case 'range':
-        return `range($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
-          expr.length > 3 ? this.generateExpr(expr[3]) : '1'
-        }, ${this.uniqueId(
-          expr
-        )})`;
+        return `range($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${
+          expr.length > 2 ? this.generateExpr(expr[2]) : '0'
+        }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)})`;
       case 'map':
       case 'any':
       case 'mapValues':
@@ -171,15 +155,13 @@ class OptimizingCompiler extends NaiveCompiler {
             : TokenTypeData[tokenType].arrayVerb
               ? 'forArray'
               : 'forObject'
-        }($invalidatedKeys, key, ${this.uniqueId(
-          expr
-        )}, ${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
-          (typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null'))
+        }($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
+          expr[2]
+        )}, ${
+          typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null')
             ? null
-            : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(
-                expr
-              ,'arr')},1,true)`
-            })`;
+            : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
+        })`;
       case 'topLevel':
         return `$res`;
       case 'context':
