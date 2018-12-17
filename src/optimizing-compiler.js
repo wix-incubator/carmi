@@ -49,7 +49,7 @@ class OptimizingCompiler extends NaiveCompiler {
       {
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
-          if (expr[0].$path && expr[0].$path.size && expr[0].$invalidates) {
+          if (expr[0].$path && expr[0].$path.size) {
             const conditionals = expr[0].$trackedExpr
               ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
               : [];
