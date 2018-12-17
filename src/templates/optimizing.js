@@ -242,8 +242,8 @@ function base() {
     const emptyArr = () => [];
     const nullFunc = () => null;
 
-    function forObject($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyObj, nullFunc);
+    function forObject($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyObj, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -255,8 +255,8 @@ function base() {
       return $out;
     }
 
-    function forArray($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyArr, nullFunc);
+    function forArray($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -309,8 +309,8 @@ function base() {
       recursiveSteps
     })
 
-    function recursiveMapArray($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyArr, recursiveCacheFunc);
+    function recursiveMapArray($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, recursiveCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -338,8 +338,8 @@ function base() {
       return $out;
     }
 
-    function recursiveMapObject($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyObj, recursiveCacheFunc);
+    function recursiveMapObject($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyObj, recursiveCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -362,8 +362,8 @@ function base() {
       return $out;
     }
 
-    function keyByArray($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyObj, emptyArr);
+    function keyByArray($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyObj, emptyArr);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -388,8 +388,8 @@ function base() {
       return $out;
     }
 
-    function mapKeysObject($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyObj, emptyObj);
+    function mapKeysObject($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyObj, emptyObj);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -423,8 +423,8 @@ function base() {
 
     const filterCacheFunc = () => [0];
 
-    function filterArray($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyArr, filterCacheFunc);
+    function filterArray($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, filterCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -449,8 +449,8 @@ function base() {
       return $out;
     }
 
-    function anyObject($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyArr, nullFunc);
+    function anyObject($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -481,8 +481,8 @@ function base() {
       return false;
     }
 
-    function anyArray($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyArr, nullFunc);
+    function anyArray($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -515,8 +515,8 @@ function base() {
       return false;
     }
 
-    function groupByObject($targetObj, $targetKey, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, func, emptyObj, emptyObj);
+    function groupByObject($targetObj, $targetKey, identifier, func, src, context) {
+      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyObj, emptyObj);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
@@ -1071,15 +1071,12 @@ function recursiveMapValues() {
 recursiveMapValues.collectionFunc = 'recursiveMapObject';
 
 function object() {
-  const $FUNCNAMEToken = getUniquePersistenObject($ID);
   const $FUNCNAMEArgs = [
     /*ARGS*/
   ];
 }
 
 function array() {
-  const $FUNCNAMEToken = getUniquePersistenObject($ID);
-  const $FUNCNAMEArgs = $ARGS;
 }
 
 function library() {}
