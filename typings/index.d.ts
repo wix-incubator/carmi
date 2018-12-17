@@ -25,6 +25,7 @@ interface GraphImpl<This,
      * @param args Args to pass, in addition to the value resolved from "this"
      */
     call<FunctionName extends keyof F, Arguments>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
+    effect<FunctionName extends keyof F, Arguments>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
 
     /**
      * Generates a breakpoint (debugger clause), continuing the graph
@@ -470,6 +471,7 @@ interface API<Schema = any, F extends FunctionLibrary = any> {
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
     call<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
+    effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
     bind<FunctionName extends keyof F, BoundArgs, Args>(func: FunctionName, ...boundArgs: BoundArgs[]): (...args: Args[]) => ReturnType<F[FunctionName]>
     compile(transformations: object, options?: object): string
     withSchema<Schema, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): API<Schema, F>
@@ -479,5 +481,4 @@ interface API<Schema = any, F extends FunctionLibrary = any> {
 }
 
 declare const DefaultAPI : API
-declare module 'carmi' { export = DefaultAPI }
 export = DefaultAPI
