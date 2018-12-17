@@ -481,5 +481,4 @@ interface API<Schema = any, F extends FunctionLibrary = any> {
 }
 
 declare const DefaultAPI : API
-declare module 'carmi' { export = DefaultAPI }
 export = DefaultAPI
