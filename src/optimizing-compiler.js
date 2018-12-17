@@ -138,14 +138,21 @@ class OptimizingCompiler extends NaiveCompiler {
         return `range($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
         }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)})`;
-      case 'map':
-      case 'any':
+      case 'filterBy':
       case 'mapValues':
+      case 'groupBy':
+      case 'map':
+        return `${tokenType}Opt($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
+        expr[2]
+      )}, ${
+        typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null')
+          ? null
+          : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
+      }, ${this.invalidates(expr)})`;
+      case 'any':
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-      case 'filterBy':
-      case 'groupBy':
       case 'keyBy':
       case 'filter':
       case 'mapKeys':
