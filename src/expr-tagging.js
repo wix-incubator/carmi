@@ -388,6 +388,36 @@ const deadCodeElimination = memoizeExprFunc(
   token => token
 );
 
+function dedupFunctionsObjects(getters) {
+  const prevFunctions = new Map();
+  const allExpressions = flattenExpression(...Object.values(getters));
+  const allFunctions = allExpressions.filter(expr => expr[0].$type === 'func' && expr[0].$parent)
+  allFunctions
+    .forEach(expr => {
+      const hash = exprHash(expr) + '.' + expr[0].$parent[0].$type + '.' + expr[0].$invalidates;
+      if (!prevFunctions.has(hash)) {
+        expr[0].$duplicate = false;
+        prevFunctions.set(hash, expr)
+      } else {
+        const prev = prevFunctions.get(hash);
+        expr[0].$duplicate = prev[0].$funcId;
+      }
+  });
+  const prevObjectKeys = new Map();
+  const allObjects = allExpressions.filter(expr => expr[0].$type === 'object')
+  allObjects.forEach(expr => {
+    const keys = _.range(1, expr.length, 2).map(index => expr[index]).join(',');
+    if (!prevObjectKeys.has(keys)) {
+      prevObjectKeys.set(keys, expr);
+    } else {
+      const prev = prevObjectKeys.get(keys);
+      expr[0].$duplicate = prev[0].$id;
+    }
+  });
+
+  // console.log('duplicated', allFunctions.length, prevFunctions.size);
+}
+
 function normalizeAndTagAllGetters(getters, setters) {
   getters = _.mapValues(getters, deadCodeElimination);
   getters = extractAllStaticExpressionsAsValues(getters);
@@ -396,6 +426,7 @@ function normalizeAndTagAllGetters(getters, setters) {
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
   unmarkPathsThatHaveNoSetters(getters, setters);
+  dedupFunctionsObjects(getters);
   return getters;
 }
 

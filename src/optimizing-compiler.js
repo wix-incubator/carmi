@@ -49,7 +49,7 @@ class OptimizingCompiler extends NaiveCompiler {
       {
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
-          if (expr[0].$path && expr[0].$path.size) {
+          if (expr[0].$path && expr[0].$path.size && expr[0].$invalidates) {
             const conditionals = expr[0].$trackedExpr
               ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
               : [];
@@ -107,7 +107,7 @@ class OptimizingCompiler extends NaiveCompiler {
         )}))`;
       case 'object':
         return `object($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, object$${
-          expr[0].$id
+          expr[0].$duplicate ? expr[0].$duplicate : expr[0].$id
         }Args, ${this.invalidates(expr)})`;
       case 'array':
         return `array($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, ${expr.length -
@@ -168,6 +168,8 @@ class OptimizingCompiler extends NaiveCompiler {
         return 'context[0]';
       case 'recur':
         return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
+      case 'func':
+        return expr[0].$duplicate ? expr[0].$duplicate : expr[0].$funcId;
       default:
         return super.generateExpr(expr);
     }
@@ -179,6 +181,9 @@ class OptimizingCompiler extends NaiveCompiler {
 
   buildExprFunctionsByTokenType(acc, expr) {
     const tokenType = expr[0].$type;
+    if (expr[0].$duplicate) {
+      return;
+    }
     switch (tokenType) {
       case 'object':
         this.appendExpr(acc, tokenType, expr, `${tokenType}$${expr[0].$id}`);
