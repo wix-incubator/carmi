@@ -17,6 +17,7 @@ const {
 
 
 const compilerTypes = {};
+const UnwrappedExpr = Symbol('UnwrappedExpr');
 compilerTypes.naive = require('./src/naive-compiler');
 compilerTypes.simple = require('./src/simple-compiler');
 compilerTypes.optimizing = require('./src/optimizing-compiler');
@@ -29,6 +30,7 @@ const path = require('path');
 
 const { rollup } = require('rollup');
 const exprHash = require('./src/expr-hash');
+const {searchExpressionsWithoutInnerFunctions, searchExpressions} = require('./src/expr-search');
 
 let uglify;
 try {
@@ -115,23 +117,58 @@ const tokensNotAllowedToReuseFromOtherExpressions = {
 }
 
 function throwOnTokensFromOtherFuncs(expr, tag) {
-  const pending = [expr];
-  while (pending.length) {
-    const current = pending.shift();
-    if (current instanceof Token && current[SourceTag] && current[SourceTag] !== tag && tokensNotAllowedToReuseFromOtherExpressions[current.$type]) {
-      throw new Error(
-        `used ${JSON.stringify(current)} from ${current[
-          SourceTag
-        ].toString()} inside ${tag.toString()} in another function pass in context`
-      );
-    } else if (current instanceof Expression && current[0].$type !== 'func') {
-      current.forEach(child => pending.push(child));
-    }
-  }
+  searchExpressionsWithoutInnerFunctions( subExpr => {
+    subExpr.forEach(token => {
+      if (
+        token instanceof Token &&
+        token[SourceTag] &&
+        token[SourceTag] !== tag &&
+        tokensNotAllowedToReuseFromOtherExpressions[token.$type]
+      ) {
+        throw new Error(
+          `used ${JSON.stringify(token)} from ${token[
+            SourceTag
+          ].toString()} inside ${tag.toString()} in another function pass in context`
+        );
+      }
+    });
+  }, [expr]);
+}
+
+const privateUnwrap = (item) => item[UnwrappedExpr] ? item[UnwrappedExpr] : item;
+
+function throwOnSelfReferencesToPlaceholder(expr, abstract) {
+  searchExpressions(subExpr => {
+    subExpr.forEach(token => {
+      if (privateUnwrap(token) === abstract) {
+        throw new Error(
+          `trying to implement abstract ${abstract[1]} with expression that references the abstract
+this causes an endless loop ${subExpr[0][SourceTag]}`
+        );
+      }
+    });
+  }, [expr]);
 }
 
 const chain = val => wrap(convertArrayAndObjectsToExpr(val));
-const frontend = {chain}
+const abstract = title => {
+  if (typeof title !== 'string') {
+    throw new Error('the title of abstract must be a string');
+  }
+  return wrap(createExpr(new Token('abstract', currentLine()), title));
+}
+const implement = (abstract, expr) => {
+  const target = privateUnwrap(abstract);
+  if (!isExpression(target) || target[0].$type !== 'abstract') {
+    throw new Error(`can only implement an abstract`);
+  }
+  throwOnSelfReferencesToPlaceholder(expr, target)
+  throwOnTokensFromOtherFuncs(expr, target[0][SourceTag]);
+  target.splice(0, target.length, ...expr);
+  return abstract;
+}
+
+const frontend = {chain, abstract, implement}
 Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].private) {
     return; // privates aren't exported - only used in optimizing code or internally
@@ -167,6 +204,12 @@ proxyHandler.get = (target, key) => {
       return (...args) => sugar[key](chain(target), ...args);
     }
     throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
+  }
+  if (key === UnwrappedExpr) {
+    if (target[UnwrappedExpr]) {
+      return target[UnwrappedExpr]
+    }
+    return target;
   }
   if (!tokenData || tokenData.nonVerb || !tokenData.chainIndex) {
     // console.log(target, key);

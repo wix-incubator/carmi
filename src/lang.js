@@ -109,7 +109,8 @@ const TokenTypeData = {
   round: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   parseInt: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 3]}),
   substring: new TokenTypes({nonChained: true, chainIndex: 1, len: [4, 4]}),
-  split: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]})
+  split: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
+  abstract: new TokenTypes({nonChained: true, len:[2,2], private: true})
 };
 
 const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
