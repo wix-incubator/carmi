@@ -3,8 +3,8 @@
 
 'use strict';
 
-const _ = require('lodash');
-const { compile } = require('carmi');
+const {compile} = require('carmi');
+const esm = require('esm');
 
 const clearAllModulesLoadedForCarmi = requiredPreCarmi => {
   Object.keys(require.cache).forEach(key => {
@@ -19,7 +19,8 @@ module.exports = function CarmiLoader() {
   const callback = this.async();
   const srcPath = this.getDependencies()[0];
   const requiredPreCarmi = new Set(Object.keys(require.cache));
-  compile(require(srcPath), { compiler: 'optimizing', format: 'cjs' })
+  const loader = esm(module);
+  compile(loader(srcPath), {compiler: 'optimizing', format: 'cjs'})
     .then(compiledCode => {
       clearAllModulesLoadedForCarmi(requiredPreCarmi);
       callback(null, compiledCode);
