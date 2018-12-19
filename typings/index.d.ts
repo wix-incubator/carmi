@@ -189,7 +189,7 @@ interface StringGraphImpl<This extends string, F extends FunctionLibrary> extend
     parseInt(radix?: number): Graph<number, F>
 }
 
-interface ArrayOrObjectGraphImpl<This extends any[]|object, F extends FunctionLibrary, Key = keyof This> {
+interface ArrayOrObjectGraphImpl<This extends any[]|object, F extends FunctionLibrary, Key = keyof This> extends GraphImpl<This, F> {
     /**
      * Resolves to the value of this[key]
      * @param key A known key in the object/array, or a graph that resolves to a known key
