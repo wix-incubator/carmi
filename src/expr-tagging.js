@@ -16,6 +16,7 @@ const {
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
 const exprHash = require('./expr-hash');
+const {searchExpressions} = require('./expr-search');
 const path = require('path');
 
 let exprCounter = 0;
@@ -160,6 +161,9 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
   expr[0].$funcType = funcType;
   expr[0].$tracked = false;
   expr[0].$parent = null;
+  if (expr[0].$tokenType === 'abstract') {
+    throw new Error(`You defined a abstract in ${expr[0].SourceTag} called ${expr[1]} but did't resolve it`);
+  }
   expr.forEach((subExpression, childIndex) => {
     if (subExpression instanceof Expression) {
       if (subExpression[0].$type !== 'func') {
@@ -179,20 +183,8 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
 }
 
 function flattenExpression(...expressions) {
-  const nextExpr = expressions;
   const output = [];
-  const visited = new WeakMap();
-  expressions.forEach(e => visited.set(e, true))
-  while (nextExpr.length) {
-    const currentExpr = nextExpr.shift();
-    output.push(currentExpr);
-    currentExpr.forEach(subExpression => {
-      if (subExpression instanceof Expression && !visited.has(subExpression)) {
-        nextExpr.push(subExpression);
-        visited.set(subExpression, true)
-      }
-    });
-  }
+  searchExpressions((expr) => output.push(expr),...expressions);
   return output;
 }
 
