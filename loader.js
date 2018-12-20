@@ -6,14 +6,6 @@
 const {compile} = require('carmi');
 const esm = require('esm');
 
-const clearAllModulesLoadedForCarmi = requiredPreCarmi => {
-  Object.keys(require.cache).forEach(key => {
-    if (!requiredPreCarmi.has(key)) {
-      delete require.cache[key];
-    }
-  });
-};
-
 module.exports = function CarmiLoader() {
   this.cacheable(false);
   const callback = this.async();
@@ -22,7 +14,16 @@ module.exports = function CarmiLoader() {
   const loader = esm(module);
   compile(loader(srcPath), {compiler: 'optimizing', format: 'cjs'})
     .then(compiledCode => {
-      clearAllModulesLoadedForCarmi(requiredPreCarmi);
+      Object.keys(require.cache).forEach(key => {
+        if (!requiredPreCarmi.has(key)) {
+          // Clear user loaded modules from require.cache
+          delete require.cache[key];
+
+          // Add those modules as loader dependencies
+          // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
+          this.addDependency(key);
+        }
+      });
       callback(null, compiledCode);
     })
     .catch(err => callback(err));
