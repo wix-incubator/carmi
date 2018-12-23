@@ -426,7 +426,7 @@ interface ObjectGraphImpl<This extends object, F extends FunctionLibrary,
      * Returns a new object which resolves to _.assign(this, value)
      * @param value 
      */
-    assignIn<V extends object>(value: Argument<V, F>): Graph<This & V, F>
+    assignIn<V extends object>(value: Argument<V, F>[]): Graph<This & V, F>
 
     setIn(path: string[]): Graph<This, F>
 
@@ -481,6 +481,7 @@ interface API<Schema = any, F extends FunctionLibrary = any> {
     arg1: Token
     arg2: Token
 }
+
 
 declare const DefaultAPI : API
 export = DefaultAPI
