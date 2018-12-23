@@ -142,6 +142,7 @@ class OptimizingCompiler extends NaiveCompiler {
       case 'mapValues':
       case 'groupBy':
       case 'map':
+      case 'filter':
       case 'mapKeys':
       case 'any':
       case 'keyBy':
@@ -155,20 +156,6 @@ class OptimizingCompiler extends NaiveCompiler {
           ? null
           : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
       }, ${this.invalidates(expr)})`;
-      case 'filter':
-        return `${
-          this.template[tokenType].collectionFunc
-            ? this.template[tokenType].collectionFunc
-            : TokenTypeData[tokenType].arrayVerb
-              ? 'forArray'
-              : 'forObject'
-        }($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
-          expr[2]
-        )}, ${
-          typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null')
-            ? null
-            : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
-        })`;
       case 'topLevel':
         return `$res`;
       case 'context':

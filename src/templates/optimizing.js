@@ -310,28 +310,9 @@ function base() {
       return $out;
     }
 
-    function forArray($targetObj, $targetKey, identifier, func, src, context) {
-      const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, nullFunc);
-      const $out = $storage[1]
-      const $invalidatedKeys = $storage[2];
-      const $new = $storage[3];
-      if ($new) {
-        for (let key = 0; key < src.length; key++) {
-          func($invalidatedKeys, src, key, $out, context);
-        }
-      } else {
-        $invalidatedKeys.forEach(key => {
-          func($invalidatedKeys, src, key, $out, context);
-        });
-      }
-      $invalidatedKeys.clear();
-      return $out;
-    }
-
     function recursiveSteps(key, $localInvalidatedKeys, $localKey) {
       const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context, $invalidates } = this;
       if ($currentStack.length > 0) {
-        const prevKey = $currentStack[$currentStack.length - 1];
         if (!$dependencyMap.has(key)) {
           $dependencyMap.set(key, []);
         }
@@ -496,7 +477,7 @@ function base() {
 
     const filterCacheFunc = () => [0];
 
-    function filterArray($targetObj, $targetKey, identifier, func, src, context) {
+    function filterOpt($targetObj, $targetKey, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($targetObj, $targetKey, src, identifier, emptyArr, filterCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -504,13 +485,25 @@ function base() {
       const $idxToIdx = $storage[4];
       if ($new) {
         for (let key = 0; key < src.length; key++) {
-          func($invalidatedKeys, $idxToIdx, src, key, $out, context);
+          const passed = !!func($invalidatedKeys, key, src[key], context);
+          const prevItemIdx = $idxToIdx[key];
+          const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;
+          $idxToIdx[key + 1] = nextItemIdx;
+          if (nextItemIdx !== prevItemIdx) {
+            setOnArray($out, prevItemIdx, src[key], $invalidates);
+          }
         }
       } else {
         let firstIndex = Number.MAX_SAFE_INTEGER;
         $invalidatedKeys.forEach(key => (firstIndex = Math.min(firstIndex, key)));
         for (let key = firstIndex; key < src.length; key++) {
-          func($invalidatedKeys, $idxToIdx, src, key, $out, context);
+          const passed = !!func($invalidatedKeys, key, src[key], context);
+          const prevItemIdx = $idxToIdx[key];
+          const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;
+          $idxToIdx[key + 1] = nextItemIdx;
+          if (nextItemIdx !== prevItemIdx) {
+            setOnArray($out, prevItemIdx, src[key], $invalidates);
+          }
         }
         $idxToIdx.length = src.length + 1;
         for (let key = $idxToIdx[$idxToIdx.length - 1]; key < $out.length; key++) {
@@ -957,23 +950,6 @@ function topLevel() {
   }
 }
 
-function filter() {
-  function $FUNCNAME($invalidatedKeys, $idxToIdx, src, key, acc, context) {
-    /* PRETRACKING */
-    const val = src[key];
-    const res = $EXPR1;
-    const prevItemIdx = $idxToIdx[key];
-    const nextItemIdx = res ? prevItemIdx + 1 : prevItemIdx;
-    let $changed = false;
-    if (nextItemIdx !== prevItemIdx) {
-      setOnArray(acc, prevItemIdx, val, $INVALIDATES);
-    }
-    $idxToIdx[key + 1] = nextItemIdx;
-    /* TRACKING */
-  }
-}
-filter.collectionFunc = 'filterArray';
-
 function object() {
   const $FUNCNAMEArgs = [
     /*ARGS*/
@@ -1008,7 +984,6 @@ module.exports = {
   base,
   library,
   topLevel,
-  filter,
   recursiveMap: recursiveFunc,
   recursiveMapValues: recursiveFunc,
   object,
