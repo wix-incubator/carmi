@@ -475,6 +475,8 @@ interface API<Schema = any, F extends FunctionLibrary = any> {
     bind<FunctionName extends keyof F, BoundArgs, Args>(func: FunctionName, ...boundArgs: BoundArgs[]): (...args: Args[]) => ReturnType<F[FunctionName]>
     compile(transformations: object, options?: object): string
     withSchema<Schema, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): API<Schema, F>
+    abstract(name: string): Graph<any, F>
+    implement(iface: Graph<any, F>, name: string): void
     arg0: Token
     arg1: Token
     arg2: Token
