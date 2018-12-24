@@ -497,6 +497,17 @@ describe('testing objects', () => {
         const inst = optModel(initialData);
         expect(inst.has).toEqual(_.has(initialData.data, key));
       });
+      it('should return true if contains key its value is falsy', async () => {
+        const initialData = { data: {a: 1, b: null}};
+        const key = 'b'
+        const model = {
+          has: root.get('data').has(key),
+        };
+        const optModel = eval(await compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.has).toEqual(_.has(initialData.data, key));
+      });
       it('should return false if not contain key', async () => {
         const initialData = { data: {a: 1, b: 2}};
         const key = 'd'
