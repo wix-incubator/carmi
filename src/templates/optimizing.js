@@ -320,11 +320,23 @@ function base() {
       }
       if ($invalidatedKeys.has(key)) {
         $currentStack.push(key);
-        const newVal = func($invalidatedKeys, key, src[key], context, this);
         if (Array.isArray($out)) {
-          setOnArray($out, key, newVal, $invalidates)
+          if (key >= src.length) {
+            setOnArray($out, key, undefined, $invalidates);
+            $out.length = src.length;
+          } else {
+            const newVal = func($invalidatedKeys, key, src[key], context, this);
+            setOnArray($out, key, newVal, $invalidates)
+          }
         } else {
-          setOnObject($out, key, newVal, $invalidates)
+          if (!src.hasOwnProperty(key)) {
+            if ($out.hasOwnProperty(key)) {
+              deleteOnObject($out, key, $invalidates);
+            }
+          } else {
+            const newVal = func($invalidatedKeys, key, src[key], context, this);
+            setOnObject($out, key, newVal, $invalidates)
+          }
         }
         $invalidatedKeys.delete(key);
         $currentStack.pop();
