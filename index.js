@@ -45,6 +45,7 @@ const proxyHandler = {};
 const { wrap, unwrap } = unwrapableProxies(proxyHandler);
 
 const INDEX_FILE = __filename;
+const SUGAR_FILE = path.resolve(__dirname, 'src/sugar.js')
 const JSX_FILE = INDEX_FILE.replace(/index\.js$/, 'jsx.js');
 
 function currentLine() {
@@ -53,7 +54,7 @@ function currentLine() {
   const externalLine =
     lines
       .slice(1)
-      .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
+      .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(SUGAR_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
   return externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? '' + parseInt(str, 10) : str).join(':')
 }
 

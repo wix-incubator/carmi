@@ -426,7 +426,7 @@ interface ObjectGraphImpl<This extends object, F extends FunctionLibrary,
      * Returns a new object which resolves to _.assign(this, value)
      * @param value 
      */
-    assignIn<V extends object>(value: Argument<V, F>): Graph<This & V, F>
+    assignIn<V extends object>(value: Argument<V, F>[]): Graph<This & V, F>
 
     setIn(path: string[]): Graph<This, F>
 
@@ -463,11 +463,11 @@ type Graph<T, F extends FunctionLibrary> =
     never
 
 
-interface API<Schema = any, F extends FunctionLibrary = any> {
+interface API<Schema = unknown, F extends FunctionLibrary = {}> {
     root: Graph<Schema, F>
     chain<T>(t: T): Graph<T, F>
-    and<Args>(...a: Args[]): Args
-    or<Args>(...a: Args[]): Args
+    and<Args>(...a: Args[]): Args | BooleanGraph<boolean, F>
+    or<Args>(...a: Args[]): Args | BooleanGraph<boolean, F>
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
     call<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
@@ -475,12 +475,13 @@ interface API<Schema = any, F extends FunctionLibrary = any> {
     bind<FunctionName extends keyof F, BoundArgs, Args>(func: FunctionName, ...boundArgs: BoundArgs[]): (...args: Args[]) => ReturnType<F[FunctionName]>
     compile(transformations: object, options?: object): string
     withSchema<Schema, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): API<Schema, F>
-    abstract(name: string): Graph<any, F>
-    implement(iface: Graph<any, F>, name: string): void
+    abstract(name: string): Graph<unknown, F>
+    implement(iface: Graph<unknown, F>, name: string): void
     arg0: Token
     arg1: Token
     arg2: Token
 }
+
 
 declare const DefaultAPI : API
 export = DefaultAPI
