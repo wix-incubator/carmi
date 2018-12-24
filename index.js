@@ -293,7 +293,7 @@ async function compile(model, options) {
           (function (global, factory) {
             typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
             typeof define === 'function' && define.amd ? define(factory) :
-            (global.model = factory());
+            (global.${options.name} = factory());
           }(this, (function () {
             return ${source}
           })))
