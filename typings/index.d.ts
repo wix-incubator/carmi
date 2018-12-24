@@ -27,6 +27,9 @@ interface GraphImpl<This,
     call<FunctionName extends keyof F, Arguments>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
     effect<FunctionName extends keyof F, Arguments>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
 
+
+    bind<FunctionName extends keyof F, BoundArgs, Args>(func: FunctionName, ...boundArgs: BoundArgs[]): (...args: Args[]) => ReturnType<F[FunctionName]>
+
     /**
      * Generates a breakpoint (debugger clause), continuing the graph
      */
@@ -467,7 +470,7 @@ interface API<Schema = unknown, F extends FunctionLibrary = {}> {
     root: Graph<Schema, F>
     chain<T>(t: T): Graph<T, F>
     and<Args>(...a: Args[]): Args | BooleanGraph<boolean, F>
-    or<Args>(...a: Args[]): Args | BooleanGraph<boolean, F>
+    or<Args>(...a: (Argument<Args, F>)[]): Args | BooleanGraph<boolean, F>
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
     call<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
