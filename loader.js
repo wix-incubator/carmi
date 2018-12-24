@@ -4,14 +4,11 @@
 'use strict';
 
 const {compile} = require('carmi');
-const esm = require('esm');
 
-module.exports = function CarmiLoader() {
+module.exports = function CarmiLoader(content) {
   const callback = this.async();
-  const srcPath = this.getDependencies()[0];
   const requiredPreCarmi = new Set(Object.keys(require.cache));
-  const loader = esm(module);
-  compile(loader(srcPath), {compiler: 'optimizing', format: 'cjs'})
+  compile(content, {compiler: 'optimizing', format: 'cjs'})
     .then(compiledCode => {
       Object.keys(require.cache).forEach(key => {
         if (!requiredPreCarmi.has(key)) {

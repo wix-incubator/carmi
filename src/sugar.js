@@ -110,7 +110,7 @@ module.exports = function({chain, or, and}) {
     }
 
     function has(obj, key) {
-      return obj.get(key).not().not()
+      return obj.keys().includes(key)
     }
 
     return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head};
