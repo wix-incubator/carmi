@@ -7,7 +7,6 @@ const {compile} = require('carmi');
 const esm = require('esm');
 
 module.exports = function CarmiLoader() {
-  this.cacheable(false);
   const callback = this.async();
   const srcPath = this.getDependencies()[0];
   const requiredPreCarmi = new Set(Object.keys(require.cache));
