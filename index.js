@@ -316,7 +316,9 @@ async function compile(model, options) {
   } else {
     result = source;
   }
-
+  if (hashFile) {
+    require('fs').writeFileSync(hashFile, result);
+  }
   return result;
 }
 
