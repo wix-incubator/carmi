@@ -28,16 +28,9 @@ try {
 
 const path = require('path');
 
-const { rollup } = require('rollup');
 const exprHash = require('./src/expr-hash');
 const {searchExpressionsWithoutInnerFunctions, searchExpressions} = require('./src/expr-search');
 
-let uglify;
-try {
-  uglify = require('rollup-plugin-uglify');
-} catch (e) { }
-const virtualReq = require('rollup-plugin-virtual');
-const virtual = virtualReq.default ? virtualReq.default : virtualReq;
 const prettier = require('prettier');
 
 const unwrapableProxies = require('./src/unwrapable-proxy');
@@ -281,29 +274,49 @@ async function compile(model, options) {
     } catch (e) { }
   }
   let result;
-  if (!options.format && compiler.lang === 'js') {
-    result = `(function () {
-      'use strict';
-      return ${source}
-    })()`;
-  } else if (compiler.lang === 'js') {
-    const rollupConfig = {
-      input: 'main.js',
-      plugins: [virtual({ 'main.js': `export default ${source}` })].concat(options.minify && uglify ? [uglify()] : []),
-      output: {
-        format: options.format,
-        name: options.name
-      }
-    };
-    const bundle = await rollup(rollupConfig);
-    const generated = await bundle.generate(rollupConfig);
-    result = generated.code;
+
+  if (compiler.lang === 'js') {
+    switch (options.format) {
+      case 'iife':
+        result = `var ${options.name} = (function () {
+          return ${source}
+        }())`;
+        break;
+      case 'cjs':
+        result = `module.exports = ${source}`;
+        break;
+      case 'esm':
+        result = `export default ${source}`;
+        break;
+      case 'umd':
+        result = `
+          (function (global, factory) {
+            typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+            typeof define === 'function' && define.amd ? define(factory) :
+            (global.model = factory());
+          }(this, (function () {
+            return ${source}
+          })))
+        `;
+        break;
+      case 'amd':
+        result = `
+          define(function () {
+            return ${source}
+          });
+        `;
+        break;
+      default:
+        result = `(function () {
+          'use strict';
+          return ${source}
+        })()`;
+        break;
+    }
   } else {
     result = source;
   }
-  if (hashFile) {
-    require('fs').writeFileSync(hashFile, result);
-  }
+
   return result;
 }
 
