@@ -9,17 +9,23 @@ const {
   Clone
 } = require('./lang');
 const _ = require('lodash');
-const NaiveCompiler = require('./naive-compiler');
+const SimpleCompiler = require('./simple-compiler');
 const { splitSettersGetters, pathMatches, normalizeAndTagAllGetters } = require('./expr-tagging');
 
-class OptimizingCompiler extends NaiveCompiler {
+class OptimizingCompiler extends SimpleCompiler {
   constructor(model, options) {
-    const { getters, setters } = splitSettersGetters(model);
-    super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, options);
+    super(model, options);
   }
 
   get template() {
     return require('./templates/optimizing.js');
+  }
+
+  topLevelOverrides() {
+    return Object.assign({}, super.topLevelOverrides(), {
+      RESET: `$first = false;
+$tainted = new WeakSet();`
+    });
   }
 
   byTokenTypesPlaceHolders(expr) {

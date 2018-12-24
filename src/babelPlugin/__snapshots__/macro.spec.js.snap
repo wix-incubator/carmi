@@ -72,16 +72,18 @@ module.exports = function () {
         arr[1] = $funcLib[args[0]].apply($res, args.slice(1));
       }return arr[1];
     }$invalidatedRoots.add('todosList');function $todosListBuild() {
-      const key = 'todosList';const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$array_temp_4_19_1\\"]], '4', 2, false);setOnObject($res, 'todosList', newValue, false);$invalidatedRoots.delete('todosList');return $res.todosList;
-    }$invalidatedRoots.add('$array_temp_4_19_1');function $array_temp_4_19_1Build() {
-      const key = '$array_temp_4_19_1';const $invalidatedKeys = $invalidatedRoots;const newValue = array($invalidatedKeys, key, [\\"div\\", null, $model[0]], '2', 3, false);setOnObject($res, '$array_temp_4_19_1', newValue, false);$invalidatedRoots.delete('$array_temp_4_19_1');return $res.$array_temp_4_19_1;
+      const key = 'todosList';const $invalidatedKeys = $invalidatedRoots;const newValue = call($invalidatedKeys, key, [\\"createElement\\", $res[\\"$array_jsx_4_10_1\\"]], '4', 2, false);setOnObject($res, 'todosList', newValue, false);$invalidatedRoots.delete('todosList');return $res.todosList;
+    }$invalidatedRoots.add('$array_jsx_4_10_1');function $array_jsx_4_10_1Build() {
+      const key = '$array_jsx_4_10_1';const $invalidatedKeys = $invalidatedRoots;const newValue = array($invalidatedKeys, key, [\\"div\\", null, $model[0]], '2', 3, false);setOnObject($res, '$array_jsx_4_10_1', newValue, false);$invalidatedRoots.delete('$array_jsx_4_10_1');return $res.$array_jsx_4_10_1;
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('$array_temp_4_19_1') && $array_temp_4_19_1Build();$invalidatedRoots.has('todosList') && $todosListBuild();$tainted = new WeakSet();$first = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$invalidatedRoots.has('$array_jsx_4_10_1') && $array_jsx_4_10_1Build();$invalidatedRoots.has('todosList') && $todosListBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
-    }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
+    }Object.assign($res, {}, { $startBatch: () => {
+        $inBatch = true;
+      }, $endBatch: () => {
         $inBatch = false;if ($batchPending.length) {
           $batchPending.forEach(({ func, args }) => {
             func.apply($res, args);
@@ -93,6 +95,8 @@ module.exports = function () {
         $listeners.add(func);
       }, $removeListener: func => {
         $listeners.delete(func);
+      }, $setBatchingStrategy: func => {
+        $batchingStrategy = func;
       } });recalculate();return $res;
   }return model;
 }();
@@ -150,10 +154,12 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$tainted = new WeakSet();$first = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$invalidatedRoots.has('first') && $firstBuild();$invalidatedRoots.has('second') && $secondBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
-    }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
+    }Object.assign($res, {}, { $startBatch: () => {
+        $inBatch = true;
+      }, $endBatch: () => {
         $inBatch = false;if ($batchPending.length) {
           $batchPending.forEach(({ func, args }) => {
             func.apply($res, args);
@@ -165,6 +171,8 @@ module.exports = function () {
         $listeners.add(func);
       }, $removeListener: func => {
         $listeners.delete(func);
+      }, $setBatchingStrategy: func => {
+        $batchingStrategy = func;
       } });recalculate();return $res;
   }return model;
 }();
@@ -224,10 +232,12 @@ const modelBuilder = (function () {
     }let $inBatch = false;let $batchPending = [];function recalculate() {
       if ($inBatch) {
         return;
-      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$tainted = new WeakSet();$first = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$invalidatedRoots.has('all') && $allBuild();$invalidatedRoots.has('first') && $firstBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
-    }Object.assign($res, {}, { $startBatch: () => $inBatch = true, $endBatch: () => {
+    }Object.assign($res, {}, { $startBatch: () => {
+        $inBatch = true;
+      }, $endBatch: () => {
         $inBatch = false;if ($batchPending.length) {
           $batchPending.forEach(({ func, args }) => {
             func.apply($res, args);
@@ -239,6 +249,8 @@ const modelBuilder = (function () {
         $listeners.add(func);
       }, $removeListener: func => {
         $listeners.delete(func);
+      }, $setBatchingStrategy: func => {
+        $batchingStrategy = func;
       } });recalculate();return $res;
   }return model;
 })();

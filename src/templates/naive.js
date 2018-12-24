@@ -14,6 +14,7 @@ function base() {
       }
       $inRecalculate = true;
       /* DERIVED */
+      /* RESET */
       $listeners.forEach(callback => callback());
       $inRecalculate = false;
       if ($batchPending.length) {

@@ -1,8 +1,4 @@
-function base() {
-  function $NAME($model, $funcLib, $batchingStrategy) {
-    'use strict';
-    const $res = { $model };
-    const $listeners = new Set();
+function library() {
     const $trackingMap = new WeakMap();
     const $trackedMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
@@ -14,14 +10,6 @@ function base() {
     let $first = true;
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
-
-    const $uniquePersistentObjects = new Map();
-    const getUniquePersistenObject = id => {
-      if (!$uniquePersistentObjects.has(id)) {
-        $uniquePersistentObjects.set(id, {});
-      }
-      return $uniquePersistentObjects.get(id);
-    };
 
     const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
@@ -870,82 +858,7 @@ function base() {
       }
       return $out;
     }
-
-    /* ALL_EXPRESSIONS */
-    let $inBatch = false;
-    let $batchPending = [];
-    let $inRecalculate = false;
-
-    function recalculate() {
-      if ($inBatch) {
-        return;
-      }
-      $inRecalculate = true;
-      /* DERIVED */
-      $tainted = new WeakSet();
-      $first = false;
-      $listeners.forEach(callback => callback());
-      $inRecalculate = false;
-      if ($batchPending.length) {
-        $res.$endBatch();
-      }
-    }
-
-    function $setter(func, ...args) {
-      if (!$inBatch && $batchingStrategy) {
-        $batchingStrategy.call($res);
-        $inBatch = true;
-      }
-      if ($inBatch || $inRecalculate) {
-        $batchPending.push({ func, args });
-      } else {
-        func.apply($res, args);
-        recalculate();
-      }
-    }
-
-    Object.assign(
-      $res,
-      {
-        /* SETTERS */
-      },
-      {
-        $startBatch: () => ($inBatch = true),
-        $endBatch: () => {
-          $inBatch = false;
-          if ($batchPending.length) {
-            $batchPending.forEach(({ func, args }) => {
-              func.apply($res, args);
-            });
-            $batchPending = [];
-            recalculate();
-          }
-        },
-        $runInBatch: func => {
-          $res.$startBatch();
-          func();
-          $res.$endBatch();
-        },
-        $addListener: func => {
-          $listeners.add(func);
-        },
-        $removeListener: func => {
-          $listeners.delete(func);
-        },
-        /* DEBUG */
-        $ast: () => {
-          return $AST;
-        },
-        $source: () => {
-          return /* SOURCE_FILES */;
-        }
-        /* DEBUG-END */
-      }
-    );
-    recalculate();
-    return $res;
   }
-}
 
 function topLevel() {
   $invalidatedRoots.add('$FUNCNAME');
@@ -971,8 +884,6 @@ function object() {
 function array() {
 }
 
-function library() {}
-
 
 function func() {
   function $FUNCNAME($invalidatedKeys, key, val, context) {
@@ -991,6 +902,8 @@ function recursiveFunc() {
     return res;
   }
 }
+
+const base = require('./naive').base;
 
 module.exports = {
   base,
