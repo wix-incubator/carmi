@@ -93,6 +93,8 @@ class NaiveCompiler {
       case 'defaults':
       case 'size':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
+      case 'type':
+          return `(typeof ${this.generateExpr(expr[1])})`
       case 'toUpperCase':
       case 'toLowerCase':
         return `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])})`;
