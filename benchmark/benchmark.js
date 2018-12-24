@@ -33,7 +33,6 @@ async function precompileModel(testname, type) {
     compiler: type,
     format: 'cjs',
     name: testname,
-    minify: false
   });
   fs.writeFileSync(resolveTestName(testname, type) + '.js', src);
 }
