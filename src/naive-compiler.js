@@ -16,6 +16,13 @@ const nativeOps = {
   mod: '%'
 };
 
+const typeOfChecks = {
+  isUndefined: 'undefined',
+  isBoolean: 'boolean',
+  isString: 'string',
+  isNumber: 'number'
+}
+
 const nativeStringFunctions = ['startsWith', 'endsWith', 'toUpperCase', 'toLowerCase', 'substring', 'split'].map(name => ({[name]: `String.prototype.${name}`})).reduce(_.assign)
 const nativeMathFunctions = ['floor', 'ceil', 'round'].map(name => ({[name]: `Math.${name}`})).reduce(_.assign)
 class NaiveCompiler {
@@ -93,8 +100,11 @@ class NaiveCompiler {
       case 'defaults':
       case 'size':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
-      case 'type':
-          return `(typeof ${this.generateExpr(expr[1])})`
+      case 'isBoolean':
+      case 'isNumber':
+      case 'isString':
+      case 'isUndefined':
+        return `(typeof (${this.generateExpr(expr[1])}) === '${typeOfChecks[tokenType]}')`
       case 'toUpperCase':
       case 'toLowerCase':
         return `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])})`;
