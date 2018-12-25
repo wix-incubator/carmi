@@ -162,7 +162,11 @@ const implement = (abstract, expr) => {
   return abstract;
 }
 
-const frontend = {chain, abstract, implement}
+const template = (parts, ...args) => {
+  return parts.slice(1).reduce((result, current, index) => result.plus(args[index]).plus(chain(current)), chain(parts[0]))
+}
+
+const frontend = {chain, abstract, implement, template}
 Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].private) {
     return; // privates aren't exported - only used in optimizing code or internally
@@ -357,5 +361,5 @@ module.exports = API
 
 
 function withSchema() {
-  return API  
+  return API
 }
