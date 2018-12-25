@@ -1,7 +1,10 @@
 const {
   Expr,
   Gte,
+  Gt,
   Or,
+  And,
+  Not,
   Eq,
   Cond,
   Token,
@@ -50,23 +53,90 @@ function printPaths(title, paths) {
   console.log(title, output);
 }
 
-function generatePathCondExpr(pathExpressions, pathAsStr, outputPaths) {
-  const anyNotConditional = _.some(pathExpressions, (expr) => !expr[0].$conditional);
-  if (anyNotConditional) {
-    return false;
-  } else {
-    const conds = pathExpressions.map(expr => {
-      const condId = expr[0].$conditional[0][0].$id;
-      const condBranch = expr[0].$conditional[1];
-      const condIsTernary = expr[0].$conditional[0][0].$type === 'ternary';
-      return Expr(condIsTernary ? Eq : Gte, Expr(Cond, condId), condBranch);
-    });
-    if (conds.length === 1) {
-      return conds[0];
-    } else {
-      return Expr(Or, ...conds);
-    }
+function genUsedOnlyAsBooleanValue(expr) {
+  const parent = expr[0].$parent;
+  const indexInParent = parent ? parent.indexOf(expr) : -1;
+  if (parent && (parent[0].$type === 'and' || parent[0].$type === 'or')) {
+    return Expr(Gt, Expr(Cond, parent.$id), indexInParent)
   }
+  if (parent && (parent[0].$type === 'ternary' && indexInParent === 1)) {
+    return true;
+  }
+  return false;
+}
+
+function countPathParts(pathAsStr) {
+  return pathAsStr.split(',').length;
+}
+
+function joinOr(...conds) {
+  if (conds.length === 0) {
+    return false;
+  }
+  if (conds.length === 1) {
+    return conds[0]
+  };
+  return Expr(Or, ...conds);
+} 
+
+function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) {
+  const pathPartsCnt = countPathParts(pathAsStr);
+  const nearestDeeperPaths = Object.keys(outputCondsByPathStr).filter(otherPathStr => {
+    return countPathParts(otherPathStr) === pathPartsCnt + 1 &&
+        otherPathStr.substr(0, pathAsStr.length) === pathAsStr;
+  });
+  const nearestDeeperPathsCond = joinOr(...nearestDeeperPaths.map(otherPathStr => outputCondsByPathStr[otherPathStr]))
+  const condsOfOnlyTested = [];
+  const condsOfUsed = [];
+  pathExpressions.forEach(expr => {
+      let condOfExpr = true;
+      if (expr[0].$conditional) {
+        const condId = expr[0].$conditional[0][0].$id;
+        const condBranch = expr[0].$conditional[1];
+        const condIsTernary = expr[0].$conditional[0][0].$type === 'ternary';
+        condOfExpr = Expr(condIsTernary ? Eq : Gte, Expr(Cond, condId), condBranch);
+      }
+      const usedAsBool = genUsedOnlyAsBooleanValue(expr);
+      if (usedAsBool) {
+        condsOfOnlyTested.push(condOfExpr);
+      } else {
+        condsOfUsed.push(condOfExpr)
+      }
+  });
+  const condOfTracking = joinOr(...condsOfUsed, Expr(And, Expr(Not, nearestDeeperPathsCond), joinOr(...condsOfOnlyTested)))
+  // console.log(JSON.stringify(condOfTracking, null, 2));
+  return condOfTracking;
+}
+
+function groupPathsThatCanBeInvalidated(paths) {
+  const groupedPaths = {};
+  paths.forEach((cond, path) => {
+    const pathAsStr = path.map(part => {
+      if (typeof part === 'string' || typeof part === 'number') {
+        return ''+part;
+      }
+      if (part instanceof Token && part.$type === 'root' || part.$type === 'topLevel') {
+        return `***${part.$type}***`;
+      }
+      return exprHash(part);
+    }).join(',');
+    groupedPaths[pathAsStr] = groupedPaths[pathAsStr] || [];
+    groupedPaths[pathAsStr].push(path);
+  });
+  const pathStringsSortedInnerFirst = Array.from(Object.keys(groupedPaths))
+    .sort()
+    .reverse()
+  // console.log(groupedPaths,pathStringsSortedInnerFirst)
+  const outputPaths = new Map();
+  const outputCondsByPathStr = {};
+  pathStringsSortedInnerFirst
+    .forEach(pathAsStr => {
+      const similiarPaths = groupedPaths[pathAsStr];
+      const pathCond = generatePathCondExpr(similiarPaths.map(path => paths.get(path)), pathAsStr, outputCondsByPathStr)
+      outputCondsByPathStr[pathAsStr] = pathCond;
+      outputPaths.set(similiarPaths[0], pathCond);
+    });
+  return outputPaths;
 }
 
 function annotatePathsThatCanBeInvalidated(exprsByFunc) {
@@ -96,20 +166,7 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
       }
     })
   });
-  const groupedPaths = {};
-  paths.forEach((cond, path) => {
-    const pathAsStr = path.map(exprHash).join(',');
-    groupedPaths[pathAsStr] = groupedPaths[pathAsStr] || [];
-    groupedPaths[pathAsStr].push(path);
-  });
-  const outputPaths = new Map();
-  Array.from(Object.keys(groupedPaths))
-    .sort()
-    .forEach(pathAsStr => {
-      const similiarPaths = groupedPaths[pathAsStr];
-      outputPaths.set(similiarPaths[0], generatePathCondExpr(similiarPaths.map(path => paths.get(path)), pathAsStr, outputPaths));
-    });
-  return outputPaths;
+  return groupPathsThatCanBeInvalidated(paths);
 }
 
 function getAllFunctions(sourceExpr) {
@@ -352,6 +409,13 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
     })
   });
 }
+
+const canHaveSideEffects = memoizeExprFunc(expr => {
+  if (expr[0].$type === 'call' || expr[0].$type === 'effect') {
+    return true;
+  }
+  return expr.some(child => canHaveSideEffects(child));
+}, () => false)
 
 const deadCodeElimination = memoizeExprFunc(
   expr => {
