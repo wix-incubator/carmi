@@ -18,7 +18,7 @@ describe('testing objects', () => {
           result: root.get('model').get('kofnae')
           // model: root.get('model')
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
         const initialData = {
           model: {}
         };
@@ -33,7 +33,7 @@ describe('testing objects', () => {
           result: root.get('model').get('kofnae'),
           model: root.get('model') // TODO Reut - this is the only difference
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
         const initialData = {
           model: {}
         };
@@ -50,7 +50,7 @@ describe('testing objects', () => {
         ),
         setItem: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = { One: 1, Two: 2, First: 1, Second: 2 };
       const inst = optModel(initialData);
       expect(inst.shared).toEqual({
@@ -74,7 +74,7 @@ describe('testing objects', () => {
         ),
         setItem: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initalData = { One: 1, Two: 2, First: 1, Second: 2 };
       const inst = optModel(initalData);
       expect(inst.shared).toEqual({
@@ -94,7 +94,7 @@ describe('testing objects', () => {
     it('groupBy', async () => {
       const numOfDoneItems = root.groupBy('done').get('true').call('tap').size();
       const model = {numOfDoneItems, update: setter(arg0, 'done')};
-      const optModel = eval(await compile(model, {compiler}));
+      const optModel = eval(compile(model, {compiler}));
       const initialData = {
         a: {done: true, text: 'a'},
         b: {done: true, text: 'b'},
@@ -110,7 +110,7 @@ describe('testing objects', () => {
   it('groupBy when initial data is empty', async () => {
       const doneItems = root.get('data').groupBy('done').get('true').call('tap');
       const model = {doneItems, update: setter('data')};
-      const optModel = eval(await compile(model, {compiler}));
+      const optModel = eval(compile(model, {compiler}));
       const initialData = {
           data: {}
       };
@@ -134,7 +134,7 @@ describe('testing objects', () => {
           .mapValues(item => or(and(translate.get(item), root.get('results').get(translate.get(item))), '')),
         setItem: setter('source', arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initalData = {
         source: { One: 'First', Two: 'Second', Three: 'Unknown' },
         results: { a: 'A', b: 'B', c: 'C' }
@@ -153,7 +153,7 @@ describe('testing objects', () => {
 
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initalData = { '1': 'One', '2': 'Two', '3': 'Three' };
       const inst = optModel(initalData, funcLibrary);
       expect(inst.byName).toEqual({
@@ -198,7 +198,7 @@ describe('testing objects', () => {
         setCenter: setter('center'),
         setRange: setter('range')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = {
         numbers: {
           eight: 8,
@@ -236,7 +236,7 @@ describe('testing objects', () => {
         .mapValues(val => val.get('done').ternary(val.get('text'), val.get('missingProp')))
         .mapValues(text => text.call('tap'));
       const model = { textsIfDone, update: setter(arg0, 'done') };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = {
         a: { done: true, text: 'a' },
         b: { done: true, text: 'b' },
@@ -263,7 +263,7 @@ describe('testing objects', () => {
         updateIdx: setter(arg0, 'idx'),
         updateItem: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = {
         a: { text: 'A', idx: '0' },
         b: { text: 'B', idx: '1' },
@@ -324,7 +324,7 @@ describe('testing objects', () => {
         defined: root.getIn(['a', 'b']),
         notDefined: root.getIn(['c', 'b'])
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = { a: { b: 1 } };
 
       const inst = optModel(initialData);
@@ -338,7 +338,7 @@ describe('testing objects', () => {
         defined: a.getIn(['b','c','d']),
         notDefined: root.getIn(['b','e', 'b'])
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = { a: { b: {c: {d: 1}} } };
 
       const inst = optModel(initialData);
@@ -351,7 +351,7 @@ describe('testing objects', () => {
         const model = {
           find: root.find(val => val.eq('something')),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.find).toEqual('something');
@@ -361,7 +361,7 @@ describe('testing objects', () => {
         const model = {
           find: root.find(val => val.eq('notExists')),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.find).toEqual(undefined);
@@ -371,7 +371,7 @@ describe('testing objects', () => {
         const model = {
           find: root.find((val, key, ctx) => val.eq(ctx), root.get('b')),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.find).toEqual('something');
@@ -385,7 +385,7 @@ describe('testing objects', () => {
         const model = {
           setIn: root.get('data').setIn(path, value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
@@ -397,7 +397,7 @@ describe('testing objects', () => {
         const model = {
           setIn: root.get('data').setIn(path, value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
@@ -409,7 +409,7 @@ describe('testing objects', () => {
         const model = {
           setIn: root.get('data').setIn(path, value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.setIn).toEqual(_.set(initialData.data, path, value));
@@ -422,7 +422,7 @@ describe('testing objects', () => {
         const model = {
           includesValue: root.get('data').includesValue(value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.includesValue).toEqual(_.includes(initialData.data, value));
@@ -433,7 +433,7 @@ describe('testing objects', () => {
         const model = {
           includesValue: root.get('data').includesValue(value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.includesValue).toEqual(_.includes(initialData.data, value));
@@ -446,7 +446,7 @@ describe('testing objects', () => {
         const model = {
           pick: root.get('data').pick(path),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
@@ -457,7 +457,7 @@ describe('testing objects', () => {
         const model = {
           pick: root.get('data').pick(path),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
@@ -468,7 +468,7 @@ describe('testing objects', () => {
         const model = {
           pick: root.get('data').pick(path),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
@@ -479,7 +479,7 @@ describe('testing objects', () => {
         const model = {
           pick: root.get('data').pick(path),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
@@ -492,7 +492,7 @@ describe('testing objects', () => {
         const model = {
           has: root.get('data').has(key),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.has).toEqual(_.has(initialData.data, key));
@@ -503,7 +503,7 @@ describe('testing objects', () => {
         const model = {
           has: root.get('data').has(key),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.has).toEqual(_.has(initialData.data, key));
@@ -514,7 +514,7 @@ describe('testing objects', () => {
         const model = {
           has: root.get('data').has(key),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.has).toEqual(_.has(initialData.data, key));
@@ -525,7 +525,7 @@ describe('testing objects', () => {
         defined: root.assignIn([{a: 'women'}]),
         notDefined: root.assignIn([{x: 'men'}])
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = { a: { b: 1 } };
 
       const inst = optModel(initialData);

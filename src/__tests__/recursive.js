@@ -20,7 +20,7 @@ describe('testing array', () => {
         ),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel([1, 2, 3, 4, 5], funcLibrary);
       expectTapFunctionToHaveBeenCalled(5, compiler);
       expect(inst.sum).toEqual([1, 3, 6, 10, 15]);
@@ -38,7 +38,7 @@ describe('testing array', () => {
         ),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [1, 2, 3, -1, -2, 4];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.chain).toEqual([-1, -1, -1, -1, -2, -2]);
@@ -61,7 +61,7 @@ describe('testing array', () => {
         setDone: setter(arg0, 'done'),
         spliceBlockedBy: splice(arg0, 'subTasks')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = {
         a: { done: true, subTasks: [] },
         b: { done: false, subTasks: ['c'] },

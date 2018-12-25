@@ -13,7 +13,7 @@ describe('testing string functions', () => {
     function testStringFunction(str, func, args, expected) {
       it(`string function: ${func}`, async () => {
         const model = { transform: root.map(val => val[func](...args).call('tap')) };
-        const optCode = eval(await compile(model, { compiler }));
+        const optCode = eval(compile(model, { compiler }));
         const inst = optCode([str], funcLibrary);
         expect(inst.transform[0]).toEqual(expected);
         expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);

@@ -4,8 +4,9 @@ const SimpleCompiler = require('./simple-compiler');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 const { writeFile, mkdtemp, rmdir, unlink } = require('./promise-fs');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const { extractTypes } = require('./flow-types');
 
 function spawnAsync(proc, args, options) {
@@ -55,26 +56,26 @@ class FlowCompiler extends SimpleCompiler {
     super.buildExprFunctionsByTokenType(acc, expr);
   }
 
-  async compile() {
-    const src = await super.compile();
+  compile() {
+    const src = super.compile();
     console.log(src);
-    const tempDirectory = await mkdtemp(path.join(os.tmpdir(), 'flow-'));
+    const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'flow-'));
     const tempFilename = path.join(tempDirectory, `${this.options.name}.js`);
     const flowConfigFile = path.join(tempDirectory, '.flowconfig');
     const srcBeforeFlowSuggest = `// @flow
 ${this.options.flow};
     ${src.replace(/\/\*::(.*?)\*\//g, '$1').replace(/\/\*:(.*?)\*\//g, ':$1')}
 `;
-    await writeFile(tempFilename, srcBeforeFlowSuggest);
+    fs.writeFileSync(tempFilename, srcBeforeFlowSuggest);
     const flowCliOptions = { cwd: tempDirectory + path.sep };
-    await spawnAsync(require.resolve('flow-bin/cli'), ['init'], flowCliOptions);
-    const postFlowSrc = await spawnAsync(require.resolve('flow-bin/cli'), ['suggest', tempFilename], flowCliOptions);
+    spawnSync(require.resolve('flow-bin/cli'), ['init'], flowCliOptions);
+    const postFlowSrc = spawnSync(require.resolve('flow-bin/cli'), ['suggest', tempFilename], flowCliOptions);
     this.annotations = extractTypes(postFlowSrc);
     console.log(JSON.stringify(this.annotations));
     console.log(postFlowSrc);
-    await unlink(flowConfigFile);
-    await unlink(tempFilename);
-    await rmdir(tempDirectory);
+    fs.unlinkSync(flowConfigFile);
+    fs.unlinkSync(tempFilename);
+    fs.rmdirSync(tempDirectory);
     return postFlowSrc;
   }
 

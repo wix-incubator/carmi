@@ -27,9 +27,9 @@ function resolveTestName(testname, type) {
   }
 }
 
-async function precompileModel(testname, type) {
+function precompileModel(testname, type) {
   const model = require(path.resolve(__dirname, `${testname}.carmi`));
-  const src = await carmi.compile(model, {
+  const src = carmi.compile(model, {
     compiler: type,
     format: 'cjs',
     name: testname,
@@ -46,14 +46,14 @@ function runSingleTest(testname, model, count, changes, batch) {
   });
 }
 
-async function runBenchmarks(testname) {
-  await precompileModel(testname, 'carmi');
-  await precompileModel(testname, 'simple');
+function runBenchmarks(testname) {
+  precompileModel(testname, 'carmi');
+  precompileModel(testname, 'simple');
   const results = [];
   for (let runIndex = 0; runIndex < runsCount; runIndex++) {
     for (let type of testsConfigs[testname]) {
       for (let run of runTypes[type]) {
-        const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
+        const vals = runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
         results.push(Object.assign({ type, run }, vals));
       }
     }
@@ -61,12 +61,16 @@ async function runBenchmarks(testname) {
   return results;
 }
 
-async function runAllBenchmarks() {
+function runAllBenchmarks() {
   const results = {};
   for (let testname of tests) {
-    results[testname] = await runBenchmarks(testname);
+    results[testname] = runBenchmarks(testname);
   }
   require('fs').writeFileSync(path.resolve(__dirname, 'generated', 'results.json'), JSON.stringify(results, null, 2));
 }
 
-runAllBenchmarks().catch(e => console.error(e));
+try {
+  runAllBenchmarks();
+} catch (e) {
+  console.error(e);
+}

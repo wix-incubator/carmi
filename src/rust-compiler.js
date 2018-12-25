@@ -187,7 +187,7 @@ class RustCompiler extends NaiveCompiler {
       case 'root':
         return '$model';
       case 'null':
-      
+
       case 'topLevel':
         return `$res`;
       case 'call':
@@ -207,18 +207,18 @@ class RustCompiler extends NaiveCompiler {
     return require('./templates/rust-simple.js');
   }
 
-  async generateAnnotations() {
+  generateAnnotations() {
     const annotationsFile = path.join(__dirname, '..', 'cache', `${this.hash()}.json`);
     console.log(annotationsFile);
     try {
-      const annotations = await readFile(annotationsFile);
+      const annotations = fs.readFileSync(annotationsFile);
       this.annotations = JSON.parse(annotations.toString());
       console.log('annotations: found in cache');
     } catch (e) {
       const flowCompiler = new FlowCompiler(Object.assign({}, this.getters, this.setters), this.options);
-      await flowCompiler.compile();
+      flowCompiler.compile();
       this.annotations = flowCompiler.annotations;
-      await writeFile(annotationsFile, JSON.stringify(this.annotations));
+      fs.writeFileSync(annotationsFile, JSON.stringify(this.annotations));
       console.log('annotations: not found in cache, generated new');
     }
     return this.annotations;
@@ -284,8 +284,8 @@ impl JsConvertable for ${type.name} {
     }
   }
 
-  async compile() {
-    await this.generateAnnotations();
+  compile() {
+    this.generateAnnotations();
     this.annotations = extractAllTypeDeclerations(this.annotations);
     this.types = this.annotations.types;
     this.exprAnnotations = this.annotations.expr;

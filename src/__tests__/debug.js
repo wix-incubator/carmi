@@ -14,7 +14,7 @@ describe('Tests for usability and debugging carmi', () => {
       const makeSureThisCanBeFound = root.map(item => item.mult(2));
       const res = makeSureThisCanBeFound.map(item => item.plus(80));
       const model = { res, set: setter(arg0) }
-      const optCode = eval(await compile(model, { compiler, debug: true }));
+      const optCode = eval(compile(model, { compiler, debug: true }));
       const inst = optCode([1, 2, 3], funcLibrary);
       expect(inst.res).toEqual([82, 84, 86]);
       const sources = JSON.stringify(inst.$source());
@@ -25,7 +25,7 @@ describe('Tests for usability and debugging carmi', () => {
     it('withName', async () => {
       const negated = withName('negated', root.map(val => val.not()));
       const model = { doubleNegated: negated.map(val => val.not().call('tap')), set: setter(arg0) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([true, 1, 0, false, null], funcLibrary);
       expect(inst.doubleNegated).toEqual([true, true, false, false, false]);
       expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
@@ -41,7 +41,7 @@ describe('Tests for usability and debugging carmi', () => {
         test2: chain({test: chain(true)}),
         test3: chain({test: chain(true).not()})
       }
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([], funcLibrary);
       expect(inst.test1).toEqual({test:true});
       expect(inst.test2).toEqual({test:true});
@@ -70,7 +70,7 @@ describe('Tests for usability and debugging carmi', () => {
       const once = root.map(val => val.call('tap'));
       const twice = root.map(val => val.call('tap')).filter(val => val);
       const model = { once, twice, set: setter(arg0) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([false, 1, 0], funcLibrary);
       expect(inst.once).toEqual([false, 1, 0]);
       expect(inst.twice).toEqual([1]);
