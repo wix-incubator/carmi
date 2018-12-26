@@ -15,15 +15,6 @@ class Token {
   }
 }
 
-class WrappedPrimitive {
-  constructor(value) {
-    this.$primitive = value;
-  }
-  toJSON() {
-    return this.$primitive;
-  }
-}
-
 function cloneToken(token) {
   return new Token(token.$type, token[SourceTag]);
 }
@@ -114,7 +105,8 @@ const TokenTypeData = {
   isBoolean: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isString: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isNumber: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
-  abstract: new TokenTypes({nonChained: true, len:[2,2], private: true})
+  abstract: new TokenTypes({ nonChained: true, len: [2, 2], private: true }),
+  quote: new TokenTypes({ nonChained: true, len: [2, 2], private: true }),
 };
 
 const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
@@ -185,5 +177,4 @@ function Clone(model) {
 AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;
 AllTokens.SourceTag = SourceTag;
-AllTokens.WrappedPrimitive = WrappedPrimitive;
 module.exports = AllTokens;

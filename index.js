@@ -12,7 +12,6 @@ const {
   isSetterExpression,
   isSpliceExpression,
   isExpression,
-  WrappedPrimitive
 } = require('./src/lang');
 
 
@@ -78,17 +77,17 @@ function convertArrayAndObjectsToExpr(v) {
   } else if (v.constructor === Array) {
     return createExpr(new Token('array', currentLine()), ...v);
   } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
-    return new WrappedPrimitive(v);
+    return Expr(new Token('quote'), v);
   } else {
     return v;
   }
 }
 
 function createExpr(...args) {
-  args = args.map(token => {
+  args = args.map((token,index) => {
     token = convertArrayAndObjectsToExpr(token);
-    if (token instanceof WrappedPrimitive) {
-      return token.toJSON();
+    if (index > 0 && token instanceof Expression && token[0].$type === 'quote') {
+      return token[1];
     }
     return token;
   });
@@ -191,7 +190,6 @@ proxyHandler.get = (target, key) => {
     !tokenData &&
     typeof key === 'string' &&
     key !== '$type' &&
-    key !== '$primitive' &&
     key !== 'length' &&
     key !== 'forEach' &&
     key !== 'inspect' &&

@@ -31,4 +31,14 @@ describe('test the usage of abstracts', () => {
             implement(todos, todos.get(0))
         }).toThrowError()
     });
+    it('should be able to create a abstract and implement it later even if the implementation is a primitive', async () => {
+      const value = abstract('value');
+      const items = root.map(item => item.plus(value));
+      implement(value, chain(3));
+      const model = {items, set: setter(arg0)}
+      const optCode = eval(compile(model, { compiler, debug: true }));
+      const initialState = [1,2,3]
+      const inst = optCode(initialState, funcLibrary);
+      expect(inst.items).toEqual([4,5,6]);
+  });
 })
