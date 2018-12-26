@@ -5,6 +5,7 @@ const carmi = require('../index');
 const path = require('path');
 const esm = require('esm');
 const { writeFile } = require('../src/promise-fs');
+require('ts-node/register')
 
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
