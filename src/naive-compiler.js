@@ -45,6 +45,7 @@ class NaiveCompiler {
     // console.log(expr);
     const tokenType = currentToken.$type;
     switch (tokenType) {
+      case 'quote': return this.generateExpr(expr[1])
       case 'breakpoint': return `((() => {debugger; return ${this.generateExpr(expr[1])}}) ())`
       case 'trace': {
         const logLevel = expr.length > 2 ? this.generateExpr(expr[2]) : 'log'
