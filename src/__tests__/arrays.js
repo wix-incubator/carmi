@@ -12,7 +12,7 @@ describe('testing array', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
     it('simple map', async () => {
       const model = { negated: root.map(val => val.not().call('tap')), set: setter(arg0) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([true, true, false, false, false], funcLibrary);
       expect(inst.negated).toEqual([false, false, true, true, true]);
       expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
@@ -22,7 +22,7 @@ describe('testing array', () => {
     });
     it('simple map with effect', async () => {
       const model = { effect: root.map(val => or(val.ternary(chain(true).effect('tap'), null), val)), set: setter(arg0) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([true, true, false, false, false], funcLibrary);
       expect(inst.effect).toEqual([true, true, false, false, false]);
       expectTapFunctionToHaveBeenCalled(inst.$model.filter(k => k).length, { compiler: 'optimizing' });
@@ -35,7 +35,7 @@ describe('testing array', () => {
     });
     it('map return empty object if falsy', async () => {
       const model = { orEmpty: root.map(val => or(val, {}).call('tap')), set: setter(arg0) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([{ x: 1 }, false, { x: 2 }], funcLibrary);
       expect(inst.orEmpty).toEqual([{ x: 1 }, {}, { x: 2 }]);
       expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
@@ -45,7 +45,7 @@ describe('testing array', () => {
     });
     it('map return empty object if falsy', async () => {
       const model = { orEmpty: root.map(val => or(val, []).call('tap')), set: setter(arg0) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode([[1], false, [2]], funcLibrary);
       expect(inst.orEmpty).toEqual([[1], [], [2]]);
       expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
@@ -58,7 +58,7 @@ describe('testing array', () => {
         anyTruthy: root.any(val => val.call('tap')),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel([true, false, false, false, false], funcLibrary);
       expectTapFunctionToHaveBeenCalled(1, compiler);
       expect(inst.anyTruthy).toEqual(true);
@@ -84,7 +84,7 @@ describe('testing array', () => {
         set: setter(arg0),
         splice: splice()
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel([{ idx: 1, text: 'a' }, { idx: 2, text: 'b' }, { idx: 3, text: 'c' }], funcLibrary);
       expectTapFunctionToHaveBeenCalled(3, compiler);
       expect(inst.itemByIdx).toEqual({ 1: 'a', 2: 'b', 3: 'c' });
@@ -110,7 +110,7 @@ describe('testing array', () => {
         setArr: setter('arr', arg0),
         setCompareTo: setter('compareTo')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel({ arr: [0, 1, 2, 3, 4], compareTo: 2 }, funcLibrary);
       expect(currentValues(inst)).toEqual({
         greaterThan: [false, false, false, true, true],
@@ -141,7 +141,7 @@ describe('testing array', () => {
       const mapOfSum = sumsTuple.map(item => item.get(0).call('tap'));
 
       const model = { mapOfSum, set0: setter(arg0, 0), set1: setter(arg0, 1) };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const initialData = [[1, 2], [3, 4], [5, 6]];
       const inst = optCode(initialData, funcLibrary);
       expect(inst.mapOfSum).toEqual([3, 7, 11]);
@@ -164,7 +164,7 @@ describe('testing array', () => {
         setInner: setter(arg0, arg1),
         splice: splice()
       };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const initialData = [{ a: 1 }, { b: 2 }, { a: 5 }];
       const inst = optCode(initialData, funcLibrary);
       expect(currentValues(inst)).toEqual({ assign: { a: 5, b: 2 }, defaults: { a: 1, b: 2 } });
@@ -198,7 +198,7 @@ describe('testing array', () => {
         setStart: setter('start')
       };
       const initialData = { start: 2, end: 5, step: 2 };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode(initialData, funcLibrary);
       expect(inst.range).toEqual([0, 1, 2, 3, 4]);
       expect(inst.rangeStart).toEqual([2, 3, 4]);
@@ -242,7 +242,7 @@ describe('testing array', () => {
         items: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 2, 2, 2, 2],
         match: 1
       };
-      const optCode = eval(await compile(model, { compiler }));
+      const optCode = eval(compile(model, { compiler }));
       const inst = optCode(initialData, funcLibrary);
       expect(inst.fizzBuzz).toEqual([1, 2, 'fizz', 4, 'buzz']);
       inst.setMatch(0);
@@ -274,7 +274,7 @@ describe('testing array', () => {
           .map(item => item.call('tap')),
         set: setter('skip')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = { skip: 3 };
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual([0, 3, 6, 9]);
@@ -288,7 +288,7 @@ describe('testing array', () => {
         result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [1, 3, 5];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(9);
@@ -302,7 +302,7 @@ describe('testing array', () => {
         result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(0);
@@ -312,7 +312,7 @@ describe('testing array', () => {
         result: root.sum(),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [1, 3, 5];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(9);
@@ -324,7 +324,7 @@ describe('testing array', () => {
         result: root.sum(),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(0);
@@ -334,7 +334,7 @@ describe('testing array', () => {
         result: root.get('a').concat(root.get('b')),
         set: setter('a', arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = {a: [1, 3, 5], b: [2, 6]};
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual([1, 3, 5, 2, 6]);
@@ -346,7 +346,7 @@ describe('testing array', () => {
         result: root.get('a').concat(root.get('b')),
         set: setter('a', arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = {a: [1, 3, 5], b: []};
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual([1, 3, 5]);
@@ -358,7 +358,7 @@ describe('testing array', () => {
       const model = {
         result: root.join('~')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel(initialData);
       expect(inst.result).toEqual('a~b~c');
     });
@@ -367,7 +367,7 @@ describe('testing array', () => {
       const model = {
         result: root.join('~')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel(initialData);
       expect(inst.result).toEqual('');
     });
@@ -376,7 +376,7 @@ describe('testing array', () => {
       const model = {
         result: root.append('d')
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel(initialData);
       expect(inst.result).toEqual(['a', 'b', 'c', 'd']);
     });
@@ -385,7 +385,7 @@ describe('testing array', () => {
       const model = {
         result: root.append(['d'])
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const inst = optModel(initialData);
       expect(inst.result).toEqual(['a', 'b', 'c', ['d']]);
     });
@@ -396,7 +396,7 @@ describe('testing array', () => {
         const model = {
           includes: root.get('data').includes(value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.includes).toEqual(_.includes(initialData.data, value));
@@ -407,7 +407,7 @@ describe('testing array', () => {
         const model = {
           includes: root.get('data').includes(value),
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.includes).toEqual(_.includes(initialData.data, value));
@@ -420,7 +420,7 @@ describe('testing array', () => {
         const model = {
           findIndex: root.get("data").findIndex(item => item.get("id").eq(findId))
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.findIndex).toEqual(1);
@@ -431,7 +431,7 @@ describe('testing array', () => {
         const model = {
           findIndex: root.get("data").findIndex(item => item.get("id").eq(findId))
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.findIndex).toEqual(0);
@@ -443,7 +443,7 @@ describe('testing array', () => {
         const model = {
           findIndex: root.get("data").findIndex(item => item.get("id").eq(findId))
         };
-        const optModel = eval(await compile(model, { compiler }));
+        const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.findIndex).toEqual(-1);
@@ -456,7 +456,7 @@ describe('testing array', () => {
         result: indexes.map(idx => valuesInArrays.get(idx).get(0)),
         set: setter(arg0)
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [{ arr: [1] }, { val: 2 }, { arr: [3] }];
       const inst = optModel(initialData);
       expect(inst.result).toEqual([1, 2, 3]);
@@ -473,7 +473,7 @@ describe('testing array', () => {
         set: setter(arg0)
       };
       const initialData = [3, 4];
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const extraFn = {
         double: x => x * 2,
         mult: (x, y) => x * y,
@@ -497,7 +497,7 @@ describe('testing array', () => {
       const model = {
         numbers: root.reverse()
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [1, 2, 3, 4, 5];
 
       const inst = optModel(initialData);
@@ -507,7 +507,7 @@ describe('testing array', () => {
       const model = {
         first: root.head()
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = ['a', 2, 3, 4, 5];
 
       const inst = optModel(initialData);
@@ -517,7 +517,7 @@ describe('testing array', () => {
       const model = {
         last: root.last()
       };
-      const optModel = eval(await compile(model, { compiler }));
+      const optModel = eval(compile(model, { compiler }));
       const initialData = [1, 2, 3, 4, 5];
 
       const inst = optModel(initialData);

@@ -51,7 +51,7 @@ async function run() {
     throw e;
     return;
   }
-  const code = await carmi.compile(model, options);
+  const code = carmi.compile(model, options);
   if (options.output) {
     await writeFile(options.output, code);
   } else {

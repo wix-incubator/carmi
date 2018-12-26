@@ -41,7 +41,7 @@ const model = {
   spliceTodos: splice(),
 };
 
-const todosModel = eval(await compile(model));
+const todosModel = eval(compile(model));
 const todos = todosModel([
   { idx: "1", done: false, task: "write a blog post about carmi" },
   { idx: "2", done: true, task: "publish to npm" },

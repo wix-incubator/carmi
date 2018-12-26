@@ -17,7 +17,7 @@ describe('test the usage of abstracts', () => {
         const allDone = todos.any(todoItem => todoItem.get('done').not()).not()
         implement(todos, root.get('todos'));
         const model = {allDone, todoTitles, set: setter('todos',arg0)}
-        const optCode = eval(await compile(model, { compiler }));
+        const optCode = eval(compile(model, { compiler }));
         const initialState = {todos: [{text:'first', done: false},{text:'second', done: true}]}
         const inst = optCode(initialState, funcLibrary);
         expect(inst.todoTitles).toEqual(['first','second']);

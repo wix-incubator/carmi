@@ -296,7 +296,7 @@ class NaiveCompiler {
     };
   }
 
-  async compile() {
+  compile() {
     return this.mergeTemplate(this.template.base, this.topLevelOverrides());
   }
 

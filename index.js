@@ -240,7 +240,7 @@ proxyHandler.apply = (target, thisArg, args) => {
   }
 };
 
-async function compile(model, options) {
+function compile(model, options) {
   if (typeof options === 'boolean' || typeof options === 'undefined') {
     options = { compiler: !!options ? 'naive' : 'optimizing' };
   }
@@ -266,7 +266,7 @@ async function compile(model, options) {
   if (options.ast) {
     return JSON.stringify(compiler.getters, null, 2);
   }
-  const rawSource = await compiler.compile();
+  const rawSource = compiler.compile();
   let source = rawSource;
   if (options.prettier) {
     try {
@@ -357,5 +357,5 @@ module.exports = API
 
 
 function withSchema() {
-  return API  
+  return API
 }
