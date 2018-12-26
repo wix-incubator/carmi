@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, arg1, setter, splice, bind, chain } = require('../../index');
+const { compile, and, or, root, arg0, arg1, setter, splice, bind, chain, template } = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -33,4 +33,28 @@ describe('testing string functions', () => {
       //testStringFunction('abfoobar', 'split', [/foo/], ['ab', 'bar'])
     });
   });
+
+  describe('template', () => {
+    it('should concatenate hardcoded strings and expressions', async () => {
+      const model = {
+        output: template`Hello ${root}`
+      }
+      const input = 'World'
+
+      expect(eval(await compile(model))(input).output).toEqual('Hello World')
+    })
+
+    it('should concatenate multiple hardcoded strings and expressions', async () => {
+      const model = {
+        output: template`Hello ${root.get('firstName')} ${root.get('lastName')}! Your template is ${root.get('template')}`
+      }
+      const input = {
+        firstName: 'Netanel',
+        lastName: 'Gilad',
+        template: 'cool'
+      }
+
+      expect(eval(await compile(model))(input).output).toEqual('Hello Netanel Gilad! Your template is cool')
+    })
+  })
 });
