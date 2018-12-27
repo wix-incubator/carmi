@@ -26,6 +26,11 @@
   "author": "Avi Marcus",
   "license": "MIT",
   "dependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-transform-modules-commonjs": "^7.2.0",
+    "@babel/plugin-transform-typescript": "^7.2.0",
+    "@babel/preset-typescript": "^7.1.0",
+    "@babel/register": "^7.0.0",
     "babel-generator": "^6.26.1",
     "babel-plugin-macros": "^2.4.1",
     "babel-preset-react": "^6.24.1",
@@ -34,14 +39,12 @@
     "babylon": "^6.18.0",
     "babylon-jsx": "^1.0.0",
     "command-line-args": "^5.0.2",
-    "esm": "^3.0.84",
     "flow-bin": "^0.73.0",
     "lodash": "^4.17.4",
     "object-hash": "^1.3.0",
     "pify": "^4.0.1",
     "prettier": "^1.13.5",
     "toposort": "^1.0.6",
-    "ts-node": "^7.0.1",
     "typescript": "^3.2.1"
   },
   "devDependencies": {

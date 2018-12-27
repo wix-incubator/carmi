@@ -13,7 +13,9 @@ module.exports = {todosList};
 
 module.exports = function () {
   return function model($model, $funcLib, $batchingStrategy) {
-    const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    const $res = { $model };
+    const $listeners = new Set();const $trackingMap = new WeakMap();
+    const $trackedMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
