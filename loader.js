@@ -8,19 +8,23 @@ const {compile} = require('carmi');
 module.exports = function CarmiLoader(content) {
   const callback = this.async();
   const requiredPreCarmi = new Set(Object.keys(require.cache));
-  compile(content, {compiler: 'optimizing', format: 'cjs'})
-    .then(compiledCode => {
-      Object.keys(require.cache).forEach(key => {
-        if (!requiredPreCarmi.has(key)) {
-          // Clear user loaded modules from require.cache
-          delete require.cache[key];
 
-          // Add those modules as loader dependencies
-          // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
-          this.addDependency(key);
-        }
-      });
-      callback(null, compiledCode);
-    })
-    .catch(err => callback(err));
+  try {
+    const compiledCode = compile(content, {compiler: 'optimizing', format: 'esm'});
+
+    Object.keys(require.cache).forEach(key => {
+      if (!requiredPreCarmi.has(key)) {
+        // Clear user loaded modules from require.cache
+        delete require.cache[key];
+
+        // Add those modules as loader dependencies
+        // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
+        this.addDependency(key);
+      }
+    });
+
+    callback(null, compiledCode);
+  } catch (error) {
+    callback(error)
+  }
 };
