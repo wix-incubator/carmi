@@ -23,11 +23,11 @@ function base() {
     }
 
     function $setter(func, ...args) {
-      if (!$inBatch && $batchingStrategy) {
-        $batchingStrategy.call($res);
-        $inBatch = true;
-      }
-      if ($inBatch || $inRecalculate) {
+      if ($inBatch || $inRecalculate || $batchingStrategy) {
+        if ((!$inBatch && !$inRecalculate) && $batchingStrategy) {
+          $batchingStrategy.call($res);
+          $inBatch = true;
+        }
         $batchPending.push({ func, args });
       } else {
         func.apply($res, args);
