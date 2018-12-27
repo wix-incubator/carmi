@@ -131,6 +131,11 @@ function throwOnTokensFromOtherFuncs(expr, tag) {
 const privateUnwrap = (item) => item[UnwrappedExpr] ? item[UnwrappedExpr] : item;
 
 function throwOnSelfReferencesToPlaceholder(expr, abstract) {
+  if (expr[0] === abstract[0]) {
+    throw new Error(
+      `trying to implement abstract ${abstract[1]} with itself`
+    );
+  }
   searchExpressions(subExpr => {
     subExpr.forEach(token => {
       if (privateUnwrap(token) === abstract) {
@@ -156,7 +161,7 @@ const implement = (abstract, expr) => {
     throw new Error(`can only implement an abstract`);
   }
   throwOnSelfReferencesToPlaceholder(expr, target)
-  throwOnTokensFromOtherFuncs(expr, target[0][SourceTag]);
+  // throwOnTokensFromOtherFuncs(expr, target[0][SourceTag]);
   target.splice(0, target.length, ...expr);
   return abstract;
 }

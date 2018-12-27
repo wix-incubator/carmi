@@ -40,5 +40,13 @@ describe('test the usage of abstracts', () => {
       const initialState = [1,2,3]
       const inst = optCode(initialState, funcLibrary);
       expect(inst.items).toEqual([4,5,6]);
-  });
+    });
+    it('should throw if implement an abstract using itself', async () => {
+        const A = abstract('first abstract');
+        const B = abstract('second abstract');
+        implement(A, B)
+        expect(() => {
+            implement(B, A)
+        }).toThrowError()
+    });
 })
