@@ -178,6 +178,8 @@ class NaiveCompiler {
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
           .join('')})`;
+      case 'abstract':
+          throw expr[2]
       default:
         return JSON.stringify(currentToken);
     }

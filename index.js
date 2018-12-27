@@ -153,7 +153,7 @@ const abstract = title => {
   if (typeof title !== 'string') {
     throw new Error('the title of abstract must be a string');
   }
-  return wrap(createExpr(new Token('abstract', currentLine()), title));
+  return wrap(createExpr(new Token('abstract', currentLine()), title, new Error(`failed to implement ${title}`)));
 }
 const implement = (abstract, expr) => {
   const target = privateUnwrap(abstract);
