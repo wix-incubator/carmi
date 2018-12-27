@@ -3,13 +3,12 @@
 const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
-const esm = require('esm');
 const { writeFile } = require('../src/promise-fs');
-require('ts-node/register')
 
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
   { name: 'output', type: String, defaultValue: '', description: 'output filename' },
+  { name: 'cwd', type: String, defaultValue: '.', description: 'root directory for carmi files. Needed for babel config' },
   {
     name: 'compiler',
     type: String,
@@ -42,11 +41,16 @@ async function run() {
   if (options.help) {
     return console.log(HELP);
   }
+
+  const cwd = options['cwd'] || process.cwd()
+  require('@babel/register')({
+    rootMode: 'upward', extensions: ['.ts', '.js'], cwd
+  })
+  
   let model;
   const absPath = path.resolve(process.cwd(), options.source);
   try {
-    const loader = esm(module);
-    model = loader(absPath);
+    model = require(absPath);
   } catch (e) {
     console.error(`failed to require ${options.source} ${e.stack}`);
     throw e;
