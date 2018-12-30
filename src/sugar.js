@@ -40,6 +40,10 @@ module.exports = function({chain, or, and}) {
         return reduce(arr, (acc, value) => acc.plus(value), 0)
     }
 
+    function isEmpty(obj) {
+      return obj.size().eq(0)
+    }
+
     function append(arr, value) {
       return arr.size().plus(1).range().map(v => v.lt(arr.size()).ternary(arr.get(v), value))
     }
@@ -75,11 +79,11 @@ module.exports = function({chain, or, and}) {
     function last(array) {
       return array.get(array.size().minus(1))
     }
-  
+
     function reverse(array) {
       return array.map((item, index) => array.get(array.size().minus(index.plus(1))))
     }
-  
+
     function includesValue(collection, val) {
       if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
           return collection.anyValues((item, key, ctx) => item.eq(val))
@@ -113,5 +117,5 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).isUndefined().not()
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head};
+    return { getIn, isEmpty, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head};
 };

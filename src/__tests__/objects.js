@@ -377,6 +377,31 @@ describe('testing objects', () => {
         expect(inst.find).toEqual('something');
       });
     })
+
+    describe('isEmpty', async () => {
+      it('should return true for empty object', async () => {
+        const initialData = {data: {}}
+        const model = {
+          isEmpty: root.get('data').isEmpty(),
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.isEmpty).toEqual(true);
+      });
+
+      it('should return false for non empty object', async () => {
+        const initialData = {data: {a: 1}}
+        const model = {
+          isEmpty: root.get('data').isEmpty(),
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.isEmpty).toEqual(false);
+      });
+    })
+
     describe('setIn', () => {
       it('should setIn simple with array', async () => {
         const initialData = { data: {a: 1}};
