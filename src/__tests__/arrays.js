@@ -523,5 +523,15 @@ describe('testing array', () => {
       const inst = optModel(initialData);
       expect(inst.last).toEqual(initialData[initialData.length - 1]);
     });
+    it('test compact', async () => {
+      const initialData = { data: [null, 1, '', false, 'test']};
+      const model = {
+        compact: root.get('data').compact()
+      };
+      const optModel = eval(await compile(model, { compiler }));
+
+      const inst = optModel(initialData);
+      expect(inst.compact).toEqual(_.compact(initialData.data));
+    });
   });
 });
