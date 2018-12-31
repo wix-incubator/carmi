@@ -424,18 +424,14 @@ const deadCodeElimination = memoizeExprFunc(
     switch (tokenType) {
       case 'or':
         const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
-        if (firstTruthy === 0) {
-          return children[1];
-        } else if (firstTruthy > 0) {
+        if (firstTruthy > 0) {
           return Expr(...children.slice(0, firstTruthy + 2));
         }
       case 'and':
         const firstFalsy = expr
           .slice(1)
           .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
-        if (firstFalsy === 0) {
-          return children[1];
-        } else if (firstFalsy > 0) {
+        if (firstFalsy >= 0) {
           return Expr(...children.slice(0, firstFalsy + 2));
         }
     }

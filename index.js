@@ -12,6 +12,7 @@ const {
   isSetterExpression,
   isSpliceExpression,
   isExpression,
+  WrappedPrimitive
 } = require('./src/lang');
 
 
@@ -77,17 +78,17 @@ function convertArrayAndObjectsToExpr(v) {
   } else if (v.constructor === Array) {
     return createExpr(new Token('array', currentLine()), ...v);
   } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
-    return Expr(new Token('quote'), v);
+    return new WrappedPrimitive(v);
   } else {
     return v;
   }
 }
 
 function createExpr(...args) {
-  args = args.map((token,index) => {
+  args = args.map(token => {
     token = convertArrayAndObjectsToExpr(token);
-    if (index > 0 && token instanceof Expression && token[0].$type === 'quote') {
-      return token[1];
+    if (token instanceof WrappedPrimitive) {
+      return token.toJSON();
     }
     return token;
   });
@@ -157,6 +158,12 @@ const abstract = title => {
 }
 const implement = (abstract, expr) => {
   const target = privateUnwrap(abstract);
+  if (typeof expr === 'boolean' || typeof expr === 'string' || typeof expr === 'number') {
+    expr = new WrappedPrimitive(expr);
+  }
+  if (expr instanceof WrappedPrimitive) {
+    expr = Expr(new Token('quote', currentLine()), expr.toJSON());
+  }
   if (!isExpression(target) || target[0].$type !== 'abstract') {
     throw new Error(`can only implement an abstract`);
   }
@@ -195,6 +202,7 @@ proxyHandler.get = (target, key) => {
     !tokenData &&
     typeof key === 'string' &&
     key !== '$type' &&
+    key !== '$primitive' &&
     key !== 'length' &&
     key !== 'forEach' &&
     key !== 'inspect' &&

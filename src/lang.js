@@ -15,6 +15,15 @@ class Token {
   }
 }
 
+class WrappedPrimitive {
+  constructor(value) {
+    this.$primitive = value;
+  }
+  toJSON() {
+    return this.$primitive;
+  }
+}
+
 function cloneToken(token) {
   return new Token(token.$type, token[SourceTag]);
 }
@@ -177,4 +186,5 @@ function Clone(model) {
 AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;
 AllTokens.SourceTag = SourceTag;
+AllTokens.WrappedPrimitive = WrappedPrimitive;
 module.exports = AllTokens;
