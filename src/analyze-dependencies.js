@@ -4,19 +4,28 @@ const fs = require('fs')
 const resolve = require('resolve')
 const {parse} = require('babylon');
 const walk = require('babylon-walk');
+// const ts = require('typescript')
+//
+// function printAllChildren(node, deps) {
+//   for (const c of node.getChildren()) {
+//     printAllChildren(c, deps)
+//     if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
+//       // console.log(ts.formatSyntaxKind(c.kind))
+//       deps.push(c.moduleSpecifier.text)
+//     }
+//   }
+// }
 
-/**
- * @param {string} modulePath
- * @param {*} visited
- * @param {string[]} imports
- */
-function readModule(modulePath, visited, imports) {
-  if (visited[modulePath]) {
-    return
-  }
-  visited[modulePath] = true
-  const p = fs.readFileSync(modulePath)
-  const ast = parse(p.toString(), {sourceType: 'module'})
+// function readTS(p) {
+//   const childDeps = [];
+//   const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
+//   printAllChildren(sourceFile, childDeps);
+//   // console.log(sourceFile)
+//   return childDeps
+// }
+
+function readJS(p) {
+  const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread']})
 
   const visitors = {
     ImportDeclaration(node, state) {
@@ -31,6 +40,23 @@ function readModule(modulePath, visited, imports) {
 
   const childDeps = [];
   walk.recursive(ast, visitors, childDeps);
+  return childDeps;
+}
+
+/**
+ * @param {string} modulePath
+ * @param {Set} visited
+ * @param {string[]} imports
+ */
+function readModule(modulePath, visited, imports) {
+  if (visited.has(modulePath)) {
+    return
+  }
+  visited.add(modulePath)
+  const p = fs.readFileSync(modulePath).toString()
+
+  // const childDeps = path.extname(modulePath) === '.ts' ? readTS(p) : readJS(p);
+  const childDeps = readJS(p)
 
   // node 10
   // const {createRequireFromPath} = require('module')
@@ -44,7 +70,7 @@ function readModule(modulePath, visited, imports) {
         readModule(p, visited, imports)
       }
     // } catch (e) {
-    //   console.log(i, e)
+    //   console.log('error parsing file', i, e)
     // }
   }
 
@@ -100,7 +126,8 @@ function isUpToDate(input, output) {
     // console.log(outTime)
     // console.log(deps.map(f => [f, getTime(f)]))
     return isEveryFileBefore(deps, outTime)
-  } catch(e) {
+  } catch (e) {
+    // console.log(e)
     return false
   }
 }

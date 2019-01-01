@@ -33,7 +33,7 @@ describe("carmi binary", () => {
     const { cleanup, path: filepath } = await tmpFile();
     try {
       const file = await runBinary(
-        `--source ${CARMI_MODEL} --output ${filepath} --format cjs`
+        `--source ${CARMI_MODEL} --output ${filepath} --format cjs --no-cache`
       );
       const model = require(filepath);
       expect(typeof model).toBe("function");
