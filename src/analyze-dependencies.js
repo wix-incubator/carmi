@@ -37,15 +37,15 @@ function readModule(modulePath, visited, imports) {
   // const requireUtil = createRequireFromPath(modulePath)
 
   for (const i of childDeps) {
-    try {
+    // try {
       const p = tryResolveExt(path.dirname(modulePath), i)
       if (p && !/node_modules/.test(p)) {
         imports.push(p)
         readModule(p, visited, imports)
       }
-    } catch (e) {
-      console.log(i, e)
-    }
+    // } catch (e) {
+    //   console.log(i, e)
+    // }
   }
 
   return imports
@@ -91,14 +91,18 @@ const getTime = file => fs.statSync(file).mtime
 const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
 
 function isUpToDate(input, output) {
-  if (!fs.existsSync(output)) {
+  try {
+    if (!fs.existsSync(output)) {
+      return false
+    }
+    const deps = analyzeDependencies(input)
+    const outTime = getTime(output)
+    // console.log(outTime)
+    // console.log(deps.map(f => [f, getTime(f)]))
+    return isEveryFileBefore(deps, outTime)
+  } catch(e) {
     return false
   }
-  const deps = analyzeDependencies(input)
-  const outTime = getTime(output)
-  // console.log(outTime)
-  // console.log(deps.map(f => [f, getTime(f)]))
-  return isEveryFileBefore(deps, outTime)
 }
 
 module.exports = {
