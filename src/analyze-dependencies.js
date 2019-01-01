@@ -4,19 +4,28 @@ const fs = require('fs')
 const resolve = require('resolve')
 const {parse} = require('babylon');
 const walk = require('babylon-walk');
+const ts = require('typescript')
 
-/**
- * @param {string} modulePath
- * @param {*} visited
- * @param {string[]} imports
- */
-function readModule(modulePath, visited, imports) {
-  if (visited[modulePath]) {
-    return
+function printAllChildren(node, deps) {
+  for (const c of node.getChildren()) {
+    printAllChildren(c, deps)
+    if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
+      // console.log(ts.formatSyntaxKind(c.kind))
+      deps.push(c.moduleSpecifier.text)
+    }
   }
-  visited[modulePath] = true
-  const p = fs.readFileSync(modulePath)
-  const ast = parse(p.toString(), {sourceType: 'module'})
+}
+
+function readTS(p) {
+  const childDeps = [];
+  const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
+  printAllChildren(sourceFile, childDeps);
+  // console.log(sourceFile)
+  return childDeps
+}
+
+function readJS(p) {
+  const ast = parse(p, {sourceType: 'module'})
 
   const visitors = {
     ImportDeclaration(node, state) {
@@ -31,6 +40,27 @@ function readModule(modulePath, visited, imports) {
 
   const childDeps = [];
   walk.recursive(ast, visitors, childDeps);
+  return childDeps;
+}
+
+/**
+ * @param {string} modulePath
+ * @param {*} visited
+ * @param {string[]} imports
+ */
+function readModule(modulePath, visited, imports) {
+  if (visited[modulePath]) {
+    return
+  }
+  visited[modulePath] = true
+  const p = fs.readFileSync(modulePath).toString()
+
+  let childDeps
+  if (path.extname(modulePath) === '.ts') {
+    childDeps = readTS(p)
+  } else {
+    childDeps = readJS(p)
+  }
 
   // node 10
   // const {createRequireFromPath} = require('module')
