@@ -144,7 +144,7 @@ function groupPathsThatCanBeInvalidated(paths) {
 function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   const paths = new Map();
   const allGettersChains = exprsByFunc.filter(
-    expr => expr[0].$type === 'get' && (!expr[0].$parent || expr[0].$parent[0].$type !== 'get')
+    expr => expr[0].$type === 'get' && (!expr[0].$parent || expr[0].$parent[0].$type !== 'get' || expr[0].$parent[2] !== expr)
   );
   const foundByType = { root: false, context: false };
   _.forEach(allGettersChains, chainedGetter => {

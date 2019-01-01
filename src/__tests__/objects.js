@@ -345,6 +345,25 @@ describe('testing objects', () => {
       expect(inst.defined).toEqual(1);
       expect(inst.notDefined).not.toBeDefined();
     });
+    it('getIn mapValues', async () => {
+      const overrides = root.get('overrides');
+      const src = root.get('source');
+      const select = root.get('select');
+      const model = {
+        projection: src.mapValues((item, itemId) => or(overrides.getIn([select, itemId]), item)),
+        setSelect: setter('select'),
+        updateSrc: setter('source', arg0),
+        updateOverrides: setter('overrides'),
+        updateOneOverride: setter('overrides', arg0)
+      };
+      const optModel = eval(compile(model, { compiler }));
+      const initialData = { source: { a: 1, b: 2 }, overrides: { first: { b: 3 }, second: { a: 4 } },select:'none' };
+
+      const inst = optModel(initialData);
+      expect(inst.projection).toEqual({a:1,b:2});
+      inst.setSelect('first');
+      expect(inst.projection).toEqual({a:1,b:3});
+    });
     describe('find', () => {
       it('should find value if exists', async () => {
         const initialData = { a: 'nothing', b: 'something' };
