@@ -5,6 +5,7 @@ const {
   Or,
   And,
   Not,
+  Quote,
   Eq,
   Cond,
   Token,
@@ -14,6 +15,7 @@ const {
   Root,
   Get,
   Clone,
+  WrappedPrimitive,
   TokenTypeData,
   SourceTag
 } = require('./lang');
@@ -410,6 +412,16 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
   });
 }
 
+const wrapPrimitivesInQuotes = v => {
+  if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
+    return Expr(Quote, v);
+  }
+  if (v instanceof WrappedPrimitive) {
+    return Expr(Quote, v.toJSON());
+  }
+  return v;
+}; 
+
 const canHaveSideEffects = memoizeExprFunc(expr => {
   if (expr[0].$type === 'call' || expr[0].$type === 'effect') {
     return true;
@@ -422,16 +434,22 @@ const deadCodeElimination = memoizeExprFunc(
     const children = expr.map((child, idx) => deadCodeElimination(child));
     const tokenType = expr[0].$type;
     switch (tokenType) {
+      case 'quote':
+        return children[1];
       case 'or':
         const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
-        if (firstTruthy > 0) {
+        if (firstTruthy === 0) {
+          return children[1];
+        } else if (firstTruthy > 0) {
           return Expr(...children.slice(0, firstTruthy + 2));
         }
       case 'and':
         const firstFalsy = expr
           .slice(1)
           .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
-        if (firstFalsy >= 0) {
+        if (firstFalsy === 0) {
+          return children[1];
+        } else if (firstFalsy > 0) {
           return Expr(...children.slice(0, firstFalsy + 2));
         }
     }
@@ -471,7 +489,7 @@ function dedupFunctionsObjects(getters) {
 }
 
 function normalizeAndTagAllGetters(getters, setters) {
-  getters = _.mapValues(getters, deadCodeElimination);
+  getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
   getters = extractAllStaticExpressionsAsValues(getters);
   getters = cloneExpressions(getters);
   tagAllExpressions(getters);
@@ -539,7 +557,7 @@ function splitSettersGetters(model) {
       setter.unshift(Root);
     }
   });
-  const getters = _.pickBy(model, v => v instanceof Expression);
+  const getters = _.pickBy(model, v => v instanceof Expression || v instanceof WrappedPrimitive);
   return {
     getters,
     setters

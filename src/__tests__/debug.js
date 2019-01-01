@@ -80,5 +80,11 @@ describe('Tests for usability and debugging carmi', () => {
       expect(inst.twice).toEqual([1, true]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     })
+    it('allow primitives on the model', async () => {
+      const model = {three: chain(3)}
+      const optCode = eval(compile(model, { compiler }));
+      const inst = optCode([], funcLibrary);
+      expect(inst.three).toEqual(3);
+    })
   });
 });
