@@ -4,6 +4,7 @@ const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const { writeFile } = require('../src/promise-fs');
+const {isUpToDate} = require('../src/analyze-dependencies');
 
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
@@ -47,14 +48,19 @@ async function run() {
     rootMode: 'upward', extensions: ['.ts', '.js'], cwd
   })
   
-  let model;
   const absPath = path.resolve(process.cwd(), options.source);
+
+  if (options.output && isUpToDate(absPath, options.output)) {
+    console.log('output is up to date skipping carmi');
+    return;
+  }
+
+  let model;
   try {
     model = require(absPath);
   } catch (e) {
     console.error(`failed to require ${options.source} ${e.stack}`);
     throw e;
-    return;
   }
   const code = carmi.compile(model, options);
   if (options.output) {
@@ -64,4 +70,7 @@ async function run() {
   }
 }
 
-run().catch(e => process.exit(1));
+run().catch(e => {
+  console.log('error ' + e)
+  process.exit(1)
+});

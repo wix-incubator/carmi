@@ -2,7 +2,8 @@
 const path = require('path')
 const fs = require('fs')
 const resolve = require('resolve')
-const astUtils = require('./utils/astUtils')
+const {parse} = require('babylon');
+const walk = require('babylon-walk');
 
 /**
  * @param {string} modulePath
@@ -15,35 +16,36 @@ function readModule(modulePath, visited, imports) {
   }
   visited[modulePath] = true
   const p = fs.readFileSync(modulePath)
-  const ast = astUtils.tryParse(p)
+  const ast = parse(p.toString(), {sourceType: 'module'})
 
-  const childDeps = []
-
-  astUtils.traverseAst(ast, function (node) {
-    if (node.type === 'ImportDeclaration') {
-      childDeps.push(node.source.value)
-    } else if (node.type === 'CallExpression' && node.callee.name === 'require') {
-      // this.skip()
-      if (node.arguments.length > 0 && node.arguments[0].type === 'Literal') {
-        childDeps.push(node.arguments[0].value)
+  const visitors = {
+    ImportDeclaration(node, state) {
+      state.push(node.source.value)
+    },
+    CallExpression(node, state) {
+      if (node.callee.name === 'require' && node.arguments.length > 0 && node.arguments[0].type === 'StringLiteral') {
+        state.push(node.arguments[0].value)
       }
     }
-  })
+  };
+
+  const childDeps = [];
+  walk.recursive(ast, visitors, childDeps);
 
   // node 10
   // const {createRequireFromPath} = require('module')
   // const requireUtil = createRequireFromPath(modulePath)
 
   for (const i of childDeps) {
-    try {
+    // try {
       const p = tryResolveExt(path.dirname(modulePath), i)
       if (p && !/node_modules/.test(p)) {
         imports.push(p)
         readModule(p, visited, imports)
       }
-    } catch (e) {
-      console.log(i, e)
-    }
+    // } catch (e) {
+    //   console.log(i, e)
+    // }
   }
 
   return imports
@@ -89,14 +91,18 @@ const getTime = file => fs.statSync(file).mtime
 const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
 
 function isUpToDate(input, output) {
-  if (!fs.existsSync(output)) {
+  try {
+    if (!fs.existsSync(output)) {
+      return false
+    }
+    const deps = analyzeDependencies(input)
+    const outTime = getTime(output)
+    // console.log(outTime)
+    // console.log(deps.map(f => [f, getTime(f)]))
+    return isEveryFileBefore(deps, outTime)
+  } catch(e) {
     return false
   }
-  const deps = analyzeDependencies(input)
-  const outTime = getTime(output)
-  // console.log(outTime)
-  // console.log(deps.map(f => [f, getTime(f)]))
-  return isEveryFileBefore(deps, outTime)
 }
 
 module.exports = {
