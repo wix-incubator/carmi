@@ -26,6 +26,7 @@ const optionDefinitions = [
     defaultValue: '',
     description: 'caches the generated code in the specified folder if the model did not change'
   },
+  { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
   { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
   { name: 'ast', type: Boolean, defaultValue: false }
 ];
@@ -50,7 +51,7 @@ async function run() {
   
   const absPath = path.resolve(process.cwd(), options.source);
 
-  if (options.output && isUpToDate(absPath, options.output)) {
+  if (!options['no-cache'] && options.output && isUpToDate(absPath, options.output)) {
     console.log('output is up to date skipping carmi');
     return;
   }

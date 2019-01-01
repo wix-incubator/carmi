@@ -4,28 +4,28 @@ const fs = require('fs')
 const resolve = require('resolve')
 const {parse} = require('babylon');
 const walk = require('babylon-walk');
-const ts = require('typescript')
+// const ts = require('typescript')
+//
+// function printAllChildren(node, deps) {
+//   for (const c of node.getChildren()) {
+//     printAllChildren(c, deps)
+//     if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
+//       // console.log(ts.formatSyntaxKind(c.kind))
+//       deps.push(c.moduleSpecifier.text)
+//     }
+//   }
+// }
 
-function printAllChildren(node, deps) {
-  for (const c of node.getChildren()) {
-    printAllChildren(c, deps)
-    if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
-      // console.log(ts.formatSyntaxKind(c.kind))
-      deps.push(c.moduleSpecifier.text)
-    }
-  }
-}
-
-function readTS(p) {
-  const childDeps = [];
-  const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
-  printAllChildren(sourceFile, childDeps);
-  // console.log(sourceFile)
-  return childDeps
-}
+// function readTS(p) {
+//   const childDeps = [];
+//   const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
+//   printAllChildren(sourceFile, childDeps);
+//   // console.log(sourceFile)
+//   return childDeps
+// }
 
 function readJS(p) {
-  const ast = parse(p, {sourceType: 'module'})
+  const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread']})
 
   const visitors = {
     ImportDeclaration(node, state) {
@@ -45,22 +45,18 @@ function readJS(p) {
 
 /**
  * @param {string} modulePath
- * @param {*} visited
+ * @param {Set} visited
  * @param {string[]} imports
  */
 function readModule(modulePath, visited, imports) {
-  if (visited[modulePath]) {
+  if (visited.has(modulePath)) {
     return
   }
-  visited[modulePath] = true
+  visited.add(modulePath)
   const p = fs.readFileSync(modulePath).toString()
 
-  let childDeps
-  if (path.extname(modulePath) === '.ts') {
-    childDeps = readTS(p)
-  } else {
-    childDeps = readJS(p)
-  }
+  // const childDeps = path.extname(modulePath) === '.ts' ? readTS(p) : readJS(p);
+  const childDeps = readJS(p)
 
   // node 10
   // const {createRequireFromPath} = require('module')
@@ -74,7 +70,7 @@ function readModule(modulePath, visited, imports) {
         readModule(p, visited, imports)
       }
     // } catch (e) {
-    //   console.log(i, e)
+    //   console.log('error parsing file', i, e)
     // }
   }
 
@@ -130,7 +126,8 @@ function isUpToDate(input, output) {
     // console.log(outTime)
     // console.log(deps.map(f => [f, getTime(f)]))
     return isEveryFileBefore(deps, outTime)
-  } catch(e) {
+  } catch (e) {
+    // console.log(e)
     return false
   }
 }
