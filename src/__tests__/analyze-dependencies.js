@@ -1,35 +1,35 @@
 const {analyzeDependencies, isUpToDate} = require('../analyze-dependencies')
-const {join} = require('path')
+const {resolve} = require('path')
 const fs = require('fs')
 const {promisify} = require('util');
 const open = promisify(fs.open);
 const close = promisify(fs.close);
 
-const res = f => join(__dirname, f);
+const res = f => resolve(__dirname, '../testData', f);
 
 const fsTouch = filename => open(filename, 'w').then(close);
 
 describe('analyze-dependencies', () => {
   it('should read cjs', () => {
-    const deps = analyzeDependencies(res('data/cjs/a.carmi.js'))
-    expect(deps).toEqual(['data/cjs/a.carmi.js', 'data/cjs/b.carmi.js', 'data/cjs/c.carmi.js'].map(res))
+    const deps = analyzeDependencies(res('cjs/a.carmi.js'))
+    expect(deps).toEqual(['cjs/a.carmi.js', 'cjs/b.carmi.js', 'cjs/c.carmi.js'].map(res))
   })
 
   it('should read esm', () => {
-    const deps = analyzeDependencies(res('data/esm/a.carmi.js'))
-    expect(deps).toEqual(['data/esm/a.carmi.js', 'data/esm/b.carmi.js', 'data/esm/c.carmi.js'].map(res))
+    const deps = analyzeDependencies(res('esm/a.carmi.js'))
+    expect(deps).toEqual(['esm/a.carmi.js', 'esm/b.carmi.js', 'esm/c.carmi.js'].map(res))
   })
 
   it('should isUpToDate when output is new', async () => {
-    await fsTouch(res('data/esm/a.output.js'))
-    const deps = isUpToDate(res('data/esm/a.carmi.js'), res('data/esm/a.output.js'))
+    await fsTouch(res('esm/a.output.js'))
+    const deps = isUpToDate(res('esm/a.carmi.js'), res('esm/a.output.js'))
     expect(deps).toEqual(true)
   })
 
   it('should isUpToDate when input is new', async () => {
-    await fsTouch(res('data/esm/c.carmi.js'))
-    // fs.appendFile(res('data/esm/a.carmi.js'), '')
-    const deps = isUpToDate(res('data/esm/a.carmi.js'), res('data/esm/a.output.js'))
+    await fsTouch(res('esm/c.carmi.js'))
+    // fs.appendFile(res('esm/a.carmi.js'), '')
+    const deps = isUpToDate(res('esm/a.carmi.js'), res('esm/a.output.js'))
     expect(deps).toEqual(false)
   })
 })
