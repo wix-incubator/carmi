@@ -75,11 +75,11 @@ module.exports = function({chain, or, and}) {
     function last(array) {
       return array.get(array.size().minus(1))
     }
-  
+
     function reverse(array) {
       return array.map((item, index) => array.get(array.size().minus(index.plus(1))))
     }
-  
+
     function includesValue(collection, val) {
       if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
           return collection.anyValues((item, key, ctx) => item.eq(val))
@@ -113,5 +113,9 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).isUndefined().not()
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head};
+    function compact(array) {
+      return array.filter(value => value)
+    }
+
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head, compact};
 };
