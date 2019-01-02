@@ -455,7 +455,7 @@ export type Graph<N, F extends FunctionLibrary> =
     N extends object ? ObjectGraph<N, F> :
     never
 
-export interface CarmiAPI<Schema extends object = {}, F extends FunctionLibrary = {}> {
+export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary = any> {
     $schema: Schema
     $functions: F
     root: ObjectGraphImpl<Schema, F>
