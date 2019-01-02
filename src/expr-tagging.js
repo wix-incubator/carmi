@@ -452,6 +452,13 @@ const deadCodeElimination = memoizeExprFunc(
         } else if (firstFalsy > 0) {
           return Expr(...children.slice(0, firstFalsy + 2));
         }
+      case 'ternary':
+        if (expr[1] !== Object(expr[1]) && expr[1]) {
+          return expr[2];
+        }
+        if ((expr[1] !== Object(expr[1]) && !expr[1]) || (expr[1] instanceof Token && expr[1].$type === 'null')) {
+          return expr[3];
+        }
     }
     return children;
   },
