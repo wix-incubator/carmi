@@ -126,6 +126,25 @@ describe('testing objects', () => {
       expect(inst.doneItems).toEqual(_.pick(updateData, ['a', 'b']));
       expectTapFunctionToHaveBeenCalled(1, compiler);
   })
+
+  it('should contain only one group after removing item', async () => {
+    const doneItems = root.get('data').groupBy('done').get('true').call('tap');
+    const model = {doneItems, update: setter('data', arg0)};
+    const optModel = eval(compile(model, {compiler}));
+    const initialData = {
+      a: {done: true, text: 'a'},
+      b: {done: true, text: 'b'},
+      c: {done: false, text: 'c'}
+    };
+    const inst = optModel(initialData, funcLibrary);
+    expect(inst.doneItems).toEqual(undefined);
+    expectTapFunctionToHaveBeenCalled(1, compiler);
+
+    inst.update('c', undefined);
+    expect(Object.keys(inst.doneItems)).toEqual(['groupA']);
+    expectTapFunctionToHaveBeenCalled(1, compiler);
+})
+
     it('using simple constant objects', async () => {
       const translate = chain({ First: 'a', Second: 'b', Third: 'c' });
       const model = {
