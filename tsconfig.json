@@ -5,7 +5,8 @@
     "module": "commonjs",
     "strict": true,
     "moduleResolution": "node",
-    "typeRoots": ["./typings"]
+    "typeRoots": ["./typings"],
+    "types": ["node"]
   },
   "compileOnSave": true,
   "exclude": ["node_modules", ".vscode"]
