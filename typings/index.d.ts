@@ -437,7 +437,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
 }
 
 interface Expression { }
-interface Token { $type: string }
+export interface Token { $type: string }
 type PathSegment = Token | string | number
 type SetterExpression<Model, Path, F> = {}
 type SpliceExpression<Model, Path, F> = {}
@@ -455,8 +455,10 @@ export type Graph<N, F extends FunctionLibrary> =
     N extends object ? ObjectGraph<N, F> :
     never
 
-export interface CarmiAPI<Schema = unknown, F extends FunctionLibrary = {}> {
-    root: Graph<Schema, F>
+export interface CarmiAPI<Schema extends object = {}, F extends FunctionLibrary = {}> {
+    $schema: Schema
+    $functions: F
+    root: ObjectGraphImpl<Schema, F>
     chain<T>(t: T): Graph<T, F>
     or<A, B>(a: A, b: B): Graph<A, F> | Graph<B, F>
     or<A, B, C>(a: A, b: B, c: C): Graph<A, F> | Graph<B, F> | Graph<C, F>
@@ -472,7 +474,6 @@ export interface CarmiAPI<Schema = unknown, F extends FunctionLibrary = {}> {
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
     bind<FunctionName extends keyof F>(func: FunctionName, ...boundArgs: any[]): (...args: any[]) => ReturnType<F[FunctionName]>
     compile(transformations: object, options?: object): string
-    withSchema<Schema, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
     abstract(name: string): Graph<unknown, F>
     implement(iface: Graph<unknown, F>, name: string): void
     withName<T>(name: string, g: T): T
@@ -482,12 +483,5 @@ export interface CarmiAPI<Schema = unknown, F extends FunctionLibrary = {}> {
 }
 
 declare const carmiDefaultAPI : CarmiAPI
-export function chain<T>(t: T): Graph<T, any>
-export function or<Args>(...a: Argument<Args>[]): Args | BoolGraph<any>
-export function and<Args>(...a: Argument<Args>[]): Args | BoolGraph<any>
-export function setter<Path extends PathSegment[]>(...path: Path): SetterExpression<any, Path, any>
-export function splice<Path extends PathSegment[]>(...path: Path): SetterExpression<any, Path, any>
-export function withSchema<Schema, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
-export function withName<T>(name: string, g: T): T
-
 export default carmiDefaultAPI
+export function withSchema<Schema extends object, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
