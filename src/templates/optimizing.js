@@ -611,6 +611,9 @@ function library() {
           }
         });
         $invalidatedKeys.forEach(key => {
+          if (!src.hasOwnProperty(key)) {
+            return;
+          }
           const res = '' + func($invalidatedKeys, key, src[key], context);
           $keyToKey[key] = res;
           if (!$out[res]) {

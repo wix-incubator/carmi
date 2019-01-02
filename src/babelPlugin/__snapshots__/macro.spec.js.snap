@@ -323,7 +323,9 @@ module.exports = function () {
             keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();keysPendingDelete[$keyToKey[key]].add(key);
           }
         });$invalidatedKeys.forEach(key => {
-          const res = '' + func($invalidatedKeys, key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
+          if (!src.hasOwnProperty(key)) {
+            return;
+          }const res = '' + func($invalidatedKeys, key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
             setOnObject($out, res, {}, $invalidates);
           }setOnObject($out[res], key, src[key], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
@@ -799,7 +801,9 @@ module.exports = function () {
             keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();keysPendingDelete[$keyToKey[key]].add(key);
           }
         });$invalidatedKeys.forEach(key => {
-          const res = '' + func($invalidatedKeys, key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
+          if (!src.hasOwnProperty(key)) {
+            return;
+          }const res = '' + func($invalidatedKeys, key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
             setOnObject($out, res, {}, $invalidates);
           }setOnObject($out[res], key, src[key], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
@@ -1277,7 +1281,9 @@ const modelBuilder = (function () {
             keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();keysPendingDelete[$keyToKey[key]].add(key);
           }
         });$invalidatedKeys.forEach(key => {
-          const res = '' + func($invalidatedKeys, key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
+          if (!src.hasOwnProperty(key)) {
+            return;
+          }const res = '' + func($invalidatedKeys, key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
             setOnObject($out, res, {}, $invalidates);
           }setOnObject($out[res], key, src[key], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
