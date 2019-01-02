@@ -5,10 +5,16 @@
 
 const {compile} = require('carmi');
 
+require('@babel/register')({
+  cwd: require('path').resolve('..'),
+  extensions: ['.ts', '.js']
+})
+
 module.exports = function CarmiLoader(content) {
   const requiredPreCarmi = new Set(Object.keys(require.cache));
-  const compiledCode = compile(content, {compiler: 'optimizing', format: 'esm'});
-
+  const srcPath = this.getDependencies()[0];
+  const model = require(srcPath);
+  const compiledCode = compile(model, {compiler: 'optimizing', format: 'esm'});
   Object.keys(require.cache).forEach(key => {
     if (!requiredPreCarmi.has(key)) {
       // Clear user loaded modules from require.cache
@@ -19,6 +25,5 @@ module.exports = function CarmiLoader(content) {
       this.addDependency(key);
     }
   });
-
-    return compiledCode;
+  return compiledCode;
 };
