@@ -82,7 +82,7 @@ function tempFile(absPath) {
   const crypto = require('crypto');
   const hash = crypto.createHash('md5').update(absPath).digest("hex");
   // console.log(hash)
-  return path.resolve('node_modules/.cache/carmi', path.basename(hash))
+  return path.resolve('node_modules/.cache/carmi', hash)
 }
 
 run().catch(e => {
