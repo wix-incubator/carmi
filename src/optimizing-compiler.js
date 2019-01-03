@@ -252,11 +252,11 @@ $tainted = new WeakSet();`
     if (pathsThatInvalidate) {
       //console.log(pathsThatInvalidate);
       pathsThatInvalidate.forEach((cond, invalidatedPath) => {
-        tracks.push(
-          `// invalidatedPath: ${JSON.stringify(invalidatedPath)}, ${JSON.stringify(cond)}, ${
-            invalidatedPath[invalidatedPath.length - 1].$type
-          }`
-        );
+        // tracks.push(
+        //   `// invalidatedPath: ${JSON.stringify(invalidatedPath)}, ${JSON.stringify(cond)}, ${
+        //     invalidatedPath[invalidatedPath.length - 1].$type
+        //   }`
+        // );
         const precond = cond ? `(${this.generateExpr(cond)} ) && ` : '';
         if (invalidatedPath[0].$type === 'context') {
           const activePath = [0].concat(invalidatedPath.slice(1));
@@ -274,7 +274,7 @@ $tainted = new WeakSet();`
         } else if (invalidatedPath[0].$type === 'root' && invalidatedPath.length > 1) {
           let settersMatched = Object.values(this.setters).filter(setter => pathMatches(invalidatedPath, setter));
           if (settersMatched.length) {
-            settersMatched.forEach(setter => tracks.push(`// path matched ${JSON.stringify(setter)}`));
+            // settersMatched.forEach(setter => tracks.push(`// path matched ${JSON.stringify(setter)}`));
             tracks.push(
               `${precond} trackPath($tracked, [${invalidatedPath
                 .map(fragment => this.generateExpr(fragment))

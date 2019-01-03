@@ -1,4 +1,5 @@
 const { isExpression } = require('./lang');
+const _ = require('lodash');
 
 function searchExpressions(callback, ...expressions) {
     const nextExpr = expressions;
@@ -33,4 +34,17 @@ function searchExpressionsWithoutInnerFunctions(callback, ...expressions) {
     }
 }
 
-module.exports = { searchExpressions, searchExpressionsWithoutInnerFunctions };
+function flattenExpression(...expressions) {
+    const output = [];
+    searchExpressions((expr) => output.push(expr), ...expressions);
+    return output;
+}
+
+
+function getAllFunctions(sourceExpr) {
+    const allExpressions = flattenExpression(sourceExpr);
+    const exprByFunc = _.groupBy(allExpressions, expr => expr[0].$funcId);
+    return _.map(exprByFunc, expressions => expressions[0]);
+}
+
+module.exports = { searchExpressions, searchExpressionsWithoutInnerFunctions, flattenExpression, getAllFunctions };

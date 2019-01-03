@@ -21,25 +21,15 @@ const {
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
 const exprHash = require('./expr-hash');
-const {searchExpressions} = require('./expr-search');
-const path = require('path');
+const {flattenExpression, getAllFunctions} = require('./expr-search');
+const {tagToSimpleFilename} = require('./expr-names');
+const {rewriteStaticsToTopLevels} = require('./expr-rewrite');
 
 let exprCounter = 0;
 
 const _ = require('lodash');
 const toposort = require('toposort');
 
-function tokenData(expr) {
-  return TokenTypeData[expr[0].$type];
-}
-
-function tryToHoist(expr) {
-  return tokenData(expr).tryToHoist;
-}
-
-function chainIndex(expr) {
-  return tokenData(expr).chainIndex;
-}
 
 function printPaths(title, paths) {
   const output = []
@@ -171,12 +161,6 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   return groupPathsThatCanBeInvalidated(paths);
 }
 
-function getAllFunctions(sourceExpr) {
-  const allExpressions = flattenExpression(sourceExpr);
-  const exprByFunc = _.groupBy(allExpressions, expr => expr[0].$funcId);
-  return _.map(exprByFunc, expressions => expressions[0]);
-}
-
 function pathFragmentToString(token) {
   if (typeof token === 'string' || typeof token === 'number') {
     return token;
@@ -239,96 +223,6 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
       subExpression.$funcType = funcType;
     }
   });
-}
-
-function flattenExpression(...expressions) {
-  const output = [];
-  searchExpressions((expr) => output.push(expr),...expressions);
-  return output;
-}
-
-const isStaticExpression = memoize(expr => {
-  let res = true;
-  const areChildrenStatic = expr.map(token => {
-    if (token instanceof Expression) {
-      return isStaticExpression(token);
-    } else if (token.$type === 'val' || token.$type === 'key' || token.$type === 'context') {
-      return false;
-    }
-    return true;
-  });
-  return _.every(areChildrenStatic, (isChildStatic, index) => {
-    return isChildStatic || (expr[index] instanceof Expression && expr[index][0].$type === 'func');
-  });
-});
-
-const getRewriteUsingTopLevels = namesByExpr => {
-  const rewriteUsingTopLevels = memoizeExprFunc(
-    expr => {
-      const str = exprHash(expr);
-      if (namesByExpr[str]) {
-        return Expr(Get, namesByExpr[str], TopLevel);
-      }
-      return expr.map(child => rewriteUsingTopLevels(child));
-    },
-    token => token
-  );
-  return rewriteUsingTopLevels;
-};
-
-function tagToSimpleFilename(tag) {
-  const lineParts = tag.split(path.sep);
-  const fileName = lineParts[lineParts.length - 1].replace(/\).*/, '');
-  const simpleName = fileName
-    .split('.js:')[0]
-    .replace(/\.carmi$/, '')
-    .split('.')
-    .find(x => x);
-  return simpleName;
-}
-
-function generateName(namesByExpr, expr) {
-  if (expr[0][SourceTag]) {
-    const tag = expr[0][SourceTag];
-    return '_' + [tagToSimpleFilename(tag)].concat(tag.split(':').slice(1)).join('_') + '_';
-  }
-  return _(expr)
-    .tail()
-    .reverse()
-    .map(e => {
-      const preNamed = namesByExpr[exprHash(e)];
-      if (preNamed) {
-        return preNamed;
-      } else {
-        return _.find(_.flattenDeep(e), x => typeof x === 'string') || '';
-      }
-    })
-    .join('');
-}
-
-function extractAllStaticExpressionsAsValues(getters) {
-  const allExpressions = flattenExpression(...Object.values(getters));
-  const allStaticExpressions = _.filter(allExpressions, isStaticExpression);
-  const allStaticAsStrings = allStaticExpressions.reduce((acc, e) => {
-    acc[exprHash(e)] = e;
-    return acc;
-  }, {});
-  const namesByExpr = _(getters)
-    .mapValues(e => exprHash(e))
-    .invert()
-    .value();
-  let nodeIndex = 1;
-  _.forEach(allStaticAsStrings, (e,s) => {
-    if (!namesByExpr[s] && tryToHoist(e)) {
-      namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
-    }
-  });
-  const rewriteUsingTopLevels = getRewriteUsingTopLevels(namesByExpr);
-  const newGetters = {};
-  _.forEach(namesByExpr, (name, hash) => {
-    newGetters[name] = allStaticAsStrings[hash].map(rewriteUsingTopLevels);
-  });
-  return newGetters;
 }
 
 function cloneExpressions(getters) {
@@ -462,6 +356,7 @@ function dedupFunctionsObjects(getters) {
   const prevFunctions = new Map();
   const allExpressions = flattenExpression(...Object.values(getters));
   const allFunctions = allExpressions.filter(expr => expr[0].$type === 'func' && expr[0].$parent)
+  let duplicateFunctions = 0;
   allFunctions
     .forEach(expr => {
       const hash = exprHash(expr) + '.' + expr[0].$parent[0].$type + '.' + expr[0].$invalidates;
@@ -470,9 +365,15 @@ function dedupFunctionsObjects(getters) {
         prevFunctions.set(hash, expr)
       } else {
         const prev = prevFunctions.get(hash);
+        duplicateFunctions++;
         expr[0].$duplicate = prev[0].$funcId;
       }
   });
+  const countFunctions = allFunctions.length;
+  const countGetters = Object.keys(getters).length;
+  // console.error('duplicate stats:', {
+  //   duplicateFunctions, countFunctions, countGetters
+  // })
   const prevObjectKeys = new Map();
   const allObjects = allExpressions.filter(expr => expr[0].$type === 'object')
   allObjects.forEach(expr => {
@@ -486,18 +387,6 @@ function dedupFunctionsObjects(getters) {
   });
 
   // console.log('duplicated', allFunctions.length, prevFunctions.size);
-}
-
-function normalizeAndTagAllGetters(getters, setters) {
-  getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
-  getters = extractAllStaticExpressionsAsValues(getters);
-  getters = cloneExpressions(getters);
-  tagAllExpressions(getters);
-  _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
-  _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
-  unmarkPathsThatHaveNoSetters(getters, setters);
-  dedupFunctionsObjects(getters);
-  return getters;
 }
 
 const allPathsInGetter = memoize(getter => {
@@ -569,6 +458,18 @@ function findFuncExpr(getters, funcId) {
     .map(getAllFunctions)
     .flatten()
     .find(e => e[0].$funcId === funcId);
+}
+
+function normalizeAndTagAllGetters(getters, setters) {
+  getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
+  getters = rewriteStaticsToTopLevels(getters);
+  getters = cloneExpressions(getters);
+  tagAllExpressions(getters);
+  _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
+  _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
+  unmarkPathsThatHaveNoSetters(getters, setters);
+  dedupFunctionsObjects(getters);
+  return getters;
 }
 
 module.exports = {
