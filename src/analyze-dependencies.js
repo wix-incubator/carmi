@@ -1,28 +1,28 @@
 'use strict'
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs-extra')
 const resolve = require('resolve')
 const {parse} = require('babylon');
 const walk = require('babylon-walk');
-// const ts = require('typescript')
-//
-// function printAllChildren(node, deps) {
-//   for (const c of node.getChildren()) {
-//     printAllChildren(c, deps)
-//     if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
-//       // console.log(ts.formatSyntaxKind(c.kind))
-//       deps.push(c.moduleSpecifier.text)
-//     }
-//   }
-// }
+const ts = require('typescript')
 
-// function readTS(p) {
-//   const childDeps = [];
-//   const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
-//   printAllChildren(sourceFile, childDeps);
-//   // console.log(sourceFile)
-//   return childDeps
-// }
+function printAllChildren(node, deps) {
+  for (const c of node.getChildren()) {
+    printAllChildren(c, deps)
+    if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
+      // console.log(ts.formatSyntaxKind(c.kind))
+      deps.push(c.moduleSpecifier.text)
+    }
+  }
+}
+
+function readTS(p) {
+  const childDeps = [];
+  const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
+  printAllChildren(sourceFile, childDeps);
+  // console.log(sourceFile)
+  return childDeps
+}
 
 function readJS(p) {
   const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread']})
@@ -55,8 +55,8 @@ function readModule(modulePath, visited, imports) {
   visited.add(modulePath)
   const p = fs.readFileSync(modulePath).toString()
 
-  // const childDeps = path.extname(modulePath) === '.ts' ? readTS(p) : readJS(p);
-  const childDeps = readJS(p)
+  const childDeps = path.extname(modulePath) === '.ts' ? readTS(p) : readJS(p);
+  // const childDeps = readJS(p)
 
   // node 10
   // const {createRequireFromPath} = require('module')
@@ -71,6 +71,7 @@ function readModule(modulePath, visited, imports) {
       }
     // } catch (e) {
     //   console.log('error parsing file', i, e)
+    //   throw e
     // }
   }
 
@@ -116,12 +117,24 @@ function analyzeDependencies(file) {
 const getTime = file => fs.statSync(file).mtime
 const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
 
-function isUpToDate(input, output) {
+/**
+ * @param {string} input
+ * @param {string} output
+ * @param {string} stats
+ * @return {*}
+ */
+function isUpToDate(input, output, stats) {
   try {
     if (!fs.existsSync(output)) {
       return false
     }
     const deps = analyzeDependencies(input)
+
+    if (stats) {
+      console.log(stats)
+      fs.outputJSONSync(path.resolve(stats), deps);
+      console.log('wrote stats to', path.resolve(stats))
+    }
     const outTime = getTime(output)
     // console.log(outTime)
     // console.log(deps.map(f => [f, getTime(f)]))

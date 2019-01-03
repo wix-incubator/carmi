@@ -3,7 +3,7 @@
 const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
-const { writeFile } = require('../src/promise-fs');
+const fs = require('fs-extra');
 const {isUpToDate} = require('../src/analyze-dependencies');
 
 const optionDefinitions = [
@@ -27,6 +27,7 @@ const optionDefinitions = [
     description: 'caches the generated code in the specified folder if the model did not change'
   },
   { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
+  { name: 'stats', type: String, defaultValue: '', description: 'generate stats file' },
   { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
   { name: 'ast', type: Boolean, defaultValue: false }
 ];
@@ -51,8 +52,15 @@ async function run() {
   
   const absPath = path.resolve(process.cwd(), options.source);
 
-  if (!options['no-cache'] && options.output && isUpToDate(absPath, options.output)) {
-    console.log('output is up to date skipping carmi');
+  const outFile = options.output || tempFile(absPath)
+  // console.log(outFile)
+  if (!options['no-cache'] && isUpToDate(absPath, outFile, options.stats)) {
+    if (options.output) {
+      console.log('output is up to date skipping carmi');
+    } else {
+      const out = await fs.readFile(outFile, 'utf-8')
+      console.log(out);
+    }
     return;
   }
 
@@ -64,11 +72,17 @@ async function run() {
     throw e;
   }
   const code = carmi.compile(model, options);
-  if (options.output) {
-    await writeFile(options.output, code);
-  } else {
+  if (!options.output) {
     console.log(code);
   }
+  await fs.outputFile(outFile, code);
+}
+
+function tempFile(absPath) {
+  const crypto = require('crypto');
+  const hash = crypto.createHash('md5').update(absPath).digest("hex");
+  // console.log(hash)
+  return path.resolve('node_modules/.cache/carmi', path.basename(hash))
 }
 
 run().catch(e => {
