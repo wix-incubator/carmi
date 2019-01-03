@@ -53,6 +53,7 @@ $tainted = new WeakSet();`
     const tokenType = currentToken.$type;
     return Object.assign(
       {
+        TOP_LEVEL_INDEX: () => '' + (this.getters[funcName] ? this.topLevelToIndex(funcName) : -1),
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
           if (expr[0].$path && expr[0].$path.size) {
@@ -84,10 +85,21 @@ $tainted = new WeakSet();`
     return `'${expr[0].$id}${extra}'`;
   }
 
+  topLevelToIndex(str) {
+    return this.getters[str][0].$topLevelIndex;
+  }
+
   generateExpr(expr) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
     switch (tokenType) {
+      case 'get':
+        if (expr[2] instanceof Token && expr[2].$type === 'topLevel') {
+          return `${this.generateExpr(expr[2])}[${this.topLevelToIndex(expr[1])} /*${this.generateExpr(expr[1])}*/]`;
+        }
+        return super.generateExpr(expr)
+      case 'topLevel':
+        return `$topLevel`;
       case 'and':
         return (
           '(' +
@@ -268,7 +280,7 @@ $tainted = new WeakSet();`
         } else if (invalidatedPath[0].$type === 'topLevel' && invalidatedPath.length > 1) {
           tracks.push(
             `${precond} trackPath($tracked, [${invalidatedPath
-              .map(fragment => this.generateExpr(fragment))
+              .map((fragment, index) => index === 1 ? this.topLevelToIndex(fragment): this.generateExpr(fragment))
               .join(',')}]);`
           );
         } else if (invalidatedPath[0].$type === 'root' && invalidatedPath.length > 1) {
@@ -282,7 +294,7 @@ $tainted = new WeakSet();`
             );
           }
         }
-        tracks.push(`// tracking ${JSON.stringify(invalidatedPath)}`);
+        //tracks.push(`// tracking ${JSON.stringify(invalidatedPath)}`);
       });
     }
     return tracks.join('\n');

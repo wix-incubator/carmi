@@ -469,6 +469,9 @@ function normalizeAndTagAllGetters(getters, setters) {
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
   unmarkPathsThatHaveNoSetters(getters, setters);
   dedupFunctionsObjects(getters);
+  Object.values(getters).forEach((getter, index) => {
+    getter[0].$topLevelIndex = index;
+  })
   return getters;
 }
 

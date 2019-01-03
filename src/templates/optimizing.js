@@ -871,10 +871,11 @@ function topLevel() {
     const $invalidatedKeys = $invalidatedRoots;
     /* PRETRACKING */
     const newValue = $EXPR;
-    setOnObject($res, '$FUNCNAME', newValue, $INVALIDATES);
+    setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
+    $res['$FUNCNAME'] = newValue;
     $invalidatedRoots.delete('$FUNCNAME');
     /* TRACKING */
-    return $res.$FUNCNAME;
+    return $topLevel[$TOP_LEVEL_INDEX];
   }
 }
 
