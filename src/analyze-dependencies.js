@@ -25,7 +25,7 @@ function readTS(p) {
 }
 
 function readJS(p) {
-  const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread']})
+  const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
 
   const visitors = {
     ImportDeclaration(node, state) {
