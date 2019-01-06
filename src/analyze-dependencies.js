@@ -55,7 +55,21 @@ function readModule(modulePath, visited, imports) {
   visited.add(modulePath)
   const p = fs.readFileSync(modulePath).toString()
 
-  const childDeps = path.extname(modulePath) === '.ts' ? readTS(p) : readJS(p);
+  let childDeps;
+
+  switch (path.extname(modulePath)) {
+    case '.ts':
+      childDeps = readTS(p)
+      break;
+
+    case '.js':
+      childDeps = readJS(p)
+      break;
+
+    default:
+      return imports;
+  }
+
   // const childDeps = readJS(p)
 
   // node 10

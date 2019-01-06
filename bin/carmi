@@ -50,7 +50,7 @@ async function runCarmi() {
 
   // return from cache
   if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
-    await  fs.readFile(cacheFilePath, 'utf-8');
+    return fs.readFile(cacheFilePath, 'utf-8');
   }
 
   // run carmi and generate cache
@@ -80,7 +80,7 @@ async function run() {
   const code = await runCarmi();
 
   if (!options['no-cache']) {
-    await fs.writeFile(cacheFilePath, code, 'utf-8')
+    await fs.outputFile(cacheFilePath, code, 'utf-8')
   }
 
   if (options.output) {
