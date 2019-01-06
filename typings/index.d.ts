@@ -45,7 +45,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param consequence graph if NativeType value is truthy
      * @param alternate graph is NativeType value is falsey
      */
-    ternary<Consequence, Alternate>(consequence: Argument<Consequence>, alternate: Argument<Alternate>): Graph<Consequence | Alternate, F>
+    ternary<Consequence, Alternate>(consequence: Consequence, alternate: Alternate): Graph<Consequence, F> | Graph<Alternate, F>
 
     /**
      * Returns a boolean graph that resolves to the value of (NativeType === other) 
