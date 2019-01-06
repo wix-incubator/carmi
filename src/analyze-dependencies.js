@@ -145,29 +145,15 @@ const getTime = file => fs.statSync(file).mtime
 const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
 
 /**
- * @param {string} input
+ * @param {string[]} deps
  * @param {string} output
- * @param {string} stats
  * @return {*}
  */
-function isUpToDate(input, output, stats) {
+function isUpToDate(deps, cacheFilePath) {
   try {
-    if (!fs.existsSync(output)) {
-      return false
-    }
-    const deps = analyzeDependencies(input)
-
-    if (stats) {
-      console.log(stats)
-      fs.outputJSONSync(path.resolve(stats), deps);
-      console.log('wrote stats to', path.resolve(stats))
-    }
-    const outTime = getTime(output)
-    // console.log(outTime)
-    // console.log(deps.map(f => [f, getTime(f)]))
+    const outTime = getTime(cacheFilePath)
     return isEveryFileBefore(deps, outTime)
   } catch (e) {
-    // console.log(e)
     return false
   }
 }
