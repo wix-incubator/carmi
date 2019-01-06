@@ -41,6 +41,8 @@
     "babylon-walk": "^1.0.2",
     "command-line-args": "^5.0.2",
     "find-cache-dir": "^2.0.0",
+    "dargs": "^6.0.0",
+    "execa": "^1.0.0",
     "flow-bin": "^0.73.0",
     "fs-extra": "^7.0.1",
     "lodash": "^4.17.4",
@@ -48,6 +50,7 @@
     "pify": "^4.0.1",
     "prettier": "^1.13.5",
     "resolve": "^1.9.0",
+    "tempy": "^0.2.1",
     "toposort": "^1.0.6",
     "typescript": "^3.2.1"
   },

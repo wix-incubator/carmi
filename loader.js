@@ -3,27 +3,25 @@
 
 'use strict';
 
-const {compile} = require('carmi');
+const path = require('path')
+const execa = require('execa')
+const dargs = require('dargs')
+const tempy = require('tempy')
 
-require('@babel/register')({
-  cwd: require('path').resolve('..'),
-  extensions: ['.ts', '.js']
-})
+module.exports = function CarmiLoader() {
+  const statsPath = tempy.file({extension: 'js'})
 
-module.exports = function CarmiLoader(content) {
-  const requiredPreCarmi = new Set(Object.keys(require.cache));
-  const srcPath = this.getDependencies()[0];
-  const model = require(srcPath);
-  const compiledCode = compile(model, {compiler: 'optimizing', format: 'esm'});
-  Object.keys(require.cache).forEach(key => {
-    if (!requiredPreCarmi.has(key)) {
-      // Clear user loaded modules from require.cache
-      delete require.cache[key];
+  const options = {
+    source: this.getDependencies()[0],
+    stats: statsPath,
+    format: 'esm',
+  }
 
-      // Add those modules as loader dependencies
-      // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
-      this.addDependency(key);
-    }
+  const {stdout: compiled} = execa.sync('npx', ['carmi', ...dargs(options)]);
+
+  require(statsPath).forEach(filePath => {
+    this.addDependency(filePath)
   });
-  return compiledCode;
+
+  return compiled;
 };

@@ -49,7 +49,7 @@ async function run() {
   require('@babel/register')({
     rootMode: 'upward',
     extensions: ['.ts', '.js'],
-    cwd: options.cwd
+    ignore: [/node_modules/]
   })
 
   const dependencies = analyzeDependencies(absPath);
