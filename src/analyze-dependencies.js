@@ -92,11 +92,10 @@ function shouldFollow(p) {
 
     const stats = fs.lstatSync(pkgPath)
     const r = stats.isSymbolicLink()
-    if (r) {
-      console.log(p, 'is symlink')
-    }
+    // if (r) {
+    //   console.log(p, 'is symlink')
+    // }
     return r
-    //'/Users/idok/projects/bolt/bolt-main/node_modules/bolt-components'
   }
   return true
 }
