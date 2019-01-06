@@ -38,31 +38,6 @@ ${optionDefinitions
 
 const options = commandLineArgs(optionDefinitions);
 
-async function runCarmi({absPath, cacheFilePath}) {
-  const dependencies = analyzeDependencies(absPath);
-
-  if (options.stats) {
-    await fs.outputJSON(path.resolve(options.stats), dependencies);
-  }
-
-  // return from cache
-  if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
-    return fs.readFile(cacheFilePath, 'utf-8');
-  }
-
-  // run carmi and generate cache
-  let model;
-
-  try {
-    model = require(absPath);
-  } catch (e) {
-    console.error(`failed to require ${options.source} ${e.stack}`);
-    throw e;
-  }
-
-  return carmi.compile(model, options);
-}
-
 async function run() {
   if (options.help) {
     return console.log(HELP);
@@ -77,7 +52,30 @@ async function run() {
     cwd: options.cwd
   })
 
-  const code = await runCarmi({absPath, cacheFilePath});
+  const dependencies = analyzeDependencies(absPath);
+
+  if (options.stats) {
+    await fs.outputJSON(path.resolve(options.stats), dependencies);
+  }
+
+  let code;
+
+  // return from cache
+  if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
+    code = fs.readFile(cacheFilePath, 'utf-8');
+  } else {
+    // run carmi and generate cache
+    let model;
+
+    try {
+      model = require(absPath);
+    } catch (e) {
+      console.error(`failed to require ${options.source} ${e.stack}`);
+      throw e;
+    }
+
+    code = carmi.compile(model, options);
+  }
 
   if (!options['no-cache']) {
     await fs.outputFile(cacheFilePath, code, 'utf-8')
