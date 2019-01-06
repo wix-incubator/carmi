@@ -64,11 +64,11 @@ function readModule(modulePath, visited, imports) {
 
   for (const i of childDeps) {
     // try {
-      const p = tryResolveExt(path.dirname(modulePath), i)
-      if (p && !/node_modules/.test(p)) {
-        imports.push(p)
-        readModule(p, visited, imports)
-      }
+    const p = tryResolveExt(path.dirname(modulePath), i)
+    if (shouldFollow(p)) {
+      imports.push(p)
+      readModule(p, visited, imports)
+    }
     // } catch (e) {
     //   console.log('error parsing file', i, e)
     //   throw e
@@ -77,6 +77,34 @@ function readModule(modulePath, visited, imports) {
 
   return imports
 }
+
+/**
+ * @param {string} p
+ * @return boolean
+ */
+function shouldFollow(p) {
+  if (!p) {
+    return false
+  }
+  if (/node_modules/.test(p)) {
+    const arr = p.split('/')
+    const pkgPath = arr.splice(0, arr.findIndex(x => x === 'node_modules') + 2).join('/')
+
+    const stats = fs.lstatSync(pkgPath)
+    const r = stats.isSymbolicLink()
+    if (r) {
+      console.log(p, 'is symlink')
+    }
+    return r
+    //'/Users/idok/projects/bolt/bolt-main/node_modules/bolt-components'
+  }
+  return true
+}
+
+// function isSymLink(p) {
+//   const stats = fs.lstatSync(p)
+//   return stats.isSymbolicLink()
+// }
 
 function tryResolveExt(dir, i) {
   const vars = ['.js', '.ts']
@@ -144,6 +172,8 @@ function isUpToDate(input, output, stats) {
     return false
   }
 }
+
+// console.log(shouldFollow('/Users/idok/projects/bolt/bolt-main/node_modules/bolt-components'))
 
 module.exports = {
   isUpToDate,

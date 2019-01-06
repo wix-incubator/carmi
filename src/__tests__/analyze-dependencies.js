@@ -1,9 +1,6 @@
 const {analyzeDependencies, isUpToDate} = require('../analyze-dependencies')
 const {resolve} = require('path')
-const fs = require('fs')
-const {promisify} = require('util');
-const open = promisify(fs.open);
-const close = promisify(fs.close);
+const {close, open} = require('fs-extra')
 
 const res = f => resolve(__dirname, '../testData', f);
 

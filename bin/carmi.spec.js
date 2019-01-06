@@ -1,9 +1,9 @@
 const pify = require("pify");
-const { exec } = pify(require("child_process"));
+const {exec} = pify(require("child_process"));
 const path = require("path");
-const { existsSync } = require("fs");
-const { readFile } = require("../src/promise-fs");
-const { file: tmpFile } = require("tmp-promise");
+// const { existsSync } = require("fs");
+// const { readFile } = require("../src/promise-fs");
+const {file: tmpFile} = require("tmp-promise");
 const invert = require('invert-promise');
 
 const runBinary = args => exec(`${BINARY_PATH} ${args}`);
