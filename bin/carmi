@@ -62,7 +62,7 @@ async function run() {
 
   // return from cache
   if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
-    code = fs.readFile(cacheFilePath, 'utf-8');
+    code = await fs.readFile(cacheFilePath, 'utf-8');
   } else {
     // run carmi and generate cache
     let model;
