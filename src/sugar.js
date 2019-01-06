@@ -28,8 +28,8 @@ module.exports = function({chain, or, and}) {
         return a.size().plus(b.size()).range().map(v => v.lt(a.size()).ternary(a.get(v), b.get(v.minus(a.size()))))
     }
 
-    function find(collection, predicate, ctx) {
-      return collection.values().filter((val, key) => predicate(val, key, ctx)).get(0)
+    function find(collection, predicate, givenCtx) {
+      return collection.values().filter((val, key, ctx) => predicate(val, key, ctx), givenCtx).get(0)
     }
 
     function join(arr, separator) {
