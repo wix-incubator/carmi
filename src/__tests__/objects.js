@@ -537,6 +537,31 @@ describe('testing objects', () => {
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
       });
     });
+
+    describe('isEmpty', async () => {
+      it('should return true for empty object', async () => {
+        const initialData = {data: {}}
+        const model = {
+          isEmpty: root.get('data').isEmpty(),
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.isEmpty).toEqual(true);
+      });
+
+      it('should return false for non empty object', async () => {
+        const initialData = {data: {a: 1}}
+        const model = {
+          isEmpty: root.get('data').isEmpty(),
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.isEmpty).toEqual(false);
+      });
+    })
+
     describe('has', () => {
       it('should return true if contain key', async () => {
         const initialData = { data: { a: 1, b: 2 } };
