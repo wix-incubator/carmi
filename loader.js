@@ -20,6 +20,8 @@ module.exports = function CarmiLoader() {
   const {stdout: compiled} = execa.sync('npx', ['carmi', ...dargs(options)]);
 
   require(statsPath).forEach(filePath => {
+    // Add those modules as loader dependencies
+    // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
     this.addDependency(filePath)
   });
 
