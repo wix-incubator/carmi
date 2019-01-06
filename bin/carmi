@@ -37,11 +37,8 @@ ${optionDefinitions
 `;
 
 const options = commandLineArgs(optionDefinitions);
-const absPath = path.resolve(process.cwd(), options.source);
 
-const cacheFilePath = getCacheFilePath(absPath);
-
-async function runCarmi() {
+async function runCarmi({absPath, cacheFilePath}) {
   const dependencies = analyzeDependencies(absPath);
 
   if (options.stats) {
@@ -71,13 +68,16 @@ async function run() {
     return console.log(HELP);
   }
 
+  const absPath = path.resolve(process.cwd(), options.source);
+  const cacheFilePath = getCacheFilePath(absPath);
+
   require('@babel/register')({
     rootMode: 'upward',
     extensions: ['.ts', '.js'],
     cwd: options.cwd
   })
 
-  const code = await runCarmi();
+  const code = await runCarmi({absPath, cacheFilePath});
 
   if (!options['no-cache']) {
     await fs.outputFile(cacheFilePath, code, 'utf-8')
