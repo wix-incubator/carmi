@@ -60,7 +60,6 @@
     "jest": "^23.6.0",
     "mobx": "^5.0.2",
     "random-seed": "^0.3.0",
-    "tmp-promise": "^1.0.5",
     "wnpm-ci": "latest"
   },
   "description": "CARMI - Compiler for Automatic Reactive Modelling of Inference"

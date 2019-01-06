@@ -33,6 +33,7 @@ describe("carmi binary", () => {
       `--source ${CARMI_MODEL} --output ${filepath} --format cjs --no-cache`
     );
     const model = require(filepath);
+
     expect(typeof model).toBe("function");
   });
 
