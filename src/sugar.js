@@ -29,7 +29,7 @@ module.exports = function({chain, or, and}) {
     }
 
     function find(collection, predicate, givenCtx) {
-      return collection.values().filter((val, key, ctx) => predicate(val, key, ctx), givenCtx).get(0)
+      return collection.values().filter((val, key, ctx) => predicate(val, key, ctx), givenCtx || null).get(0)
     }
 
     function join(arr, separator) {
