@@ -4,10 +4,10 @@ interface Looper<T> { }
 type UnionToIntersection<U> = (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
 
 interface AbstractGraph {$isCarmiGraph: true}
-interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType}
+export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType}
 
-type AsNative<T> = T extends GraphBase<infer N> ? N : T
-type Argument<T> = AsNative<T> | GraphBase<T>
+export type AsNative<T> = T extends GraphBase<infer N> ? N : T
+export type Argument<T> = AsNative<T> | GraphBase<T>
 type AsNativeRecursive<T> = T extends object ? {[k in keyof T]: AsNative<T[k]>} : AsNative<T>
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
@@ -448,6 +448,7 @@ export interface ObjectGraph<T extends object, F extends FunctionLibrary> extend
 
 export type Graph<N, F extends FunctionLibrary> = 
     N extends AbstractGraph ? N :
+    N extends Function ? GraphImpl<N, F> :
     N extends string ? StringGraph<N, F> :
     N extends number ? NumberGraph<N, F> :
     N extends boolean ? BoolGraph<F> :
