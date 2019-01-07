@@ -6,7 +6,7 @@
     "es6": true,
     "jest": true
   },
-  "extends": "eslint:recommended",
+  "extends": ["wix-editor/node", "eslint:recommended"],
   "parserOptions": {
     "ecmaVersion": 2018,
     "ecmaFeatures": {

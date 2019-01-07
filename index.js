@@ -24,10 +24,10 @@ compilerTypes.optimizing = require('./src/optimizing-compiler');
 try {
   compilerTypes.flow = require('./src/flow-compiler');
   compilerTypes.rust = require('./src/rust-compiler');
-} catch (e) { }
+} catch (e) { } //eslint-disable-line no-empty
 
 const path = require('path');
-
+const fs = require('fs');
 const exprHash = require('./src/expr-hash');
 const {searchExpressionsWithoutInnerFunctions, searchExpressions} = require('./src/expr-search');
 
@@ -270,11 +270,11 @@ function compile(model, options) {
     path.resolve(process.cwd(), options.cache, exprHash({ model, options }));
   if (options.cache) {
     try {
-      const result = require('fs')
+      const result = fs
         .readFileSync(hashFile)
         .toString();
       return result;
-    } catch (e) { }
+    } catch (e) { } //eslint-disable-line no-empty
   }
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
@@ -286,7 +286,7 @@ function compile(model, options) {
   if (options.prettier) {
     try {
       source = prettier.format(rawSource, { parser: 'babylon' });
-    } catch (e) { }
+    } catch (e) { } //eslint-disable-line no-empty
   }
   let result;
 
@@ -332,7 +332,7 @@ function compile(model, options) {
     result = source;
   }
   if (hashFile) {
-    require('fs').writeFileSync(hashFile, result);
+    fs.writeFileSync(hashFile, result);
   }
   return result;
 }

@@ -1,12 +1,11 @@
-const { createMacro, MacroError } = require('babel-plugin-macros');
-const compileFile = require('./compileFile');
-const fs = require('fs');
-const babylon = require('babylon');
-const babylonJsx = require('babylon-jsx').default;
-const generate = require('babel-generator');
-
 const path = require('path');
 const uuid = require('uuid');
+const fs = require('fs');
+const babylon = require('babylon');
+const { createMacro, MacroError } = require('babel-plugin-macros');
+const babylonJsx = require('babylon-jsx').default;
+const generate = require('babel-generator');
+const compileFile = require('./compileFile');
 
 module.exports = createMacro(macro);
 
@@ -41,7 +40,7 @@ const compile = (code, filename, isMJS = false) => {
   return transformed;
 };
 
-const CARMI_COMMENT_RE = /\s*\@carmi\s*/;
+const CARMI_COMMENT_RE = /\s*@carmi\s*/;
 
 function macro({ babel, state, references, source, config }) {
   const commentTag = state.file.ast.comments.some(comment => CARMI_COMMENT_RE.test(comment.value));
