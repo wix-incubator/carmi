@@ -1,6 +1,7 @@
 # CARMI
 
 [![Build Status](https://travis-ci.org/wix-incubator/carmi.svg?branch=master)](https://travis-ci.org/wix-incubator/carmi)
+
 ## Compiler for Automatic Reactive Modelling of Inference
 
 This is a POC of an entirely new approach to modelling inferred state, there are 4 classic methods of handling
