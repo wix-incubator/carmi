@@ -1,17 +1,17 @@
-const pluginTester = require("babel-plugin-tester");
-const plugin = require("babel-plugin-macros");
-const path = require("path");
-const babel = require("babel-core");
+const pluginTester = require('babel-plugin-tester');
+const plugin = require('babel-plugin-macros');
+const path = require('path');
+const babel = require('babel-core');
 
 pluginTester({
   plugin,
   snapshot: true,
   babelOptions: {
-    filename: path.resolve(__dirname, "temp.js"),
-    presets: ["react"]
+    filename: path.resolve(__dirname, 'temp.js'),
+    presets: ['react']
   },
   tests: {
-    "template-literal": `
+    'template-literal': `
       const carmi = require('./macro')
 
       const modelBuilder = carmi\`
@@ -19,13 +19,13 @@ pluginTester({
         module.exports = {all: root.get('list'), first: root.get('list').get(0)}
       \`
     `,
-    "magic-comment": `
+    'magic-comment': `
   // @carmi
   import carmi from './macro'
   const { root } = require('../../index');
   module.exports = { first: root.get(0), second: root.get(1) };
 `,
-    "carmi-react": `
+    'carmi-react': `
     // @carmi
     import carmi from './macro'
     const { root } = require('../../index');
@@ -36,8 +36,8 @@ pluginTester({
   }
 });
 
-describe("Macro", () => {
-  it("works", done => {
+describe('Macro', () => {
+  it('works', done => {
     const code = `
       const carmi = require('./macro')
 

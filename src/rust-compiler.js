@@ -73,7 +73,7 @@ class RustCompiler extends NaiveCompiler {
       case 'func':
         return `Instance::__${currentToken.$id}`;
       case 'root':
-        return `model`;
+        return 'model';
       case 'val':
       case 'key':
       case 'arg0':
@@ -81,7 +81,7 @@ class RustCompiler extends NaiveCompiler {
       case 'context':
         return `${tokenType}`;
       case 'topLevel':
-        return `topLevel`;
+        return 'topLevel';
       case 'get':
         if (isHashMap(annotated[2])) {
           return `*${this.generateExpr(expr[2])}.get(&${this.generateExpr(expr[1])}${

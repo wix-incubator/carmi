@@ -67,7 +67,7 @@ function joinOr(...conds) {
   }
   if (conds.length === 1) {
     return conds[0]
-  };
+  }
   return Expr(Or, ...conds);
 } 
 

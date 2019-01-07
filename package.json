@@ -56,6 +56,7 @@
   },
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",
+    "eslint": "^5.12.0",
     "invert-promise": "^1.0.1",
     "jest": "^23.6.0",
     "mobx": "^5.0.2",

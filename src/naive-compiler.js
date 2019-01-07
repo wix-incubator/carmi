@@ -164,7 +164,7 @@ class NaiveCompiler {
       case 'context':
         return tokenType;
       case 'topLevel':
-        return `$res`;
+        return '$res';
       case 'cond':
           return `$cond_${this.generateExpr(expr[1])}`
       case 'effect':

@@ -413,23 +413,23 @@ describe('testing array', () => {
         expect(inst.includes).toEqual(_.includes(initialData.data, value));
       });
     })
-    describe("findIndex", () => {
-      it("should return right index by predicate", async () => {
+    describe('findIndex', () => {
+      it('should return right index by predicate', async () => {
         const initialData = { data: [{ id: 1 }, { id: 2 }, { id: 3 }] };
         const findId = 2;
         const model = {
-          findIndex: root.get("data").findIndex(item => item.get("id").eq(findId))
+          findIndex: root.get('data').findIndex(item => item.get('id').eq(findId))
         };
         const optModel = eval(compile(model, { compiler }));
 
         const inst = optModel(initialData);
         expect(inst.findIndex).toEqual(1);
       });
-      it("should support findding the first element", async () => {
+      it('should support findding the first element', async () => {
         const initialData = { data: [{ id: 1 }, { id: 2 }, { id: 3 }] };
         const findId = 1;
         const model = {
-          findIndex: root.get("data").findIndex(item => item.get("id").eq(findId))
+          findIndex: root.get('data').findIndex(item => item.get('id').eq(findId))
         };
         const optModel = eval(compile(model, { compiler }));
 
@@ -437,11 +437,11 @@ describe('testing array', () => {
         expect(inst.findIndex).toEqual(0);
       });
 
-      it("should return -1 if not found", async () => {
+      it('should return -1 if not found', async () => {
         const initialData = { data: [{ id: 1 }, { id: 2 }, { id: 3 }] };
         const findId = 4;
         const model = {
-          findIndex: root.get("data").findIndex(item => item.get("id").eq(findId))
+          findIndex: root.get('data').findIndex(item => item.get('id').eq(findId))
         };
         const optModel = eval(compile(model, { compiler }));
 

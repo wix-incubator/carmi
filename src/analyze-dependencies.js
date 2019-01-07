@@ -160,8 +160,8 @@ const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
 
 /**
  * @param {string[]} deps
- * @param {string} output
- * @return {*}
+ * @param {string} cacheFilePath
+ * @return {boolean}
  */
 function isUpToDate(deps, cacheFilePath) {
   try {

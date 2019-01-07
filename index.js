@@ -165,7 +165,7 @@ const implement = (abstract, expr) => {
     expr = Expr(new Token('quote', currentLine()), expr.toJSON());
   }
   if (!isExpression(target) || target[0].$type !== 'abstract') {
-    throw new Error(`can only implement an abstract`);
+    throw new Error('can only implement an abstract');
   }
   throwOnSelfReferencesToPlaceholder(expr, target)
   // throwOnTokensFromOtherFuncs(expr, target[0][SourceTag]);
@@ -343,7 +343,7 @@ function withName(name, val) {
     const tokenData = TokenTypeData[tokenType];
     if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
       name = name.replace(/[\W_]+/g, '');
-      val[0][SourceTag] = val[0][SourceTag] + ":" + name;
+      val[0][SourceTag] = val[0][SourceTag] + ':' + name;
     } else {
       throw new Error('can only name collection functions:' + name);
     }

@@ -60,7 +60,7 @@ $tainted = new WeakSet();`
             const conditionals = expr[0].$trackedExpr
               ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
               : [];
-            return `let $tracked = [$invalidatedKeys,key];` + conditionals.join('');
+            return `let $tracked = [$invalidatedKeys,key];${conditionals.join('')}`;
           }
           return '';
         },
@@ -99,7 +99,7 @@ $tainted = new WeakSet();`
         }
         return super.generateExpr(expr)
       case 'topLevel':
-        return `$topLevel`;
+        return '$topLevel';
       case 'and':
         return (
           '(' +
@@ -175,7 +175,7 @@ $tainted = new WeakSet();`
           : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
       }, ${this.invalidates(expr)})`;
       case 'topLevel':
-        return `$res`;
+        return '$res';
       case 'context':
         return 'context[0]';
       case 'recur':

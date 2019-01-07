@@ -117,5 +117,5 @@ module.exports = function({chain, or, and}) {
       return array.filter(value => value)
     }
 
-    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, includes, findIndex, includesValue, has, reverse, last, head, compact};
+    return { getIn, includes, assignIn, reduce, concat, find, join, sum, append, setIn, pick, findIndex, includesValue, has, reverse, last, head, compact};
 };
