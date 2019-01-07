@@ -24,5 +24,12 @@
                 <role>owner</role>
             </roles>
         </developer>
+        <developer>
+            <name>Ido Keren</name>
+            <email>idok@wix.com</email>
+            <roles>
+                <role>owner</role>
+            </roles>
+        </developer>
     </developers>
 </project>
