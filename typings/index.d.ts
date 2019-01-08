@@ -8,7 +8,7 @@ export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType
 
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
-type AsNativeRecursive<T> = T extends object ? {[k in keyof T]: AsNative<T[k]>} : AsNative<T>
+type AsNativeRecursive<T> = T extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
      * Returns a graph that resolves to the return type of a named function from the function library
@@ -324,6 +324,11 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     includes(value: Argument<Value>): BoolGraph<F>
 
     /**
+     * Resolves to the same array, with only truthy values
+     */
+    compact(): this
+
+    /**
      * Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
      * The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
      * 
@@ -466,9 +471,12 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     or<A, B, C, D>(a: A, b: B, c: C, d: D): Graph<A, F> | Graph<B, F> | Graph<C, F> | Graph<D, F>
     or<A, B, C, D, E>(a: A, b: B, c: C, d: D, e: E): Graph<A, F> | Graph<B, F> | Graph<C, F> | Graph<D, F> | Graph<E, F>
     or<A, B, C, D, E, FF>(a: A, b: B, c: C, d: D, e: E, f: FF): Graph<A, F> | Graph<B, F> | Graph<C, F> | Graph<D, F> | Graph<E, F> | Graph<FF, F>
+    and<A>(a: A): Graph<A, F>
     and<A, B>(a: A, b: B): Graph<B, F>
     and<A, B, C>(a: A, b: B, c: C): Graph<C, F>
     and<A, B, C, D>(a: A, b: B, c: C, d: D): Graph<D, F>
+    and<A, B, C, D, E>(a: A, b: B, c: C, d: D, e: E): Graph<E, F>
+    and<A, B, C, D, E, FF>(a: A, b: B, c: C, d: D, e: E, f: FF): Graph<FF, F>
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
     call<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
