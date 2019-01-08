@@ -3,9 +3,7 @@ const _ = require('lodash');
 module.exports = function({chain, or, and}) {
     function getIn(obj, path) {
         const pathGetters = [obj].concat(path.map((_part, index) => path.slice(0,index + 1).reduce((acc, part) => acc.get(part),obj)))
-        return _.reduceRight(path, (acc, _part, index) => {
-            return pathGetters[index].ternary(acc, pathGetters[index])
-        }, pathGetters[pathGetters.length - 1]);
+        return and(...pathGetters);
     }
 
     function assignIn(obj, args) {
