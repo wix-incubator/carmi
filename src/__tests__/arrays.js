@@ -503,6 +503,31 @@ describe('testing array', () => {
       const inst = optModel(initialData);
       expect(inst.numbers).toEqual(initialData.reverse());
     });
+
+    describe('isEmpty', async () => {
+      it('should return true for empty array', async () => {
+        const initialData = {data: []}
+        const model = {
+          isEmpty: root.get('data').isEmpty(),
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.isEmpty).toEqual(true);
+      });
+
+      it('should return false for non empty array', async () => {
+        const initialData = {data: [1]}
+        const model = {
+          isEmpty: root.get('data').isEmpty(),
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.isEmpty).toEqual(false);
+      });
+    })
+
     it('test head', async () => {
       const model = {
         first: root.head()
