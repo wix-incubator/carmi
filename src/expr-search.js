@@ -40,11 +40,27 @@ function flattenExpression(...expressions) {
     return output;
 }
 
-
-function getAllFunctions(sourceExpr) {
-    const allExpressions = flattenExpression(sourceExpr);
-    const exprByFunc = _.groupBy(allExpressions, expr => expr[0].$funcId);
-    return _.map(exprByFunc, expressions => expressions[0]);
+function flattenExpressionWithoutInnerFunctions(...expr) {
+    const output = [];
+    searchExpressionsWithoutInnerFunctions((expr) => output.push(expr), ...expr);
+    return output;
 }
 
-module.exports = { searchExpressions, searchExpressionsWithoutInnerFunctions, flattenExpression, getAllFunctions };
+
+function getAllFunctions(expr) {
+    const output = [expr];
+    searchExpressions((e) => {
+        if (e[0].$type === 'func') {
+            output.push(e)
+        }
+    }, [expr]);
+    return output;
+}
+
+module.exports = { 
+    searchExpressions,
+    searchExpressionsWithoutInnerFunctions,
+    flattenExpression,
+    flattenExpressionWithoutInnerFunctions,
+    getAllFunctions
+};

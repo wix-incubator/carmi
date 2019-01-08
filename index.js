@@ -28,7 +28,7 @@ try {
 
 const path = require('path');
 const fs = require('fs');
-const exprHash = require('./src/expr-hash');
+const {exprHash} = require('./src/expr-hash');
 const {searchExpressionsWithoutInnerFunctions, searchExpressions} = require('./src/expr-search');
 
 const prettier = require('prettier');

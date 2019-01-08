@@ -102,6 +102,12 @@ function recursiveMap() {
   }
 }
 
+function helperFunc() {
+  function $FUNCNAME(/* FN_ARGS */) {
+    return $EXPR1;
+  }
+}
+
 function recursiveMapValues() {
   function $FUNCNAME(val, key, context, loop) {
     return $EXPR1;
@@ -224,4 +230,4 @@ function library() {
   }
 }
 
-module.exports = { base, library, func, topLevel, recursiveMapValues, recursiveMap };
+module.exports = { base, library, func, topLevel, helperFunc, recursiveMapValues, recursiveMap };

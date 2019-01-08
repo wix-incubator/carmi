@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const {SourceTag} = require('./lang');
 const path = require('path');
+const {exprHash} = require('./expr-hash');
 
 function tagToSimpleFilename(tag) {
     const lineParts = tag.split(path.sep);

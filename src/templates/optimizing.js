@@ -758,7 +758,7 @@ function library() {
       invalidates = invalidates && keysList.length && res.hasOwnProperty(keysList[0]);
       for (let i = 0; i < keysList.length; i++) {
         const name = keysList[i];
-        setOnObject(res, name, newVal[name], invalidates);
+        setOnObject(res, name, newVal[i], invalidates);
       }
       return res;
     }
@@ -864,16 +864,15 @@ function library() {
   }
 
 function topLevel() {
-  $invalidatedRoots.add('$FUNCNAME');
   function $$FUNCNAMEBuild() {
     const acc = $res;
-    const key = '$FUNCNAME';
+    const key = $TOP_LEVEL_INDEX;
     const $invalidatedKeys = $invalidatedRoots;
     /* PRETRACKING */
     const newValue = $EXPR;
     setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
     $res['$FUNCNAME'] = newValue;
-    $invalidatedRoots.delete('$FUNCNAME');
+    $invalidatedRoots.delete($TOP_LEVEL_INDEX);
     /* TRACKING */
     return $topLevel[$TOP_LEVEL_INDEX];
   }
@@ -907,6 +906,12 @@ function recursiveFunc() {
   }
 }
 
+function helperFunc() {
+  function $FUNCNAME($invalidatedKeys,/* FN_ARGS */) {
+    return $EXPR1;
+  }
+}
+
 const base = require('./naive').base;
 
 module.exports = {
@@ -915,6 +920,7 @@ module.exports = {
   topLevel,
   recursiveMap: recursiveFunc,
   recursiveMapValues: recursiveFunc,
+  helperFunc,
   object,
   array,
   func
