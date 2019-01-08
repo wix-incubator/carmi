@@ -20,10 +20,10 @@ const {
   SourceTag
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
-const exprHash = require('./expr-hash');
-const {flattenExpression, getAllFunctions} = require('./expr-search');
+const {exprHash} = require('./expr-hash');
+const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {tagToSimpleFilename} = require('./expr-names');
-const {rewriteStaticsToTopLevels} = require('./expr-rewrite');
+const {rewriteStaticsToTopLevels, rewriteLocalsToLet, rewriteUniqueByHash} = require('./expr-rewrite');
 
 let exprCounter = 0;
 
@@ -67,7 +67,7 @@ function joinOr(...conds) {
   }
   if (conds.length === 1) {
     return conds[0]
-  };
+  }
   return Expr(Or, ...conds);
 } 
 
@@ -204,6 +204,10 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
   expr[0].$funcType = funcType;
   expr[0].$tracked = false;
   expr[0].$parent = null;
+  if (expr[0].$type === 'func') {
+    const subExprs = flattenExpressionWithoutInnerFunctions([expr[1]]);
+    expr[0].$allTokensInFunc = _(subExprs).flatten().filter(t => t instanceof Token).groupBy(t => t.$type).keys().value();
+  }
   if (expr[0].$tokenType === 'abstract') {
     throw new Error(`You defined a abstract in ${expr[0].SourceTag} called ${expr[1]} but did't resolve it`);
   }
@@ -230,7 +234,7 @@ function cloneExpressions(getters) {
 }
 
 function tagAllExpressions(getters) {
-  _.forEach(getters, (getter, name) => tagExpressions(getter, name, 0, [1], 'topLevel', name));
+  _.forEach(getters, (getter, name) => tagExpressions(getter, name, 0, [1], getter[0].$type === 'func' ? 'helperFunc' : 'topLevel', name));
 }
 
 function tagUnconditionalExpressions(expr, cond) {
@@ -461,7 +465,9 @@ function findFuncExpr(getters, funcId) {
 }
 
 function normalizeAndTagAllGetters(getters, setters) {
+  getters = rewriteUniqueByHash(getters);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
+  // getters = rewriteLocalsToLet(getters);
   getters = rewriteStaticsToTopLevels(getters);
   getters = cloneExpressions(getters);
   tagAllExpressions(getters);

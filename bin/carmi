@@ -1,15 +1,18 @@
 #!/usr/bin/env node
+
 'use strict';
+
 const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
-const {isUpToDate} = require('../src/analyze-dependencies');
+const {isUpToDate, analyzeDependencies} = require('../src/analyze-dependencies');
+const getCacheFilePath = require('../src/get-cache-file-path');
 
 const optionDefinitions = [
   { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
   { name: 'output', type: String, defaultValue: '', description: 'output filename' },
-  { name: 'cwd', type: String, defaultValue: '.', description: 'root directory for carmi files. Needed for babel config' },
+  { name: 'cwd', type: String, defaultValue: process.cwd(), description: 'root directory for carmi files. Needed for babel config' },
   {
     name: 'compiler',
     type: String,
@@ -20,12 +23,6 @@ const optionDefinitions = [
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
-  {
-    name: 'cache',
-    type: String,
-    defaultValue: '',
-    description: 'caches the generated code in the specified folder if the model did not change'
-  },
   { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
   { name: 'stats', type: String, defaultValue: '', description: 'generate stats file' },
   { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
@@ -39,50 +36,56 @@ ${optionDefinitions
   .join('\n')}
 `;
 
+const options = commandLineArgs(optionDefinitions);
+
 async function run() {
-  const options = commandLineArgs(optionDefinitions);
   if (options.help) {
     return console.log(HELP);
   }
 
-  const cwd = options['cwd'] || process.cwd()
-  require('@babel/register')({
-    rootMode: 'upward', extensions: ['.ts', '.js'], cwd
-  })
-  
   const absPath = path.resolve(process.cwd(), options.source);
+  const cacheFilePath = getCacheFilePath(absPath);
 
-  const outFile = options.output || tempFile(absPath)
-  // console.log(outFile)
-  if (!options['no-cache'] && isUpToDate(absPath, outFile, options.stats)) {
-    if (options.output) {
-      console.log('output is up to date skipping carmi');
-    } else {
-      const out = await fs.readFile(outFile, 'utf-8')
-      console.log(out);
+  require('@babel/register')({
+    rootMode: 'upward',
+    extensions: ['.ts', '.js'],
+    ignore: [/node_modules/]
+  })
+
+  const dependencies = analyzeDependencies(absPath);
+
+  if (options.stats) {
+    await fs.outputJSON(path.resolve(options.stats), dependencies);
+  }
+
+  let code;
+
+  // return from cache
+  if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
+    code = await fs.readFile(cacheFilePath, 'utf-8');
+  } else {
+    // run carmi and generate cache
+    let model;
+
+    try {
+      model = require(absPath);
+    } catch (e) {
+      console.error(`failed to require ${options.source} ${e.stack}`);
+      throw e;
     }
-    return;
+
+    code = carmi.compile(model, options);
   }
 
-  let model;
-  try {
-    model = require(absPath);
-  } catch (e) {
-    console.error(`failed to require ${options.source} ${e.stack}`);
-    throw e;
+  if (!options['no-cache']) {
+    await fs.outputFile(cacheFilePath, code, 'utf-8')
   }
-  const code = carmi.compile(model, options);
-  if (!options.output) {
+
+  if (options.output) {
+    await fs.outputFile(options.output, code);
+  } else {
     console.log(code);
   }
-  await fs.outputFile(outFile, code);
-}
-
-function tempFile(absPath) {
-  const crypto = require('crypto');
-  const hash = crypto.createHash('md5').update(absPath).digest("hex");
-  // console.log(hash)
-  return path.resolve('node_modules/.cache/carmi', hash)
 }
 
 run().catch(e => {

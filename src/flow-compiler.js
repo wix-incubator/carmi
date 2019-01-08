@@ -1,11 +1,8 @@
 const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
-const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const fs = require('fs');
-const { writeFile, mkdtemp, rmdir, unlink } = require('./promise-fs');
 const { spawn, spawnSync } = require('child_process');
 const { extractTypes } = require('./flow-types');
 

@@ -40,10 +40,6 @@ $tainted = new WeakSet();`
               .join(',');
           }
         };
-      case 'array':
-        return {
-          ARGS: () => expr.length - 1
-        };
     }
     return {};
   }
@@ -52,6 +48,8 @@ $tainted = new WeakSet();`
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
     return Object.assign(
+      {},
+      super.exprTemplatePlaceholders(expr, funcName),
       {
         TOP_LEVEL_INDEX: () => '' + (this.getters[funcName] ? this.topLevelToIndex(funcName) : -1),
         TRACKING: () => this.tracking(expr),
@@ -60,16 +58,21 @@ $tainted = new WeakSet();`
             const conditionals = expr[0].$trackedExpr
               ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
               : [];
-            return `let $tracked = [$invalidatedKeys,key];` + conditionals.join('');
+            return `let $tracked = [$invalidatedKeys,key];${conditionals.join('')}`;
           }
           return '';
         },
         INVALIDATES: () => {
           return !!this.invalidates(expr);
-        }
       },
-      this.byTokenTypesPlaceHolders(expr),
-      super.exprTemplatePlaceholders(expr, funcName)
+        FN_ARGS: () => expr[0].$type === 'func' ? ['key'].concat(['val','context','loop']
+              .concat(_.range(10).map(i => 'arg'+i))
+              .filter(t => expr[0].$allTokensInFunc.indexOf(t) !== -1))
+            .map(t => new Token(t))
+            .map(t => t.$type)
+            .join(',') : ''
+      },
+      this.byTokenTypesPlaceHolders(expr)
     );
   }
 
@@ -99,7 +102,7 @@ $tainted = new WeakSet();`
         }
         return super.generateExpr(expr)
       case 'topLevel':
-        return `$topLevel`;
+        return '$topLevel';
       case 'and':
         return (
           '(' +
@@ -124,7 +127,9 @@ $tainted = new WeakSet();`
           3
         )}))`;
       case 'object':
-        return `object($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, object$${
+        return `object($invalidatedKeys,key,[${
+          _.range(2, expr.length, 2).map(idx => this.generateExpr(expr[idx])).join(',')
+        }], ${this.uniqueId(expr)}, object$${
           expr[0].$duplicate ? expr[0].$duplicate : expr[0].$id
         }Args, ${this.invalidates(expr)})`;
       case 'array':
@@ -175,20 +180,29 @@ $tainted = new WeakSet();`
           : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
       }, ${this.invalidates(expr)})`;
       case 'topLevel':
-        return `$res`;
+        return '$res';
       case 'context':
         return 'context[0]';
       case 'recur':
         return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
       case 'func':
         return expr[0].$duplicate ? expr[0].$duplicate : expr[0].$funcId;
+      case 'invoke':
+        return `(${expr[1]}($invalidatedKeys, ${['key'].concat(['val','context','loop']
+            .filter(t => this.getters[expr[1]][0].$allTokensInFunc.indexOf(t) !== -1))
+          .concat(expr.slice(2).map(t => this.generateExpr(t)).join(','))}))`
       default:
         return super.generateExpr(expr);
     }
   }
 
   buildDerived(name) {
-    return `$invalidatedRoots.has('${name}') && $${name}Build();`;
+    return `($first || $invalidatedRoots.has(${this.topLevelToIndex(name)})) && $${name}Build();`;
+  }
+
+  isStaticObject(expr) {
+    return _.range(1, expr.length, 2)
+      .every(idx => typeof expr[idx] === 'string')
   }
 
   buildExprFunctionsByTokenType(acc, expr) {
@@ -198,7 +212,9 @@ $tainted = new WeakSet();`
     }
     switch (tokenType) {
       case 'object':
-        this.appendExpr(acc, tokenType, expr, `${tokenType}$${expr[0].$id}`);
+        if (this.isStaticObject(expr)) {
+          this.appendExpr(acc, tokenType, expr, `${tokenType}$${expr[0].$id}`);
+        }
         break;
       default:
         super.buildExprFunctionsByTokenType(acc, expr);

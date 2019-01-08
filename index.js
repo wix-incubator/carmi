@@ -24,11 +24,11 @@ compilerTypes.optimizing = require('./src/optimizing-compiler');
 try {
   compilerTypes.flow = require('./src/flow-compiler');
   compilerTypes.rust = require('./src/rust-compiler');
-} catch (e) { }
+} catch (e) { } //eslint-disable-line no-empty
 
 const path = require('path');
-
-const exprHash = require('./src/expr-hash');
+const fs = require('fs');
+const {exprHash} = require('./src/expr-hash');
 const {searchExpressionsWithoutInnerFunctions, searchExpressions} = require('./src/expr-search');
 
 const prettier = require('prettier');
@@ -165,7 +165,7 @@ const implement = (abstract, expr) => {
     expr = Expr(new Token('quote', currentLine()), expr.toJSON());
   }
   if (!isExpression(target) || target[0].$type !== 'abstract') {
-    throw new Error(`can only implement an abstract`);
+    throw new Error('can only implement an abstract');
   }
   throwOnSelfReferencesToPlaceholder(expr, target)
   // throwOnTokensFromOtherFuncs(expr, target[0][SourceTag]);
@@ -270,11 +270,11 @@ function compile(model, options) {
     path.resolve(process.cwd(), options.cache, exprHash({ model, options }));
   if (options.cache) {
     try {
-      const result = require('fs')
+      const result = fs
         .readFileSync(hashFile)
         .toString();
       return result;
-    } catch (e) { }
+    } catch (e) { } //eslint-disable-line no-empty
   }
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
@@ -286,7 +286,7 @@ function compile(model, options) {
   if (options.prettier) {
     try {
       source = prettier.format(rawSource, { parser: 'babylon' });
-    } catch (e) { }
+    } catch (e) { } //eslint-disable-line no-empty
   }
   let result;
 
@@ -332,7 +332,7 @@ function compile(model, options) {
     result = source;
   }
   if (hashFile) {
-    require('fs').writeFileSync(hashFile, result);
+    fs.writeFileSync(hashFile, result);
   }
   return result;
 }
@@ -343,7 +343,7 @@ function withName(name, val) {
     const tokenData = TokenTypeData[tokenType];
     if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
       name = name.replace(/[\W_]+/g, '');
-      val[0][SourceTag] = val[0][SourceTag] + ":" + name;
+      val[0][SourceTag] = val[0][SourceTag] + ':' + name;
     } else {
       throw new Error('can only name collection functions:' + name);
     }

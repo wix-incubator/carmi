@@ -161,10 +161,18 @@ class NaiveCompiler {
       case 'key':
       case 'arg0':
       case 'arg1':
+      case 'arg2':
+      case 'arg3':
+      case 'arg4':
+      case 'arg5':
+      case 'arg6':
+      case 'arg7':
+      case 'arg8':
+      case 'arg9':
       case 'context':
         return tokenType;
       case 'topLevel':
-        return `$res`;
+        return '$res';
       case 'cond':
           return `$cond_${this.generateExpr(expr[1])}`
       case 'effect':
@@ -178,6 +186,11 @@ class NaiveCompiler {
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
           .join('')})`;
+      case 'invoke':
+          return `(${expr[1]}(${['key','val','context','loop']
+            .filter(t => this.getters[expr[1]][0].$allTokensInFunc.indexOf(t) !== -1)
+            .map(t => new Token(t))
+            .concat(expr.slice(2)).map(t => this.generateExpr(t)).join(',')}))`
       case 'abstract':
           throw expr[2]
       default:
@@ -221,7 +234,13 @@ class NaiveCompiler {
       FUNCNAME: funcName,
       EXPR1: () => (expr.length > 1 ? this.generateExpr(expr[1]) : ''),
       EXPR: () => this.generateExpr(expr),
-      ID: () => expr[0].$id
+      ID: () => expr[0].$id,
+      FN_ARGS: () => expr[0].$type === 'func' ? ['key','val','context','loop']
+            .concat(_.range(10).map(i => 'arg'+i))
+            .filter(t => expr[0].$allTokensInFunc.indexOf(t) !== -1)
+            .map(t => new Token(t))
+            .map(t => this.generateExpr(t))
+            .join(',') : ''
     };
   }
 
@@ -252,7 +271,9 @@ class NaiveCompiler {
     _.forEach(expr.slice(1), this.buildExprFunctions.bind(this, acc));
     this.buildExprFunctionsByTokenType(acc, expr);
     if (typeof name === 'string') {
+      if (expr[0].$type !== 'func') {
       this.appendExpr(acc, 'topLevel', expr, name);
+    }
     }
     return acc;
   }
@@ -280,6 +301,7 @@ class NaiveCompiler {
       NAME: this.options.name,
       AST: () => JSON.stringify(this.getters, null, 2),
       DEBUG: () => (_whole, block) => (this.options.debug ? block : ''),
+      COUNT_GETTERS: () => Object.keys(this.getters).length,
       SOURCE_FILES: () => () => this.options.debug ? (JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
         const tag = getter instanceof Expression && getter[0][SourceTag];
         const simpleFileName = tag && tagToSimpleFilename(tag);
@@ -293,6 +315,7 @@ class NaiveCompiler {
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>
         topologicalSortGetters(this.getters)
+          .filter(name => this.getters[name][0].$type !== 'func')
           .map(this.buildDerived.bind(this))
           .join('\n'),
       SETTERS: () => _.map(this.setters, this.buildSetter.bind(this)).join(',')

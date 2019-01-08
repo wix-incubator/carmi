@@ -3,22 +3,27 @@
 
 'use strict';
 
-const {compile} = require('carmi');
+const path = require('path')
+const execa = require('execa')
+const dargs = require('dargs')
+const tempy = require('tempy')
 
-module.exports = function CarmiLoader(content) {
-  const requiredPreCarmi = new Set(Object.keys(require.cache));
-  const compiledCode = compile(content, {compiler: 'optimizing', format: 'esm'});
+module.exports = function CarmiLoader() {
+  const statsPath = tempy.file({extension: 'json'})
 
-  Object.keys(require.cache).forEach(key => {
-    if (!requiredPreCarmi.has(key)) {
-      // Clear user loaded modules from require.cache
-      delete require.cache[key];
+  const options = {
+    source: this.getDependencies()[0],
+    stats: statsPath,
+    format: 'cjs',
+  }
 
-      // Add those modules as loader dependencies
-      // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
-      this.addDependency(key);
-    }
+  const {stdout: compiled} = execa.sync('npx', ['carmi', ...dargs(options)]);
+
+  require(statsPath).forEach(filePath => {
+    // Add those modules as loader dependencies
+    // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
+    this.addDependency(filePath)
   });
 
-    return compiledCode;
+  return compiled;
 };

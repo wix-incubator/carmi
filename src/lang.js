@@ -77,12 +77,20 @@ const TokenTypeData = {
   loop: new TokenTypes({ nonVerb: true }),
   recur: new TokenTypes({ chainIndex: 2, len: [3, 3] }),
   context: new TokenTypes({ nonVerb: true }),
-  func: new TokenTypes({ private: true }),
+  func: new TokenTypes({ private: true, len: [2, 2] }),
+  invoke: new TokenTypes({ private: true, len: [2, Number.MAX_SAFE_INTEGER] }),
   val: new TokenTypes({ nonVerb: true }),
   key: new TokenTypes({ nonVerb: true }),
   arg0: new TokenTypes({ nonVerb: true }),
   arg1: new TokenTypes({ nonVerb: true }),
   arg2: new TokenTypes({ nonVerb: true }),
+  arg3: new TokenTypes({ nonVerb: true }),
+  arg4: new TokenTypes({ nonVerb: true }),
+  arg5: new TokenTypes({ nonVerb: true }),
+  arg6: new TokenTypes({ nonVerb: true }),
+  arg7: new TokenTypes({ nonVerb: true }),
+  arg8: new TokenTypes({ nonVerb: true }),
+  arg9: new TokenTypes({ nonVerb: true }),
   topLevel: new TokenTypes({ nonVerb: true, private: true }),
   cond: new TokenTypes({ private: true }),
   null: new TokenTypes({ nonVerb: true, private: true }),
@@ -156,7 +164,7 @@ function validatePathSegmentArguments(args) {
 
 AllTokens.Setter = (...args) => {
   if (args.length === 0) {
-    throw new Error(`Invalid arguments for setter/splice - must receive a path`);
+    throw new Error('Invalid arguments for setter/splice - must receive a path');
   }
   validatePathSegmentArguments(args);
   return new SetterExpression(...args);

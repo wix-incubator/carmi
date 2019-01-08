@@ -26,4 +26,4 @@ const exprHash = memoizeNonPrimitives(
   primitive => hashString(JSON.stringify(primitive))
 );
 
-module.exports = exprHash;
+module.exports = {exprHash, hashString};

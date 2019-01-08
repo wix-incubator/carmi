@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
 const isCarmiRegex = /^(.+\.carmi)(?:\.js)?$/;
 const isCarmiFilename = x => isCarmiRegex.test(x);
-const { relative, resolve } = require("path");
-const compileFile = require("./compileFile");
-const babylon = require("babylon");
+const { relative, resolve } = require('path');
+const compileFile = require('./compileFile');
+const babylon = require('babylon');
 
 const parseCompiledFile = code => {
   const compiledAST = babylon.parse(code);
@@ -15,12 +15,12 @@ const parseCompiledFile = code => {
 const findCarmiDeclarationComment = file => {
   const comments = file.ast.comments;
   if (!comments) return null;
-  return comments.find(comment => comment.value.trim().includes("@carmi"));
+  return comments.find(comment => comment.value.trim().includes('@carmi'));
 };
 
 module.exports = function carmiBabelTransform({ types: t }) {
   return {
-    name: "carmi",
+    name: 'carmi',
     pre() {
       this.carmiDeclarationComment = findCarmiDeclarationComment(this.file);
       this.doWork =
@@ -33,15 +33,15 @@ module.exports = function carmiBabelTransform({ types: t }) {
         if (!this.doWork) return;
         this.programPath = path;
         this.carmiDeclarationComment.value = this.carmiDeclarationComment.value.replace(
-          "@carmi",
-          ""
+          '@carmi',
+          ''
         );
       },
       CallExpression(path) {
         if (!this.doWork) return;
         if (
-          path.node.callee.name === "require" &&
-          path.node.arguments[0].value !== "carmi"
+          path.node.callee.name === 'require' &&
+          path.node.arguments[0].value !== 'carmi'
         ) {
           this.requireExpressions.push(path.node);
         }
@@ -52,8 +52,8 @@ module.exports = function carmiBabelTransform({ types: t }) {
       const compiledFile = compileFile(this.file.opts.filename);
       const functionAST = parseCompiledFile(compiledFile);
       const moduleExportsAssignment = t.assignmentExpression(
-        "=",
-        t.identifier("module.exports"),
+        '=',
+        t.identifier('module.exports'),
         functionAST
       );
       const expressions = this.requireExpressions

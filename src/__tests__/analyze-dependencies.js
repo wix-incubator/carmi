@@ -24,14 +24,16 @@ describe('analyze-dependencies', () => {
 
   it('should isUpToDate when output is new', async () => {
     await fsTouch(res('esm/a.output.js'))
-    const deps = isUpToDate(res('esm/a.carmi.js'), res('esm/a.output.js'))
-    expect(deps).toEqual(true)
+    const deps = analyzeDependencies(res('esm/a.carmi.js'))
+    const upToDate = isUpToDate(deps, res('esm/a.output.js'))
+    expect(upToDate).toEqual(true)
   })
 
   it('should isUpToDate when input is new', async () => {
     await fsTouch(res('esm/c.carmi.js'))
     // fs.appendFile(res('esm/a.carmi.js'), '')
-    const deps = isUpToDate(res('esm/a.carmi.js'), res('esm/a.output.js'))
-    expect(deps).toEqual(false)
+    const deps = res('esm/a.carmi.js')
+    const upToDate = isUpToDate(deps, res('esm/a.output.js'))
+    expect(upToDate).toEqual(false)
   })
 })

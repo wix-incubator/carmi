@@ -40,6 +40,9 @@
     "babylon-jsx": "^1.0.0",
     "babylon-walk": "^1.0.2",
     "command-line-args": "^5.0.2",
+    "dargs": "^6.0.0",
+    "execa": "^1.0.0",
+    "find-cache-dir": "^2.0.0",
     "flow-bin": "^0.73.0",
     "fs-extra": "^7.0.1",
     "lodash": "^4.17.4",
@@ -47,16 +50,18 @@
     "pify": "^4.0.1",
     "prettier": "^1.13.5",
     "resolve": "^1.9.0",
+    "tempy": "^0.2.1",
     "toposort": "^1.0.6",
     "typescript": "^3.2.1"
   },
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",
+    "eslint": "^5.12.0",
+    "eslint-config-wix-editor": "^7.0.0",
     "invert-promise": "^1.0.1",
     "jest": "^23.6.0",
     "mobx": "^5.0.2",
     "random-seed": "^0.3.0",
-    "tmp-promise": "^1.0.5",
     "wnpm-ci": "latest"
   },
   "description": "CARMI - Compiler for Automatic Reactive Modelling of Inference"

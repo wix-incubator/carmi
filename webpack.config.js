@@ -9,7 +9,7 @@ module.exports = {
     library: 'carmi',
     libraryTarget: 'umd'
   },
-  plugins: [new webpack.IgnorePlugin(/(rust|flow)\-compiler/), new webpack.IgnorePlugin(/rollup\-plugin\-uglify/)],
+  plugins: [new webpack.IgnorePlugin(/(rust|flow)-compiler/), new webpack.IgnorePlugin(/rollup-plugin-uglify/)],
   resolve: {
     alias: {}
   },
