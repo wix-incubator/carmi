@@ -80,7 +80,7 @@ describe('Tests for usability and debugging carmi', () => {
       expect(inst.twice).toEqual([1, true]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     })
-    it('passing item between functions should throw nicer error message', async () => {
+    it('passing item between functions should throw nicer error message', () => {
       let e = null
       try {
         root.mapValues(item =>
@@ -91,7 +91,33 @@ describe('Tests for usability and debugging carmi', () => {
       }
       expect(e.message).toContain('eq')
       expect(e.message).toContain('filterBy')
-    });
+    })
+
+    it('when using non-objects with object functions, throw a nicer error', () => {
+      const model = {three: chain(3).mapValues(a => a)}
+      const optCode = eval(compile(model, { compiler, typeCheck: true }));
+      let e
+      try {
+        optCode([], funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('3.mapValues')
+    })
+    
+    it('when using non-numbers with nuber functions, throw a nicer error', () => {
+      const model = {three: chain({a: 1}).ceil()}
+      const optCode = eval(compile(model, { compiler, typeCheck: true }));
+      let e
+      try {
+        optCode([], funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('}.ceil')
+    })
     
     it('allow primitives on the model', async () => {
       const model = {three: chain(3)}

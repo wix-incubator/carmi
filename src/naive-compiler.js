@@ -1,4 +1,4 @@
-const { Expr, Token, Expression, SpliceSetterExpression, SourceTag } = require('./lang');
+const { Expr, Token, Expression, SpliceSetterExpression, SourceTag, TokenTypeData } = require('./lang');
 const _ = require('lodash');
 const { splitSettersGetters, topologicalSortGetters, tagAllExpressions, tagToSimpleFilename } = require('./expr-tagging');
 const objectHash = require('object-hash');
@@ -37,6 +37,35 @@ class NaiveCompiler {
 
   get template() {
     return require('./templates/naive.js');
+  }
+  withTypeCheck(expr, next) {
+    if (!this.options.typeCheck) {
+      return next
+    }
+
+    const currentToken = expr instanceof Expression ? expr[0] : expr
+    const source = currentToken[SourceTag]
+
+    const tokenType = currentToken.$type
+    const {expectedType, chainIndex} = TokenTypeData[tokenType]
+
+    if (!expectedType) {
+      return next
+    }
+
+    const selfExpr = expr[chainIndex]
+    const self = this.generateExpr(selfExpr)
+    return `
+      (() => {
+        const value = (${self})
+        const actualType = typeof value
+        if (actualType!== '${expectedType}') {
+          throw new TypeError(\`Expected ${expectedType}, received \${actualType}.
+          Trying to call \${JSON.stringify(value)}.${tokenType}
+          Source: ${source}\`)
+        }
+      })() || (${next})
+    `
   }
 
   generateExpr(expr) {
@@ -112,7 +141,7 @@ class NaiveCompiler {
       case 'floor':
       case 'ceil':
       case 'round':
-        return `(${nativeMathFunctions[tokenType]})(${this.generateExpr(expr[1])})`;
+        return this.withTypeCheck(expr, `(${nativeMathFunctions[tokenType]})(${this.generateExpr(expr[1])})`);
       case 'parseInt':
         return `parseInt(${this.generateExpr(expr[1])}, ${expr.length > 2 ? expr[2] : 10})`;
       case 'eq':
@@ -125,15 +154,15 @@ class NaiveCompiler {
       case 'mult':
       case 'div':
       case 'mod':
-        return `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`;
+        return this.withTypeCheck(expr, `(${this.generateExpr(expr[1])}) ${nativeOps[tokenType]} (${this.generateExpr(expr[2])})`);
       case 'startsWith':
       case 'endsWith':
       case 'split':
-        return `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return this.withTypeCheck(expr, `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`);
       case 'substring':
-        return `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`;
+        return this.withTypeCheck(expr, `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`);
       case 'get':
-        return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
+        return this.withTypeCheck(expr, `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`);
       case 'mapValues':
       case 'filterBy':
       case 'groupBy':
@@ -145,9 +174,9 @@ class NaiveCompiler {
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-        return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
+        return this.withTypeCheck(expr, `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
-          })`;
+          })`);
       case 'loop':
         return 'loop';
       case 'recur':

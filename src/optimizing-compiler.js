@@ -147,16 +147,16 @@ $tainted = new WeakSet();`
           .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`;
       case 'keys':
       case 'values':
-        return `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
+        return this.withTypeCheck(expr, `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'values' ? 'true' : 'false'
-        })`;
+        })`);
       case 'size':
         return `size($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':
       case 'defaults':
-        return `assignOrDefaults($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
+        return this.withTypeCheck(expr, `assignOrDefaults($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
-        }, ${this.invalidates(expr)})`;
+        }, ${this.invalidates(expr)})`);
       case 'range':
         return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
@@ -172,13 +172,13 @@ $tainted = new WeakSet();`
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-        return `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
+        return this.withTypeCheck(expr, `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
         typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null')
           ? null
           : `array($tracked,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
-      }, ${this.invalidates(expr)})`;
+      }, ${this.invalidates(expr)})`);
       case 'context':
         return 'context[0]';
       case 'recur':
