@@ -80,6 +80,19 @@ describe('Tests for usability and debugging carmi', () => {
       expect(inst.twice).toEqual([1, true]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     })
+    it('passing item between functions should throw nicer error message', async () => {
+      let e = null
+      try {
+        root.mapValues(item =>
+          root.filterBy(innerItem => innerItem.eq(item))
+        )
+      } catch (err) {
+        e = err
+      }
+      expect(e.message).toContain('eq')
+      expect(e.message).toContain('filterBy')
+    });
+    
     it('allow primitives on the model', async () => {
       const model = {three: chain(3)}
       const optCode = eval(compile(model, { compiler }));
