@@ -10,6 +10,14 @@ export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> = T extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
+type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> = 
+    unknown extends A ? (F extends (...args: (infer Args)[]) => infer R ? F : never) :
+    unknown extends B ? (F extends (a: A, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
+    unknown extends C ? (F extends (a: A, b: B, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
+    unknown extends D ? (F extends (a: A, b: B, c: C, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
+    unknown extends E ? (F extends (a: A, b: B, c: C, d: D, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
+    never
+
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
      * Returns a graph that resolves to the return type of a named function from the function library
@@ -17,13 +25,16 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param func A function name from the function library
      * @param args Args to pass, in addition to the value resolved from ""
      */
-    call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Args : never)>(func: FunctionName, ...args: Arguments[]):
+    call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Argument<Args> : never)>(func: FunctionName, ...args: Arguments[]):
         Graph<ReturnType<F[FunctionName]>, F>
 
-    effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Args : never)>(func: FunctionName, ...args: Arguments[]): void
+    effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Argument<Args> : never)>(func: FunctionName, ...args: Arguments[]): void
 
-
-    bind<FunctionName extends keyof F, BoundArgs, Args>(func: FunctionName, ...boundArgs: BoundArgs[]): (...args: Args[]) => ReturnType<F[FunctionName]>
+    bind<FunctionName extends keyof F>(func: FunctionName): FunctionGraph<BoundFunction<F[FunctionName], NativeType>, F>
+    bind<FunctionName extends keyof F, A>(func: FunctionName, a: A): FunctionGraph<BoundFunction<F[FunctionName], NativeType, A>, F>
+    bind<FunctionName extends keyof F, A, B>(func: FunctionName, a: A, b: B): FunctionGraph<BoundFunction<F[FunctionName], NativeType, A, B>, F>
+    bind<FunctionName extends keyof F, A, B, C>(func: FunctionName, a: A, b: B, c: C): FunctionGraph<BoundFunction<F[FunctionName], NativeType, A, B, C>, F>
+    bind<FunctionName extends keyof F, A, B, C, D>(func: FunctionName, a: A, b: B, c: C, d: D): FunctionGraph<BoundFunction<F[FunctionName], NativeType, A, B, C, D>, F>
 
     /**
      * Generates a breakpoint (debugger clause), continuing the graph
@@ -144,6 +155,7 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
 }
 
 export interface BoolGraph<F extends FunctionLibrary> extends GraphImpl<boolean, F> {}
+export interface FunctionGraph<N, F extends FunctionLibrary> extends GraphImpl<N, F> {}
 
 interface StringGraph<NativeType extends string, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
@@ -456,7 +468,7 @@ export interface ObjectGraph<T extends object, F extends FunctionLibrary> extend
 
 export type Graph<N, F extends FunctionLibrary> = 
     N extends AbstractGraph ? N :
-    N extends Function ? GraphImpl<N, F> :
+    N extends Function ? FunctionGraph<N, F> :
     N extends string ? StringGraph<N, F> :
     N extends number ? NumberGraph<N, F> :
     N extends boolean ? BoolGraph<F> :
@@ -484,7 +496,12 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
-    bind<FunctionName extends keyof F>(func: FunctionName, ...boundArgs: any[]): (...args: any[]) => ReturnType<F[FunctionName]>
+    bind<FunctionName extends keyof F>(func: FunctionName): FunctionGraph<BoundFunction<F[FunctionName]>, F>
+    bind<FunctionName extends keyof F, A>(func: FunctionName, a: A): FunctionGraph<BoundFunction<F[FunctionName], A>, F>
+    bind<FunctionName extends keyof F, A, B>(func: FunctionName, a: A, b: B): FunctionGraph<BoundFunction<F[FunctionName], A, B>, F>
+    bind<FunctionName extends keyof F, A, B, C>(func: FunctionName, a: A, b: B, c: C): FunctionGraph<BoundFunction<F[FunctionName], A, B, C>, F>
+    bind<FunctionName extends keyof F, A, B, C, D>(func: FunctionName, a: A, b: B, c: C, d: D): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D>, F>
+    bind<FunctionName extends keyof F, A, B, C, D, E>(func: FunctionName, a: A, b: B, c: C, d: D, e: E): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D, E>, F>
     compile(transformations: object, options?: object): string
     abstract(name: string): Graph<unknown, F>
     implement(iface: Graph<unknown, F>, name: string): void
