@@ -8,6 +8,7 @@ export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType
 
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
+type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> = T extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
@@ -16,8 +17,10 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param func A function name from the function library
      * @param args Args to pass, in addition to the value resolved from ""
      */
-    call<FunctionName extends keyof F, Arguments>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
-    effect<FunctionName extends keyof F, Arguments>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
+    call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Args : never)>(func: FunctionName, ...args: Arguments[]):
+        Graph<ReturnType<F[FunctionName]>, F>
+
+    effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Args : never)>(func: FunctionName, ...args: Arguments[]): void
 
 
     bind<FunctionName extends keyof F, BoundArgs, Args>(func: FunctionName, ...boundArgs: BoundArgs[]): (...args: Args[]) => ReturnType<F[FunctionName]>
@@ -479,7 +482,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     and<A, B, C, D, E, FF>(a: A, b: B, c: C, d: D, e: E, f: FF): Graph<FF, F>
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
-    call<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
+    call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
     bind<FunctionName extends keyof F>(func: FunctionName, ...boundArgs: any[]): (...args: any[]) => ReturnType<F[FunctionName]>
     compile(transformations: object, options?: object): string
