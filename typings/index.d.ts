@@ -502,7 +502,6 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     bind<FunctionName extends keyof F, A, B, C>(func: FunctionName, a: A, b: B, c: C): FunctionGraph<BoundFunction<F[FunctionName], A, B, C>, F>
     bind<FunctionName extends keyof F, A, B, C, D>(func: FunctionName, a: A, b: B, c: C, d: D): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D>, F>
     bind<FunctionName extends keyof F, A, B, C, D, E>(func: FunctionName, a: A, b: B, c: C, d: D, e: E): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D, E>, F>
-    compile(transformations: object, options?: object): string
     abstract(name: string): Graph<unknown, F>
     implement(iface: Graph<unknown, F>, name: string): void
     withName<T>(name: string, g: T): T
@@ -511,6 +510,20 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     arg2: Token
 }
 
+export const bind: CarmiAPI['bind']
+export const or: CarmiAPI['or']
+export const and: CarmiAPI['and']
+export const setter: CarmiAPI['setter']
+export const splice: CarmiAPI['splice']
+export const abstract: CarmiAPI['abstract']
+export const implement: CarmiAPI['implement']
+export const effect: CarmiAPI['effect']
+export const call: CarmiAPI['call']
+export const chain: CarmiAPI['chain']
+export const root: CarmiAPI['root']
+
 declare const carmiDefaultAPI : CarmiAPI
 export default carmiDefaultAPI
+
 export function withSchema<Schema extends object, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
+export function compile(transformations: object, options ?: object): string
