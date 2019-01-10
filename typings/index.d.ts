@@ -209,7 +209,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
      * @param path 
      */
     getIn<K extends keyof NativeType>(path: [Argument<K>]): Graph<NativeType[K], F>
-    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(path: [K0, K1]): Graph<NativeType[K0][K1], F>
+    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(path: [Argument<K0>, Argument<K1>]): Graph<NativeType[K0][K1], F>
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1]>(path: [Argument<K0>, Argument<K1>, Argument<K2>]): Graph<NativeType[K0][K1][K2], F>
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2]>(path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>]):
         Graph<NativeType[K0][K1][K2][K3], F>
