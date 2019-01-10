@@ -1,4 +1,5 @@
 'use strict';
+const colors = require('ansi-colors')
 
 const {
   TokenTypeData,
@@ -110,7 +111,7 @@ const tokensNotAllowedToReuseFromOtherExpressions = {
   'context': true
 }
 
-function throwOnTokensFromOtherFuncs(expr, tag) {
+function throwOnTokensFromOtherFuncs(expr, type, tag) {
   searchExpressionsWithoutInnerFunctions( subExpr => {
     subExpr.forEach(token => {
       if (
@@ -119,10 +120,17 @@ function throwOnTokensFromOtherFuncs(expr, tag) {
         token[SourceTag] !== tag &&
         tokensNotAllowedToReuseFromOtherExpressions[token.$type]
       ) {
+        const emph = txt => colors.yellow(txt)
         throw new Error(
-          `used ${JSON.stringify(token)} from ${token[
-            SourceTag
-          ].toString()} inside ${tag.toString()} in another function pass in context`
+          `
+           Using arguments (key/value) from one carmi function in the scope of another carmi function is not allowed.
+
+           In expression ${emph(subExpr[0].$type)} at ${emph(subExpr[0][SourceTag])},
+              expression ${emph(JSON.stringify(token))} from outer function at ${emph(token[SourceTag])}
+              is used in inner function ${emph(type)} at ${emph(tag.toString())}
+
+           Use a context in the inner function instead.
+          `
         );
       }
     });
@@ -235,7 +243,7 @@ proxyHandler.get = (target, key) => {
           const funcArgs = tokenData.recursive ? ['loop', 'val', 'key', 'context'] : ['val', 'key', 'context'];
           const funcArgsTokens = funcArgs.map(t => wrap(new Token(t, sourceTag)));
           args[1] = origFunction.apply(null, funcArgsTokens);
-          throwOnTokensFromOtherFuncs(args[1], sourceTag);
+          throwOnTokensFromOtherFuncs(args[1], args[0].$type, sourceTag);
         } else if (typeof args[1] === 'string') {
           args[1] = createExpr(new Token('get'), args[1], new Token('val'));
         }
