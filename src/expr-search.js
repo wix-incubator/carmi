@@ -1,4 +1,4 @@
-const { isExpression } = require('./lang');
+const { isExpression, isToken } = require('./lang');
 const _ = require('lodash');
 
 function searchExpressions(callback, ...expressions) {
@@ -57,10 +57,38 @@ function getAllFunctions(expr) {
     return output;
 }
 
+function processByExecutionOrder(callback, context, recurIntoFunctions, expr) {
+    if (!isExpression(expr)) {
+        return context;
+    }
+    // console.log(expr[0])
+    context = callback(expr[0], context);
+    if (expr[0].$type === 'ternary') {
+        const newContext = callback(expr[1], context);
+        processByExecutionOrder(callback, callback(expr[2], newContext), recurIntoFunctions, expr[2])
+        processByExecutionOrder(callback, callback(expr[3], newContext), recurIntoFunctions, expr[3])
+    } else {
+        expr.slice(1).map(t => {
+                if (isToken(t)) {
+                    context = callback(t, context);
+                } else if (isExpression(t)) {
+                    if (expr[0].$type === 'func' && !recurIntoFunctions) {
+                        return;
+                    }
+                    context = processByExecutionOrder(callback, callback(expr[2], context), recurIntoFunctions, t)
+                }
+        })
+    }
+    return context;
+}
+
+
+
 module.exports = { 
     searchExpressions,
     searchExpressionsWithoutInnerFunctions,
     flattenExpression,
     flattenExpressionWithoutInnerFunctions,
-    getAllFunctions
+    getAllFunctions,
+    processByExecutionOrder
 };

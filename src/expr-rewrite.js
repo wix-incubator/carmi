@@ -69,11 +69,11 @@ function rewriteStaticsToTopLevels(getters) {
     return newGetters;
 }
 
-function rewriteLocalsToLet(getters) {
+function rewriteLocalsToFunctions(getters) {
     const exprs = flattenExpression(...Object.values(getters));
-    exprs.reverse();
+    // console.log(exprs.length)
+
     const parentMap = new Map();
-    const stringsByExpr = new Map();
     searchExpressions(expr => {
         if (expr[0].$type !== 'func') {
             expr.forEach(child => {
@@ -86,163 +86,55 @@ function rewriteLocalsToLet(getters) {
             })
         }
     }, Object.values(getters))
-    function addStringToExpr(str, exprs) {
-        while (exprs.length) {
-            const expr = exprs.shift();
-            if (!stringsByExpr.has(expr)) {
-                stringsByExpr.set(expr, new Set())
-            }
-            stringsByExpr.get(expr).add(str);
-            const parents = parentMap.get(expr);
-            if (parents) {
-                parents.forEach(p => exprs.push(p))
-            }
-        }
-    }
+    const countIdenticals = {};
     exprs.forEach(e => {
-            e.filter(t => typeof t === 'string')
-                .forEach(str => addStringToExpr(str, [e]))
-    })
-    const exprsGroupedByHash = {};
-    const noHashTypes = {
-        get:true,
-        func: true,
-        array: true,
-        object: true
-    }
-    const hashByExpr = new Map();
-    function hashExprWithStrings(expr, strings) {
-        if (noHashTypes[expr[0].$type]) {
-            return;
-        }
-        strings = strings || new Set();
-        const stringsToIndexes = Array.from(strings.values()).reduce((acc, str, index) => ({...acc,[str]: index}), {})
-        const localHashExpr = memoizeExprFunc(e => {
-            if (e[0].$type === 'func' || e[0].$type === 'get' && e[2] instanceof Token && e[2].$type === 'topLevel') {
-                return exprHash(e);
-            } else {
-                return objectHash(e.map(val => localHashExpr(val)).join(','));
-            }
-        }, t => stringsToIndexes.hasOwnProperty(t) ? stringsToIndexes[t] : t)
-        const stringAgnosticHash = localHashExpr(expr)
-        hashByExpr.set(expr, stringAgnosticHash);
-        exprsGroupedByHash[stringAgnosticHash] = exprsGroupedByHash[stringAgnosticHash] || [];
-        exprsGroupedByHash[stringAgnosticHash].push(expr);
-    }
-    exprs.forEach(e => 
-        hashExprWithStrings(e, stringsByExpr.get(e))
-    )
-    // console.log('hashed chains', JSON.stringify(exprsGroupedByHash, null, 2));
+        const parents = parentMap.get(e);
+        // console.log(parents && parents.length);
+        if (e instanceof Expression && e[0].$type !== 'func' && parents && parents.length > 1) {
+            const hash = exprHash(e);
+            const children = flattenExpressionWithoutInnerFunctions(e);
+            // console.log(parents && parents.length, children.length);
+            countIdenticals[hash] = { counter: parents.length, children: children }
 
-    Object.keys(exprsGroupedByHash).forEach(h => {
-        const exprsByHash = exprsGroupedByHash[h];
-        const parents = _(exprsByHash.map(e => parentMap.get(e))).flatten().compact().uniq().value()
-        // console.log(parents);
-        const parentsHashes = parents.map(p => hashByExpr.get(p))
-        const parentsLengths = parentsHashes.map(ph => exprsGroupedByHash[ph] ? exprsGroupedByHash[ph].length : 0)
-        const parentsAllSameLength = parentsLengths.every(len => len ===  exprsByHash.length)
-        const areAllExpressionsStatics = exprsByHash.every(isStaticExpression);
-        const areAllParentsStatics = parents.every(isStaticExpression);
-        const allStringsSets = exprsGroupedByHash[h].map(e => stringsByExpr.get(e) || new Set());
-        const allStrings = _.flatten(allStringsSets.map(s => Array.from(s.values())))
-        const allPossibleStrings = _.groupBy(allStrings);
-        const constStrings = Object.keys(allPossibleStrings).filter(str => allPossibleStrings[str].length === exprsGroupedByHash[h].length)
- 
-        if (exprsByHash.length === 1 || 
-            parentsAllSameLength || 
-            (areAllExpressionsStatics !== areAllParentsStatics) 
-            || allStringsSets[0].size > constStrings + 8) {
-            delete exprsGroupedByHash[h];
-            return;
-        } else {
-            exprsGroupedByHash[h].forEach(e => {
-                const stringsIncludingConst = stringsByExpr.get(e);
-                if (stringsIncludingConst && constStrings.length) {
-                    constStrings.forEach(str => stringsIncludingConst.delete(str))
-                }
-            })
         }
     });
 
-    // console.log('delete chains', JSON.stringify(exprsGroupedByHash, null, 2));
+    const newGetters = {};
+    const namesByHash = {};
+    const localTokens = {
+        'val': true,
+        'key': true,
+        'context': true,
+        'loop': true,
+    }
 
-
-    // Object.keys(exprsGroupedByHash).forEach(h => {
-    //     const allStringsSets = exprsGroupedByHash[h].map(e => stringsByExpr.get(e) || new Set());
-    //     const allStrings = _.flatten(allStringsSets.map(s => Array.from(s.values())))
-    //     const allPossibleStrings = _.groupBy(allStrings);
-    //     const constStrings = Object.keys(allPossibleStrings).filter(str => allPossibleStrings[str].length === exprsGroupedByHash[h].length)
-    //     // console.log({constStrings, allPossibleStrings})
-    //     exprsGroupedByHash[h].forEach(e => {
-            
-    //     })
-    // });
-
-    // console.log('removed const strings', JSON.stringify(_.mapValues(exprsGroupedByHash, 
-    //     exprs => {
-    //         console.log(JSON.stringify(exprs));
-    //         return exprs.map(e => {
-    //             console.log('inner', JSON.stringify(e), stringsByExpr.get(e));
-    //             return Array.from(stringsByExpr.get(e).values())
-    //         })
-    //     }
-    // ), null, 2));
-    let nodeIndex = 0;
-
-    exprs.reverse();
-    const newGetters = {}
-
-    const expressionsWithStringsMapping = new Map();
-    let rewriteExprTokens = null;
-
-    
-    const rewriteExpr = memoizeExprFunc(e => {
-        const hash = hashByExpr.get(e);
-        const isStatic = isStaticExpression(e);
-        const hoistable = isStatic && tryToHoist(e);
-        if (exprsGroupedByHash[hash]) {
-            const name = '$' + generateNameFromTag(e) + nodeIndex++;
-            const sampleExpr = exprsGroupedByHash[hash][0];
-            const nonConstStrings = Array.from((stringsByExpr.get(e) || new Set()).values());
-            const helperName = '$$' + generateNameFromTag(sampleExpr) + hash;
-            // console.log('found group',exprsGroupedByHash[hash].length, hash, name);
-
-            if (!newGetters[helperName]) {
-                flattenExpressionWithoutInnerFunctions(e).forEach(scopedChild => {
-                    expressionsWithStringsMapping.set(scopedChild, nonConstStrings);
-                })
-                newGetters[helperName] = Expr(Func, rewriteExprTokens(e));
-            }
-            if (hoistable) {
-                newGetters[name] = Expr(Invoke, helperName, ...nonConstStrings)
-                return Expr(Get, name, TopLevel);
+    function rewriteExpr(e) { 
+        if (e instanceof Expression) {
+            const hash = exprHash(e);
+            const found = countIdenticals[hash];
+            if (found && found.counter > 1 && found.children.length > 2) {
+                const name = namesByHash[hash] ? namesByHash[hash] : '$$' + generateNameFromTag(e) + hash;
+                if (!namesByHash[name]) {
+                    const tokens = _(found.children)
+                        .flatten()
+                        .filter(t => t instanceof Token && localTokens[t.$type])
+                        .map(t => t.$type)
+                        .uniq()
+                        .map(t => new Token(t))
+                        .value()
+                    found.tokens = tokens;
+                    namesByHash[hash] = name;
+                    newGetters[name] = Expr(Func, e, ...found.tokens);
+                }
+                return Expr(Invoke, name, ...found.tokens.map(t => new Token(t.$type)));
             } else {
-                return Expr(Invoke, helperName, ...nonConstStrings);
+                return Expr(...e.map(rewriteExpr));
             }
-        } else if (hoistable) {
-            const name = '$' + generateNameFromTag(e) + nodeIndex++;
-            newGetters[name] = rewriteExprTokens(e);
-            return Expr(Get, name, TopLevel);
-        } else {
-            return rewriteExprTokens(e)
         }
-    }, t => t)
+        return e;
+    }
 
-    rewriteExprTokens = memoizeExprFunc(e => {
-        return e.map(t => {
-            if (typeof t === 'string') {
-                const strs = expressionsWithStringsMapping.get(e) || [];
-                const idx = strs.indexOf(t);
-                return idx === -1 ? t : new Token('arg'+idx);
-            } else {
-                return rewriteExpr(t)
-            }
-        }, t => t)
-    })
-
-    Object.assign(newGetters, _.mapValues(getters, rewriteExpr));
-
-    // return getters;
+    Object.assign(newGetters, _.mapValues(getters,rewriteExpr))
     return newGetters;
 }
 
@@ -270,7 +162,7 @@ function rewriteUniqueByHash(getters) {
 }
 
 module.exports = {
-    rewriteLocalsToLet,
+    rewriteLocalsToFunctions,
     rewriteStaticsToTopLevels,
     rewriteUniqueByHash
 }

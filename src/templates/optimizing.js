@@ -865,9 +865,9 @@ function library() {
 
 function topLevel() {
   function $$FUNCNAMEBuild() {
-    const acc = $res;
     const key = $TOP_LEVEL_INDEX;
     const $invalidatedKeys = $invalidatedRoots;
+    const $tracked = [$invalidatedKeys, key];
     /* PRETRACKING */
     const newValue = $EXPR;
     setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
@@ -890,6 +890,7 @@ function array() {
 
 function func() {
   function $FUNCNAME($invalidatedKeys, key, val, context) {
+    const $tracked = [$invalidatedKeys, key]
     /* PRETRACKING */
     const res = $EXPR1;
     /* TRACKING */
@@ -899,6 +900,7 @@ function func() {
 
 function recursiveFunc() {
   function $FUNCNAME($invalidatedKeys, key, val, context, loop) {
+    const $tracked = [$invalidatedKeys, key]
     /* PRETRACKING */
     const res = $EXPR1;
     /* TRACKING */
@@ -907,8 +909,12 @@ function recursiveFunc() {
 }
 
 function helperFunc() {
-  function $FUNCNAME($invalidatedKeys,/* FN_ARGS */) {
-    return $EXPR1;
+  function $FUNCNAME($tracked$FN_ARGS) {
+    const $invalidatedKeys = $tracked[0];
+    /* PRETRACKING */
+    const res = $EXPR1;
+    /* TRACKING */
+    return res;
   }
 }
 

@@ -187,10 +187,7 @@ class NaiveCompiler {
           .map(subExpr => ',' + this.generateExpr(subExpr))
           .join('')})`;
       case 'invoke':
-          return `(${expr[1]}(${['key','val','context','loop']
-            .filter(t => this.getters[expr[1]][0].$allTokensInFunc.indexOf(t) !== -1)
-            .map(t => new Token(t))
-            .concat(expr.slice(2)).map(t => this.generateExpr(t)).join(',')}))`
+          return `(${expr[1]}(${expr.slice(2).map(t => t.$type).join(',')}))`
       case 'abstract':
           throw expr[2]
       default:
@@ -235,12 +232,7 @@ class NaiveCompiler {
       EXPR1: () => (expr.length > 1 ? this.generateExpr(expr[1]) : ''),
       EXPR: () => this.generateExpr(expr),
       ID: () => expr[0].$id,
-      FN_ARGS: () => expr[0].$type === 'func' ? ['key','val','context','loop']
-            .concat(_.range(10).map(i => 'arg'+i))
-            .filter(t => expr[0].$allTokensInFunc.indexOf(t) !== -1)
-            .map(t => new Token(t))
-            .map(t => this.generateExpr(t))
-            .join(',') : ''
+      FN_ARGS: () => ' ' + (expr[0].$type === 'func' ? expr.slice(2).map(t => t.$type).join(',') : '')
     };
   }
 
@@ -271,9 +263,10 @@ class NaiveCompiler {
     _.forEach(expr.slice(1), this.buildExprFunctions.bind(this, acc));
     this.buildExprFunctionsByTokenType(acc, expr);
     if (typeof name === 'string') {
+      // console.log(name, expr[0])
       if (expr[0].$type !== 'func') {
-      this.appendExpr(acc, 'topLevel', expr, name);
-    }
+        this.appendExpr(acc, 'topLevel', expr, name);
+      }
     }
     return acc;
   }

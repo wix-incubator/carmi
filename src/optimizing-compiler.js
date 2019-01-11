@@ -12,6 +12,11 @@ const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
 const { splitSettersGetters, pathMatches, normalizeAndTagAllGetters } = require('./expr-tagging');
 
+const trace = (val,title) => {
+  // console.log(title, val);
+  return val;
+}
+
 class OptimizingCompiler extends SimpleCompiler {
   constructor(model, options) {
     super(model, options);
@@ -58,19 +63,14 @@ $tainted = new WeakSet();`
             const conditionals = expr[0].$trackedExpr
               ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
               : [];
-            return `let $tracked = [$invalidatedKeys,key];${conditionals.join('')}`;
+            return `${conditionals.join('')}`;
           }
           return '';
         },
         INVALIDATES: () => {
           return !!this.invalidates(expr);
       },
-        FN_ARGS: () => expr[0].$type === 'func' ? ['key'].concat(['val','context','loop']
-              .concat(_.range(10).map(i => 'arg'+i))
-              .filter(t => expr[0].$allTokensInFunc.indexOf(t) !== -1))
-            .map(t => new Token(t))
-            .map(t => t.$type)
-            .join(',') : ''
+        FN_ARGS: () => expr[0].$type === 'func' ? expr.slice(2).map( t => `,${t.$type}`).join('')+' ' : ' '
       },
       this.byTokenTypesPlaceHolders(expr)
     );
@@ -179,8 +179,6 @@ $tainted = new WeakSet();`
           ? null
           : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
       }, ${this.invalidates(expr)})`;
-      case 'topLevel':
-        return '$res';
       case 'context':
         return 'context[0]';
       case 'recur':
@@ -188,9 +186,7 @@ $tainted = new WeakSet();`
       case 'func':
         return expr[0].$duplicate ? expr[0].$duplicate : expr[0].$funcId;
       case 'invoke':
-        return `(${expr[1]}($invalidatedKeys, ${['key'].concat(['val','context','loop']
-            .filter(t => this.getters[expr[1]][0].$allTokensInFunc.indexOf(t) !== -1))
-          .concat(expr.slice(2).map(t => this.generateExpr(t)).join(','))}))`
+        return `${trace(expr[1],'invoke')}($tracked${expr.slice(2).map(t => `,${t.$type}`).join('')})`
       default:
         return super.generateExpr(expr);
     }

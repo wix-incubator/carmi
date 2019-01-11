@@ -103,7 +103,7 @@ function recursiveMap() {
 }
 
 function helperFunc() {
-  function $FUNCNAME(/* FN_ARGS */) {
+  function $FUNCNAME($FN_ARGS) {
     return $EXPR1;
   }
 }

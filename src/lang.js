@@ -28,6 +28,15 @@ function cloneToken(token) {
   return new Token(token.$type, token[SourceTag]);
 }
 
+function Clone(model) {
+  if (model instanceof Token) {
+    return cloneToken(model);
+  } else if (model instanceof Expression) {
+    return new Expression(...model.map(Clone));
+  }
+  return model;
+}
+
 const TokenTypeData = {
   and: new TokenTypes({ nonChained: true, len: [2, Number.MAX_SAFE_INTEGER] }),
   or: new TokenTypes({ nonChained: true, len: [2, Number.MAX_SAFE_INTEGER] }),
@@ -148,7 +157,7 @@ class SpliceSetterExpression extends SetterExpression {
   }
 }
 AllTokens.Token = Token;
-AllTokens.Expr = (...args) => new Expression(...args);
+AllTokens.Expr = (...args) => new Expression(Clone(args[0]),...args.slice(1));
 
 function validatePathSegmentArguments(args) {
   const invalidArgs = args.filter(arg =>
@@ -181,15 +190,7 @@ AllTokens.SpliceSetterExpression = SpliceSetterExpression;
 AllTokens.isSetterExpression = expression => expression instanceof SetterExpression;
 AllTokens.isSpliceExpression = expression => expression instanceof SpliceSetterExpression;
 AllTokens.isExpression = expression => expression instanceof Expression;
-
-function Clone(model) {
-  if (model instanceof Token) {
-    return cloneToken(model);
-  } else if (model instanceof Expression) {
-    return new Expression(...model.map(Clone));
-  }
-  return model;
-}
+AllTokens.isToken = token => token instanceof Token;
 
 AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;

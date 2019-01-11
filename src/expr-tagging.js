@@ -17,13 +17,14 @@ const {
   Clone,
   WrappedPrimitive,
   TokenTypeData,
-  SourceTag
+  SourceTag,
+  cloneToken
 } = require('./lang');
 const { memoizeExprFunc, memoize } = require('./memoize');
 const {exprHash} = require('./expr-hash');
 const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {tagToSimpleFilename} = require('./expr-names');
-const {rewriteStaticsToTopLevels, rewriteLocalsToLet, rewriteUniqueByHash} = require('./expr-rewrite');
+const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash} = require('./expr-rewrite');
 
 let exprCounter = 0;
 
@@ -204,10 +205,7 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
   expr[0].$funcType = funcType;
   expr[0].$tracked = false;
   expr[0].$parent = null;
-  if (expr[0].$type === 'func') {
-    const subExprs = flattenExpressionWithoutInnerFunctions([expr[1]]);
-    expr[0].$allTokensInFunc = _(subExprs).flatten().filter(t => t instanceof Token).groupBy(t => t.$type).keys().value();
-  }
+  // console.log(expr[0].$id, expr[0].$type)
   if (expr[0].$tokenType === 'abstract') {
     throw new Error(`You defined a abstract in ${expr[0].SourceTag} called ${expr[1]} but did't resolve it`);
   }
@@ -228,6 +226,19 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
     }
   });
 }
+
+const cloneAndHash = expr => {
+    if (expr instanceof Expression) {
+      const hash = exprHash(expr);
+      const res = new Expression(...expr.map(cloneAndHash));
+      res[0].$hash = hash;
+      return res;
+    } else if (expr instanceof Token) {
+      return cloneToken(expr);
+    }
+    return expr;
+  }
+
 
 function cloneExpressions(getters) {
   return _.mapValues(getters, getter => Clone(getter));
@@ -264,6 +275,7 @@ function parentFunction(expr) {
 function unmarkPathsThatHaveNoSetters(getters, setters) {
   const currentSetters = Object.values(setters);
   topologicalSortGetters(getters).forEach(name => {
+    // console.log('unmarkPathsThatHaveNoSetters', name);
     const getter = getters[name];
     const allExprInGetter = flattenExpression([getter])
     const exprPathsMaps = _(allExprInGetter)
@@ -272,10 +284,12 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
       .value();
     let canBeExprBeInvalidated = false;
     const condsThatAreTracked = new Set();
-    exprPathsMaps.forEach(pathMap =>
+    exprPathsMaps.forEach(pathMap => {
+      // console.log('pathsTracked', JSON.stringify(Array.from(pathMap.keys())));
       pathMap.forEach((cond, path) => {
         let trackCond = false;
         if (_.some(currentSetters, setter => pathMatches(path, setter))) {
+          // console.log('path can be invalidated', JSON.stringify(path))
           canBeExprBeInvalidated = true;
           trackCond = true;
         } else if (path[0].$type !== 'context') {
@@ -284,19 +298,25 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
           trackCond = true;
         }
         if (cond && trackCond) {
-          const conditionalsByPath = flattenExpression([cond]).filter(e => e instanceof Expression && e[0].$type === 'cond');
+          const conditionalsByPath = flattenExpression([
+            cond
+          ]).filter(e => e instanceof Expression && e[0].$type === 'cond');
           conditionalsByPath.forEach(condPath => condsThatAreTracked.add(condPath[1]));
         }
-      })
-    );
+      });
+    });
+    
     if (canBeExprBeInvalidated) {
       currentSetters.push([TopLevel, name]);
+      // console.log('added', name, condsThatAreTracked.size)
     }
     if (condsThatAreTracked.size) {
+      // console.log(condsThatAreTracked)
       allExprInGetter.forEach(e => {
         if (e instanceof Expression && condsThatAreTracked.has(e[0].$id)) {
           e[0].$tracked = true;
           const parent = parentFunction(e);
+          // console.log('TRACKED COND', JSON.stringify(parent), e[0].$id);
           parent[0].$trackedExpr = parent[0].$trackedExpr || new Set();
           parent[0].$trackedExpr.add(e[0].$id);
         }
@@ -405,7 +425,7 @@ const allPathsInGetter = memoize(getter => {
 });
 
 function pathMatches(srcPath, trgPath) {
-  // console.log('pathMatches', srcPath, trgPath);
+  // console.log('pathMatches', JSON.stringify(srcPath), JSON.stringify(trgPath));
   return srcPath.every((part, idx) => {
     if (typeof trgPath[idx] === 'undefined') {
       return true;
@@ -418,7 +438,7 @@ function pathMatches(srcPath, trgPath) {
 
 function collectAllTopLevelInExpr(expr, acc) {
   acc = acc || {};
-  if (expr[0].$type === 'get' && expr[2] instanceof Token && expr[2].$type === 'topLevel') {
+  if ((expr[0].$type === 'get' && expr[2] instanceof Token && expr[2].$type === 'topLevel') || expr[0].$type === 'invoke') {
     acc[expr[1]] = true;
   } else {
     expr.forEach(token => {
@@ -467,14 +487,23 @@ function findFuncExpr(getters, funcId) {
 function normalizeAndTagAllGetters(getters, setters) {
   getters = rewriteUniqueByHash(getters);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
-  // getters = rewriteLocalsToLet(getters);
   getters = rewriteStaticsToTopLevels(getters);
-  getters = cloneExpressions(getters);
+  getters = rewriteUniqueByHash(getters);
+   getters = rewriteLocalsToFunctions(getters);
+   getters = cloneExpressions(getters);
   tagAllExpressions(getters);
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));
   unmarkPathsThatHaveNoSetters(getters, setters);
-  dedupFunctionsObjects(getters);
+  Object.keys(getters).forEach(name => {
+    // console.log(name, getters[name][0])
+  })
+  // _.forEach(getters, (e, name) => {
+  //   flattenExpression(e).forEach(t => {
+  //     console.log('unmarkPathsThatHaveNoSetters', name, t[0])
+  //   })
+  // })
+  // dedupFunctionsObjects(getters);
   Object.values(getters).forEach((getter, index) => {
     getter[0].$topLevelIndex = index;
   })
