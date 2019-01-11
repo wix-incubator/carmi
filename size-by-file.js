@@ -6,22 +6,35 @@ const src = require('fs')
 const byLine = true;
 const ast = babylon.parse(src);
 
-const sizeByFile = {};
-ast.program.body[0].body.body.forEach(token => {
+const linesByFile = {};
+const charsByFile = {};
+console.log(ast.program.body[0].expression.right);
+ast.program.body[0].expression.right.body.body.forEach(token => {
   if (token.type === 'FunctionDeclaration') {
     const name = token.id.name;
     const parts = name.split('_');
-    if (name.indexOf('$') === 0 && parts.length > 3) {
-      const fileName = byLine ? parts[1] + '_' + parts[2] : parts[1];
-      sizeByFile[fileName] = sizeByFile[fileName] || 0;
-      sizeByFile[fileName] += token.loc.end.line - token.loc.start.line;
+    if (name.indexOf('$') !== -1) {
+      const fileName = name;//byLine ? parts[1] + '_' + parts[2] : parts[1];
+      linesByFile[fileName] = linesByFile[fileName] || 0;
+      linesByFile[fileName] += token.loc.end.line - token.loc.start.line;
+      charsByFile[fileName] = charsByFile[fileName] || 0;
+      charsByFile[fileName] += token.end - token.start
     }
   }
 });
 
-console.log('total lines', Object.values(sizeByFile).reduce((acc, cnt) => acc + cnt, 0));
+console.log('total lines', Object.values(linesByFile).reduce((acc, cnt) => acc + cnt, 0));
 console.log('top sources');
-Object.keys(sizeByFile)
-  .sort((a, b) => sizeByFile[b] - sizeByFile[a])
+Object.keys(linesByFile)
+  .sort((a, b) => linesByFile[b] - linesByFile[a])
   .slice(0, 50)
-  .forEach(k => console.log(k, sizeByFile[k]));
+  .forEach(k => console.log(k, linesByFile[k]));
+
+
+
+console.log('total chars', Object.values(charsByFile).reduce((acc, cnt) => acc + cnt, 0));
+console.log('top sources');
+Object.keys(charsByFile)
+  .sort((a, b) => charsByFile[b] - charsByFile[a])
+  .slice(0, 50)
+  .forEach(k => console.log(k, charsByFile[k]));
