@@ -25,6 +25,7 @@ const optionDefinitions = [
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
   { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
+  { name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage' },
   { name: 'stats', type: String, defaultValue: '', description: 'generate stats file' },
   { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
   { name: 'ast', type: Boolean, defaultValue: false }
@@ -80,6 +81,11 @@ async function run() {
     }
 
     code = carmi.compile(model, options);
+  }
+
+  if (options['no-coverage']) {
+    code = `/* istanbul ignore file */
+  ${code}`
   }
 
   if (!options['no-cache']) {
