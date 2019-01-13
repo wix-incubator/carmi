@@ -208,12 +208,12 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
      * Resolves to the deep value provided by path.
      * @param path 
      */
-    getIn<K extends keyof NativeType>(path: [K]): Graph<NativeType[K], F>
-    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(path: [K0, K1]): Graph<NativeType[K0][K1], F>
-    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1]>(path: [K0, K1, K2]): Graph<NativeType[K0][K1][K2], F>
-    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2]>(path: [K0, K1, K2, K3]):
+    getIn<K extends keyof NativeType>(path: [Argument<K>]): Graph<NativeType[K], F>
+    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(path: [Argument<K0>, Argument<K1>]): Graph<NativeType[K0][K1], F>
+    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1]>(path: [Argument<K0>, Argument<K1>, Argument<K2>]): Graph<NativeType[K0][K1][K2], F>
+    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2]>(path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>]):
         Graph<NativeType[K0][K1][K2][K3], F>
-    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2], K4 extends keyof NativeType[K0][K1][K2][K3]>(path: [K0, K1, K2, K3]):
+    getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2], K4 extends keyof NativeType[K0][K1][K2][K3]>(path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>]):
         Graph<NativeType[K0][K1][K2][K3][K4], F>
 
 }
