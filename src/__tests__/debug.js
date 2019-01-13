@@ -119,7 +119,7 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('}.ceil')
     })
     
-    it.only('when calling a non-existent function, throw a readable error', () => {
+    it('when calling a non-existent function, throw a readable error', () => {
       const model = {three: chain({a: 1}).call('nonExistentFunction')}
       const optCode = eval(compile(model, { compiler, typeCheck: true }));
       let e
