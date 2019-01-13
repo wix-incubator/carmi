@@ -76,7 +76,7 @@ class NaiveCompiler {
     const functionName = this.generateExpr(expr[1])
     const source = expr[0][SourceTag]
     return `(() => {
-        const func = $funcLib['${functionName}']
+        const func = $funcLib[${functionName}]
         if (typeof func !== 'function') {
           throw new TypeError(\`No such function: ${functionName}\ when called from ${source}\`)
         }
@@ -179,7 +179,7 @@ class NaiveCompiler {
       case 'substring':
         return this.withTypeCheck(expr, `(${nativeStringFunctions[tokenType]}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`);
       case 'get':
-        return this.withTypeCheck(expr, `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`);
+        return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
       case 'mapValues':
       case 'filterBy':
       case 'groupBy':
@@ -247,9 +247,12 @@ class NaiveCompiler {
   }
 
   pathToString(path, n = 0) {
-    return this.generateExpr(
+    this.disableTypeChecking = true
+    const res = this.generateExpr(
       path.slice(1, path.length - n).reduce((acc, token) => Expr(new Token('get'), token, acc), path[0])
     );
+    this.disableTypeChecking = false
+    return res
   }
 
   buildSetter(setterExpr, name) {
