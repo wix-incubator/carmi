@@ -62,6 +62,16 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     ternary<Consequence, Alternate>(consequence: Consequence, alternate: Alternate): Graph<Consequence, F> | Graph<Alternate, F>
 
     /**
+     * Resolves to the case that matches equals to the boxed value
+     * 
+     * @param caseTuples An array of pairs between a value and a consequent
+     * @param defaultCase The graph to return in case no given case matches the boxed value
+     */
+    switch<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
+        Graph<DefaultCase, F> |
+        Graph<TupleType extends [Argument<NativeType>, infer Result] ? Result : never, F>
+
+    /**
      * Returns a boolean graph that resolves to the value of (NativeType === other) 
      * @param other 
      */
