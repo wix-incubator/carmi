@@ -141,10 +141,10 @@ $tainted = new WeakSet();`
           .map(subExpr => this.generateExpr(subExpr))
           .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1}, ${this.invalidates(expr)})`);
       case 'bind':
-        return this.withFunctionNameCheck(expr, `bind($tracked,[${expr
+        return `bind($tracked,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
-          .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`);
+          .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`;
       case 'keys':
       case 'values':
         return this.withTypeCheck(expr, `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
