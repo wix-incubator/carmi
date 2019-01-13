@@ -20,6 +20,7 @@ const optionDefinitions = [
     description: 'compiler version to use naive/simple/optimizing'
   },
   { name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code' },
+  { name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code' },
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
@@ -37,6 +38,10 @@ ${optionDefinitions
 `;
 
 const options = commandLineArgs(optionDefinitions);
+if (options['type-check']) {
+  options.typeCheck = true
+  delete options['type-check']
+}
 
 async function run() {
   if (options.help) {
