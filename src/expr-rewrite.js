@@ -112,7 +112,7 @@ function rewriteLocalsToFunctions(getters) {
         if (e instanceof Expression) {
             const hash = exprHash(e);
             const found = countIdenticals[hash];
-            if (found && found.counter > 1 && found.children.length > 2) {
+            if (found && found.counter > 2 && found.children.length > 4) {
                 const name = namesByHash[hash] ? namesByHash[hash] : '$$' + generateNameFromTag(e) + hash;
                 if (!namesByHash[name]) {
                     const tokens = _(found.children)
@@ -124,7 +124,7 @@ function rewriteLocalsToFunctions(getters) {
                         .value()
                     found.tokens = tokens;
                     namesByHash[hash] = name;
-                    newGetters[name] = Expr(Func, e, ...found.tokens);
+                    newGetters[name] = Expr(Func, Expr(...e.map(rewriteExpr)), ...found.tokens);
                 }
                 return Expr(Invoke, name, ...found.tokens.map(t => new Token(t.$type)));
             } else {

@@ -127,38 +127,38 @@ $tainted = new WeakSet();`
           3
         )}))`;
       case 'object':
-        return `object($invalidatedKeys,key,[${
+        return `object($tracked,[${
           _.range(2, expr.length, 2).map(idx => this.generateExpr(expr[idx])).join(',')
         }], ${this.uniqueId(expr)}, object$${
           expr[0].$duplicate ? expr[0].$duplicate : expr[0].$id
         }Args, ${this.invalidates(expr)})`;
       case 'array':
-        return `array($invalidatedKeys,key,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, ${expr.length -
+        return `array($tracked,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, ${expr.length -
           1}, ${this.invalidates(expr)})`;
       case 'call':
-        return `call($invalidatedKeys,key,[${expr
+        return `call($tracked,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
           .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1}, ${this.invalidates(expr)})`;
       case 'bind':
-        return `bind($invalidatedKeys,key,[${expr
+        return `bind($tracked,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
           .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`;
       case 'keys':
       case 'values':
-        return `valuesOrKeysForObject($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
+        return `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'values' ? 'true' : 'false'
         })`;
       case 'size':
-        return `size($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
+        return `size($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':
       case 'defaults':
-        return `assignOrDefaults($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
+        return `assignOrDefaults($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
         }, ${this.invalidates(expr)})`;
       case 'range':
-        return `range($invalidatedKeys, key, ${this.generateExpr(expr[1])}, ${
+        return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
         }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)})`;
       case 'filterBy':
@@ -172,17 +172,17 @@ $tainted = new WeakSet();`
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-        return `${tokenType}Opt($invalidatedKeys, key, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
+        return `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
         typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null')
           ? null
-          : `array($invalidatedKeys,key,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
+          : `array($tracked,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
       }, ${this.invalidates(expr)})`;
       case 'context':
         return 'context[0]';
       case 'recur':
-        return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $invalidatedKeys, key)`;
+        return `${this.generateExpr(expr[1])}.recursiveSteps(${this.generateExpr(expr[2])}, $tracked)`;
       case 'func':
         return expr[0].$duplicate ? expr[0].$duplicate : expr[0].$funcId;
       case 'invoke':
