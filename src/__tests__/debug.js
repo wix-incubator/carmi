@@ -119,6 +119,19 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('}.ceil')
     })
     
+    it.only('when calling a non-existent function, throw a readable error', () => {
+      const model = {three: chain({a: 1}).call('nonExistentFunction')}
+      const optCode = eval(compile(model, { compiler, typeCheck: true }));
+      let e
+      try {
+        optCode([], funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('nonExistentFunction')
+    })
+
     it('allow primitives on the model', async () => {
       const model = {three: chain(3)}
       const optCode = eval(compile(model, { compiler }));

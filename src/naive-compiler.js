@@ -68,6 +68,23 @@ class NaiveCompiler {
     `
   }
 
+  withFunctionNameCheck(expr, next) {
+    if (!this.options.typeCheck) {
+      return next
+    }
+
+    const functionName = this.generateExpr(expr[1])
+    const source = expr[0][SourceTag]
+    return `(() => {
+        const func = $funcLib['${functionName}']
+        if (typeof func !== 'function') {
+          throw new TypeError(\`No such function: ${functionName}\ when called from ${source}\`)
+        }
+
+        return (${next})
+    })()`
+  }
+
   generateExpr(expr) {
     // console.log(JSON.stringify(expr, null, 2));
     const currentToken = expr instanceof Expression ? expr[0] : expr;
@@ -206,15 +223,15 @@ class NaiveCompiler {
           return `$cond_${this.generateExpr(expr[1])}`
       case 'effect':
       case 'call':
-        return `($funcLib[${this.generateExpr(expr[1])}].call($res${expr
+        return this.withFunctionNameCheck(expr, `($funcLib[${this.generateExpr(expr[1])}].call($res${expr
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
-          .join('')}) ${tokenType === 'effect' ? ' && void 0': ''})`;
+          .join('')}) ${tokenType === 'effect' ? ' && void 0': ''})`);
       case 'bind':
-        return `($funcLib[${this.generateExpr(expr[1])}] || $res[${this.generateExpr(expr[1])}]).bind($res${expr
+        return this.withFunctionNameCheck(expr, `($funcLib[${this.generateExpr(expr[1])}] || $res[${this.generateExpr(expr[1])}]).bind($res${expr
           .slice(2)
           .map(subExpr => ',' + this.generateExpr(subExpr))
-          .join('')})`;
+          .join('')})`);
       case 'invoke':
           return `(${expr[1]}(${expr.slice(2).map(t => t.$type).join(',')}))`
       case 'abstract':
