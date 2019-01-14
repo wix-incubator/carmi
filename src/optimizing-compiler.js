@@ -272,6 +272,7 @@ $tainted = new WeakSet();`
 
   tracking(expr) {
     const tracks = [];
+    // tracks.push(`// invalidates - ${this.invalidates(expr)}`)
     const pathsThatInvalidate = expr[0].$path;
     if (pathsThatInvalidate) {
       //console.log(pathsThatInvalidate);
@@ -289,10 +290,17 @@ $tainted = new WeakSet();`
               .map(fragment => this.generateExpr(fragment))
               .join(',')}]);`
           );
-        } else if (invalidatedPath[0].$type === 'topLevel' && invalidatedPath.length > 1) {
+        } else if (invalidatedPath.length > 1 && invalidatedPath[0].$type === 'topLevel' ) {
           tracks.push(
             `${precond} trackPath($tracked, [${invalidatedPath
               .map((fragment, index) => index === 1 ? this.topLevelToIndex(fragment): this.generateExpr(fragment))
+              .join(',')}]);`
+          );
+        } else if (invalidatedPath.length > 1 &&
+          (invalidatedPath[0] instanceof Expression && invalidatedPath[0][0].$type === 'invoke')) {
+          tracks.push(
+            `${precond} trackPath($tracked, [${invalidatedPath
+              .map(fragment =>  this.generateExpr(fragment))
               .join(',')}]);`
           );
         } else if (invalidatedPath[0].$type === 'root' && invalidatedPath.length > 1) {

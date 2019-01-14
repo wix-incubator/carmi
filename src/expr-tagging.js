@@ -4,6 +4,7 @@ const {
   Gt,
   Or,
   And,
+  Invoke,
   Not,
   Quote,
   Eq,
@@ -167,6 +168,8 @@ function pathFragmentToString(token) {
     return token;
   } else if (token.$type === 'root' || token.$type === 'topLevel') {
     return token.$type;
+  } else if (token instanceof Expression && token[0].$type === 'invoke') {
+    return token[1];
   } else {
     return '*';
   }
@@ -282,17 +285,19 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
       .filter(e => e instanceof Expression && e[0].$path)
       .map(e => e[0].$path)
       .value();
-    let canBeExprBeInvalidated = false;
+    let canBeExprBeInvalidated = allExprInGetter.some(e => e[0].$type === 'invoke' && getters[e[1]][0].$invalidates);
     const condsThatAreTracked = new Set();
     exprPathsMaps.forEach(pathMap => {
       // console.log('pathsTracked', JSON.stringify(Array.from(pathMap.keys())));
       pathMap.forEach((cond, path) => {
         let trackCond = false;
-        if (_.some(currentSetters, setter => pathMatches(path, setter))) {
+        const matchedSetter = _.some(currentSetters, setter => pathMatches(path, setter));
+        // console.log(name, matchedSetter, JSON.stringify(path))
+        if (matchedSetter) {
           // console.log('path can be invalidated', JSON.stringify(path))
           canBeExprBeInvalidated = true;
           trackCond = true;
-        } else if (path[0].$type !== 'context') {
+        } else if (path[0].$type !== 'context')  {
           pathMap.delete(path);
         } else {
           trackCond = true;
@@ -305,9 +310,16 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
         }
       });
     });
-    
+    // if (name.indexOf('navigation') !== -1) {
+      // console.log('unmarkPathsThatHaveNoSetters', name, canBeExprBeInvalidated, JSON.stringify(getter));
+    // }
     if (canBeExprBeInvalidated) {
-      currentSetters.push([TopLevel, name]);
+      if (getters[name][0].$type === 'func') {
+        currentSetters.push([name]);
+      } else {
+        currentSetters.push([TopLevel, name]);
+      }
+      
       // console.log('added', name, condsThatAreTracked.size)
     }
     if (condsThatAreTracked.size) {
