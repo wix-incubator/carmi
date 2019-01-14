@@ -564,7 +564,7 @@ function library() {
       if ($prevStop !== -1) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
-          const passedTest = func([$invalidatedKeys, key], $prevStop, src[$prevStop], context);
+          const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);
           if (passedTest) {
             return true;
           } else {
