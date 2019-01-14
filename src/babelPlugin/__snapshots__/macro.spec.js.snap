@@ -294,7 +294,7 @@ module.exports = function () {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
       }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
         if ($invalidatedKeys.has($prevStop)) {
-          $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, key], $prevStop, src[$prevStop], context);if (passedTest) {
+          $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
           } else {
             $out.length = 0;
@@ -772,7 +772,7 @@ module.exports = function () {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
       }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
         if ($invalidatedKeys.has($prevStop)) {
-          $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, key], $prevStop, src[$prevStop], context);if (passedTest) {
+          $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
           } else {
             $out.length = 0;
@@ -1252,7 +1252,7 @@ const modelBuilder = (function () {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
       }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
         if ($invalidatedKeys.has($prevStop)) {
-          $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, key], $prevStop, src[$prevStop], context);if (passedTest) {
+          $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
           } else {
             $out.length = 0;
