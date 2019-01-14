@@ -2,7 +2,7 @@ const objectHash = require('object-hash');
 const { memoizeNonPrimitives } = require('./memoize');
 const _ = require('lodash');
 
-const strHash = {};
+let strHash = {};
 const hashString = str => {
   if (!strHash[str]) {
     strHash[str] = objectHash(str);
@@ -10,6 +10,10 @@ const hashString = str => {
   const res = strHash[str];
   return res;
 };
+
+const clearHashStrings = () => {
+  strHash = {};
+}
 
 const exprHash = memoizeNonPrimitives(
   obj => {
@@ -26,4 +30,4 @@ const exprHash = memoizeNonPrimitives(
   primitive => hashString(JSON.stringify(primitive))
 );
 
-module.exports = {exprHash, hashString};
+module.exports = {exprHash, hashString, clearHashStrings };

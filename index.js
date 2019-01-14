@@ -29,7 +29,7 @@ try {
 
 const path = require('path');
 const fs = require('fs');
-const {exprHash} = require('./src/expr-hash');
+const {exprHash, clearHashStrings} = require('./src/expr-hash');
 const {searchExpressionsWithoutInnerFunctions, searchExpressions} = require('./src/expr-search');
 
 const prettier = require('prettier');
@@ -264,8 +264,9 @@ proxyHandler.apply = (target, thisArg, args) => {
 };
 
 function compile(model, options) {
+  clearHashStrings();
   if (typeof options === 'boolean' || typeof options === 'undefined') {
-    options = { compiler: !!options ? 'naive' : 'optimizing' };
+    options = { compiler: options ? 'naive' : 'optimizing' };
   }
   options.name = options.name || 'instance';
   if (options.compiler === 'carmi') {
