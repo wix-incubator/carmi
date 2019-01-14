@@ -119,6 +119,16 @@ module.exports = function({chain, or, and}) {
       return array.filter(value => value)
     }
 
+    function switchCase(obj, caseTuples, defaultCase) {
+      return (caseTuples || []).reduce(
+          (result, caseTuple) => obj.eq(caseTuple[0]).ternary(
+              caseTuple[1],
+              result
+          ),
+          defaultCase || chain(null)
+      )
+    }
+
     return {
       getIn,
       includes,
@@ -138,6 +148,7 @@ module.exports = function({chain, or, and}) {
       reverse,
       last,
       head,
-      compact
+      compact,
+      switch: switchCase
     };
 };
