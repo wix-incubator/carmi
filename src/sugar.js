@@ -115,6 +115,10 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).isUndefined().not()
     }
 
+    function every(array, predicate) {
+      return array.map((item, index) => predicate(item, index)).filter(item => item.not()).size().eq(0)
+    }
+
     function compact(array) {
       return array.filter(value => value)
     }
@@ -148,6 +152,7 @@ module.exports = function({chain, or, and}) {
       reverse,
       last,
       head,
+      every,
       compact,
       switch: switchCase
     };
