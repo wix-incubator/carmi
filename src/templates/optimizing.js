@@ -505,7 +505,7 @@ function library() {
         }
         $idxToIdx.length = src.length + 1;
         for (let key = $idxToIdx[$idxToIdx.length - 1]; key < $out.length; key++) {
-          triggerInvalidations($out, key);
+          triggerInvalidations($out, key, true);
         }
         $out.length = $idxToIdx[$idxToIdx.length - 1];
       }
@@ -625,12 +625,12 @@ function library() {
         Object.keys(keysPendingDelete).forEach(res => {
           if (keysPendingDelete[res].size > 0) {
             keysPendingDelete[res].forEach(key => {
-              triggerInvalidations($out[res], key);
-              delete $out[res][key];
+              deleteOnObject($out[res], key, $invalidates);
             });
-            triggerInvalidations($out, res);
             if (Object.keys($out[res]).length == 0) {
-              delete $out[res];
+              deleteOnObject($out, res, $invalidates);
+            } else {
+              setOnObject($out, res, $out[res], $invalidates);
             }
           }
         });
@@ -641,7 +641,7 @@ function library() {
 
     const valuesOrKeysCacheFunc = () => ({$keyToIdx: {}, $idxToKey: []});
 
-    function valuesOrKeysForObject($tracked, identifier, src, getValues) {
+    function valuesOrKeysForObject($tracked, identifier, src, getValues, invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -664,8 +664,7 @@ function library() {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              $out[$keyToIdx[key]] = getValues ? src[key] : key;
-              triggerInvalidations($out, $keyToIdx[key]);
+              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, invalidates);
             }
           }
         });
@@ -681,8 +680,7 @@ function library() {
           delete $keyToIdx[$deletedKey];
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          $out[$newIdx] = getValues ? src[$addedKey] : $addedKey;
-          triggerInvalidations($out, $newIdx);
+          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates)
         }
         // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
@@ -690,8 +688,7 @@ function library() {
           const $newIdx = $out.length;
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          $out[$newIdx] = getValues ? src[$addedKey] : $addedKey;
-          triggerInvalidations($out, $newIdx);
+          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates)
         }
         // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
@@ -706,16 +703,15 @@ function library() {
             // need to move this key to one of the pending delete
             const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
             const $newIdx = $keyToIdx[$switchedWithDeletedKey];
-            $out[$newIdx] = getValues ? src[$currentKey] : $currentKey;
+            setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, invalidates);
             $keyToIdx[$currentKey] = $newIdx;
             $idxToKey[$newIdx] = $currentKey;
             delete $keyToIdx[$switchedWithDeletedKey];
-            triggerInvalidations($out, $newIdx);
             $savedCount++;
           } else {
             delete $keyToIdx[$currentKey];
           }
-          triggerInvalidations($out, $tailIdx);
+          triggerInvalidations($out, $tailIdx, true);
         }
         $out.length = $finalOutLength;
         $idxToKey.length = $out.length;
@@ -812,8 +808,7 @@ function library() {
           setOnObject($out, key, res[key], invalidates);
         });
         $keysPendingDelete.forEach(key => {
-          delete $out[key];
-          triggerInvalidations($out, key);
+          deleteOnObject($out, key, invalidates)
         });
         $invalidatedKeys.clear();
       }
@@ -845,14 +840,14 @@ function library() {
         let len = 0;
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
           if ($out[len] !== val) {
-            triggerInvalidations($out, len);
+            triggerInvalidations($out, len, false);
           }
           $out[len] = val;
           len++;
         }
         if ($out.length > len) {
           for (let i = len; i < $out.length; i++) {
-            triggerInvalidations($out, i);
+            triggerInvalidations($out, i, true);
           }
           $out.length = len;
         }

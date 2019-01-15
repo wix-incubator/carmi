@@ -149,7 +149,7 @@ $tainted = new WeakSet();`
       case 'values':
         return this.withTypeCheck(expr, `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'values' ? 'true' : 'false'
-        })`);
+        }, ${this.invalidates(expr)})`);
       case 'size':
         return `size($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':
