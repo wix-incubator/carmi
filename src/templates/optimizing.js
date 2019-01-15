@@ -1,12 +1,12 @@
 function library() {
     const $trackingMap = new WeakMap();
-    const $trackedMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
     const $invalidatedMap = new WeakMap();
     const $invalidatedRoots = new Set();
     $invalidatedRoots.$subKeys = {};
     $invalidatedRoots.$parentKey = null;
     $invalidatedRoots.$parent = null;
+    $invalidatedRoots.$tracked = {};
     let $first = true;
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
@@ -65,7 +65,7 @@ function library() {
     };
 
     const untrack = ($targetKeySet, $targetKey) => {
-      const $tracked = $trackedMap.get($targetKeySet);
+      const $tracked = $targetKeySet.$tracked;
       if (!$tracked || !$tracked[$targetKey]) {
         return;
       }
@@ -148,15 +148,12 @@ function library() {
       const $track = $trackingMap.get($sourceObj);
       $track[$sourceKey] = $track[$sourceKey] || new Map();
       $track[$sourceKey].set($target, $soft);
-      const $tracked = $trackedMap.get($target[0]);
+      const $tracked = $target[0].$tracked;
       $tracked[$target[1]] = $tracked[$target[1]] || [];
       $tracked[$target[1]].push({ $sourceKey, $sourceObj, $target });
     }
 
     function trackPath($target, $path) {
-      if (!$trackedMap.has($target[0])) {
-        $trackedMap.set($target[0], {});
-      }
       const $end = $path.length - 2;
       let $current = $path[0];
       for (let i = 0; i <= $end; i++) {
@@ -193,6 +190,7 @@ function library() {
         $invalidatedKeys.$subKeys = {};
         $invalidatedKeys.$parentKey = $tracked[1];
         $invalidatedKeys.$parent = $tracked[0];
+        $invalidatedKeys.$tracked = {};
         $invalidatedMap.set($resultObj, $invalidatedKeys);
         $cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];
         $cachePerTargetKey.set(func, $cachedByFunc);
