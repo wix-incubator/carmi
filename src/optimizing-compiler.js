@@ -222,17 +222,13 @@ $tainted = new WeakSet();`
       .slice(1)
       .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
-    const taint = new Array(setterExpr.length - 1)
-      .fill()
-      .map((v, idx) => `$tainted.add(${this.pathToString(setterExpr, idx + 1)});`)
-      .join('');
     const invalidate = new Array(setterExpr.length - 1)
       .fill()
       .map(
         (v, idx) =>
           `triggerInvalidations(${this.pathToString(setterExpr, idx + 1)}, ${this.generateExpr(
             setterExpr[setterExpr.length - idx - 1]
-          )}, true);`
+          )}, ${idx === 0});`
       )
       .join('');
 
@@ -245,13 +241,11 @@ $tainted = new WeakSet();`
             triggerInvalidations(arr, i, true);
           }
           ${invalidate}
-          ${taint}
           ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
       })`;
     }
     return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
               ${invalidate}
-              ${taint}
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}
               } else {
