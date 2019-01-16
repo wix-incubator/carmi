@@ -53,9 +53,9 @@ module.exports = function () {
     };const untrack = ($targetKeySet, $targetKey) => {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
         return;
-      }$tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
-        const $trackingSource = $trackingMap.get($sourceObj);$trackingSource[$sourceKey].delete($target);
-      });delete $tracked[$targetKey];
+      }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
+        const $trackingSource = $trackingMap.get($trackedByKey[i]);$trackingSource[$trackedByKey[i + 1]].delete($trackedByKey[i + 2]);
+      }delete $tracked[$targetKey];
     };const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
@@ -89,7 +89,7 @@ module.exports = function () {
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
-      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push({ $sourceKey, $sourceObj, $target });
+      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push($sourceObj, $sourceKey, $target);
     }function trackPath($target, $path) {
       const $end = $path.length - 2;let $current = $path[0];for (let i = 0; i <= $end; i++) {
         track($target, $current, $path[i + 1], i !== $end);$current = $current[$path[i + 1]];
@@ -531,9 +531,9 @@ module.exports = function () {
     };const untrack = ($targetKeySet, $targetKey) => {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
         return;
-      }$tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
-        const $trackingSource = $trackingMap.get($sourceObj);$trackingSource[$sourceKey].delete($target);
-      });delete $tracked[$targetKey];
+      }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
+        const $trackingSource = $trackingMap.get($trackedByKey[i]);$trackingSource[$trackedByKey[i + 1]].delete($trackedByKey[i + 2]);
+      }delete $tracked[$targetKey];
     };const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
@@ -567,7 +567,7 @@ module.exports = function () {
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
-      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push({ $sourceKey, $sourceObj, $target });
+      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push($sourceObj, $sourceKey, $target);
     }function trackPath($target, $path) {
       const $end = $path.length - 2;let $current = $path[0];for (let i = 0; i <= $end; i++) {
         track($target, $current, $path[i + 1], i !== $end);$current = $current[$path[i + 1]];
@@ -1011,9 +1011,9 @@ const modelBuilder = (function () {
     };const untrack = ($targetKeySet, $targetKey) => {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
         return;
-      }$tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
-        const $trackingSource = $trackingMap.get($sourceObj);$trackingSource[$sourceKey].delete($target);
-      });delete $tracked[$targetKey];
+      }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
+        const $trackingSource = $trackingMap.get($trackedByKey[i]);$trackingSource[$trackedByKey[i + 1]].delete($trackedByKey[i + 2]);
+      }delete $tracked[$targetKey];
     };const invalidate = ($targetKeySet, $targetKey) => {
       if ($targetKeySet.has($targetKey)) {
         return;
@@ -1047,7 +1047,7 @@ const modelBuilder = (function () {
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
-      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push({ $sourceKey, $sourceObj, $target });
+      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push($sourceObj, $sourceKey, $target);
     }function trackPath($target, $path) {
       const $end = $path.length - 2;let $current = $path[0];for (let i = 0; i <= $end; i++) {
         track($target, $current, $path[i + 1], i !== $end);$current = $current[$path[i + 1]];

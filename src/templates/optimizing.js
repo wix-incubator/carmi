@@ -69,10 +69,11 @@ function library() {
       if (!$tracked || !$tracked[$targetKey]) {
         return;
       }
-      $tracked[$targetKey].forEach(({ $sourceObj, $sourceKey, $target }) => {
-        const $trackingSource = $trackingMap.get($sourceObj);
-        $trackingSource[$sourceKey].delete($target);
-      });
+      const $trackedByKey = $tracked[$targetKey];
+      for (let i = 0; i < $trackedByKey.length; i+=3) {
+        const $trackingSource = $trackingMap.get($trackedByKey[i]);
+        $trackingSource[$trackedByKey[i+1]].delete($trackedByKey[i+2]);
+      }
       delete $tracked[$targetKey];
     };
 
@@ -150,7 +151,7 @@ function library() {
       $track[$sourceKey].set($target, $soft);
       const $tracked = $target[0].$tracked;
       $tracked[$target[1]] = $tracked[$target[1]] || [];
-      $tracked[$target[1]].push({ $sourceKey, $sourceObj, $target });
+      $tracked[$target[1]].push($sourceObj, $sourceKey, $target);
     }
 
     function trackPath($target, $path) {
