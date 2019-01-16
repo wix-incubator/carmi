@@ -23,7 +23,12 @@ module.exports = function({chain, or, and}) {
     }
 
     function concat(a, b) {
-        return a.size().plus(b.size()).range().map(v => v.lt(a.size()).ternary(a.get(v), b.get(v.minus(a.size()))))
+      return a.size().plus(b.size()).range().map(
+        (v, k, ctx) => v.lt(ctx.get(0).size()).ternary(
+          ctx.get(0).get(v),
+          ctx.get(1).get(v.minus(ctx.get(0).size()))),
+        chain([a, b])
+      )
     }
 
     function find(collection, predicate, givenCtx) {

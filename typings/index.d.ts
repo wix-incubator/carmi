@@ -289,7 +289,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
     /**
-     * Returns an object graph that resolves to an object containing keys returned by functor, pointing to their corresponding values.
+     * Returns an object graph that resolves to an object containing keys returned by functor, pointing to their first found corresponding value.
      * 
      * @param functor A function to run for every item of the array, returning a string as a new key
      * @param scope A variable to pass to the functor if inside another functor.
