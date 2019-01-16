@@ -17,7 +17,7 @@ const runTypes = {
   mobx: ['justInit', 'batched', 'nonBatched'],
   carmi: ['justInit', 'batched', 'nonBatched']
 };
-const runsCount = 30;
+const runsCount = 11;
 
 function resolveTestName(testname, type) {
   if (type === 'mobx') {
@@ -46,14 +46,14 @@ function runSingleTest(testname, model, count, changes, batch) {
   });
 }
 
-function runBenchmarks(testname) {
+async function runBenchmarks(testname) {
   precompileModel(testname, 'carmi');
   precompileModel(testname, 'simple');
   const results = [];
   for (let runIndex = 0; runIndex < runsCount; runIndex++) {
     for (let type of testsConfigs[testname]) {
       for (let run of runTypes[type]) {
-        const vals = runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
+        const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
         results.push(Object.assign({ type, run }, vals));
       }
     }
@@ -61,10 +61,10 @@ function runBenchmarks(testname) {
   return results;
 }
 
-function runAllBenchmarks() {
+async function runAllBenchmarks() {
   const results = {};
   for (let testname of tests) {
-    results[testname] = runBenchmarks(testname);
+    results[testname] = await runBenchmarks(testname);
   }
   require('fs').writeFileSync(path.resolve(__dirname, 'generated', 'results.json'), JSON.stringify(results, null, 2));
 }
