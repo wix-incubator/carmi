@@ -98,6 +98,17 @@ describe('testing array', () => {
       inst.splice(0, inst.$model.length, ...reverseArray);
       expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
       expectTapFunctionToHaveBeenCalled(0, compiler);
+    });    
+    
+    it('raw keyBy', async () => {
+      const model = {
+        itemByIdx: root.keyBy(val => val.get('idx')),
+        set: setter(arg0),
+        splice: splice()
+      };
+      const optModel = eval(compile(model, { compiler }));
+      const inst = optModel([{ idx: 1, text: 'a', foo: 'bar' }, { idx: 2, text: 'b' }, { idx: 1, text: 'c' }], funcLibrary);
+      expect(inst.itemByIdx).toEqual({1: {idx: 1, text: 'c'}, 2: {idx: 2, text: 'b'}});
     });
     it('simple comparison operations', async () => {
       const arr = root.get('arr');
