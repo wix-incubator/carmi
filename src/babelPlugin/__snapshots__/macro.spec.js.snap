@@ -127,9 +127,7 @@ module.exports = function () {
           $trackingWildcards.set(src, new Set());
         }$trackingWildcards.get(src).add($invalidatedKeys);$cachedByFunc[0] = src;
       }return $cachedByFunc;
-    }const emptyObj = () => {
-      return {};
-    };const emptyArr = () => [];const nullFunc = () => null;function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
+    }const emptyObj = () => ({});const emptyArr = () => [];const nullFunc = () => null;function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];($new && Object.keys(src) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
@@ -425,6 +423,14 @@ module.exports = function () {
       }if (!$new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
+    }function naiveSum(src = [0]) {
+      const subject = Array.isArray(src) ? src : Object.values(src);return (subject.length ? subject : [0]).reduce((sum, value) => sum + value);
+    }function sum($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
+        $out[0] = naiveSum(src);
+      }if (!$new) {
+        console.log(JSON.stringify($invalidatedKeys, false, 2));$out[0] = naiveSum(src);$invalidatedKeys.clear();
+      }return $out[0];
     }function range($tracked, end, start, step, identifier) {
       const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
         for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
@@ -605,9 +611,7 @@ module.exports = function () {
           $trackingWildcards.set(src, new Set());
         }$trackingWildcards.get(src).add($invalidatedKeys);$cachedByFunc[0] = src;
       }return $cachedByFunc;
-    }const emptyObj = () => {
-      return {};
-    };const emptyArr = () => [];const nullFunc = () => null;function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
+    }const emptyObj = () => ({});const emptyArr = () => [];const nullFunc = () => null;function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];($new && Object.keys(src) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
@@ -902,6 +906,14 @@ module.exports = function () {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
       }if (!$new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
+      }return $out[0];
+    }function naiveSum(src = [0]) {
+      const subject = Array.isArray(src) ? src : Object.values(src);return (subject.length ? subject : [0]).reduce((sum, value) => sum + value);
+    }function sum($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
+        $out[0] = naiveSum(src);
+      }if (!$new) {
+        console.log(JSON.stringify($invalidatedKeys, false, 2));$out[0] = naiveSum(src);$invalidatedKeys.clear();
       }return $out[0];
     }function range($tracked, end, start, step, identifier) {
       const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
@@ -1085,9 +1097,7 @@ const modelBuilder = (function () {
           $trackingWildcards.set(src, new Set());
         }$trackingWildcards.get(src).add($invalidatedKeys);$cachedByFunc[0] = src;
       }return $cachedByFunc;
-    }const emptyObj = () => {
-      return {};
-    };const emptyArr = () => [];const nullFunc = () => null;function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
+    }const emptyObj = () => ({});const emptyArr = () => [];const nullFunc = () => null;function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];($new && Object.keys(src) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
@@ -1382,6 +1392,14 @@ const modelBuilder = (function () {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
       }if (!$new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
+      }return $out[0];
+    }function naiveSum(src = [0]) {
+      const subject = Array.isArray(src) ? src : Object.values(src);return (subject.length ? subject : [0]).reduce((sum, value) => sum + value);
+    }function sum($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
+        $out[0] = naiveSum(src);
+      }if (!$new) {
+        console.log(JSON.stringify($invalidatedKeys, false, 2));$out[0] = naiveSum(src);$invalidatedKeys.clear();
       }return $out[0];
     }function range($tracked, end, start, step, identifier) {
       const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {

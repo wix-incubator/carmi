@@ -829,16 +829,22 @@ function library() {
       return $out[0];
     }
 
+    function naiveSum(src = [0]) {
+      const subject = Array.isArray(src) ? src : Object.values(src)
+      return (subject.length ? subject : [0]).reduce((sum, value) => sum + value)
+    }
+
     function sum($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
       if ($new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+        $out[0] = naiveSum(src);
       }
       if (!$new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+        console.log($tracked, JSON.stringify($invalidatedKeys,false,2))
+        $out[0] = naiveSum(src);
         $invalidatedKeys.clear();
       }
       return $out[0];
