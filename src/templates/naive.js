@@ -210,6 +210,11 @@ function library() {
     return res[key];
   }
 
+  function sum(src = [0]) {
+    const subject = Array.isArray(src) ? src : Object.values(src)
+    return (subject.length ? subject : [0]).reduce((sum, value) => sum + value)
+  }
+
   function recursiveMap(func, src, context) {
     const res = [];
     const resolved = src.map(x => false);

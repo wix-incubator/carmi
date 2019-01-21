@@ -98,8 +98,8 @@ describe('testing array', () => {
       inst.splice(0, inst.$model.length, ...reverseArray);
       expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
       expectTapFunctionToHaveBeenCalled(0, compiler);
-    });    
-    
+    });
+
     it('raw keyBy', async () => {
       const model = {
         itemByIdx: root.keyBy(val => val.get('idx')),

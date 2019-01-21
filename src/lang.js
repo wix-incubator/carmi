@@ -80,6 +80,7 @@ const TokenTypeData = {
   values: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   keys: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   size: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
+  sum: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   range: new TokenTypes({ chainIndex: 1, len: [2, 4] }),
   assign: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   defaults: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),

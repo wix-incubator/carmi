@@ -39,10 +39,6 @@ module.exports = function({chain, or, and}) {
       return reduce(arr, (acc, value, index) => index.eq(0).ternary(acc.plus(value), acc.plus(separator).plus(value)), '')
     }
 
-    function sum(arr) {
-        return reduce(arr, (acc, value) => acc.plus(value), 0)
-    }
-
     function isEmpty(obj) {
       return obj.size().eq(0)
     }
@@ -143,7 +139,6 @@ module.exports = function({chain, or, and}) {
       concat,
       find,
       join,
-      sum,
       append,
       setIn,
       pick,

@@ -223,9 +223,7 @@ function library() {
       return $cachedByFunc;
     }
 
-    const emptyObj = () => {
-      return {};
-    };
+    const emptyObj = () => ({});
     const emptyArr = () => [];
     const nullFunc = () => null;
 
@@ -549,7 +547,7 @@ function library() {
       return false;
     }
 
-    
+
     function anyValuesOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
@@ -817,6 +815,21 @@ function library() {
     }
 
     function size($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
+      const $out = $storage[1]
+      const $invalidatedKeys = $storage[2];
+      const $new = $storage[3];
+      if ($new) {
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+      }
+      if (!$new) {
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+        $invalidatedKeys.clear();
+      }
+      return $out[0];
+    }
+
+    function sum($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
