@@ -831,18 +831,29 @@ function library() {
 
 
     function sum($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);
       const $out = $storage[1]
-      const $invalidatedKeys = [...$storage[2]]
-      $storage[2].clear()
+      const $invalidatedKeys = $storage[2]
       const $new = $storage[3]
       const $cache = $storage[4]
-      return $out[0] = $cache[0] = $new ?
-          src.reduce((sum, value, index) => ($cache[1+index] = value) + sum, 0) :
-          $invalidatedKeys.reduce((acc, index) =>
-            (index < ($cache.length-1) ? (acc - $cache[index+1] + ($cache[index+1] = src[index] || 0)) : (acc + src[index])),
-            $cache[0]
-          )
+      const length = src.length
+      if($new) {
+        $cache[0] = 0
+        $cache[1] = []
+        for(let i = 0;i<length;i++) {
+          $cache[0] += src[i]
+          $cache[1][i] = src[i]
+        }
+      } else {
+        $invalidatedKeys.forEach((key) => {
+          $cache[0] = $cache[0] - $cache[1][key] + src[key]
+          $cache[1][key] = src[key]
+        })
+        $cache[1].length = length
+        $invalidatedKeys.clear()
+      }
+      $out[0] = $cache[0]
+      return $out[0]
     }
 
     function range($tracked, end, start, step, identifier) {
