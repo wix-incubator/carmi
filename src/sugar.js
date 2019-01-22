@@ -116,7 +116,7 @@ module.exports = function({chain, or, and}) {
     }
 
     function every(array, predicate) {
-      return array.map((item, index) => predicate(item, index)).filter(item => item.not()).size().eq(0)
+      return array.any(val => predicate(val).not()).not()
     }
 
     function compact(array) {
