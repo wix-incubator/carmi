@@ -2,7 +2,7 @@ function base() {
   function $NAME($model, $funcLib, $batchingStrategy) {
     const $res = { $model };
     const $listeners = new Set();
-    const $topLevel = new Array(/* COUNT_GETTERS */).fill(null);
+    const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
