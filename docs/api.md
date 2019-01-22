@@ -34,6 +34,7 @@ All of them return objects which represent the computation - remember there are 
   results of calling the function on each item in the array
 - **any**((item,key,context) => result<,context>) - returns true if the result of function is true for any of the items
   in the array
+= **every**((item, key, context) => result<,context>) - returns true if the result of function is true for all the items
 - **keyBy**((item,key,context) => result<,context>) - expects an array returns an object with keys equal to the result
   of the function for each item and the values are the source items on the array
 - **filter**((item,key,context) => result<,context>) - expects an array returns an array with only the items that pass
@@ -93,5 +94,5 @@ All of them return objects which represent the computation - remember there are 
 - **call**(functionName, ...extraArgs) - call a function called functionName from the function library passes the
   current value as the first argument, and extra arguments are well... extra
 
-- **bind**(functionName, ...args) - Creates a function that invokes functionName from the function library with args 
+- **bind**(functionName, ...args) - Creates a function that invokes functionName from the function library with args
   prepended to the arguments it receives.
