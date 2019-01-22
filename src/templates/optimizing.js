@@ -829,25 +829,20 @@ function library() {
       return $out[0];
     }
 
-    function naiveSum(src = [0]) {
-      const subject = Array.isArray(src) ? src : Object.values(src)
-      return (subject.length ? subject : [0]).reduce((sum, value) => sum + value)
-    }
 
     function sum($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
-      const $invalidatedKeys = $storage[2];
-      const $new = $storage[3];
-      if ($new) {
-        $out[0] = naiveSum(src);
-      }
-      if (!$new) {
-        console.log($tracked, JSON.stringify($invalidatedKeys,false,2))
-        $out[0] = naiveSum(src);
-        $invalidatedKeys.clear();
-      }
-      return $out[0];
+      const $invalidatedKeys = [...$storage[2]]
+      $storage[2].clear()
+      const $new = $storage[3]
+      const $cache = $storage[4]
+      return $out[0] = $cache[0] = $new ?
+          src.reduce((sum, value, index) => ($cache[1+index] = value) + sum, 0) :
+          $invalidatedKeys.reduce((acc, index) =>
+            (index < ($cache.length-1) ? (acc - $cache[index+1] + ($cache[index+1] = src[index] || 0)) : (acc + src[index])),
+            $cache[0]
+          )
     }
 
     function range($tracked, end, start, step, identifier) {

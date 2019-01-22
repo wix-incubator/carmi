@@ -328,7 +328,8 @@ describe('testing array', () => {
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(9);
       inst.set(2, 1);
-      expect(inst.result).toEqual(5);
+      inst.set(0, 5);
+      expect(inst.result).toEqual(9);
     });
     it('sum with empty array', async () => {
       const model = {

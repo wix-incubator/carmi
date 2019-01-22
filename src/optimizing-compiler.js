@@ -174,6 +174,7 @@ $tainted = new WeakSet();`
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
+
         return this.withTypeCheck(expr, `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
