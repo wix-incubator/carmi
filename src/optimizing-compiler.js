@@ -12,11 +12,6 @@ const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
 const { splitSettersGetters, pathMatches, normalizeAndTagAllGetters } = require('./expr-tagging');
 
-const trace = (val,title) => {
-  // console.log(title, val);
-  return val;
-}
-
 class OptimizingCompiler extends SimpleCompiler {
   constructor(model, options) {
     super(model, options);
@@ -161,7 +156,7 @@ $tainted = new WeakSet();`
       case 'range':
         return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
-        }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)})`;
+        }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)}, ${this.invalidates(expr)})`;
       case 'filterBy':
       case 'mapValues':
       case 'groupBy':
@@ -187,7 +182,7 @@ $tainted = new WeakSet();`
       case 'func':
         return expr[0].$duplicate ? expr[0].$duplicate : expr[0].$funcId;
       case 'invoke':
-        return `${trace(expr[1],'invoke')}($tracked${expr.slice(2).map(t => `,${t.$type}`).join('')})`
+        return `${expr[1]}($tracked${expr.slice(2).map(t => `,${t.$type}`).join('')})`
       default:
         return super.generateExpr(expr);
     }
