@@ -120,6 +120,10 @@ module.exports = function({chain, or, and}) {
       return obj.get(key).isUndefined().not()
     }
 
+    function every(array, predicate) {
+      return array.any((val, key, context) => predicate(val, key, context).not()).not()
+    }
+
     function compact(array) {
       return array.filter(value => value)
     }
@@ -153,6 +157,7 @@ module.exports = function({chain, or, and}) {
       reverse,
       last,
       head,
+      every,
       compact,
       switch: switchCase
     };
