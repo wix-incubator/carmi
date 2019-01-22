@@ -294,6 +294,22 @@ describe('testing array', () => {
       expect(inst.result).toEqual([0, 6]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
+    it('range to map from length 0', async () => {
+      const model = {
+        result: chain(root.get('len'))
+          .range()
+          .map(item => item.plus(root.get('base')).call('tap')),
+        set: setter('len')
+      };
+      const optModel = eval(compile(model, { compiler }));
+      const initialData = { len: 0, base: 2 };
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual([]);
+      expectTapFunctionToHaveBeenCalled(0, compiler);
+      inst.set(1);
+      expect(inst.result).toEqual([2]);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    });
     it('reduce', async () => {
       const model = {
         result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),

@@ -82,7 +82,7 @@ module.exports = function () {
       let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $key >= $target.length || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val)) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
@@ -430,17 +430,17 @@ module.exports = function () {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
     }function range($tracked, end, start, step, identifier, $invalidates) {
-      const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
-        for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          $out.push(val);
+      const $out = getEmptyArray($tracked, identifier);let $res;if ($out.length === 0) {
+        $res = [];$out.push($res);for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
+          $res.push(val);
         }
       } else {
-        let len = 0;for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          setOnArray($out, len, val, $invalidates);len++;
-        }if ($out.length > len) {
-          truncateArray($out, len, $invalidates);
+        let len = 0;$res = $out[0];for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
+          setOnArray($res, len, val, $invalidates);len++;
+        }if ($res.length > len) {
+          truncateArray($res, len, $invalidates);
         }
-      }return $out;
+      }return $res;
     }function $todosListBuild() {
       const $tracked = [$invalidatedRoots, 0];const newValue = call($tracked, [\\"createElement\\", $topLevel[1 /*\\"$array_temp_4_19_1\\"*/]], '4', 2, false);setOnObject($topLevel, 0, newValue, false);$res['todosList'] = newValue;$invalidatedRoots.delete(0);return $topLevel[0];
     }function $array_temp_4_19_1Build() {
@@ -560,7 +560,7 @@ module.exports = function () {
       let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $key >= $target.length || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val)) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
@@ -908,17 +908,17 @@ module.exports = function () {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
     }function range($tracked, end, start, step, identifier, $invalidates) {
-      const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
-        for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          $out.push(val);
+      const $out = getEmptyArray($tracked, identifier);let $res;if ($out.length === 0) {
+        $res = [];$out.push($res);for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
+          $res.push(val);
         }
       } else {
-        let len = 0;for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          setOnArray($out, len, val, $invalidates);len++;
-        }if ($out.length > len) {
-          truncateArray($out, len, $invalidates);
+        let len = 0;$res = $out[0];for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
+          setOnArray($res, len, val, $invalidates);len++;
+        }if ($res.length > len) {
+          truncateArray($res, len, $invalidates);
         }
-      }return $out;
+      }return $res;
     }function $firstBuild() {
       const $tracked = [$invalidatedRoots, 0];const newValue = $model[0];setOnObject($topLevel, 0, newValue, false);$res['first'] = newValue;$invalidatedRoots.delete(0);return $topLevel[0];
     }function $secondBuild() {
@@ -1040,7 +1040,7 @@ const modelBuilder = (function () {
       let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $key >= $target.length || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val)) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
@@ -1388,17 +1388,17 @@ const modelBuilder = (function () {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
     }function range($tracked, end, start, step, identifier, $invalidates) {
-      const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
-        for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          $out.push(val);
+      const $out = getEmptyArray($tracked, identifier);let $res;if ($out.length === 0) {
+        $res = [];$out.push($res);for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
+          $res.push(val);
         }
       } else {
-        let len = 0;for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          setOnArray($out, len, val, $invalidates);len++;
-        }if ($out.length > len) {
-          truncateArray($out, len, $invalidates);
+        let len = 0;$res = $out[0];for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
+          setOnArray($res, len, val, $invalidates);len++;
+        }if ($res.length > len) {
+          truncateArray($res, len, $invalidates);
         }
-      }return $out;
+      }return $res;
     }function $allBuild() {
       const $tracked = [$invalidatedRoots, 0];const newValue = $model[\\"list\\"];setOnObject($topLevel, 0, newValue, false);$res['all'] = newValue;$invalidatedRoots.delete(0);return $topLevel[0];
     }function $firstBuild() {

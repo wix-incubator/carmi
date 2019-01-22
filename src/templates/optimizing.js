@@ -132,9 +132,9 @@ function library() {
         }
         if (
           $hard ||
+          $key >= $target.length || 
           $target[$key] !== $val ||
-          (typeof $target[$key] === 'object' && $tainted.has($val)) ||
-          (!$target.hasOwnProperty($key) && $target[$key] === undefined)
+          (typeof $target[$key] === 'object' && $tainted.has($val))
         ) {
           triggerInvalidations($target, $key, $hard);
         }
@@ -837,21 +837,25 @@ function library() {
 
     function range($tracked, end, start, step, identifier, $invalidates) {
       const $out = getEmptyArray($tracked, identifier);
+      let $res;
       if ($out.length === 0) {
+        $res = [];
+        $out.push($res);
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-          $out.push(val);
+          $res.push(val);
         }
       } else {
         let len = 0;
+        $res = $out[0];
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-          setOnArray($out, len, val, $invalidates);
+          setOnArray($res, len, val, $invalidates);
           len++;
         }
-        if ($out.length > len) {
-          truncateArray($out, len, $invalidates);
+        if ($res.length > len) {
+          truncateArray($res, len, $invalidates);
         }
       }
-      return $out;
+      return $res;
     }
   }
 
