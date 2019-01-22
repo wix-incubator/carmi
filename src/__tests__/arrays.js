@@ -341,6 +341,19 @@ describe('testing array', () => {
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(0);
     });
+    it('sum with shortening array', async () => {
+      const model = {
+        result: root.sum(),
+        splice: splice(),
+        set: setter(arg0)
+      };
+      const optModel = eval(compile(model, { compiler }));
+      const initialData = [1,2,3,4];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(10);
+      inst.splice(0, 1)
+      expect(inst.result).toEqual(9);
+    });
     it('concat', async () => {
       const model = {
         result: root.get('a').concat(root.get('b')),

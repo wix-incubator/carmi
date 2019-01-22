@@ -434,7 +434,7 @@ module.exports = function () {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          $cache[0] = $cache[0] - $cache[1][key] + src[key];$cache[1][key] = src[key];
+          const cached = $cache[1][key] || 0;const live = src[key] || 0;$cache[0] = $cache[0] - cached + live;$cache[1][key] = live;
         });$cache[1].length = length;$invalidatedKeys.clear();
       }$out[0] = $cache[0];return $out[0];
     }function range($tracked, end, start, step, identifier, $invalidates) {
@@ -920,7 +920,7 @@ module.exports = function () {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          $cache[0] = $cache[0] - $cache[1][key] + src[key];$cache[1][key] = src[key];
+          const cached = $cache[1][key] || 0;const live = src[key] || 0;$cache[0] = $cache[0] - cached + live;$cache[1][key] = live;
         });$cache[1].length = length;$invalidatedKeys.clear();
       }$out[0] = $cache[0];return $out[0];
     }function range($tracked, end, start, step, identifier, $invalidates) {
@@ -1408,7 +1408,7 @@ const modelBuilder = (function () {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          $cache[0] = $cache[0] - $cache[1][key] + src[key];$cache[1][key] = src[key];
+          const cached = $cache[1][key] || 0;const live = src[key] || 0;$cache[0] = $cache[0] - cached + live;$cache[1][key] = live;
         });$cache[1].length = length;$invalidatedKeys.clear();
       }$out[0] = $cache[0];return $out[0];
     }function range($tracked, end, start, step, identifier, $invalidates) {

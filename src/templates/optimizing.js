@@ -849,8 +849,10 @@ function library() {
         }
       } else {
         $invalidatedKeys.forEach((key) => {
-          $cache[0] = $cache[0] - $cache[1][key] + src[key]
-          $cache[1][key] = src[key]
+          const cached = $cache[1][key] || 0
+          const live = src[key] || 0
+          $cache[0] = $cache[0] - cached + live
+          $cache[1][key] = live
         })
         $cache[1].length = length
         $invalidatedKeys.clear()
