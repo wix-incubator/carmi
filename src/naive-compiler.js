@@ -146,6 +146,7 @@ class NaiveCompiler {
       case 'assign':
       case 'defaults':
       case 'size':
+      case 'sum':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
       case 'isBoolean':
       case 'isNumber':

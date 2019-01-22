@@ -23,7 +23,9 @@ function resolveTestName(testname, type) {
   if (type === 'mobx') {
     return `./${testname}.mobx`;
   } else {
-    return path.resolve(__dirname, 'generated', `${testname}.${type}`);
+    const targetDir = path.resolve(__dirname, 'generated')
+    !fs.existsSync(targetDir) && fs.mkdirSync(targetDir)
+    return path.resolve(targetDir, `${testname}.${type}`);
   }
 }
 

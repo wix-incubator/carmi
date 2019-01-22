@@ -98,8 +98,8 @@ describe('testing array', () => {
       inst.splice(0, inst.$model.length, ...reverseArray);
       expect(inst.itemByIdx).toEqual({ 4: 'd', 3: 'e' });
       expectTapFunctionToHaveBeenCalled(0, compiler);
-    });    
-    
+    });
+
     it('raw keyBy', async () => {
       const model = {
         itemByIdx: root.keyBy(val => val.get('idx')),
@@ -344,7 +344,8 @@ describe('testing array', () => {
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(9);
       inst.set(2, 1);
-      expect(inst.result).toEqual(5);
+      inst.set(0, 5);
+      expect(inst.result).toEqual(9);
     });
     it('sum with empty array', async () => {
       const model = {
@@ -355,6 +356,21 @@ describe('testing array', () => {
       const initialData = [];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(0);
+    });
+    it('sum with array that changes length', async () => {
+      const model = {
+        result: root.sum(),
+        splice: splice(),
+        set: setter(arg0)
+      };
+      const optModel = eval(compile(model, { compiler }));
+      const initialData = [1,2,3,4];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(10);
+      inst.splice(0, 1)
+      expect(inst.result).toEqual(9);
+      inst.splice(0, 0, 6)
+      expect(inst.result).toEqual(15)
     });
     it('concat', async () => {
       const model = {

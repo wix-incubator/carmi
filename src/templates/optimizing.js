@@ -232,9 +232,7 @@ function library() {
       return $cachedByFunc;
     }
 
-    const emptyObj = () => {
-      return {};
-    };
+    const emptyObj = () => ({});
     const emptyArr = () => [];
     const nullFunc = () => null;
 
@@ -554,7 +552,7 @@ function library() {
       return false;
     }
 
-    
+
     function anyValuesOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
@@ -833,6 +831,34 @@ function library() {
         $invalidatedKeys.clear();
       }
       return $out[0];
+    }
+
+    function sum($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);
+      const $out = $storage[1]
+      const $invalidatedKeys = $storage[2]
+      const $new = $storage[3]
+      const $cache = $storage[4]
+      const length = src.length
+      if($new) {
+        $cache[0] = 0
+        $cache[1] = []
+        for(let i = 0;i<length;i++) {
+          $cache[0] += src[i]
+          $cache[1][i] = src[i]
+        }
+      } else {
+        $invalidatedKeys.forEach((key) => {
+          const cached = $cache[1][key] || 0
+          const live = src[key] || 0
+          $cache[0] = $cache[0] - cached + live
+          $cache[1][key] = live
+        })
+        $cache[1].length = length
+        $invalidatedKeys.clear()
+      }
+      $out[0] = $cache[0]
+      return $out[0]
     }
 
     function range($tracked, end, start, step, identifier, $invalidates) {
