@@ -27,6 +27,7 @@ All of them return objects which represent the computation - remember there are 
 
 - **get**(key/index) - takes an object/array returns the specific key/index from the object/array
 - **size**() - expects an object/array returns it's size
+- **sum**() - expects an array returns it's values sum
 
 ### array operands
 
