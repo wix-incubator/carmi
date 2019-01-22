@@ -14,7 +14,7 @@ module.exports = {todosList};
 module.exports = function () {
   return function model($model, $funcLib, $batchingStrategy) {
     const $res = { $model };
-    const $listeners = new Set();const $topLevel = new Array().fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -86,6 +86,12 @@ module.exports = function () {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
+    }function truncateArray($target, newLen, $invalidates) {
+      if ($invalidates) {
+        for (let i = newLen; i < $target.length; i++) {
+          triggerInvalidations($target, i, true);
+        }
+      }$target.length = newLen;
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
@@ -228,7 +234,7 @@ module.exports = function () {
             const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);keysPendingDelete.delete(newKey);$idxToKey[key] = newKey;setOnObject($out, newKey, src[key], $invalidates);
           }
         });keysPendingDelete.forEach(key => {
-          triggerInvalidations($out, key, true);delete $out[key];
+          deleteOnObject($out, key, $invalidates);
         });
       }$idxToKey.length = src.length;$invalidatedKeys.clear();return $out;
     }function mapKeysOpt($tracked, identifier, func, src, context, $invalidates) {
@@ -261,9 +267,7 @@ module.exports = function () {
           const passed = !!func([$invalidatedKeys, key], key, src[key], context);const prevItemIdx = $idxToIdx[key];const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;$idxToIdx[key + 1] = nextItemIdx;if (nextItemIdx !== prevItemIdx) {
             setOnArray($out, prevItemIdx, src[key], $invalidates);
           }
-        }$idxToIdx.length = src.length + 1;for (let key = $idxToIdx[$idxToIdx.length - 1]; key < $out.length; key++) {
-          triggerInvalidations($out, key, true);
-        }$out.length = $idxToIdx[$idxToIdx.length - 1];
+        }$idxToIdx.length = src.length + 1;truncateArray($out, $idxToIdx[$idxToIdx.length - 1], $invalidates);
       }$invalidatedKeys.clear();return $out;
     }function anyOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -339,7 +343,7 @@ module.exports = function () {
           }
         });
       }$invalidatedKeys.clear();return $out;
-    }const valuesOrKeysCacheFunc = () => ({ $keyToIdx: {}, $idxToKey: [] });function valuesOrKeysForObject($tracked, identifier, src, getValues, invalidates) {
+    }const valuesOrKeysCacheFunc = () => ({ $keyToIdx: {}, $idxToKey: [] });function valuesOrKeysForObject($tracked, identifier, src, getValues, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const { $keyToIdx, $idxToKey } = $storage[4];if ($new) {
         Object.keys(src).forEach((key, idx) => {
           $out[idx] = getValues ? src[key] : key;$idxToKey[idx] = key;$keyToIdx[key] = idx;
@@ -352,26 +356,26 @@ module.exports = function () {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, invalidates);
+              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, $invalidates);
             }
           }
         });if ($addedKeys.length < $deletedKeys.length) {
           $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
         }const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length; // keys both deleted and added fill created holes first
         for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
-          const $addedKey = $addedKeys[i];const $deletedKey = $deletedKeys[i];const $newIdx = $keyToIdx[$deletedKey];delete $keyToIdx[$deletedKey];$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates);
+          const $addedKey = $addedKeys[i];const $deletedKey = $deletedKeys[i];const $newIdx = $keyToIdx[$deletedKey];delete $keyToIdx[$deletedKey];$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates);
         } // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
-          const $addedKey = $addedKeys[i];const $newIdx = $out.length;$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates);
+          const $addedKey = $addedKeys[i];const $newIdx = $out.length;$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates);
         } // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));const $keysToMoveInside = new Set($idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key)));let $savedCount = 0;for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
           const $currentKey = $idxToKey[$tailIdx];if ($keysToMoveInside.has($currentKey)) {
             // need to move this key to one of the pending delete
-            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];const $newIdx = $keyToIdx[$switchedWithDeletedKey];setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, invalidates);$keyToIdx[$currentKey] = $newIdx;$idxToKey[$newIdx] = $currentKey;delete $keyToIdx[$switchedWithDeletedKey];$savedCount++;
+            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];const $newIdx = $keyToIdx[$switchedWithDeletedKey];setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, $invalidates);$keyToIdx[$currentKey] = $newIdx;$idxToKey[$newIdx] = $currentKey;delete $keyToIdx[$switchedWithDeletedKey];$savedCount++;
           } else {
             delete $keyToIdx[$currentKey];
-          }triggerInvalidations($out, $tailIdx, true);
-        }$out.length = $finalOutLength;$idxToKey.length = $out.length;$invalidatedKeys.clear();
+          }
+        }truncateArray($out, $finalOutLength, $invalidates);$idxToKey.length = $out.length;$invalidatedKeys.clear();
       }return $out;
     }function getEmptyArray($tracked, token) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();if (!$cachePerTargetKey.has(token)) {
@@ -381,15 +385,15 @@ module.exports = function () {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();if (!$cachePerTargetKey.has(token)) {
         $cachePerTargetKey.set(token, {});
       }return $cachePerTargetKey.get(token);
-    }function array($tracked, newVal, identifier, len, invalidates) {
-      const res = getEmptyArray($tracked, identifier);invalidates = invalidates && res.length === len;for (let i = 0; i < len; i++) {
-        setOnArray(res, i, newVal[i], invalidates);
+    }function array($tracked, newVal, identifier, len, $invalidates) {
+      const res = getEmptyArray($tracked, identifier);$invalidates = $invalidates && res.length === len;for (let i = 0; i < len; i++) {
+        setOnArray(res, i, newVal[i], $invalidates);
       }return res;
-    }function object($tracked, newVal, identifier, keysList, invalidates) {
-      const res = getEmptyObject($tracked, identifier);invalidates = invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
-        const name = keysList[i];setOnObject(res, name, newVal[i], invalidates);
+    }function object($tracked, newVal, identifier, keysList, $invalidates) {
+      const res = getEmptyObject($tracked, identifier);$invalidates = $invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
+        const name = keysList[i];setOnObject(res, name, newVal[i], $invalidates);
       }return res;
-    }function call($tracked, newVal, identifier, len, invalidates) {
+    }function call($tracked, newVal, identifier, len, $invalidates) {
       const arr = getEmptyArray($tracked, identifier);if (arr.length === 0) {
         arr.push([]);
       }const args = arr[0];for (let i = 0; i < len; i++) {
@@ -407,16 +411,16 @@ module.exports = function () {
           const fn = $funcLib[args[0]] || $res[args[0]];return fn.apply($res, args.slice(1).concat(extraArgs));
         };
       }return arr[1];
-    }function assignOrDefaults($tracked, identifier, src, assign, invalidates) {
+    }function assignOrDefaults($tracked, identifier, src, assign, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if (!assign) {
         src = [...src].reverse();
       }if ($new) {
         Object.assign($out, ...src);
       } else {
         const $keysPendingDelete = new Set(Object.keys($out));const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
-          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], invalidates);
+          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], $invalidates);
         });$keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key, invalidates);
+          deleteOnObject($out, key, $invalidates);
         });$invalidatedKeys.clear();
       }return $out;
     }function size($tracked, src, identifier) {
@@ -425,20 +429,16 @@ module.exports = function () {
       }if (!$new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
-    }function range($tracked, end, start, step, identifier) {
+    }function range($tracked, end, start, step, identifier, $invalidates) {
       const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
         for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
           $out.push(val);
         }
       } else {
         let len = 0;for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          if ($out[len] !== val) {
-            triggerInvalidations($out, len, false);
-          }$out[len] = val;len++;
+          setOnArray($out, len, val, $invalidates);len++;
         }if ($out.length > len) {
-          for (let i = len; i < $out.length; i++) {
-            triggerInvalidations($out, i, true);
-          }$out.length = len;
+          truncateArray($out, len, $invalidates);
         }
       }return $out;
     }function $todosListBuild() {
@@ -492,7 +492,7 @@ module.exports = { first: root.get(0), second: root.get(1) };
 
 module.exports = function () {
   return function model($model, $funcLib, $batchingStrategy) {
-    const $res = { $model };const $listeners = new Set();const $topLevel = new Array().fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -564,6 +564,12 @@ module.exports = function () {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
+    }function truncateArray($target, newLen, $invalidates) {
+      if ($invalidates) {
+        for (let i = newLen; i < $target.length; i++) {
+          triggerInvalidations($target, i, true);
+        }
+      }$target.length = newLen;
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
@@ -706,7 +712,7 @@ module.exports = function () {
             const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);keysPendingDelete.delete(newKey);$idxToKey[key] = newKey;setOnObject($out, newKey, src[key], $invalidates);
           }
         });keysPendingDelete.forEach(key => {
-          triggerInvalidations($out, key, true);delete $out[key];
+          deleteOnObject($out, key, $invalidates);
         });
       }$idxToKey.length = src.length;$invalidatedKeys.clear();return $out;
     }function mapKeysOpt($tracked, identifier, func, src, context, $invalidates) {
@@ -739,9 +745,7 @@ module.exports = function () {
           const passed = !!func([$invalidatedKeys, key], key, src[key], context);const prevItemIdx = $idxToIdx[key];const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;$idxToIdx[key + 1] = nextItemIdx;if (nextItemIdx !== prevItemIdx) {
             setOnArray($out, prevItemIdx, src[key], $invalidates);
           }
-        }$idxToIdx.length = src.length + 1;for (let key = $idxToIdx[$idxToIdx.length - 1]; key < $out.length; key++) {
-          triggerInvalidations($out, key, true);
-        }$out.length = $idxToIdx[$idxToIdx.length - 1];
+        }$idxToIdx.length = src.length + 1;truncateArray($out, $idxToIdx[$idxToIdx.length - 1], $invalidates);
       }$invalidatedKeys.clear();return $out;
     }function anyOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -817,7 +821,7 @@ module.exports = function () {
           }
         });
       }$invalidatedKeys.clear();return $out;
-    }const valuesOrKeysCacheFunc = () => ({ $keyToIdx: {}, $idxToKey: [] });function valuesOrKeysForObject($tracked, identifier, src, getValues, invalidates) {
+    }const valuesOrKeysCacheFunc = () => ({ $keyToIdx: {}, $idxToKey: [] });function valuesOrKeysForObject($tracked, identifier, src, getValues, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const { $keyToIdx, $idxToKey } = $storage[4];if ($new) {
         Object.keys(src).forEach((key, idx) => {
           $out[idx] = getValues ? src[key] : key;$idxToKey[idx] = key;$keyToIdx[key] = idx;
@@ -830,26 +834,26 @@ module.exports = function () {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, invalidates);
+              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, $invalidates);
             }
           }
         });if ($addedKeys.length < $deletedKeys.length) {
           $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
         }const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length; // keys both deleted and added fill created holes first
         for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
-          const $addedKey = $addedKeys[i];const $deletedKey = $deletedKeys[i];const $newIdx = $keyToIdx[$deletedKey];delete $keyToIdx[$deletedKey];$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates);
+          const $addedKey = $addedKeys[i];const $deletedKey = $deletedKeys[i];const $newIdx = $keyToIdx[$deletedKey];delete $keyToIdx[$deletedKey];$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates);
         } // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
-          const $addedKey = $addedKeys[i];const $newIdx = $out.length;$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates);
+          const $addedKey = $addedKeys[i];const $newIdx = $out.length;$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates);
         } // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));const $keysToMoveInside = new Set($idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key)));let $savedCount = 0;for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
           const $currentKey = $idxToKey[$tailIdx];if ($keysToMoveInside.has($currentKey)) {
             // need to move this key to one of the pending delete
-            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];const $newIdx = $keyToIdx[$switchedWithDeletedKey];setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, invalidates);$keyToIdx[$currentKey] = $newIdx;$idxToKey[$newIdx] = $currentKey;delete $keyToIdx[$switchedWithDeletedKey];$savedCount++;
+            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];const $newIdx = $keyToIdx[$switchedWithDeletedKey];setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, $invalidates);$keyToIdx[$currentKey] = $newIdx;$idxToKey[$newIdx] = $currentKey;delete $keyToIdx[$switchedWithDeletedKey];$savedCount++;
           } else {
             delete $keyToIdx[$currentKey];
-          }triggerInvalidations($out, $tailIdx, true);
-        }$out.length = $finalOutLength;$idxToKey.length = $out.length;$invalidatedKeys.clear();
+          }
+        }truncateArray($out, $finalOutLength, $invalidates);$idxToKey.length = $out.length;$invalidatedKeys.clear();
       }return $out;
     }function getEmptyArray($tracked, token) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();if (!$cachePerTargetKey.has(token)) {
@@ -859,15 +863,15 @@ module.exports = function () {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();if (!$cachePerTargetKey.has(token)) {
         $cachePerTargetKey.set(token, {});
       }return $cachePerTargetKey.get(token);
-    }function array($tracked, newVal, identifier, len, invalidates) {
-      const res = getEmptyArray($tracked, identifier);invalidates = invalidates && res.length === len;for (let i = 0; i < len; i++) {
-        setOnArray(res, i, newVal[i], invalidates);
+    }function array($tracked, newVal, identifier, len, $invalidates) {
+      const res = getEmptyArray($tracked, identifier);$invalidates = $invalidates && res.length === len;for (let i = 0; i < len; i++) {
+        setOnArray(res, i, newVal[i], $invalidates);
       }return res;
-    }function object($tracked, newVal, identifier, keysList, invalidates) {
-      const res = getEmptyObject($tracked, identifier);invalidates = invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
-        const name = keysList[i];setOnObject(res, name, newVal[i], invalidates);
+    }function object($tracked, newVal, identifier, keysList, $invalidates) {
+      const res = getEmptyObject($tracked, identifier);$invalidates = $invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
+        const name = keysList[i];setOnObject(res, name, newVal[i], $invalidates);
       }return res;
-    }function call($tracked, newVal, identifier, len, invalidates) {
+    }function call($tracked, newVal, identifier, len, $invalidates) {
       const arr = getEmptyArray($tracked, identifier);if (arr.length === 0) {
         arr.push([]);
       }const args = arr[0];for (let i = 0; i < len; i++) {
@@ -885,16 +889,16 @@ module.exports = function () {
           const fn = $funcLib[args[0]] || $res[args[0]];return fn.apply($res, args.slice(1).concat(extraArgs));
         };
       }return arr[1];
-    }function assignOrDefaults($tracked, identifier, src, assign, invalidates) {
+    }function assignOrDefaults($tracked, identifier, src, assign, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if (!assign) {
         src = [...src].reverse();
       }if ($new) {
         Object.assign($out, ...src);
       } else {
         const $keysPendingDelete = new Set(Object.keys($out));const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
-          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], invalidates);
+          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], $invalidates);
         });$keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key, invalidates);
+          deleteOnObject($out, key, $invalidates);
         });$invalidatedKeys.clear();
       }return $out;
     }function size($tracked, src, identifier) {
@@ -903,20 +907,16 @@ module.exports = function () {
       }if (!$new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
-    }function range($tracked, end, start, step, identifier) {
+    }function range($tracked, end, start, step, identifier, $invalidates) {
       const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
         for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
           $out.push(val);
         }
       } else {
         let len = 0;for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          if ($out[len] !== val) {
-            triggerInvalidations($out, len, false);
-          }$out[len] = val;len++;
+          setOnArray($out, len, val, $invalidates);len++;
         }if ($out.length > len) {
-          for (let i = len; i < $out.length; i++) {
-            triggerInvalidations($out, i, true);
-          }$out.length = len;
+          truncateArray($out, len, $invalidates);
         }
       }return $out;
     }function $firstBuild() {
@@ -972,7 +972,7 @@ const modelBuilder = carmi\`
 
 const modelBuilder = (function () {
   return function model($model, $funcLib, $batchingStrategy) {
-    const $res = { $model };const $listeners = new Set();const $topLevel = new Array().fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -1044,6 +1044,12 @@ const modelBuilder = (function () {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
+    }function truncateArray($target, newLen, $invalidates) {
+      if ($invalidates) {
+        for (let i = newLen; i < $target.length; i++) {
+          triggerInvalidations($target, i, true);
+        }
+      }$target.length = newLen;
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
@@ -1186,7 +1192,7 @@ const modelBuilder = (function () {
             const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);keysPendingDelete.delete(newKey);$idxToKey[key] = newKey;setOnObject($out, newKey, src[key], $invalidates);
           }
         });keysPendingDelete.forEach(key => {
-          triggerInvalidations($out, key, true);delete $out[key];
+          deleteOnObject($out, key, $invalidates);
         });
       }$idxToKey.length = src.length;$invalidatedKeys.clear();return $out;
     }function mapKeysOpt($tracked, identifier, func, src, context, $invalidates) {
@@ -1219,9 +1225,7 @@ const modelBuilder = (function () {
           const passed = !!func([$invalidatedKeys, key], key, src[key], context);const prevItemIdx = $idxToIdx[key];const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;$idxToIdx[key + 1] = nextItemIdx;if (nextItemIdx !== prevItemIdx) {
             setOnArray($out, prevItemIdx, src[key], $invalidates);
           }
-        }$idxToIdx.length = src.length + 1;for (let key = $idxToIdx[$idxToIdx.length - 1]; key < $out.length; key++) {
-          triggerInvalidations($out, key, true);
-        }$out.length = $idxToIdx[$idxToIdx.length - 1];
+        }$idxToIdx.length = src.length + 1;truncateArray($out, $idxToIdx[$idxToIdx.length - 1], $invalidates);
       }$invalidatedKeys.clear();return $out;
     }function anyOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -1297,7 +1301,7 @@ const modelBuilder = (function () {
           }
         });
       }$invalidatedKeys.clear();return $out;
-    }const valuesOrKeysCacheFunc = () => ({ $keyToIdx: {}, $idxToKey: [] });function valuesOrKeysForObject($tracked, identifier, src, getValues, invalidates) {
+    }const valuesOrKeysCacheFunc = () => ({ $keyToIdx: {}, $idxToKey: [] });function valuesOrKeysForObject($tracked, identifier, src, getValues, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const { $keyToIdx, $idxToKey } = $storage[4];if ($new) {
         Object.keys(src).forEach((key, idx) => {
           $out[idx] = getValues ? src[key] : key;$idxToKey[idx] = key;$keyToIdx[key] = idx;
@@ -1310,26 +1314,26 @@ const modelBuilder = (function () {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, invalidates);
+              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, $invalidates);
             }
           }
         });if ($addedKeys.length < $deletedKeys.length) {
           $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
         }const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length; // keys both deleted and added fill created holes first
         for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
-          const $addedKey = $addedKeys[i];const $deletedKey = $deletedKeys[i];const $newIdx = $keyToIdx[$deletedKey];delete $keyToIdx[$deletedKey];$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates);
+          const $addedKey = $addedKeys[i];const $deletedKey = $deletedKeys[i];const $newIdx = $keyToIdx[$deletedKey];delete $keyToIdx[$deletedKey];$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates);
         } // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
-          const $addedKey = $addedKeys[i];const $newIdx = $out.length;$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, invalidates);
+          const $addedKey = $addedKeys[i];const $newIdx = $out.length;$keyToIdx[$addedKey] = $newIdx;$idxToKey[$newIdx] = $addedKey;setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates);
         } // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));const $keysToMoveInside = new Set($idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key)));let $savedCount = 0;for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
           const $currentKey = $idxToKey[$tailIdx];if ($keysToMoveInside.has($currentKey)) {
             // need to move this key to one of the pending delete
-            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];const $newIdx = $keyToIdx[$switchedWithDeletedKey];setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, invalidates);$keyToIdx[$currentKey] = $newIdx;$idxToKey[$newIdx] = $currentKey;delete $keyToIdx[$switchedWithDeletedKey];$savedCount++;
+            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];const $newIdx = $keyToIdx[$switchedWithDeletedKey];setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, $invalidates);$keyToIdx[$currentKey] = $newIdx;$idxToKey[$newIdx] = $currentKey;delete $keyToIdx[$switchedWithDeletedKey];$savedCount++;
           } else {
             delete $keyToIdx[$currentKey];
-          }triggerInvalidations($out, $tailIdx, true);
-        }$out.length = $finalOutLength;$idxToKey.length = $out.length;$invalidatedKeys.clear();
+          }
+        }truncateArray($out, $finalOutLength, $invalidates);$idxToKey.length = $out.length;$invalidatedKeys.clear();
       }return $out;
     }function getEmptyArray($tracked, token) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();if (!$cachePerTargetKey.has(token)) {
@@ -1339,15 +1343,15 @@ const modelBuilder = (function () {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();if (!$cachePerTargetKey.has(token)) {
         $cachePerTargetKey.set(token, {});
       }return $cachePerTargetKey.get(token);
-    }function array($tracked, newVal, identifier, len, invalidates) {
-      const res = getEmptyArray($tracked, identifier);invalidates = invalidates && res.length === len;for (let i = 0; i < len; i++) {
-        setOnArray(res, i, newVal[i], invalidates);
+    }function array($tracked, newVal, identifier, len, $invalidates) {
+      const res = getEmptyArray($tracked, identifier);$invalidates = $invalidates && res.length === len;for (let i = 0; i < len; i++) {
+        setOnArray(res, i, newVal[i], $invalidates);
       }return res;
-    }function object($tracked, newVal, identifier, keysList, invalidates) {
-      const res = getEmptyObject($tracked, identifier);invalidates = invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
-        const name = keysList[i];setOnObject(res, name, newVal[i], invalidates);
+    }function object($tracked, newVal, identifier, keysList, $invalidates) {
+      const res = getEmptyObject($tracked, identifier);$invalidates = $invalidates && keysList.length && res.hasOwnProperty(keysList[0]);for (let i = 0; i < keysList.length; i++) {
+        const name = keysList[i];setOnObject(res, name, newVal[i], $invalidates);
       }return res;
-    }function call($tracked, newVal, identifier, len, invalidates) {
+    }function call($tracked, newVal, identifier, len, $invalidates) {
       const arr = getEmptyArray($tracked, identifier);if (arr.length === 0) {
         arr.push([]);
       }const args = arr[0];for (let i = 0; i < len; i++) {
@@ -1365,16 +1369,16 @@ const modelBuilder = (function () {
           const fn = $funcLib[args[0]] || $res[args[0]];return fn.apply($res, args.slice(1).concat(extraArgs));
         };
       }return arr[1];
-    }function assignOrDefaults($tracked, identifier, src, assign, invalidates) {
+    }function assignOrDefaults($tracked, identifier, src, assign, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if (!assign) {
         src = [...src].reverse();
       }if ($new) {
         Object.assign($out, ...src);
       } else {
         const $keysPendingDelete = new Set(Object.keys($out));const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
-          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], invalidates);
+          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], $invalidates);
         });$keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key, invalidates);
+          deleteOnObject($out, key, $invalidates);
         });$invalidatedKeys.clear();
       }return $out;
     }function size($tracked, src, identifier) {
@@ -1383,20 +1387,16 @@ const modelBuilder = (function () {
       }if (!$new) {
         $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;$invalidatedKeys.clear();
       }return $out[0];
-    }function range($tracked, end, start, step, identifier) {
+    }function range($tracked, end, start, step, identifier, $invalidates) {
       const $out = getEmptyArray($tracked, identifier);if ($out.length === 0) {
         for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
           $out.push(val);
         }
       } else {
         let len = 0;for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-          if ($out[len] !== val) {
-            triggerInvalidations($out, len, false);
-          }$out[len] = val;len++;
+          setOnArray($out, len, val, $invalidates);len++;
         }if ($out.length > len) {
-          for (let i = len; i < $out.length; i++) {
-            triggerInvalidations($out, i, true);
-          }$out.length = len;
+          truncateArray($out, len, $invalidates);
         }
       }return $out;
     }function $allBuild() {
