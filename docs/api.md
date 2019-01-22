@@ -94,5 +94,5 @@ All of them return objects which represent the computation - remember there are 
 - **call**(functionName, ...extraArgs) - call a function called functionName from the function library passes the
   current value as the first argument, and extra arguments are well... extra
 
-- **bind**(functionName, ...args) - Creates a function that invokes functionName from the function library with args
+- **bind**(functionName, ...args) - Creates a function that invokes functionName from the function library with args 
   prepended to the arguments it receives.
