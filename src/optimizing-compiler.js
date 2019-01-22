@@ -151,9 +151,8 @@ $tainted = new WeakSet();`
           tokenType === 'values' ? 'true' : 'false'
         }, ${this.invalidates(expr)})`);
       case 'sum':
-        return `sum($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'size':
-        return `size($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
+        return `${tokenType}($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':
       case 'defaults':
         return this.withTypeCheck(expr, `assignOrDefaults($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
@@ -174,7 +173,6 @@ $tainted = new WeakSet();`
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-
         return this.withTypeCheck(expr, `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
