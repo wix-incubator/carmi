@@ -10,7 +10,7 @@ export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> = T extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
-type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> = 
+type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> =
     unknown extends A ? (F extends (...args: (infer Args)[]) => infer R ? F : never) :
     unknown extends B ? (F extends (a: A, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
     unknown extends C ? (F extends (a: A, b: B, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
