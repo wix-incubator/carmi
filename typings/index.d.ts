@@ -10,7 +10,7 @@ export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> = T extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
-type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> = 
+type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> =
     unknown extends A ? (F extends (...args: (infer Args)[]) => infer R ? F : never) :
     unknown extends B ? (F extends (a: A, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
     unknown extends C ? (F extends (a: A, b: B, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
@@ -21,7 +21,7 @@ type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = un
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
      * Returns a graph that resolves to the return type of a named function from the function library
-     * 
+     *
      * @param func A function name from the function library
      * @param args Args to pass, in addition to the value resolved from ""
      */
@@ -55,7 +55,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     /**
      * Resolves to either consequence or alternate, based on the value of NativeType.
      * Note that both options will be evaluated, even if one of them is not semantically possible.
-     * 
+     *
      * @param consequence graph if NativeType value is truthy
      * @param alternate graph is NativeType value is falsey
      */
@@ -63,7 +63,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
 
     /**
      * Resolves to the case that matches equals to the boxed value
-     * 
+     *
      * @param caseTuples An array of pairs between a value and a consequent
      * @param defaultCase The graph to return in case no given case matches the boxed value
      */
@@ -72,8 +72,8 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
         Graph<TupleType extends [Argument<NativeType>, infer Result] ? Result : never, F>
 
     /**
-     * Returns a boolean graph that resolves to the value of (NativeType === other) 
-     * @param other 
+     * Returns a boolean graph that resolves to the value of (NativeType === other)
+     * @param other
      */
     eq(other: Argument<unknown>): BoolGraph<F>
 
@@ -88,56 +88,56 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
 export interface NumberGraph<NativeType extends number, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
      * Resolves to (NativeType > other)
-     * @param other 
+     * @param other
      */
     gt(other: Argument<number>): BoolGraph<F>
- 
+
     /**
      * Resolves to (NativeType >= other)
-     * @param other 
+     * @param other
      */
     gte(other: Argument<number>): BoolGraph<F>
 
    /**
      * Resolves to (NativeType < other)
-     * @param other 
+     * @param other
      */
     lt(other: Argument<number>): BoolGraph<F>
 
    /**
      * Resolves to (NativeType <= other)
-     * @param other 
+     * @param other
      */
     lte(other: Argument<number>): BoolGraph<F>
 
    /**
      * Resolves to (NativeType - other)
-     * @param other 
+     * @param other
      */
     minus(value: Argument<number>): NumberGraph<number, F>
 
    /**
      * Resolves to (NativeType * other)
-     * @param other 
+     * @param other
      */
     mult(value: Argument<number>): NumberGraph<number, F>
 
    /**
      * Resolves to (NativeType + other)
-     * @param other 
+     * @param other
      */
     plus(num: Argument<number>): NumberGraph<number, F>
     plus(str: Argument<string>): StringGraph<string, F>
 
    /**
      * Resolves to (NativeType / other)
-     * @param other 
+     * @param other
      */
     div(value: Argument<number>): NumberGraph<number, F>
 
    /**
      * Resolves to (NativeType % other)
-     * @param other 
+     * @param other
      */
     mod(value: Argument<number>): NumberGraph<number, F>
 
@@ -216,7 +216,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
 
     /**
      * Resolves to the deep value provided by path.
-     * @param path 
+     * @param path
      */
     getIn<K extends keyof NativeType>(path: [Argument<K>]): Graph<NativeType[K], F>
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(path: [Argument<K0>, Argument<K1>]): Graph<NativeType[K0][K1], F>
@@ -266,7 +266,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Joins an array of strings to a single strings, like NativeType.join(separator)
-     * @param separator 
+     * @param separator
      */
     join(separator: Argument<string>): Value extends string ? StringGraph<string, F> : never
 
@@ -274,7 +274,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Runs the functor for every item in an array. Returns a graph that resolves to an array with the returned values.
-     * 
+     *
      * @param functor A function to run for every item of the array
      * @param scope A variable to pass to the functor if inside another functor.
      */
@@ -282,15 +282,23 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Returns a boolean graph that resolves to true if running the functor on any of the array's item resolved to true
-     * 
+     *
      * @param functor A function to run for every item of the array, returning boolean
      * @param scope A variable to pass to the functor if inside another functor.
      */
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
     /**
+     * Returns a boolean graph that resolves to true if running the functor on all of the array's items resolved to true
+     *
+     * @param functor A function to run for every item of the array, returning boolean
+     * @param scope A variable to pass to the functor if inside another functor.
+     */
+    every<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
+
+    /**
      * Returns an object graph that resolves to an object containing keys returned by functor, pointing to their first found corresponding value.
-     * 
+     *
      * @param functor A function to run for every item of the array, returning a string as a new key
      * @param scope A variable to pass to the functor if inside another functor.
      */
@@ -299,7 +307,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Returns an array graph containing only the values for which the functor resolved to true
-     * 
+     *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
      */
@@ -307,7 +315,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Resolved to the first value for which the functor resolved to true
-     * 
+     *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
      */
@@ -315,7 +323,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Resolved to the index of the first value for which the functor resolved to true, or -1 if not found.
-     * 
+     *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
      */
@@ -323,7 +331,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Returns a value that is a result of running functor on all the items of the array in order, each time with the previous result of functor.
-     * 
+     *
      * @param functor A function to run for every item of the array, with the previous value as aggregate
      * @param initialValue The aggregate to pass to the first argument.
      */
@@ -331,20 +339,20 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Returns an array with an additional element (value) at its end
-     * 
+     *
      * @param value A value to add to the array, or a graph resolving to that value
      */
     append<T>(value: Argument<T>) : ArrayGraph<(Value|T)[], F>
 
     /**
      * Resolves to an array which is a concatenated results of NativeType and one or more additional arrays
-     * @param arrays 
+     * @param arrays
      */
     concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
      * Resolves to true if the array contains an argument equal to value
-     * @param value 
+     * @param value
      */
     includes(value: Argument<Value>): BoolGraph<F>
 
@@ -356,12 +364,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     /**
      * Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
      * The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
-     * 
+     *
      * // Will resolve to [1, 2, 4, 8, ...]
      * recursiveMap((loop, value, key) => key.eq(0).ternary(1, key.minus(1).recur(loop).multiply(2)))
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
 
     recursiveMap<Scope, Ret>(functor: (loop: Looper<Ret>, value?: Value, key?: Key, scope?: Scope) => Argument<Ret>, scope?: Scope): ArrayGraph<Ret[], F>
@@ -396,48 +404,48 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
 
     /**
      * Resolve to true if NativeType object has a value equal to the value argument
-     * @param value 
+     * @param value
      */
     includesValue(value: Argument<Value>): BoolGraph<F>
 
     /**
      * Resolves to a new object with the entries for which the functor has resolved to true
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
     filterBy<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => any, scope?: Scope) : this
 
     /**
      * Resolves to a new object with only the keys passed as argument
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
     pick<K extends keyof NativeType>(keys: Argument<K[]>): this
 
     /**
      * Resolves to an object with the same keys, with each value resolves to the return value of functor on the corresponding entry.
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
-    mapValues<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Ret, scope?: Scope) : 
+    mapValues<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Ret, scope?: Scope) :
         ObjectGraph<{[name in keyof NativeType]: AsNativeRecursive<Ret>}, F>
 
     /**
      * Resolves to an object with the same values, with each key resolves to the return value of functor on the corresponding entry.
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
     mapKeys<Scope, Ret>(functor: (value: ValueGraph, key?: StringGraph<string, F>, scope?: Scope) => Ret, scope?: Scope) : ObjectGraph<{[key in Ret extends string ? Ret : string]: Value}, F>
 
     /**
      * Resolves to a boolean representing whether the object contains any value for which the functor has resolved to true
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
     anyValues<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
@@ -448,7 +456,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
 
     /**
      * Returns a new object which resolves to _.assign(NativeType, value)
-     * @param value 
+     * @param value
      */
     assignIn<V extends object>(value: Argument<V>[]): ObjectGraph<NativeType & AsNative<V>, F>
 
@@ -457,12 +465,12 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     /**
      * Resolves to an object with keys identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
      * The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
-     * 
-     * @param functor 
-     * @param scope 
+     *
+     * @param functor
+     * @param scope
      */
     recursiveMapValues<Scope, Ret>(functor: (loop: Looper<Ret>, value?: Value, key?: Key, scope?: Scope) => Argument<Ret>, scope?: Scope): ObjectGraph<{
-        Key: Ret 
+        Key: Ret
     }, F>
 }
 
@@ -476,7 +484,7 @@ export interface ArrayGraph<T extends any[], F extends FunctionLibrary> extends 
 export interface ObjectGraph<T extends object, F extends FunctionLibrary> extends ObjectGraphImpl<AsNative<T>, F> {}
 
 
-export type Graph<N, F extends FunctionLibrary> = 
+export type Graph<N, F extends FunctionLibrary> =
     N extends AbstractGraph ? N :
     N extends Function ? FunctionGraph<N, F> :
     N extends string ? StringGraph<N, F> :
