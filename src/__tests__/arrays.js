@@ -346,6 +346,20 @@ describe('testing array', () => {
       inst.set(0, [2])
       expect(inst.result).toEqual([2,3,4,[5]])
     })
+    it('flatten array changes length', async () => {
+      const model = {
+        result: root.flatten().map((v) => v),
+        splice: splice()
+      }
+      const optModel = eval(compile(model, { compiler }))
+      const initialData = [[1], [2], [3], [4]]
+      const inst = optModel(initialData, funcLibrary)
+      expect(inst.result).toEqual([1, 2, 3, 4])
+      inst.splice(0, 2, [6], [6], [6])
+      expect(inst.result).toEqual([6, 6, 6, 3, 4])
+      inst.splice(0, 3, [6, 6])
+      expect(inst.result).toEqual([6, 6, 3, 4])
+    })
     it('flatten with empty array', async () => {
       const model = {
         result: root.flatten(),
