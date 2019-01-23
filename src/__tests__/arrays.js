@@ -334,19 +334,19 @@ describe('testing array', () => {
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(0);
     });
-    it('flatten thats not deep', () => {
+    it('flatten thats not deep', async () => {
       const model = {
-        result: root.flatten(),
+        result: root.flatten().map((v) => v),
         set: setter(arg0)
-      };
+      }
       const optModel = eval(compile(model, { compiler }))
       const initialData = [[1], [3], [4,[5]]]
       const inst = optModel(initialData, funcLibrary)
       expect(inst.result).toEqual([1,3,4,[5]])
-      inst.set(0, 2)
+      inst.set(0, [2])
       expect(inst.result).toEqual([2,3,4,[5]])
     })
-    it('flatten with empty array', () => {
+    it('flatten with empty array', async () => {
       const model = {
         result: root.flatten(),
         set: setter(arg0)
