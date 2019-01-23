@@ -236,6 +236,22 @@ function library() {
     const emptyArr = () => [];
     const nullFunc = () => null;
 
+    function toImmutable(value) {
+      try {
+          return Object(value) !== value ? value : new Proxy(value, { // eslint-disable-line fp/no-proxy
+              get: (target, property) => property === 'prototype' ? target[property] : toImmutable(Reflect.get(target, property)),
+              set: (target, property, newValue, reciever) => {
+                  console.error(`Can't set "${newValue}" on property "${String(property)}"`)
+                  return Reflect.set(target, property, newValue, reciever)
+                  // throw new Error(`Can't set "${newValue}" on property "${String(property)}"`)
+              }
+          })
+      } catch (e) {
+          console.error(e)
+          return value
+      }
+    }  
+
     function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);
       const $out = $storage[1]
@@ -770,7 +786,11 @@ function library() {
         setOnArray(args, i, newVal[i], true);
       }
       if (arr.length === 1 || $tainted.has(args)) {
-        arr[1] = $funcLib[args[0]].apply($res, args.slice(1));
+        let callArgs = args.slice(1)
+        /* DEBUG */
+          callArgs = callArgs.map(toImmutable)
+        /* DEBUG-END */
+        arr[1] = $funcLib[args[0]].apply($res, callArgs);
       }
       return arr[1];
     }
@@ -787,7 +807,11 @@ function library() {
       if (arr.length === 1) {
         arr[1] = (...extraArgs) => {
           const fn = $funcLib[args[0]] || $res[args[0]];
-          return fn.apply($res, args.slice(1).concat(extraArgs));
+          let callArgs = args.slice(1).concat(extraArgs)
+          /* DEBUG */
+            callArgs = callArgs.map(toImmutable)
+          /* DEBUG-END */
+            return fn.apply($res, callArgs);
         };
       }
       return arr[1]
