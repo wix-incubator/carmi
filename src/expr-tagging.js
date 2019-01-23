@@ -515,7 +515,7 @@ function normalizeAndTagAllGetters(getters, setters) {
   //     console.log('unmarkPathsThatHaveNoSetters', name, t[0])
   //   })
   // })
-  // dedupFunctionsObjects(getters);
+  dedupFunctionsObjects(getters);
   Object.values(getters).forEach((getter, index) => {
     getter[0].$topLevelIndex = index;
   })
