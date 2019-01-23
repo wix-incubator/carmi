@@ -214,6 +214,10 @@ function library() {
     return src.reduce((sum, val) => sum + val, 0)
   }
 
+  function flatten(src) {
+    return [].concat(...src)
+  }
+
   function recursiveMap(func, src, context) {
     const res = [];
     const resolved = src.map(x => false);
