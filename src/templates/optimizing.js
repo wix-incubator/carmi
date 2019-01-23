@@ -132,7 +132,7 @@ function library() {
         }
         if (
           $hard ||
-          $key >= $target.length || 
+          $key >= $target.length ||
           $target[$key] !== $val ||
           (typeof $target[$key] === 'object' && $tainted.has($val))
         ) {
@@ -818,23 +818,62 @@ function library() {
       return $out;
     }
 
-    function size($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
+    function flatten($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
-      const $invalidatedKeys = $storage[2];
-      const $new = $storage[3];
+      const $invalidatedKeys = $storage[2]
+      const $new = $storage[3]
+      const $cache = $storage[4]
+      const length = src.length
+      if($new) {
+        for(let key = 0;key<length;key++) {
+          const target = key != 0 ? $cache[key-1][0] : 0
+          $cache[key] = [target + src[key].length, src[key]]
+          $out.splice(target, 0, ...src[key])
+        }
+      } else {
+        $invalidatedKeys.forEach((key) => {
+          const cached = $cache[key]
+          const target = key != 0 ? $cache[key-1][0] : 0
+
+          const live = src[key]
+          if(Array.isArray(live)) {
+            $out.splice(target, cached ? cached[0]-target : 0, ...live)
+          } else if(live) {
+            $out.splice(target, cached ? cached[0]-target : 0, live)
+          } else {
+            $out.splice(target, cached ? cached[0]-target : 0)
+          }
+
+          if(!cached && live) {
+            $cache[key] = [target + live.length, live]
+          } else {
+            $cache.splice(key, 1)
+          }
+        })
+        $cache.length = src.length
+        $invalidatedKeys.clear()
+      }
+      return $out
+    }
+
+    function size($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc)
+      const $out = $storage[1]
+      const $invalidatedKeys = $storage[2]
+      const $new = $storage[3]
       if ($new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length
       }
       if (!$new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
-        $invalidatedKeys.clear();
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length
+        $invalidatedKeys.clear()
       }
-      return $out[0];
+      return $out[0]
     }
 
     function sum($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2]
       const $new = $storage[3]
