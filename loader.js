@@ -7,14 +7,17 @@ const path = require('path')
 const execa = require('execa')
 const dargs = require('dargs')
 const tempy = require('tempy')
+const loaderUtils = require('loader-utils')
 
 module.exports = function CarmiLoader() {
   const statsPath = tempy.file({extension: 'json'})
+  const loaderOptions = loaderUtils.getOptions(this) || {};
 
   const options = {
     source: this.getDependencies()[0],
     stats: statsPath,
     format: 'cjs',
+    ...loaderOptions
   }
 
   const {stdout: compiled} = execa.sync('npx', ['carmi', ...dargs(options)]);
