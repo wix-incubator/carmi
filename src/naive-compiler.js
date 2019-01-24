@@ -39,6 +39,7 @@ class NaiveCompiler {
     return require('./templates/naive.js');
   }
   withTypeCheck(expr, next) {
+    console.log(this.options)
     if (!this.options.typeCheck) {
       return next
     }
