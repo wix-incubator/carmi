@@ -348,7 +348,10 @@ describe('testing array', () => {
     })
     it('flatten array changes length', async () => {
       const model = {
-        result: root.flatten().map((v) => v),
+        clean: root,
+        data: root.map(v => v),
+        result: root.map(v => v).flatten(),
+        result2: root.flatten(),
         splice: splice()
       }
       const optModel = eval(compile(model, { compiler }))
@@ -356,9 +359,12 @@ describe('testing array', () => {
       const inst = optModel(initialData, funcLibrary)
       expect(inst.result).toEqual([1, 2, 3, 4])
       inst.splice(0, 2, [6], [6], [6])
+      expect(inst.data).toEqual([[6], [6], [6], [3], [4]], 'sanity')
       expect(inst.result).toEqual([6, 6, 6, 3, 4])
-      inst.splice(0, 3, [6, 6])
-      expect(inst.result).toEqual([6, 6, 3, 4])
+      inst.splice(0, 3, [67, 67])
+      expect(inst.data).toEqual([[67, 67], [3], [4]], 'sanity')
+      expect(inst.result).toEqual([67, 67, 3, 4])
+      expect(inst.result2).toEqual([67, 67, 3, 4])
     })
     it('flatten with empty array', async () => {
       const model = {

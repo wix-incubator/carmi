@@ -817,7 +817,7 @@ function library() {
       }
       return $out;
     }
-
+/*
     function spliceOnArray(t, i, r = 0, n = [], $invalidate = false) {
       const addLen = n.length
       const endSize = t.length+addLen-r
@@ -834,7 +834,7 @@ function library() {
       }
 
       truncateArray(t, endSize, $invalidate)
-    }
+    }*/
 
     function flatten($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
@@ -843,29 +843,17 @@ function library() {
       const $new = $storage[3]
       const $cache = $storage[4]
       const length = src.length
-      if($new) {
-        for(let key = 0;key<length;key++) {
-          const target = key != 0 ? $cache[key-1][0] : 0
-          $cache[key] = [target + src[key].length]
-          spliceOnArray($out, target, 0, src[key], false)
+
+      let i=0, j=0, pos=0
+      for(i=0;i<length;i++) {
+        $cache[i] = [pos, src[i].length]
+        for(j=0;j<$cache[i][1];j++) {
+          setOnArray($out, pos+j, src[i][j], !$new)
         }
-      } else {
-        $invalidatedKeys.forEach((key) => {
-          const cached = $cache[key]
-          const target = key != 0 ? $cache[key-1][0] : 0
-          console.log({key, target, cached, $cache, prev: $cache[key-1]})
-          const live = src[key]
-          if(live) {
-            spliceOnArray($out, target, cached ? cached[0] : 0, live, true)
-            $cache[key] = [target + live.length]
-          } else {
-            spliceOnArray($out, target, cached ? cached[0] : 0, [], true)
-            $cache.splice(key, 1)
-          }
-        })
-        $cache.length = src.length
-        $invalidatedKeys.clear()
+        pos += $cache[i][1]
       }
+      truncateArray($out, pos, !$new)
+
       return $out
     }
 
