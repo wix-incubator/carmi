@@ -106,6 +106,17 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('}.ceil')
     })
     
+    it('throw more readable error when trying to chain an object with underfined', () => {
+      let error
+      try {
+        chain({a: {b: [1, undefined]}})
+      } catch (e) {
+        error = e
+      }
+
+      expect(error.message).toContain('a.b[1]')
+    })
+
     it('when calling a non-existent function, throw a readable error', () => {
       const model = {three: chain({a: 1}).call('nonExistentFunction')}
       const optCode = eval(compile(model, { compiler, debug: true }));
