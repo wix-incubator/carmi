@@ -346,6 +346,16 @@ describe('testing array', () => {
       inst.set(0, [2])
       expect(inst.result).toEqual([2,3,4,[5]])
     })
+    it('flatten thats not deep with objects', async () => {
+      const model = {
+        result: root.flatten().map((v) => v),
+        set: setter(arg0)
+      }
+      const optModel = eval(compile(model, { compiler }))
+      const initialData = [[{a:1}], [{a:3}], [{a:4}]]
+      const inst = optModel(initialData, funcLibrary)
+      expect(inst.result).toEqual([{a:1}, {a:3}, {a:4}])
+    })
     it('flatten array changes length', async () => {
       const model = {
         clean: root.get('target'),
@@ -477,7 +487,20 @@ describe('testing array', () => {
       expect(inst.result).toEqual([1, 3, 5]);
       inst.set(2, 1);
       expect(inst.result).toEqual([1, 3, 1]);
+
     });
+
+    it('concat with empty array', async () => {
+      const model = {
+        result: root.get('b').concat(root.get('a')),
+        set: setter('a', arg0)
+      };
+      const optModel = eval(compile(model, { compiler }));
+      const initialData = {a: [1, 3, 5], b: []};
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual([1, 3, 5]);
+    });
+
     it('join', async () => {
       const initialData = ['a', 'b', 'c'];
       const model = {

@@ -843,7 +843,6 @@ function library() {
       const $new = $storage[3]
       const $cache = $storage[4]
       const length = src.length
-
       if($new) {
         let i=0, j=0, pos=0
         for(;i<length;i++) {
@@ -858,6 +857,7 @@ function library() {
         let i = 0
         let clen = $cache.length
         let totalLen = $out.length
+        let initialLen = totalLen
         let lenChange = false
 
         for(;i<clen;i++) {
@@ -870,19 +870,18 @@ function library() {
               let j
               lenChange = true
               $cache[i][1] = newLen
-              for(j = i+1;j<clen;j++) {
+              for(let j=i+1;j<clen;j++) {
                 $cache[j][0] = $cache[j][0] - oldLen + newLen
               }
-
-              for(j=pos+oldLen;j<totalLen;j++) {
+              for(let j=pos+oldLen;j<initialLen;j++) {
                 setOnArray($out, j-oldLen+newLen, $out[j], true)
               }
-              if(newLen) {
-                for(j=pos;j<newLen;j++) {
-                  setOnArray($out, j, src[i][j-pos], true)
+
+              if(newLen > 0) {
+                for(let j=0;j<newLen;j++) {
+                  setOnArray($out, pos+j, src[i][j], true)
                 }
               }
-
               totalLen = totalLen - oldLen + newLen
             }
           }
