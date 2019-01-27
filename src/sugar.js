@@ -129,6 +129,24 @@ module.exports = function({chain, or, and}) {
       )
     }
 
+    function conditionalTrace(obj, condition) {
+      return condition.ternary(
+          obj.trace(),
+          obj
+      )
+    }
+
+    function conditionalBreakpoint(obj, condition) {
+      return condition.ternary(
+          obj.breakpoint(),
+          obj
+      )
+    }
+
+    function tapTrace(obj, tapFn) {
+      return or(tapFn(obj).trace().ternary(chain(false), chain(false)), obj)
+    }
+
     return {
       getIn,
       includes,
@@ -149,6 +167,9 @@ module.exports = function({chain, or, and}) {
       head,
       every,
       compact,
-      switch: switchCase
+      switch: switchCase,
+      conditionalTrace,
+      conditionalBreakpoint,
+      tapTrace
     };
 };
