@@ -1,5 +1,6 @@
 function base() {
-  function $NAME($model, $funcLib, $batchingStrategy) {
+  function $NAME($model, $funcLibRaw, $batchingStrategy) {
+    /* FUNC_LIB_DEBUG_INFO */
     const $res = { $model };
     const $listeners = new Set();
     const $topLevel = new Array($COUNT_GETTERS).fill(null);
@@ -86,7 +87,7 @@ function base() {
 
 function func() {
   function $FUNCNAME(val, key, context) {
-    return $EXPR1;
+      return $EXPR1;
   }
 }
 
@@ -98,7 +99,7 @@ function topLevel() {
 
 function recursiveMap() {
   function $FUNCNAME(val, key, context, loop) {
-    return $EXPR1;
+      return $EXPR1;
   }
 }
 
@@ -156,10 +157,12 @@ function library() {
   }
 
   function any(func, src, context) {
+    /* ARRAY_CHECK */
     return src.some((val, key) => func(val, key, context));
   }
 
   function filter(func, src, context) {
+    /* ARRAY_CHECK */
     return src.filter((val, key) => func(val, key, context));
   }
 

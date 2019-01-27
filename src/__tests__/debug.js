@@ -93,20 +93,8 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('filterBy')
     })
 
-    it('when using non-objects with object functions, throw a nicer error', () => {
-      const model = {three: chain(3).mapValues(a => a)}
-      const optCode = eval(compile(model, { compiler, typeCheck: true }));
-      let e
-      try {
-        optCode([], funcLibrary);
-      } catch (err) {
-        e = err
-      }
-
-      expect(e.message).toContain('3.mapValues')
-    })
     
-    it('when using non-numbers with nuber functions, throw a nicer error', () => {
+    it('when using non-numbers with number functions, throw a nicer error', () => {
       const model = {three: chain({a: 1}).ceil()}
       const optCode = eval(compile(model, { compiler, typeCheck: true }));
       let e
@@ -139,4 +127,21 @@ describe('Tests for usability and debugging carmi', () => {
       expect(inst.three).toEqual(3);
     })
   });
+
+  describeCompilers(['optimizing'], compiler => {
+    it ('when using non-objects with object functions, throw a nicer error', () => {
+      const model = {three: chain(3).mapValues(a => a)}
+      const src = compile(model, { compiler, typeCheck: true });
+      const optCode = eval(src)
+      let e
+      try {
+        optCode([], funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('3.mapValues')
+    })
+  })
+
 });

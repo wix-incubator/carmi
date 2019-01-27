@@ -786,7 +786,7 @@ function library() {
       }
       if (arr.length === 1) {
         arr[1] = (...extraArgs) => {
-          const fn = $funcLib[args[0]] || $res[args[0]];
+          const fn = $funcLibRaw[args[0]] || $res[args[0]];
           return fn.apply($res, args.slice(1).concat(extraArgs));
         };
       }
@@ -889,6 +889,8 @@ function topLevel() {
   function $$FUNCNAMEBuild() {
     const $tracked = [$invalidatedRoots, $TOP_LEVEL_INDEX];
     /* PRETRACKING */
+    /* TYPE_CHECK */
+
     const newValue = $EXPR;
     setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
     $res['$FUNCNAME'] = newValue;
