@@ -61,10 +61,37 @@ if (global[GLOBAL_TOKEN]) {
 }
 global[GLOBAL_TOKEN] = currentLine();
 
+const paths = new WeakMap()
+
+function withPathInfo(value, key, currentPath) {
+  const isArray = typeof key === 'number'
+  const newPath = `${currentPath}${isArray ? `[${key}]` : `.${key}`}`
+  if (typeof value === 'undefined') {
+    throw new Error(`Undefined value in carmi expression: ${newPath} at ${currentLine()}`)
+  }
+
+  if (value && typeof value === 'object') {
+    paths.set(value, newPath)
+  }
+
+  return value
+}
+
 function convertArrayAndObjectsToExpr(v) {
   if (typeof v === 'undefined') {
     throw new Error('Carmi expressions can not contain undefined');
   }
+
+  let path
+  if (v && typeof v === 'object') {
+    v = v || 'null'
+    path = paths.get(v)
+    if (!path) {
+      path = '{}'
+      paths.set(v, path)
+    }
+  }
+  
   if (v === null) {
     return new Token('null');
   } else if (v.constructor === Object) {
@@ -72,12 +99,12 @@ function convertArrayAndObjectsToExpr(v) {
       new Token('object', currentLine()),
       ...Object.keys(v).reduce((acc, key) => {
         acc.push(key);
-        acc.push(v[key]);
+        acc.push(withPathInfo(v[key], key, path));
         return acc;
       }, [])
     );
   } else if (v.constructor === Array) {
-    return createExpr(new Token('array', currentLine()), ...v);
+    return createExpr(new Token('array', currentLine()), ...(v.map((entry, index) => withPathInfo(entry, index, path))));
   } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
     return new WrappedPrimitive(v);
   } else {
