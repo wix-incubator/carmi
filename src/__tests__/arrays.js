@@ -365,6 +365,28 @@ describe('testing array', () => {
       expect(inst.data).toEqual([[67, 67], [3], [4]], 'sanity')
       expect(inst.result).toEqual([67, 67, 3, 4])
       expect(inst.result2).toEqual([67, 67, 3, 4])
+      inst.splice(0, 1, [68, 68])
+      expect(inst.data).toEqual([[68, 68], [3], [4]], 'sanity')
+      expect(inst.result).toEqual([68, 68, 3, 4])
+      expect(inst.result2).toEqual([68, 68, 3, 4])
+    })
+    it('flatten with adding empty array',  async () => {
+       const model = {
+        clean: root.get('target'),
+        data: root.get('target').map(v => v),
+        result: root.get('target').map(v => v).flatten(),
+        result2: root.get('target').flatten(),
+        splice: splice('target')
+      }
+      const optModel = eval(compile(model, { compiler }))
+      const initialData = {target: [[1], [2], [3], [4]]}
+      const inst = optModel(initialData, funcLibrary)
+      expect(inst.result).toEqual([1, 2, 3, 4])
+      inst.splice(0, 2, [], [], [])
+      expect(inst.result).toEqual([3, 4])
+      inst.splice(0, 0, [], [6], [])
+      expect(inst.result).toEqual([6, 3, 4])
+
     })
     it('flatten with empty array', async () => {
       const model = {

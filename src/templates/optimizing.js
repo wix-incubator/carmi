@@ -859,6 +859,7 @@ function library() {
         let clen = $cache.length
         let totalLen = $out.length
         let lenChange = false
+
         for(;i<clen;i++) {
           if($invalidatedKeys.has(i)) {
             const [pos, oldLen] = $cache[i]
@@ -869,14 +870,17 @@ function library() {
               let j
               lenChange = true
               $cache[i][1] = newLen
-              $cache.forEach((c) => c[0] = c[0] - oldLen + newLen)
+              for(j = i+1;j<clen;j++) {
+                $cache[j][0] = $cache[j][0] - oldLen + newLen
+              }
 
               for(j=pos+oldLen;j<totalLen;j++) {
                 setOnArray($out, j-oldLen+newLen, $out[j], true)
               }
-
-              for(j=pos;j<newLen;j++) {
-                setOnArray($out, j, src[i][j-pos], true)
+              if(newLen) {
+                for(j=pos;j<newLen;j++) {
+                  setOnArray($out, j, src[i][j-pos], true)
+                }
               }
 
               totalLen = totalLen - oldLen + newLen
