@@ -348,14 +348,14 @@ describe('testing array', () => {
     })
     it('flatten array changes length', async () => {
       const model = {
-        clean: root,
-        data: root.map(v => v),
-        result: root.map(v => v).flatten(),
-        result2: root.flatten(),
-        splice: splice()
+        clean: root.get('target'),
+        data: root.get('target').map(v => v),
+        result: root.get('target').map(v => v).flatten(),
+        result2: root.get('target').flatten(),
+        splice: splice('target')
       }
       const optModel = eval(compile(model, { compiler }))
-      const initialData = [[1], [2], [3], [4]]
+      const initialData = {target: [[1], [2], [3], [4]]}
       const inst = optModel(initialData, funcLibrary)
       expect(inst.result).toEqual([1, 2, 3, 4])
       inst.splice(0, 2, [6], [6], [6])

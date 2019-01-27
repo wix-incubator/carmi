@@ -844,15 +844,59 @@ function library() {
       const $cache = $storage[4]
       const length = src.length
 
-      let i=0, j=0, pos=0
-      for(i=0;i<length;i++) {
-        $cache[i] = [pos, src[i].length]
-        for(j=0;j<$cache[i][1];j++) {
-          setOnArray($out, pos+j, src[i][j], !$new)
+      if($new) {
+        let i=0, j=0, pos=0
+        for(;i<length;i++) {
+          $cache[i] = [pos, src[i].length]
+          for(j=0;j<$cache[i][1];j++) {
+            setOnArray($out, pos+j, src[i][j], false)
+          }
+          pos += $cache[i][1]
         }
-        pos += $cache[i][1]
+        truncateArray($out, pos, false)
+      } else {
+        let i = 0
+        let clen = $cache.length
+        let totalLen = $out.length
+        let lenChange = false
+        for(;i<clen;i++) {
+          if($invalidatedKeys.has(i)) {
+            const [pos, oldLen] = $cache[i]
+            const newLen = src[i] ? src[i].length : 0
+            if(newLen == oldLen) {
+              src[i].forEach((v, o) => setOnArray($out, $cache[i][0]+o, v, true))
+            } else {
+              let j
+              lenChange = true
+              $cache[i][1] = newLen
+              $cache.forEach((c) => c[0] = c[0] - oldLen + newLen)
+
+              for(j=pos+oldLen;j<totalLen;j++) {
+                setOnArray($out, j-oldLen+newLen, $out[j], true)
+              }
+
+              for(j=pos;j<newLen;j++) {
+                setOnArray($out, j, src[i][j-pos], true)
+              }
+
+              totalLen = totalLen - oldLen + newLen
+            }
+          }
+        }
+
+        if(clen < length) {
+          lenChange = true
+          for(let i=clen;i<length;i++) {
+            let [prevPos, prevLen] = $cache[i-1]
+            src[i].forEach((v, j) => setOnArray($out, prevPos+prevLen+j, v))
+            $cache[i] = [prevPos+prevLen, src[i].length]
+            totalLen += $cache[i][1]
+          }
+        }
+
+        lenChange && truncateArray($out, totalLen, true)
+        $invalidatedKeys.clear()
       }
-      truncateArray($out, pos, !$new)
 
       return $out
     }
