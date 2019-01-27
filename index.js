@@ -272,6 +272,7 @@ function compile(model, options) {
   if (options.compiler === 'carmi') {
     options.compiler = 'optimizing';
   }
+  options.typeCheck = options.typeCheck || options.debug
   model = unwrap(model);
   const hashFile =
     options.cache &&
