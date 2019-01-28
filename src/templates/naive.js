@@ -22,17 +22,6 @@ function base() {
       }
     }
 
-    function stringFunction(name, source) {
-      return function(...args) {
-        const type = typeof this
-        if (type !== 'string') {
-          throw new TypeError(`Trying to call ${JSON.stringify(this)}.${name}. Expects string, received ${type} at ${source}`)
-        }
-
-        return String.prototype[name].call(this, ...args)
-      }
-    }
-
     function checkType(input, name, type, functionName, source) {
       if (typeof input === type) {
         return

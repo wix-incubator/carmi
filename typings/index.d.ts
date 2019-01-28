@@ -452,7 +452,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     /**
      * Returns a new object with the keys returned by the functor, and the values resolves to arrays with all the elements which returned that key
      */
-    groupBy<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) : ObjectGraph<{[key: string]: Value[]}, F>
+    groupBy<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) : ObjectGraph<{[key: string]: NativeType}, F>
 
     /**
      * Returns a new object which resolves to _.assign(NativeType, value)
