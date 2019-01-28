@@ -380,6 +380,30 @@ describe('testing array', () => {
       expect(inst.result).toEqual([68, 68, 3, 4])
       expect(inst.result2).toEqual([68, 68, 3, 4])
     })
+    it('flatten root.array changes length', async () => {
+      const model = {
+        clean: root,
+        data: root.map(v => v),
+        result: root.map(v => v).flatten(),
+        result2: root.flatten(),
+        splice: splice()
+      }
+      const optModel = eval(compile(model, { compiler }))
+      const initialData = [[1], [2], [3], [4]]
+      const inst = optModel(initialData, funcLibrary)
+      expect(inst.result).toEqual([1, 2, 3, 4])
+      inst.splice(0, 2, [6], [6], [6])
+      expect(inst.data).toEqual([[6], [6], [6], [3], [4]], 'sanity')
+      expect(inst.result).toEqual([6, 6, 6, 3, 4])
+      inst.splice(0, 3, [67, 67])
+      expect(inst.data).toEqual([[67, 67], [3], [4]], 'sanity')
+      expect(inst.result).toEqual([67, 67, 3, 4])
+      expect(inst.result2).toEqual([67, 67, 3, 4])
+      inst.splice(0, 1, [68, 68])
+      expect(inst.data).toEqual([[68, 68], [3], [4]], 'sanity')
+      expect(inst.result).toEqual([68, 68, 3, 4])
+      expect(inst.result2).toEqual([68, 68, 3, 4])
+    })
     it('flatten with two empty arrays',  async () => {
        const model = {
         clean: root.get('target'),
