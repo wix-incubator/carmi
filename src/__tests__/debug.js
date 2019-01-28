@@ -106,19 +106,6 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('}.ceil')
     })
     
-    it('when using non-strings with sting functions, throw a nicer error', () => {
-      const model = {three: chain({a: 1}).toLowerCase()}
-      const optCode = eval(compile(model, { compiler, debug: true }));
-      let e
-      try {
-        optCode([], funcLibrary);
-      } catch (err) {
-        e = err
-      }
-
-      expect(e.message).toContain('}.toLowerCase')
-    })
-    
     it('when calling a non-existent function, throw a readable error', () => {
       const model = {three: chain({a: 1}).call('nonExistentFunction')}
       const optCode = eval(compile(model, { compiler, debug: true }));
