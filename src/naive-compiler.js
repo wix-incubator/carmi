@@ -42,7 +42,7 @@ class NaiveCompiler {
   }
 
   getNativeStringFunction(name, source) {
-    return this.options.debug ? `stringFunction('${name}', '${source}')` : `String.prototype.${name}`
+    return `String.prototype.${name}`
   }
 
   generateExpr(expr) {
