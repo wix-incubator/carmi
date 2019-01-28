@@ -243,7 +243,6 @@ class NaiveCompiler {
       EXPR1: () => (expr.length > 1 ? this.generateExpr(expr[1]) : ''),
       EXPR: () => this.generateExpr(expr),
       TYPE_CHECK: () => {
-        debugger
         const typeData = TokenTypeData[tokenType]
 
         if (!this.options.debug || !typeData || !typeData.expectedType) {
