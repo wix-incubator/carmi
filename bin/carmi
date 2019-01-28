@@ -39,10 +39,6 @@ ${optionDefinitions
 `;
 
 const options = commandLineArgs(optionDefinitions);
-if (options['type-check']) {
-  options.typeCheck = true
-  delete options['type-check']
-}
 
 async function run() {
   if (options.help) {

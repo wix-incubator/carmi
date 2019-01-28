@@ -13,7 +13,7 @@ module.exports = {todosList};
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    const $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    let $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -499,7 +499,7 @@ module.exports = { first: root.get(0), second: root.get(1) };
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    const $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    let $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -987,7 +987,7 @@ const modelBuilder = carmi\`
 
 const modelBuilder = (function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    const $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    let $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {

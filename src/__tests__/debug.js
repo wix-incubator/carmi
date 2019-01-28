@@ -93,10 +93,9 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('filterBy')
     })
 
-    
     it('when using non-numbers with number functions, throw a nicer error', () => {
       const model = {three: chain({a: 1}).ceil()}
-      const optCode = eval(compile(model, { compiler, typeCheck: true }));
+      const optCode = eval(compile(model, { compiler, debug: true }));
       let e
       try {
         optCode([], funcLibrary);
@@ -107,9 +106,22 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('}.ceil')
     })
     
+    it('when using non-strings with sting functions, throw a nicer error', () => {
+      const model = {three: chain({a: 1}).toLowerCase()}
+      const optCode = eval(compile(model, { compiler, debug: true }));
+      let e
+      try {
+        optCode([], funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('}.toLowerCase')
+    })
+    
     it('when calling a non-existent function, throw a readable error', () => {
       const model = {three: chain({a: 1}).call('nonExistentFunction')}
-      const optCode = eval(compile(model, { compiler, typeCheck: true }));
+      const optCode = eval(compile(model, { compiler, debug: true }));
       let e
       try {
         optCode([], funcLibrary);
@@ -131,7 +143,7 @@ describe('Tests for usability and debugging carmi', () => {
   describeCompilers(['optimizing'], compiler => {
     it ('when using non-objects with object functions, throw a nicer error', () => {
       const model = {three: chain(3).mapValues(a => a)}
-      const src = compile(model, { compiler, typeCheck: true });
+      const src = compile(model, { compiler, debug: true });
       const optCode = eval(src)
       let e
       try {
