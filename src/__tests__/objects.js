@@ -536,6 +536,18 @@ describe('testing objects', () => {
         const inst = optModel(initialData);
         expect(inst.pick).toEqual(_.pick(initialData.data, path));
       });
+
+      it('should pick falsy values', async () => {
+        const initialData = { data: { a: false, b: 2 } };
+        const path = ['a'];
+        const model = {
+          pick: root.get('data').pick(path)
+        };
+        const optModel = eval(compile(model, { compiler }));
+
+        const inst = optModel(initialData);
+        expect(inst.pick).toEqual(_.pick(initialData.data, path));
+      });
     });
 
     describe('isEmpty', async () => {
