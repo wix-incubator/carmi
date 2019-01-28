@@ -1,7 +1,51 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
-    /* FUNC_LIB_DEBUG_INFO */
-    const $res = { $model };
+    let $funcLib = $funcLibRaw
+    /* DEBUG */
+    $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
+      get: (target, functionName) => {
+        if (target[functionName]) {
+          return target[functionName]
+        }
+
+        throw new TypeError(`Trying to call undefined function: ${functionName} `)
+    }})
+
+    function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg
+        if (type !== 'number') {
+          throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
+        }
+
+        return Math[name](arg)
+      }
+    }
+
+    function stringFunction(name, source) {
+      return function(...args) {
+        const type = typeof this
+        if (type !== 'string') {
+          throw new TypeError(`Trying to call ${JSON.stringify(this)}.${name}. Expects string, received ${type} at ${source}`)
+        }
+
+        return String.prototype[name].call(this, ...args)
+      }
+    }
+
+    function checkType(input, name, type, functionName, source) {
+      if (typeof input === type) {
+        return
+      }
+
+      const asString = typeof input === 'object' ? JSON.stringify(input) : input
+
+      throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
+    }
+
+  /* DEBUG-END */
+
+  const $res = { $model };
     const $listeners = new Set();
     const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
