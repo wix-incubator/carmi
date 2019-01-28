@@ -423,35 +423,26 @@ module.exports = function () {
       }return $out;
     }function flatten($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;if ($new) {
-        let i = 0,
-            j = 0,
-            pos = 0;for (; i < length; i++) {
-          $cache[i] = [pos, src[i].length];for (j = 0; j < $cache[i][1]; j++) {
-            setOnArray($out, pos + j, src[i][j], false);
-          }pos += $cache[i][1];
-        }truncateArray($out, pos, false);
+        for (let pos = 0, i = 0; i < length; i += 1) {
+          $cache[i] = src[i].length;for (let j = 0; j < $cache[i]; j += 1) {
+            $out[pos + j] = src[i][j];
+          }pos += $cache[i];
+        }
       } else {
-        let clen = $cache.length;let totalLen = $out.length;const initialLen = totalLen;let lenChange = false;for (let i = 0; i < clen; i++) {
-          if ($invalidatedKeys.has(i)) {
-            const [pos, oldLen] = $cache[i];const newLen = src[i] ? src[i].length : 0;if (newLen == oldLen) {
-              src[i].forEach((v, o) => setOnArray($out, $cache[i][0] + o, v, true));
+        let key,
+            pos = 0;for (key = 0; key < length; key += 1) {
+          let partLen = src[key].length;if ($invalidatedKeys.has(key)) {
+            if ($cache[key] && $cache[key] == partLen) {
+              src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));pos += $cache[key];
             } else {
-              lenChange = true;$cache[i][1] = newLen;for (let j = i + 1; j < clen; j++) {
-                $cache[j][0] = $cache[j][0] - oldLen + newLen;
-              }for (let j = pos + oldLen; j < initialLen; j++) {
-                setOnArray($out, j - oldLen + newLen, $out[j], true);
-              }if (newLen > 0) {
-                for (let j = 0; j < newLen; j++) {
-                  setOnArray($out, pos + j, src[i][j], true);
-                }
-              }totalLen = totalLen - oldLen + newLen;
+              for (; key < length; key += 1) {
+                partLen = src[key].length;src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));$cache[key] = partLen;pos += partLen;
+              }
             }
+          } else {
+            pos += partLen;
           }
-        }if (clen < length) {
-          lenChange = true;for (let i = clen; i < length; i++) {
-            let [prevPos, prevLen] = $cache[i - 1];src[i].forEach((v, j) => setOnArray($out, prevPos + prevLen + j, v));$cache[i] = [prevPos + prevLen, src[i].length];totalLen += $cache[i][1];
-          }
-        }lenChange && truncateArray($out, totalLen, true);$invalidatedKeys.clear();
+        }$invalidatedKeys.clear();truncateArray($out, pos, true);
       }return $out;
     }function size($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
@@ -941,35 +932,26 @@ module.exports = function () {
       }return $out;
     }function flatten($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;if ($new) {
-        let i = 0,
-            j = 0,
-            pos = 0;for (; i < length; i++) {
-          $cache[i] = [pos, src[i].length];for (j = 0; j < $cache[i][1]; j++) {
-            setOnArray($out, pos + j, src[i][j], false);
-          }pos += $cache[i][1];
-        }truncateArray($out, pos, false);
+        for (let pos = 0, i = 0; i < length; i += 1) {
+          $cache[i] = src[i].length;for (let j = 0; j < $cache[i]; j += 1) {
+            $out[pos + j] = src[i][j];
+          }pos += $cache[i];
+        }
       } else {
-        let clen = $cache.length;let totalLen = $out.length;const initialLen = totalLen;let lenChange = false;for (let i = 0; i < clen; i++) {
-          if ($invalidatedKeys.has(i)) {
-            const [pos, oldLen] = $cache[i];const newLen = src[i] ? src[i].length : 0;if (newLen == oldLen) {
-              src[i].forEach((v, o) => setOnArray($out, $cache[i][0] + o, v, true));
+        let key,
+            pos = 0;for (key = 0; key < length; key += 1) {
+          let partLen = src[key].length;if ($invalidatedKeys.has(key)) {
+            if ($cache[key] && $cache[key] == partLen) {
+              src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));pos += $cache[key];
             } else {
-              lenChange = true;$cache[i][1] = newLen;for (let j = i + 1; j < clen; j++) {
-                $cache[j][0] = $cache[j][0] - oldLen + newLen;
-              }for (let j = pos + oldLen; j < initialLen; j++) {
-                setOnArray($out, j - oldLen + newLen, $out[j], true);
-              }if (newLen > 0) {
-                for (let j = 0; j < newLen; j++) {
-                  setOnArray($out, pos + j, src[i][j], true);
-                }
-              }totalLen = totalLen - oldLen + newLen;
+              for (; key < length; key += 1) {
+                partLen = src[key].length;src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));$cache[key] = partLen;pos += partLen;
+              }
             }
+          } else {
+            pos += partLen;
           }
-        }if (clen < length) {
-          lenChange = true;for (let i = clen; i < length; i++) {
-            let [prevPos, prevLen] = $cache[i - 1];src[i].forEach((v, j) => setOnArray($out, prevPos + prevLen + j, v));$cache[i] = [prevPos + prevLen, src[i].length];totalLen += $cache[i][1];
-          }
-        }lenChange && truncateArray($out, totalLen, true);$invalidatedKeys.clear();
+        }$invalidatedKeys.clear();truncateArray($out, pos, true);
       }return $out;
     }function size($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
@@ -1461,35 +1443,26 @@ const modelBuilder = (function () {
       }return $out;
     }function flatten($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;if ($new) {
-        let i = 0,
-            j = 0,
-            pos = 0;for (; i < length; i++) {
-          $cache[i] = [pos, src[i].length];for (j = 0; j < $cache[i][1]; j++) {
-            setOnArray($out, pos + j, src[i][j], false);
-          }pos += $cache[i][1];
-        }truncateArray($out, pos, false);
+        for (let pos = 0, i = 0; i < length; i += 1) {
+          $cache[i] = src[i].length;for (let j = 0; j < $cache[i]; j += 1) {
+            $out[pos + j] = src[i][j];
+          }pos += $cache[i];
+        }
       } else {
-        let clen = $cache.length;let totalLen = $out.length;const initialLen = totalLen;let lenChange = false;for (let i = 0; i < clen; i++) {
-          if ($invalidatedKeys.has(i)) {
-            const [pos, oldLen] = $cache[i];const newLen = src[i] ? src[i].length : 0;if (newLen == oldLen) {
-              src[i].forEach((v, o) => setOnArray($out, $cache[i][0] + o, v, true));
+        let key,
+            pos = 0;for (key = 0; key < length; key += 1) {
+          let partLen = src[key].length;if ($invalidatedKeys.has(key)) {
+            if ($cache[key] && $cache[key] == partLen) {
+              src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));pos += $cache[key];
             } else {
-              lenChange = true;$cache[i][1] = newLen;for (let j = i + 1; j < clen; j++) {
-                $cache[j][0] = $cache[j][0] - oldLen + newLen;
-              }for (let j = pos + oldLen; j < initialLen; j++) {
-                setOnArray($out, j - oldLen + newLen, $out[j], true);
-              }if (newLen > 0) {
-                for (let j = 0; j < newLen; j++) {
-                  setOnArray($out, pos + j, src[i][j], true);
-                }
-              }totalLen = totalLen - oldLen + newLen;
+              for (; key < length; key += 1) {
+                partLen = src[key].length;src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));$cache[key] = partLen;pos += partLen;
+              }
             }
+          } else {
+            pos += partLen;
           }
-        }if (clen < length) {
-          lenChange = true;for (let i = clen; i < length; i++) {
-            let [prevPos, prevLen] = $cache[i - 1];src[i].forEach((v, j) => setOnArray($out, prevPos + prevLen + j, v));$cache[i] = [prevPos + prevLen, src[i].length];totalLen += $cache[i][1];
-          }
-        }lenChange && truncateArray($out, totalLen, true);$invalidatedKeys.clear();
+        }$invalidatedKeys.clear();truncateArray($out, pos, true);
       }return $out;
     }function size($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
