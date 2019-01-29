@@ -108,7 +108,7 @@ function base() {
           return $AST;
         },
         $source: () => {
-          return /* SOURCE_FILES */;
+          return {}
         }
         /* DEBUG-END */
       }
