@@ -107,6 +107,8 @@ class NaiveCompiler {
       case 'size':
       case 'sum':
         return `${tokenType}(${this.generateExpr(expr[1])})`;
+      case 'isArray':
+        return `Array.isArray(${this.generateExpr(expr[1])})`
       case 'isBoolean':
       case 'isNumber':
       case 'isString':

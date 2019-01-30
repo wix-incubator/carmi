@@ -625,6 +625,29 @@ describe('testing array', () => {
         expect(inst.every).toBe(false);
       });
     });
+    describe('isArray tests', () => {
+      it('should return true if is array', () => {
+        const model = {
+          isArray: root.isArray()
+        };
+        const optModel = eval(compile(model, { compiler }));
+        const initialData = [1,2,3];
+
+        const inst = optModel(initialData);
+        expect(inst.isArray).toEqual(true);
+      });
+      it('should return false if not array', () => {
+        const model = {
+          isArray: root.isArray()
+        };
+        const optModel = eval(compile(model, { compiler }));
+        const initialData = 5;
+
+        const inst = optModel(initialData);
+        expect(inst.isArray).toEqual(false);
+      });
+
+    });
 
   });
 });

@@ -132,6 +132,7 @@ const TokenTypeData = {
   isBoolean: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isString: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isNumber: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
+  isArray: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   abstract: new TokenTypes({ nonChained: true, len: [3, 3], private: true }),
   quote: new TokenTypes({ nonChained: true, len: [2, 2], private: true }),
 };
