@@ -9,13 +9,15 @@ export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
-type AsNativeRecursive<T> = T extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
+type AsNativeRecursive<T> = 
+        AsNative<T> extends any[] ? AsNative<T> : 
+        AsNative<T> extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
 type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> =
-    unknown extends A ? (F extends (...args: (infer Args)[]) => infer R ? F : never) :
-    unknown extends B ? (F extends (a: A, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
-    unknown extends C ? (F extends (a: A, b: B, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
-    unknown extends D ? (F extends (a: A, b: B, c: C, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
-    unknown extends E ? (F extends (a: A, b: B, c: C, d: D, ...args: (infer Args)[]) => infer R ? (...args: Args[]) => R : never) :
+    unknown extends A ? (F extends (...args: infer Args) => infer R ? F : never) :
+    unknown extends B ? (F extends (a: A, ...args: infer Args) => infer R ? (...args: Args) => R : never) :
+    unknown extends C ? (F extends (a: A, b: B, ...args: infer Args) => infer R ? (...args: Args) => R : never) :
+    unknown extends D ? (F extends (a: A, b: B, c: C, ...args: infer Args) => infer R ? (...args: Args) => R : never) :
+    unknown extends E ? (F extends (a: A, b: B, c: C, d: D, ...args: infer Args) => infer R ? (...args: Args) => R : never) :
     never
 
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
@@ -25,10 +27,10 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param func A function name from the function library
      * @param args Args to pass, in addition to the value resolved from ""
      */
-    call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Argument<Args> : never)>(func: FunctionName, ...args: Arguments[]):
+    call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never):
         Graph<ReturnType<F[FunctionName]>, F>
 
-    effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: (infer Args)[]) => any ? Argument<Args> : never)>(func: FunctionName, ...args: Arguments[]): void
+    effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never): void
 
     bind<FunctionName extends keyof F>(func: FunctionName): FunctionGraph<BoundFunction<F[FunctionName], NativeType>, F>
     bind<FunctionName extends keyof F, A>(func: FunctionName, a: A): FunctionGraph<BoundFunction<F[FunctionName], NativeType, A>, F>
@@ -59,7 +61,13 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param consequence graph if NativeType value is truthy
      * @param alternate graph is NativeType value is falsey
      */
-    ternary<Consequence, Alternate>(consequence: Consequence, alternate: Alternate): Graph<Consequence, F> | Graph<Alternate, F>
+    ternary<Consequence, Alternate>(consequence: Consequence, alternate: Alternate): 
+                    Graph<
+                    AsNative<Consequence> extends AsNative<Alternate> ? Consequence :
+                    AsNative<Alternate> extends AsNative<Consequence> ? Alternate :
+                    Consequence extends null ? Alternate :
+                    Alternate extends null ? Consequence :
+                    Alternate | Consequence, F>
 
     /**
      * Resolves to the case that matches equals to the boxed value
@@ -486,11 +494,11 @@ export interface ObjectGraph<T extends object, F extends FunctionLibrary> extend
 
 export type Graph<N, F extends FunctionLibrary> =
     N extends AbstractGraph ? N :
+    N extends any[] ? ArrayGraph<N, F> :
     N extends Function ? FunctionGraph<N, F> :
     N extends string ? StringGraph<N, F> :
     N extends number ? NumberGraph<N, F> :
     N extends boolean ? BoolGraph<F> :
-    N extends any[] ? ArrayGraph<N, F> :
     N extends object ? ObjectGraph<N, F> :
     never
 
