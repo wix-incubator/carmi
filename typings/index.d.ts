@@ -91,6 +91,12 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param loop passed to the functor of recursiveMap/recursiveMapValues
      */
     recur<ValueType>(loop: Looper<ValueType>): ValueType
+
+    isArray(): BoolGraph<F>
+    isUndefined(): BoolGraph<F>
+    isBoolean(): BoolGraph<F>
+    isNumber(): BoolGraph<F>
+    isString(): BoolGraph<F>
 }
 
 export interface NumberGraph<NativeType extends number, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
@@ -233,6 +239,8 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
         Graph<NativeType[K0][K1][K2][K3], F>
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2], K4 extends keyof NativeType[K0][K1][K2][K3]>(path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>]):
         Graph<NativeType[K0][K1][K2][K3][K4], F>
+
+    has(key: Argument<Key>): BoolGraph<F>
 
 }
 
