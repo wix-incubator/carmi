@@ -240,7 +240,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2], K4 extends keyof NativeType[K0][K1][K2][K3]>(path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>]):
         Graph<NativeType[K0][K1][K2][K3][K4], F>
 
-    has(key: Argument<Key>): BoolGraph<F>
+    has(key: Argument<number|string>): BoolGraph<F>
 
 }
 
