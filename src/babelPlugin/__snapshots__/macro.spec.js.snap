@@ -421,15 +421,14 @@ module.exports = function () {
         });$invalidatedKeys.clear();
       }return $out;
     }function flatten($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;if ($new) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;const initialLength = $out.length;if ($new) {
         for (let pos = 0, i = 0; i < length; i += 1) {
           $cache[i] = src[i].length;for (let j = 0; j < $cache[i]; j += 1) {
             $out[pos + j] = src[i][j];
           }pos += $cache[i];
         }
       } else {
-        let key,
-            pos = 0;for (key = 0; key < length; key += 1) {
+        let pos = 0;for (let key = 0; key < length; key += 1) {
           let partLen = src[key].length;if ($invalidatedKeys.has(key)) {
             if ($cache[key] && $cache[key] == partLen) {
               src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));pos += $cache[key];
@@ -441,7 +440,7 @@ module.exports = function () {
           } else {
             pos += partLen;
           }
-        }$invalidatedKeys.clear();truncateArray($out, pos, true);
+        }$invalidatedKeys.clear();initialLength !== pos && truncateArray($out, pos, true);
       }return $out;
     }function size($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
@@ -930,15 +929,14 @@ module.exports = function () {
         });$invalidatedKeys.clear();
       }return $out;
     }function flatten($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;if ($new) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;const initialLength = $out.length;if ($new) {
         for (let pos = 0, i = 0; i < length; i += 1) {
           $cache[i] = src[i].length;for (let j = 0; j < $cache[i]; j += 1) {
             $out[pos + j] = src[i][j];
           }pos += $cache[i];
         }
       } else {
-        let key,
-            pos = 0;for (key = 0; key < length; key += 1) {
+        let pos = 0;for (let key = 0; key < length; key += 1) {
           let partLen = src[key].length;if ($invalidatedKeys.has(key)) {
             if ($cache[key] && $cache[key] == partLen) {
               src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));pos += $cache[key];
@@ -950,7 +948,7 @@ module.exports = function () {
           } else {
             pos += partLen;
           }
-        }$invalidatedKeys.clear();truncateArray($out, pos, true);
+        }$invalidatedKeys.clear();initialLength !== pos && truncateArray($out, pos, true);
       }return $out;
     }function size($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {
@@ -1441,15 +1439,14 @@ const modelBuilder = (function () {
         });$invalidatedKeys.clear();
       }return $out;
     }function flatten($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;if ($new) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];const length = src.length;const initialLength = $out.length;if ($new) {
         for (let pos = 0, i = 0; i < length; i += 1) {
           $cache[i] = src[i].length;for (let j = 0; j < $cache[i]; j += 1) {
             $out[pos + j] = src[i][j];
           }pos += $cache[i];
         }
       } else {
-        let key,
-            pos = 0;for (key = 0; key < length; key += 1) {
+        let pos = 0;for (let key = 0; key < length; key += 1) {
           let partLen = src[key].length;if ($invalidatedKeys.has(key)) {
             if ($cache[key] && $cache[key] == partLen) {
               src[key].forEach((value, index) => setOnArray($out, pos + index, value, true));pos += $cache[key];
@@ -1461,7 +1458,7 @@ const modelBuilder = (function () {
           } else {
             pos += partLen;
           }
-        }$invalidatedKeys.clear();truncateArray($out, pos, true);
+        }$invalidatedKeys.clear();initialLength !== pos && truncateArray($out, pos, true);
       }return $out;
     }function size($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];if ($new) {

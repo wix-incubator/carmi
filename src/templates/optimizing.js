@@ -825,7 +825,7 @@ function library() {
       const $new = $storage[3]
       const $cache = $storage[4]
       const length = src.length
-
+      const initialLength = $out.length
       if($new) {
         for(let pos=0, i=0;i<length;i+=1) {
           $cache[i] = src[i].length
@@ -835,8 +835,8 @@ function library() {
           pos += $cache[i]
         }
       } else {
-        let key, pos=0
-        for(key=0;key<length;key+=1) {
+        let pos=0
+        for(let key=0;key<length;key+=1) {
           let partLen = src[key].length
           if($invalidatedKeys.has(key)) {
             if($cache[key] && $cache[key] == partLen) {
@@ -856,7 +856,7 @@ function library() {
         }
         $invalidatedKeys.clear()
 
-        truncateArray($out, pos, true)
+        initialLength !== pos && truncateArray($out, pos, true)
       }
 
       return $out
