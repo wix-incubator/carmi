@@ -23,12 +23,7 @@ module.exports = function({chain, or, and}) {
     }
 
     function concat(a, b) {
-      return a.size().plus(b.size()).range().map(
-        (v, k, ctx) => v.lt(ctx.get(0).size()).ternary(
-          ctx.get(0).get(v),
-          ctx.get(1).get(v.minus(ctx.get(0).size()))),
-        chain([a, b])
-      )
+      return chain([a, b]).flatten()
     }
 
     function find(collection, predicate, givenCtx) {
@@ -44,7 +39,8 @@ module.exports = function({chain, or, and}) {
     }
 
     function append(arr, value) {
-      return arr.size().plus(1).range().map(v => v.lt(arr.size()).ternary(arr.get(v), value))
+      return chain([arr, [value]]).flatten()
+      //return arr.size().plus(1).range().map(v => v.lt(arr.size()).ternary(arr.get(v), value))
     }
 
     function simpleSet(base, part, value) {

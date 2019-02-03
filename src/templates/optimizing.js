@@ -132,7 +132,7 @@ function library() {
         }
         if (
           $hard ||
-          $key >= $target.length || 
+          $key >= $target.length ||
           $target[$key] !== $val ||
           (typeof $target[$key] === 'object' && $tainted.has($val))
         ) {
@@ -818,23 +818,67 @@ function library() {
       return $out;
     }
 
-    function size($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
+    function flatten($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
-      const $invalidatedKeys = $storage[2];
-      const $new = $storage[3];
+      const $invalidatedKeys = $storage[2]
+      const $new = $storage[3]
+      const $cache = $storage[4]
+      const length = src.length
+      const initialLength = $out.length
+      if($new) {
+        for(let pos=0, i=0;i<length;i+=1) {
+          $cache[i] = src[i].length
+          for(let j=0;j<$cache[i];j+=1) {
+            $out[pos+j] = src[i][j]
+          }
+          pos += $cache[i]
+        }
+      } else {
+        let pos=0
+        for(let key=0;key<length;key+=1) {
+          let partLen = src[key].length
+          if($invalidatedKeys.has(key)) {
+            if($cache[key] && $cache[key] == partLen) {
+              src[key].forEach((value, index) => setOnArray($out, pos+index, value, true))
+              pos += $cache[key]
+            } else {
+              for(;key<length;key+=1) {
+                partLen = src[key].length
+                src[key].forEach((value, index) => setOnArray($out, pos+index, value, true))
+                $cache[key] = partLen
+                pos += partLen
+              }
+            }
+          } else {
+            pos += partLen
+          }
+        }
+        $invalidatedKeys.clear()
+
+        initialLength !== pos && truncateArray($out, pos, true)
+      }
+
+      return $out
+    }
+
+    function size($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc)
+      const $out = $storage[1]
+      const $invalidatedKeys = $storage[2]
+      const $new = $storage[3]
       if ($new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length
       }
       if (!$new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
-        $invalidatedKeys.clear();
+        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length
+        $invalidatedKeys.clear()
       }
-      return $out[0];
+      return $out[0]
     }
 
     function sum($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr);
+      const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2]
       const $new = $storage[3]

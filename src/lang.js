@@ -79,6 +79,7 @@ const TokenTypeData = {
   groupBy: new TokenTypes({ collectionVerb: true, chainIndex: 2, len: [3, 4] }),
   values: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   keys: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
+  flatten: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   size: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   sum: new TokenTypes({ collectionVerb: true, chainIndex: 1, len: [2, 2] }),
   range: new TokenTypes({ chainIndex: 1, len: [2, 4] }),

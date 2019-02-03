@@ -146,6 +146,7 @@ $tainted = new WeakSet();`
           tokenType === 'values' ? 'true' : 'false'
         }, ${this.invalidates(expr)})`;
       case 'sum':
+      case 'flatten':
       case 'size':
         return `${tokenType}($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':

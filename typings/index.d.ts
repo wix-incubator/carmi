@@ -9,8 +9,8 @@ export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T>
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
-type AsNativeRecursive<T> = 
-        AsNative<T> extends any[] ? AsNative<T> : 
+type AsNativeRecursive<T> =
+        AsNative<T> extends any[] ? AsNative<T> :
         AsNative<T> extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
 type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> =
     unknown extends A ? (F extends (...args: infer Args) => infer R ? F : never) :
@@ -61,7 +61,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param consequence graph if NativeType value is truthy
      * @param alternate graph is NativeType value is falsey
      */
-    ternary<Consequence, Alternate>(consequence: Consequence, alternate: Alternate): 
+    ternary<Consequence, Alternate>(consequence: Consequence, alternate: Alternate):
                     Graph<
                     AsNative<Consequence> extends AsNative<Alternate> ? Consequence :
                     AsNative<Alternate> extends AsNative<Consequence> ? Alternate :
@@ -286,6 +286,9 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      */
     join(separator: Argument<string>): Value extends string ? StringGraph<string, F> : never
 
+    /**
+     * reverses the order of a given array
+     */
     reverse(): ArrayGraph<Value[], F>
 
     /**
@@ -367,6 +370,11 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
+     * Flatten
+     */
+    flatten<T = Value extends any[] ? true : never>() : ValueGraph
+
+    /**
      * Resolves to true if the array contains an argument equal to value
      * @param value
      */
@@ -378,16 +386,15 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     compact(): this
 
     /**
-     * Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
-     * The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
-     *
-     * // Will resolve to [1, 2, 4, 8, ...]
-     * recursiveMap((loop, value, key) => key.eq(0).ternary(1, key.minus(1).recur(loop).multiply(2)))
-     *
-     * @param functor
-     * @param scope
-     */
-
+    * Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
+    * The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
+    *
+    * // Will resolve to [1, 2, 4, 8, ...]
+    * recursiveMap((loop, value, key) => key.eq(0).ternary(1, key.minus(1).recur(loop).multiply(2)))
+    *
+    * @param functor
+    * @param scope
+    */
     recursiveMap<Scope, Ret>(functor: (loop: Looper<Ret>, value?: Value, key?: Key, scope?: Scope) => Argument<Ret>, scope?: Scope): ArrayGraph<Ret[], F>
 }
 
