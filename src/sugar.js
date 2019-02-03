@@ -105,7 +105,7 @@ module.exports = function({chain, or, and}) {
 
     function pick(obj, arr) {
       const projection = Object.assign({},...arr.map(key => ({[key]: obj.get(key)})));
-      return chain(projection).filterBy(item => item);
+      return chain(projection).filterBy(item => item.isUndefined().not());
     }
 
     function has(obj, key) {

@@ -40,4 +40,4 @@ function generateName(namesByExpr, expr) {
     );
 }
 
-module.exports = { generateName, generateNameFromTag };
+module.exports = { generateName, generateNameFromTag, tagToSimpleFilename };

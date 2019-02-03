@@ -1,6 +1,40 @@
 function base() {
-  function $NAME($model, $funcLib, $batchingStrategy) {
-    const $res = { $model };
+  function $NAME($model, $funcLibRaw, $batchingStrategy) {
+    let $funcLib = $funcLibRaw
+    /* DEBUG */
+    $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
+      get: (target, functionName) => {
+        if (target[functionName]) {
+          return target[functionName]
+        }
+
+        throw new TypeError(`Trying to call undefined function: ${functionName} `)
+    }})
+
+    function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg
+        if (type !== 'number') {
+          throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
+        }
+
+        return Math[name](arg)
+      }
+    }
+
+    function checkType(input, name, type, functionName, source) {
+      if (typeof input === type) {
+        return
+      }
+
+      const asString = typeof input === 'object' ? JSON.stringify(input) : input
+
+      throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
+    }
+
+  /* DEBUG-END */
+
+  const $res = { $model };
     const $listeners = new Set();
     const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
@@ -74,7 +108,7 @@ function base() {
           return $AST;
         },
         $source: () => {
-          return /* SOURCE_FILES */;
+          return {}
         }
         /* DEBUG-END */
       }
@@ -86,7 +120,7 @@ function base() {
 
 function func() {
   function $FUNCNAME(val, key, context) {
-    return $EXPR1;
+      return $EXPR1;
   }
 }
 
@@ -98,7 +132,7 @@ function topLevel() {
 
 function recursiveMap() {
   function $FUNCNAME(val, key, context, loop) {
-    return $EXPR1;
+      return $EXPR1;
   }
 }
 
@@ -156,10 +190,12 @@ function library() {
   }
 
   function any(func, src, context) {
+    /* ARRAY_CHECK */
     return src.some((val, key) => func(val, key, context));
   }
 
   function filter(func, src, context) {
+    /* ARRAY_CHECK */
     return src.filter((val, key) => func(val, key, context));
   }
 
