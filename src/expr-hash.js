@@ -14,7 +14,7 @@ const hashString = str => {
 const clearHashStrings = () => {
   strHash = {};
 }
-
+  
 const exprHash = memoizeNonPrimitives(
   obj => {
     // console.log( Array.isArray(obj), _.isPlainObject(obj),JSON.stringify(obj, null,2))
@@ -23,6 +23,8 @@ const exprHash = memoizeNonPrimitives(
     } else if (_.isPlainObject(obj)) {
       const keys = Object.keys(obj).sort();
       return objectHash(_.map(keys, key => `${key}:${exprHash(obj[key])}`).join(','));
+    } else if (_.isFunction(obj)) {
+      throw new TypeError(`Trying to chain a function in carmi code: ${obj}`)
     } else {
       return hashString(JSON.stringify(obj));
     }
@@ -30,4 +32,4 @@ const exprHash = memoizeNonPrimitives(
   primitive => hashString(JSON.stringify(primitive))
 );
 
-module.exports = {exprHash, hashString, clearHashStrings };
+module.exports = {exprHash, hashString, clearHashStrings};
