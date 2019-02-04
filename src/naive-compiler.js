@@ -218,17 +218,27 @@ class NaiveCompiler {
     return res
   }
 
+  getSetterFunc(setterExpr, name) {
+    return this.options.debug ? `$debugSetter({
+      name: '${name}',
+      source: '${setterExpr[SourceTag]}',
+      path: [${setterExpr.slice(1).map(t => t instanceof Token ? `args => args[${t.$type.substring(3)}]` : `() => '${t}'`)}]
+    })` : '$setter'
+  }
+
   buildSetter(setterExpr, name) {
+    const setterFunc = this.getSetterFunc(setterExpr, name)
+    console.log(setterFunc)
     const args = setterExpr
       .slice(1)
       .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:${setterFunc}.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
         ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
     })`;
     }
-    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
+    return `${name}:${setterFunc}.bind(null, (${args.concat('value').join(',')}) => {
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}
               } else {
@@ -256,6 +266,18 @@ class NaiveCompiler {
         const name = currentToken.$rootName
         const source = currentToken[SourceTag]
         return `checkType(${input}, '${name}', '${typeData.expectedType}', '${tokenType}', '${source}')`
+      },
+
+      REGISTER_PROJECTION: () => {
+        if (!this.options.debug) {
+          return ;
+        }
+
+        return `$history.projection({
+          name: '${funcName}',
+          source: '${currentToken[SourceTag]}',
+          value: JSON.parse(JSON.stringify(newValue)),
+        })`
       },
 
     ID: () => expr[0].$id,

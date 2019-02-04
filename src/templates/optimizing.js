@@ -935,6 +935,7 @@ function topLevel() {
     /* PRETRACKING */
     /* TYPE_CHECK */
     const newValue = $EXPR;
+    /* REGISTER_PROJECTION */
     setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
     $res['$FUNCNAME'] = newValue;
     $invalidatedRoots.delete($TOP_LEVEL_INDEX);

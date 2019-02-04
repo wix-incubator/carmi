@@ -391,11 +391,19 @@ function withName(name, val) {
 function inferFromModel(rootExpression, exampleModel) {
   return rootExpression
 }
+function withSource(f) {
+  return (...args) => {
+    const expr = f(...args)
+    expr[SourceTag] = currentLine()
+    return expr
+  }
+}
+
 
 const API = {
   compile,
-  setter: Setter,
-  splice: Splice,
+  setter: withSource(Setter),
+  splice: withSource(Splice),
   isSetterExpression,
   isSpliceExpression,
   isExpression,

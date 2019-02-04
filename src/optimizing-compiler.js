@@ -219,6 +219,7 @@ $tainted = new WeakSet();`
       .slice(1)
       .filter(t => typeof t !== 'string' && typeof t !== 'number')
       .map(t => t.$type);
+    const setterFunc = this.getSetterFunc(setterExpr, name)
     const invalidate = new Array(setterExpr.length - 1)
       .fill()
       .map(
@@ -230,7 +231,7 @@ $tainted = new WeakSet();`
       .join('');
 
     if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
+      return `${name}:${setterFunc}.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
           const arr = ${this.pathToString(setterExpr, 1)};
           const origLength = arr.length;
           const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
@@ -241,7 +242,7 @@ $tainted = new WeakSet();`
           ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
       })`;
     }
-    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
+    return `${name}:${setterFunc}.bind(null, (${args.concat('value').join(',')}) => {
               ${invalidate}
               if (typeof value === 'undefined') {
                 delete ${this.pathToString(setterExpr)}

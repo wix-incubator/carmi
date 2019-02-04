@@ -1,7 +1,36 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
+    const $res = { $model };
+    const $listeners = new Set();
+
     /* DEBUG */
+    $res.$history = []
+    const $history = (() => {
+      let current = []
+      return {
+        projection: project => current.push({project}),
+        setter: ({path, name, source}, args) => 
+          current.push({set: {
+            path: path.map(p => p(args)),
+            name,
+            source,
+            value: args[args.length - 1]}}),
+        commit: () => {
+          $res.$history.push(current)
+          current = []
+        }
+    }})()
+
+    function $debugSetter(debugInfo) {
+      return function (func, ...args) {
+        $history.setter(debugInfo, args)
+        $setter.call(this, func, ...args)
+      }
+    }
+
+    $listeners.add(() => $history.commit())
+    
     $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
       get: (target, functionName) => {
         if (target[functionName]) {
@@ -34,8 +63,6 @@ function base() {
 
   /* DEBUG-END */
 
-  const $res = { $model };
-    const $listeners = new Set();
     const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
     /* ALL_EXPRESSIONS */

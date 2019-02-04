@@ -164,6 +164,27 @@ describe('Tests for usability and debugging carmi', () => {
 
       expect(e.message).toContain('3.mapValues')
     })
+
+    describe('history', () => {
+      it('should save history', () => {
+        const model = {
+          get: root.get('data'),
+          set: setter('data', arg0)
+        }
+        const src = compile(model, { compiler, debug: true, prettier: true })
+        const optCode = eval(src);
+        const inst = optCode({data: {a: 1}}, funcLibrary);
+        inst.set('a', 2)
+        const history = inst.$history.map(line => line.map(e => _.mapValues(e, v => _.pick(v, ['path', 'value', 'name']))))
+        expect(history).toEqual(
+            [[{project: {value: {a: 1}, name: 'get'}}],
+              [ 
+                {set: {path: ['data', 'a'], value: 2, name: 'set'}},
+                {project: {value: {a: 2}, name: 'get'}}
+              ]
+            ])
+      })
+    })
   })
 
 });
