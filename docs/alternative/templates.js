@@ -42,12 +42,45 @@ const InheritedMethods = ({methods}) =>(
     ))}
   </ul>
 )
-
+                    // {
+                    //     "id": 304,
+                    //     "name": "plus",
+                    //     "kind": 4096,
+                    //     "kindString": "Call signature",
+                    //     "flags": {},
+                    //     "comment": {
+                    //         "shortText": "Resolves to (NativeType + other)"
+                    //     },
+                    //     "parameters": [
+                    //         {
+                    //             "id": 305,
+                    //             "name": "num",
+                    //             "kind": 32768,
+                    //             "kindString": "Parameter",
+                    //             "flags": {},
+                    //             "type": {
+                    //                 "type": "reference",
+                    //                 "name": "Argument",
+                    //                 "id": 1790,
+                    //                 "typeArguments": [
+                    //                     {
+                    //                         "type": "intrinsic",
+                    //                         "name": "number"
+                    //                     }
+                    //                 ]
+                    //             }
+                    //         }
+                    //     ],
 const SelfMethods = ({methods}) => <Fragment>
   {methods.map(({id, name, kindString: type, signatures}) =>
     <div className="card m-1" id={`doc-${id}`}>
       <div className="card-body">
-        <h5 className="card-title"><a class="method-name" href={`doc-${id}`}><code>{name}()</code></a></h5>
+        <h5 className="card-title"><a class="method-name" href={`#doc-${id}`}><code>{name}({`<`}{_(signatures)
+          .get('0.parameters', [])
+          .map((param) => _(param)
+            .get('type.typeArguments.0.name', '*any*')
+          )
+          .join('>, <')}{`>`})</code></a></h5>
         <h6 className="card-subtitle mb-2 text-muted">{type}</h6>
         <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
       </div>
