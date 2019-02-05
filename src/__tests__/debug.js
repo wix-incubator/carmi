@@ -130,6 +130,18 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('nonExistentFunction')
     })
 
+    it('when calling a function with undefined args, throw a readable error', () => {
+      const model = {three: chain({a: () => 123}).call('func')}
+      let e
+      try {
+        compile(model, { compiler, debug: true });
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('() => 123')
+    })
+
     it('allow primitives on the model', async () => {
       const model = {three: chain(3)}
       const optCode = eval(compile(model, { compiler }));
