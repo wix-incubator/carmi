@@ -20,6 +20,12 @@ type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = un
     unknown extends E ? (F extends (a: A, b: B, c: C, d: D, ...args: infer Args) => infer R ? (...args: Args) => R : never) :
     never
 
+export interface BoolGraph<F extends FunctionLibrary> extends GraphImpl<boolean, F> {}
+export interface FunctionGraph<N, F extends FunctionLibrary> extends GraphImpl<N, F> {}
+
+/**
+* Graph Operands
+*/
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
      * Returns a graph that resolves to the return type of a named function from the function library
@@ -99,6 +105,9 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     isString(): BoolGraph<F>
 }
 
+/**
+* Number operands
+*/
 export interface NumberGraph<NativeType extends number, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
      * Resolves to (NativeType > other)
@@ -178,9 +187,9 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
     round(): NumberGraph<number, F>
 }
 
-export interface BoolGraph<F extends FunctionLibrary> extends GraphImpl<boolean, F> {}
-export interface FunctionGraph<N, F extends FunctionLibrary> extends GraphImpl<N, F> {}
-
+/**
+* String operands
+*/
 interface StringGraph<NativeType extends string, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
      * Resolves to (NativeType.startsWith(s))
@@ -223,6 +232,9 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
     parseInt(radix?: number): NumberGraph<number, F>
 }
 
+/**
+* Array or Object operands
+*/
 interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends FunctionLibrary, Key = keyof NativeType>
     extends GraphImpl<NativeType, F> {
 
@@ -241,9 +253,11 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
         Graph<NativeType[K0][K1][K2][K3][K4], F>
 
     has(key: Argument<number|string>): BoolGraph<F>
-
 }
 
+/**
+* Array operands
+*/
 interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     Value = NativeType extends (infer V)[] ? AsNative<V> : never,
     Key = keyof NativeType,
@@ -398,6 +412,9 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     recursiveMap<Scope, Ret>(functor: (loop: Looper<Ret>, value?: Value, key?: Key, scope?: Scope) => Argument<Ret>, scope?: Scope): ArrayGraph<Ret[], F>
 }
 
+/**
+* Object operands
+*/
 interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     Key = keyof NativeType,
     Value = AsNative<NativeType[keyof NativeType]>,
@@ -506,7 +523,6 @@ type SpliceExpression<Model, Path, F> = {}
 export interface ArrayGraph<T extends any[], F extends FunctionLibrary> extends ArrayGraphImpl<T, F> {}
 export interface ObjectGraph<T extends object, F extends FunctionLibrary> extends ObjectGraphImpl<AsNative<T>, F> {}
 
-
 export type Graph<N, F extends FunctionLibrary> =
     N extends AbstractGraph ? N :
     N extends any[] ? ArrayGraph<N, F> :
@@ -517,6 +533,9 @@ export type Graph<N, F extends FunctionLibrary> =
     N extends object ? ObjectGraph<N, F> :
     never
 
+/**
+* External operands
+*/
 export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary = any> {
     $schema: Schema
     $functions: F
