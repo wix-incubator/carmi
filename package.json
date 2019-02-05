@@ -5,6 +5,7 @@
   "typings": "./typings/index.d.ts",
   "scripts": {
     "test": "jest",
+    "docgen": "node ./docs/alternative/generate",
     "release": "wnpm-release --no-shrinkwrap"
   },
   "bin": {

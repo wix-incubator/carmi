@@ -24,7 +24,7 @@ export interface BoolGraph<F extends FunctionLibrary> extends GraphImpl<boolean,
 export interface FunctionGraph<N, F extends FunctionLibrary> extends GraphImpl<N, F> {}
 
 /**
-* Graph Operands
+* Graph
 */
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
@@ -106,7 +106,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
 }
 
 /**
-* Number operands
+* Number
 */
 export interface NumberGraph<NativeType extends number, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
@@ -188,7 +188,7 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
 }
 
 /**
-* String operands
+* String
 */
 interface StringGraph<NativeType extends string, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
@@ -233,7 +233,7 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
 }
 
 /**
-* Array or Object operands
+* Array or Object
 */
 interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends FunctionLibrary, Key = keyof NativeType>
     extends GraphImpl<NativeType, F> {
@@ -256,7 +256,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
 }
 
 /**
-* Array operands
+* Array
 */
 interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     Value = NativeType extends (infer V)[] ? AsNative<V> : never,
@@ -413,7 +413,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 }
 
 /**
-* Object operands
+* Object
 */
 interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     Key = keyof NativeType,
@@ -534,7 +534,7 @@ export type Graph<N, F extends FunctionLibrary> =
     never
 
 /**
-* External operands
+* External
 */
 export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary = any> {
     $schema: Schema
