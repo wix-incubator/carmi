@@ -2,86 +2,69 @@ const _ = require('lodash')
 const React = require('react')
 const { Fragment } = React
 const { renderToStaticMarkup } = require('react-dom/server')
-const css = `
+
+const css = (([css]) => <style dangerouslySetInnerHTML={{ "__html": css}} />)`
   .body {
     margin: 0 auto;
   }
   .wrapper {
     display: block;
-
+    height: 100vh
   }
-  .sidebar {
-    height: 100vh;
-    overflow: auto;
+  .method-link{
+    font-size: 15px;
+    margin-left: -15px;
+    visibility: hidden;
   }
-  .method-name {
+  .card-title:hover > .method-link {
+    visibility: visible;
+  }
+  .method-link:hover {
+    text-decoration:none;
   }
 `
 const Wrapper = (props) => (
-  <html>
+  <html lang="en">
     <head>
-      <meta httpEquiv="refresh" content="20"/>
+      {/*<meta httpEquiv="refresh" content="20"/>*/}
       <meta charSet="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link rel="shortcut icon" href="favicon.ico"/>
       <title>{props.title}</title>
       <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" crossOrigin="anonymous"/>
-      <style>{css}</style>
+      {css}
     </head>
     <body>
       {props.children}
-      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
     </body>
   </html>
 )
+
 const InheritedMethods = ({methods}) =>(
   <ul>
     {methods.map(({name, inheritedFrom: {name: parent, id}}) => (
-      <li><a href={`#doc-${id}`}>{parent}</a></li>
+      <li><a href={`#doc-${id}`}>{name}()</a></li>
     ))}
   </ul>
 )
-                    // {
-                    //     "id": 304,
-                    //     "name": "plus",
-                    //     "kind": 4096,
-                    //     "kindString": "Call signature",
-                    //     "flags": {},
-                    //     "comment": {
-                    //         "shortText": "Resolves to (NativeType + other)"
-                    //     },
-                    //     "parameters": [
-                    //         {
-                    //             "id": 305,
-                    //             "name": "num",
-                    //             "kind": 32768,
-                    //             "kindString": "Parameter",
-                    //             "flags": {},
-                    //             "type": {
-                    //                 "type": "reference",
-                    //                 "name": "Argument",
-                    //                 "id": 1790,
-                    //                 "typeArguments": [
-                    //                     {
-                    //                         "type": "intrinsic",
-                    //                         "name": "number"
-                    //                     }
-                    //                 ]
-                    //             }
-                    //         }
-                    //     ],
+const genSignature = (signatures) => _(signatures)
+  .get('0.parameters', [])
+  .map((param) => _(param)
+    .tap(console.log.bind(console))
+    .get('type.typeArguments.0.name', '*any*')
+  )
+  .join(', ')
+
 const SelfMethods = ({methods}) => <Fragment>
   {methods.map(({id, name, kindString: type, signatures}) =>
-    <div className="card m-1" id={`doc-${id}`}>
+    <div className="card mt-2" id={`doc-${id}`}>
       <div className="card-body">
-        <h5 className="card-title"><a class="method-name" href={`#doc-${id}`}><code>{name}({`<`}{_(signatures)
-          .get('0.parameters', [])
-          .map((param) => _(param)
-            .get('type.typeArguments.0.name', '*any*')
-          )
-          .join('>, <')}{`>`})</code></a></h5>
-        <h6 className="card-subtitle mb-2 text-muted">{type}</h6>
+        <h5 className="card-title">
+          <a className="text-secondary method-link" href={`#doc-${id}`}>🔗</a>
+          <code>
+            {name}({genSignature(signatures)})
+          </code>
+        </h5>
         <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
       </div>
     </div>
@@ -96,17 +79,19 @@ const Section = ({id, comment: {shortText: name}, kindString: type, children}) =
     .value()
 
   return (
-    <div className="card" id={`doc-${id}`}>
+    <div className="card mt-2" id={`doc-${id}`}>
       <div className="card-body">
         <h5 className="card-title">{name}</h5>
-        <h6 className="card-subtitle mb-2 text-muted">{type}</h6>
+        <h6 className="card-subtitle mb-2">Inherited methods</h6>
         <InheritedMethods methods={inherited} />
+        <h6 className="card-subtitle mb-2">Methods</h6>
         <SelfMethods methods={methods} />
       </div>
     </div>
   )
 }
-const Sidebar = ({data}) => <sidebar className="col-4">
+
+const Sidebar = ({data}) => <sidebar className="col-3 align-items-stretch">
   <ul className="sidebar">
     {data.map(({id, comment: {shortText: name}, children}) => <li>
       <a href={`#doc-${id}`}>{name}</a>
@@ -117,6 +102,7 @@ const Sidebar = ({data}) => <sidebar className="col-4">
     </li>)}
   </ul>
 </sidebar>
+
 module.exports = {
   Section,
   Sidebar,
@@ -128,7 +114,7 @@ module.exports = {
   home({data}) {
     return <wrapper className="container-fluid wrapper">
       <header className="row">
-        <h1 className="col">Carmi</h1>
+        <h1 className="col"><img src="logo.png" alt="carmi" />Carmi</h1>
       </header>
       <page className="row">
         <Sidebar data={data} />
@@ -136,6 +122,7 @@ module.exports = {
           {data.map((section) => <Section {...section} />)}
         </content>
       </page>
+      <footer className="row text-enter">Copyright © 2018 Wix</footer>
     </wrapper>
   }
 }
