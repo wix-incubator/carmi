@@ -7,6 +7,7 @@ const {
   rand
 } = require('../test-utils');
 const _ = require('lodash');
+const path = require('path')
 
 describe('Tests for usability and debugging carmi', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
@@ -148,12 +149,18 @@ describe('Tests for usability and debugging carmi', () => {
       const inst = optCode([], funcLibrary);
       expect(inst.three).toEqual(3);
     })
+
+    it('should include relative paths in code', () => {
+      const model = {three: chain(3).mapValues('func').call('func')}
+      const src = compile(model, { compiler, debug: true });
+      expect(src).not.toContain(__dirname)
+    })
   });
 
   describeCompilers(['optimizing'], compiler => {
     it ('when using non-objects with object functions, throw a nicer error', () => {
       const model = {three: chain(3).mapValues(a => a)}
-      const src = compile(model, { compiler, debug: true });
+      const src = compile(model, { compiler, debug: true, cwd: path.resolve(__dirname, '../..') });
       const optCode = eval(src)
       let e
       try {
