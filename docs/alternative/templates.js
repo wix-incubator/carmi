@@ -121,7 +121,7 @@ module.exports = {
   home({data}) {
     return <wrapper className="container-fluid wrapper">
       <header className="row">
-        <h1 className="col"><img src="logo.png" alt="carmi" height="50" />Carmi</h1>
+        <img src="logo.png" alt="carmi" height="50" className="col-1"/><h1 className="col">Carmi</h1>
       </header>
       <page className="row">
         <Sidebar data={data} />
@@ -129,7 +129,7 @@ module.exports = {
           {data.map((section) => <Section {...section} />)}
         </content>
       </page>
-      <footer className="row text-enter">Copyright © 2018 Wix</footer>
+      <footer className="row mt-2"><span className="col offset-5">Copyright © 2018 Wix</span></footer>
     </wrapper>
   }
 }
