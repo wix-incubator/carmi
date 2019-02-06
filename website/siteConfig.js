@@ -39,7 +39,8 @@ const siteConfig = {
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     { doc: 'getting-started', label: 'Getting started' },
-    { doc: 'api', label: 'API' },
+    { page: 'api', label: 'API' },
+//    { doc: 'api', label: 'API' },
     { doc: 'design', label: 'Design' },
     { doc: 'help', label: 'Help' }
     // {blog: true, label: 'Blog'},
@@ -90,6 +91,6 @@ const siteConfig = {
   // twitterImage: 'img/docusaurus.png'
 
   repoName: 'wix-incubator/carmi'
-};
+}
 
 module.exports = siteConfig;

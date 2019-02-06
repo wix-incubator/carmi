@@ -29,7 +29,7 @@ const Wrapper = (props) => (
       {/*<meta httpEquiv="refresh" content="20"/>*/}
       <meta charSet="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <link rel="shortcut icon" href="favicon.ico"/>
+      <link rel="shortcut icon" href="/img/favicon.ico"/>
       <title>{props.title}</title>
       <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" crossOrigin="anonymous"/>
       {css}
@@ -98,7 +98,8 @@ const Sidebar = ({data}) => <sidebar className="col-3 align-items-stretch">
   <ul className="sidebar">
     {data.map(({id, comment: {shortText: name}, children}) => <li>
       <a href={`#doc-${id}`}>{name}</a>
-      <ul>
+
+      <ul className="method-list">
         {_(children)
           .filter(({kindString, inheritedFrom}) => 'Method' == kindString && !inheritedFrom)
           .sortBy('name')
@@ -120,8 +121,22 @@ module.exports = {
   },
   home({data}) {
     return <wrapper className="container-fluid wrapper">
-      <header className="row">
-        <img src="logo.png" alt="carmi" height="50" className="col-1"/><h1 className="col">Carmi</h1>
+      <header className="row align-items-center">
+        <a href="/" className="col"><img src="/img/carmi.png" alt="carmi"/></a>
+        <ul className="nav col float-right nav-pills">
+          <li className="nav-item">
+            <a className="nav-link" href="/docs/getting-started.html">Getting started</a>
+          </li>
+          <li className="nav-item">
+            <a className="nav-link active" href="/api.html">API</a>
+          </li>
+          <li className="nav-item">
+            <a className="nav-link" href="/docs/design.html">Design</a>
+          </li>
+          <li className="nav-item">
+            <a className="nav-link" href="/docs/help.html">Help</a>
+          </li>
+        </ul>
       </header>
       <page className="row">
         <Sidebar data={data} />
