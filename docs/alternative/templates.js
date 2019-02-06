@@ -50,25 +50,28 @@ const InheritedMethods = ({methods}) =>(
 const genSignature = (signatures) => _(signatures)
   .get('0.parameters', [])
   .map((param) => _(param)
-    .tap(console.log.bind(console))
-    .get('type.typeArguments.0.name', '*any*')
+    //.tap(console.log.bind(console))
+    .get('name', '*')
   )
   .join(', ')
 
 const SelfMethods = ({methods}) => <Fragment>
-  {methods.map(({id, name, kindString: type, signatures}) =>
-    <div className="card mt-2" id={`doc-${id}`}>
-      <div className="card-body">
-        <h5 className="card-title">
-          <a className="text-secondary method-link" href={`#doc-${id}`}>🔗</a>
-          <code>
-            {name}({genSignature(signatures)})
-          </code>
-        </h5>
-        <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
+  {_.chain(methods)
+    .tap((v) => console.dir(v.filter(({id}) => id == 667), {depth: null}))
+    .map(({id, name, kindString: type, signatures}) =>
+      <div className="card mt-2" id={`doc-${id}`}>
+        <div className="card-body">
+          <h5 className="card-title">
+            <a className="text-secondary method-link" href={`#doc-${id}`}>🔗</a>
+            <code>
+              {name}({genSignature(signatures)})
+            </code>
+          </h5>
+          <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
+        </div>
       </div>
-    </div>
-  )}
+    )
+    .value()}
 </Fragment>
 
 const Section = ({id, comment: {shortText: name}, kindString: type, children}) => {
