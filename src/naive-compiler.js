@@ -59,7 +59,7 @@ class NaiveCompiler {
         const nextTokenType = nextToken.$type
         return `((() => {
           const value = (${this.generateExpr(expr[1])});
-          console['${logLevel}']({value, token: '${nextTokenType}', source: '${source}'})
+          console['${logLevel}']({value, token: '${nextTokenType}', source: '${this.shortSource(source)}'})
           return value;
         }) ())`
       }
@@ -237,6 +237,10 @@ class NaiveCompiler {
           })`;
   }
 
+  shortSource(src) {
+    return require('path').relative(this.options.cwd || '.', src)    
+  }
+
   exprTemplatePlaceholders(expr, funcName) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;
@@ -254,7 +258,7 @@ class NaiveCompiler {
 
         const input = (expr[typeData.chainIndex] instanceof Expression || expr[typeData.chainIndex] instanceof Token) ? this.generateExpr(expr[typeData.chainIndex]) : expr[typeData.chainIndex]
         const name = currentToken.$rootName
-        const source = currentToken[SourceTag]
+        const source = this.shortSource(currentToken[SourceTag])
         return `checkType(${input}, '${name}', '${typeData.expectedType}', '${tokenType}', '${source}')`
       },
 
