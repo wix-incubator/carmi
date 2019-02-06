@@ -96,8 +96,12 @@ const Sidebar = ({data}) => <sidebar className="col-3 align-items-stretch">
     {data.map(({id, comment: {shortText: name}, children}) => <li>
       <a href={`#doc-${id}`}>{name}</a>
       <ul>
-        {_(children).filter(({kindString}) => 'Method' == kindString)
-    .sortBy('name').map(({id, name}) => <li><small><code><a href={`#doc-${id}`}> {name}()</a></code></small></li>).value()}
+        {_(children)
+          .filter(({kindString, inheritedFrom}) => 'Method' == kindString && !inheritedFrom)
+          .sortBy('name')
+          .map(({id, name}) =>
+            <li><small><code><a href={`#doc-${id}`}> {name}()</a></code></small></li>
+          ).value()}
       </ul>
     </li>)}
   </ul>
@@ -114,7 +118,7 @@ module.exports = {
   home({data}) {
     return <wrapper className="container-fluid wrapper">
       <header className="row">
-        <h1 className="col"><img src="logo.png" alt="carmi" />Carmi</h1>
+        <h1 className="col"><img src="logo.png" alt="carmi" height="50" />Carmi</h1>
       </header>
       <page className="row">
         <Sidebar data={data} />
