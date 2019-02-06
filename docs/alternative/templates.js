@@ -94,7 +94,7 @@ const Section = ({id, comment: {shortText: name}, kindString: type, children}) =
   )
 }
 
-const Sidebar = ({data}) => <sidebar className="col-3 align-items-stretch">
+const Sidebar = ({data}) => <sidebar className="d-none d-md-block col-3 align-items-stretch">
   <ul className="sidebar">
     {data.map(({id, comment: {shortText: name}, children}) => <li>
       <a href={`#doc-${id}`}>{name}</a>
