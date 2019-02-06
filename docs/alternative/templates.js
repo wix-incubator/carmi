@@ -57,7 +57,7 @@ const genSignature = (signatures) => _(signatures)
 
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
-    .tap((v) => console.dir(v.filter(({id}) => id == 667), {depth: null}))
+    //.tap((v) => console.dir(v.filter(({id}) => id == 667), {depth: null}))
     .map(({id, name, kindString: type, signatures}) =>
       <div className="card mt-2" id={`doc-${id}`}>
         <div className="card-body">
