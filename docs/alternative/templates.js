@@ -123,20 +123,22 @@ module.exports = {
     return <wrapper className="container-fluid wrapper">
       <header className="row align-items-center">
         <a href="/" className="col"><img src="/img/carmi.png" alt="carmi"/></a>
-        <ul className="nav col float-right nav-pills">
-          <li className="nav-item">
-            <a className="nav-link" href="/docs/getting-started.html">Getting started</a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link active" href="/api.html">API</a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="/docs/design.html">Design</a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="/docs/help.html">Help</a>
-          </li>
-        </ul>
+        <div className="col">
+          <ul className="nav nav-pills justify-content-end">
+            <li className="nav-item">
+              <a className="nav-link" href="/docs/getting-started.html">Getting started</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link active" href="/api.html">API</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/docs/design.html">Design</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" href="/docs/help.html">Help</a>
+            </li>
+          </ul>
+        </div>
       </header>
       <page className="row">
         <Sidebar data={data} />
