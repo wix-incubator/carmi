@@ -13,7 +13,23 @@ module.exports = {todosList};
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+      $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
+          if (target[functionName]) {
+            return target[functionName];
+          }throw new TypeError(\`Trying to call undefined function: \${functionName} \`);
+        } });
+    }function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg;if (type !== 'number') {
+          throw new TypeError(\`Trying to call \${JSON.stringify(arg)}.\${name}. Expects number, received \${type} at \${source}\`);
+        }return Math[name](arg);
+      };
+    }function checkType(input, name, type, functionName, source) {
+      if (typeof input === type) {
+        return;
+      }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${type}. \${name}: \${asString}.\${functionName} at \${source}\`);
+    }const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -504,7 +520,11 @@ module.exports = function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
-      } });recalculate();return $res;
+      } });if ( /* DEBUG */false) {
+      Object.assign($res, { $ast: () => {
+          return { \\"todosList\\": [\\"*call*\\", \\"createElement\\", [\\"*get*\\", \\"$array_temp_4_19_1\\", \\"*topLevel*\\"]], \\"$array_temp_4_19_1\\": [\\"*array*\\", \\"div\\", \\"*null*\\", [\\"*get*\\", 0, \\"*root*\\"]] };
+        }, $source: () => null });
+    }recalculate();return $res;
   };
 }();
 "
@@ -521,7 +541,23 @@ module.exports = { first: root.get(0), second: root.get(1) };
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+      $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
+          if (target[functionName]) {
+            return target[functionName];
+          }throw new TypeError(\`Trying to call undefined function: \${functionName} \`);
+        } });
+    }function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg;if (type !== 'number') {
+          throw new TypeError(\`Trying to call \${JSON.stringify(arg)}.\${name}. Expects number, received \${type} at \${source}\`);
+        }return Math[name](arg);
+      };
+    }function checkType(input, name, type, functionName, source) {
+      if (typeof input === type) {
+        return;
+      }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${type}. \${name}: \${asString}.\${functionName} at \${source}\`);
+    }const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -1012,7 +1048,11 @@ module.exports = function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
-      } });recalculate();return $res;
+      } });if ( /* DEBUG */false) {
+      Object.assign($res, { $ast: () => {
+          return { \\"first\\": [\\"*get*\\", 0, \\"*root*\\"], \\"second\\": [\\"*get*\\", 1, \\"*root*\\"] };
+        }, $source: () => null });
+    }recalculate();return $res;
   };
 }();
 "
@@ -1031,7 +1071,23 @@ const modelBuilder = carmi\`
 
 const modelBuilder = (function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+      $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
+          if (target[functionName]) {
+            return target[functionName];
+          }throw new TypeError(\`Trying to call undefined function: \${functionName} \`);
+        } });
+    }function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg;if (type !== 'number') {
+          throw new TypeError(\`Trying to call \${JSON.stringify(arg)}.\${name}. Expects number, received \${type} at \${source}\`);
+        }return Math[name](arg);
+      };
+    }function checkType(input, name, type, functionName, source) {
+      if (typeof input === type) {
+        return;
+      }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${type}. \${name}: \${asString}.\${functionName} at \${source}\`);
+    }const $res = { $model };const $listeners = new Set();const $topLevel = new Array(2).fill(null);const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const collectAllItems = (res, obj, prefix) => {
       if (typeof obj !== 'object') {
         return;
       }res.set(obj, prefix);const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);keys.forEach(idx => {
@@ -1522,7 +1578,11 @@ const modelBuilder = (function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
-      } });recalculate();return $res;
+      } });if ( /* DEBUG */false) {
+      Object.assign($res, { $ast: () => {
+          return { \\"all\\": [\\"*get*\\", \\"list\\", \\"*root*\\"], \\"first\\": [\\"*get*\\", 0, [\\"*get*\\", \\"all\\", \\"*topLevel*\\"]] };
+        }, $source: () => null });
+    }recalculate();return $res;
   };
 })();
 "
