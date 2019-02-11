@@ -45,7 +45,7 @@ const TokenTypeData = {
   not: new TokenTypes({ nonChained: true, chainIndex: 1, len: [2, 2] }),
   ternary: new TokenTypes({ nonChained: true, chainIndex: 1, len: [4, 4] }),
   trace: new TokenTypes({chainIndex: 2, len: [2, 3]}),
-  get: new TokenTypes({ chainIndex: 2, len: [3, 3], expectedType: 'object' }),
+  get: new TokenTypes({ chainIndex: 2, len: [3, 3]}),
   root: new TokenTypes({ nonVerb: true }),
   mapValues: new TokenTypes({ collectionVerb: true, chainIndex: 2, len: [3, 4] }),
   map: new TokenTypes({ collectionVerb: true, chainIndex: 2, arrayVerb: true, len: [3, 4] }),
