@@ -56,9 +56,9 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
 
     /**
      * Generates a console statement, continuing the chain.
-     * @param logLevel
+     * @param label if provided, label is printed alongside the trace info
      */
-    trace(logLevel?: 'log' | 'trace' | 'error' | 'warn'): this
+    trace(label?: string): this
 
     /**
      * Resolves to !NativeType

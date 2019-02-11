@@ -54,12 +54,14 @@ class NaiveCompiler {
       case 'quote': return this.generateExpr(expr[1])
       case 'breakpoint': return `((() => {debugger; return ${this.generateExpr(expr[1])}}) ())`
       case 'trace': {
-        const logLevel = expr.length > 2 ? this.generateExpr(expr[2]) : 'log'
-        const nextToken = expr[1] instanceof Expression ? expr[1][0] : expr[1]
-        const nextTokenType = nextToken.$type
+        const label = expr.length === 3 && this.generateExpr(expr[1])
+        const inner = expr.length === 3 ? expr[2] : expr[1]
+        const nextToken = inner instanceof Expression ? inner[0] : inner
+        const innerSrc = nextToken[SourceTag] || source
+
         return `((() => {
-          const value = (${this.generateExpr(expr[1])});
-          console['${logLevel}']({value, token: '${nextTokenType}', source: '${this.shortSource(source)}'})
+          const value = (${this.generateExpr(inner)});
+          console.log(${label ? `${label}, `:''}{value, token: '${nextToken.$type}', source: '${this.shortSource(innerSrc)}'})
           return value;
         }) ())`
       }
@@ -238,7 +240,7 @@ class NaiveCompiler {
   }
 
   shortSource(src) {
-    return require('path').relative(this.options.cwd || '.', src)    
+    return require('path').relative(this.options.cwd || '.', src)
   }
 
   exprTemplatePlaceholders(expr, funcName) {
