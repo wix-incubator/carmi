@@ -1,7 +1,8 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
-    /* DEBUG */
+   
+    if ($DEBUG_MODE) {
     $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
       get: (target, functionName) => {
         if (target[functionName]) {
@@ -10,29 +11,28 @@ function base() {
 
         throw new TypeError(`Trying to call undefined function: ${functionName} `)
     }})
+  }
 
-    function mathFunction(name, source) {
-      return arg => {
-        const type = typeof arg
-        if (type !== 'number') {
-          throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
-        }
-
-        return Math[name](arg)
-      }
-    }
-
-    function checkType(input, name, type, functionName, source) {
-      if (typeof input === type) {
-        return
+  function mathFunction(name, source) {
+    return arg => {
+      const type = typeof arg
+      if (type !== 'number') {
+        throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
       }
 
-      const asString = typeof input === 'object' ? JSON.stringify(input) : input
+      return Math[name](arg)
+    }
+  }
 
-      throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
+  function checkType(input, name, type, functionName, source) {
+    if (typeof input === type) {
+      return
     }
 
-  /* DEBUG-END */
+    const asString = typeof input === 'object' ? JSON.stringify(input) : input
+
+    throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
+  }
 
   const $res = { $model };
     const $listeners = new Set();
@@ -102,17 +102,16 @@ function base() {
         },
         $setBatchingStrategy: func => {
           $batchingStrategy = func;
-        },
-        /* DEBUG */
-        $ast: () => {
-          return $AST;
-        },
-        $source: () => {
-          return {}
         }
-        /* DEBUG-END */
       }
     );
+
+    if ($DEBUG_MODE) {
+      Object.assign($res, {
+        $ast: () => { return $AST },
+        $source: () => null
+      })
+    }
     recalculate();
     return $res;
   }
@@ -190,12 +189,10 @@ function library() {
   }
 
   function any(func, src, context) {
-    /* ARRAY_CHECK */
     return src.some((val, key) => func(val, key, context));
   }
 
   function filter(func, src, context) {
-    /* ARRAY_CHECK */
     return src.filter((val, key) => func(val, key, context));
   }
 
