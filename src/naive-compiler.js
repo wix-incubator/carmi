@@ -326,7 +326,7 @@ class NaiveCompiler {
     return {
       NAME: this.options.name,
       AST: () => JSON.stringify(this.getters, null, 2),
-      DEBUG: () => (_whole, block) => (this.options.debug ? block : ''),
+      DEBUG_MODE: () => `/* DEBUG */${!!this.options.debug}`,
       COUNT_GETTERS: () => Object.keys(this.getters).length,
       SOURCE_FILES: () => () => this.options.debug ? (JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
         const tag = getter instanceof Expression && getter[0][SourceTag];

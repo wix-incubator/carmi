@@ -135,6 +135,19 @@ describe('testing objects', () => {
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
 
+    it('anyValues when removing elements', () => {
+        const model = {
+          anyTruthy: root.get('data').anyValues(a => a.get('val')),
+          set: setter('data', arg0),
+          clear: setter('data')
+        };
+        const optModel = eval(compile(model, { compiler }));
+        const inst = optModel({data: {a: {val: false}, b: {val: true}, c: {val: false}}}, funcLibrary);
+        expect(inst.anyTruthy).toEqual(true);
+        inst.clear({});
+        expect(inst.anyTruthy).toEqual(false);
+    });
+
     it('should contain only one group after removing item', async () => {
       const doneItems = root
         .get('data')
