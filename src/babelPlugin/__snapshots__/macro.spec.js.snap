@@ -288,7 +288,7 @@ module.exports = function () {
         for (let key = 0; key < src.length; key++) {
           $invalidatedKeys.add(key);
         }
-      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
+      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop >= 0 && $prevStop < src.length) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
@@ -299,7 +299,7 @@ module.exports = function () {
           return true;
         }
       }for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);if (func([$invalidatedKeys, key], key, src[key], context)) {
+        $invalidatedKeys.delete(key);if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;return true;
         }
       }return false;
@@ -307,7 +307,7 @@ module.exports = function () {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
-      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
+      }const $prevStop = $out.length > 0 ? $out[0] : null;if ($prevStop !== null && src.hasOwnProperty($prevStop)) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
@@ -318,7 +318,7 @@ module.exports = function () {
           return true;
         }
       }for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);if (func([$invalidatedKeys, key], key, src[key], context)) {
+        $invalidatedKeys.delete(key);if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;return true;
         }
       }return false;
@@ -816,7 +816,7 @@ module.exports = function () {
         for (let key = 0; key < src.length; key++) {
           $invalidatedKeys.add(key);
         }
-      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
+      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop >= 0 && $prevStop < src.length) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
@@ -827,7 +827,7 @@ module.exports = function () {
           return true;
         }
       }for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);if (func([$invalidatedKeys, key], key, src[key], context)) {
+        $invalidatedKeys.delete(key);if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;return true;
         }
       }return false;
@@ -835,7 +835,7 @@ module.exports = function () {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
-      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
+      }const $prevStop = $out.length > 0 ? $out[0] : null;if ($prevStop !== null && src.hasOwnProperty($prevStop)) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
@@ -846,7 +846,7 @@ module.exports = function () {
           return true;
         }
       }for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);if (func([$invalidatedKeys, key], key, src[key], context)) {
+        $invalidatedKeys.delete(key);if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;return true;
         }
       }return false;
@@ -1346,7 +1346,7 @@ const modelBuilder = (function () {
         for (let key = 0; key < src.length; key++) {
           $invalidatedKeys.add(key);
         }
-      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
+      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop >= 0 && $prevStop < src.length) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
@@ -1357,7 +1357,7 @@ const modelBuilder = (function () {
           return true;
         }
       }for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);if (func([$invalidatedKeys, key], key, src[key], context)) {
+        $invalidatedKeys.delete(key);if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;return true;
         }
       }return false;
@@ -1365,7 +1365,7 @@ const modelBuilder = (function () {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
-      }const $prevStop = $out.length > 0 ? $out[0] : -1;if ($prevStop !== -1) {
+      }const $prevStop = $out.length > 0 ? $out[0] : null;if ($prevStop !== null && src.hasOwnProperty($prevStop)) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);if (passedTest) {
             return true;
@@ -1376,7 +1376,7 @@ const modelBuilder = (function () {
           return true;
         }
       }for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);if (func([$invalidatedKeys, key], key, src[key], context)) {
+        $invalidatedKeys.delete(key);if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;return true;
         }
       }return false;

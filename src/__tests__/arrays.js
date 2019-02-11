@@ -53,31 +53,47 @@ describe('testing array', () => {
       expect(inst.orEmpty).toEqual([[1], [], []]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
-    it('simple any', async () => {
-      const model = {
-        anyTruthy: root.any(val => val.call('tap')),
-        set: setter(arg0)
-      };
-      const optModel = eval(compile(model, { compiler }));
-      const inst = optModel([true, false, false, false, false], funcLibrary);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
-      expect(inst.anyTruthy).toEqual(true);
-      inst.set(0, false);
-      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
-      expect(inst.anyTruthy).toEqual(false);
-      inst.set(3, true);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
-      expect(inst.anyTruthy).toEqual(true);
-      inst.set(4, true);
-      expectTapFunctionToHaveBeenCalled(0, compiler);
-      expect(inst.anyTruthy).toEqual(true);
-      inst.set(3, false);
-      expectTapFunctionToHaveBeenCalled(2, compiler);
-      expect(inst.anyTruthy).toEqual(true);
-      inst.set(4, false);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
-      expect(inst.anyTruthy).toEqual(false);
-    });
+    describe('any', () => {
+      it('simple any', async () => {
+        const model = {
+          anyTruthy: root.any(val => val.call('tap')),
+          set: setter(arg0)
+        };
+        const optModel = eval(compile(model, { compiler }));
+        const inst = optModel([true, false, false, false, false], funcLibrary);
+        expectTapFunctionToHaveBeenCalled(1, compiler);
+        expect(inst.anyTruthy).toEqual(true);
+        inst.set(0, false);
+        expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+        expect(inst.anyTruthy).toEqual(false);
+        inst.set(3, true);
+        expectTapFunctionToHaveBeenCalled(1, compiler);
+        expect(inst.anyTruthy).toEqual(true);
+        inst.set(4, true);
+        expectTapFunctionToHaveBeenCalled(0, compiler);
+        expect(inst.anyTruthy).toEqual(true);
+        inst.set(3, false);
+        expectTapFunctionToHaveBeenCalled(2, compiler);
+        expect(inst.anyTruthy).toEqual(true);
+        inst.set(4, false);
+        expectTapFunctionToHaveBeenCalled(1, compiler);
+        expect(inst.anyTruthy).toEqual(false);
+      });
+
+      it('any when removing elements', () => {
+        const model = {
+          anyTruthy: root.get('data').any(a => a.get('val')),
+          set: setter('data', arg0),
+          clear: setter('data')
+        };
+        const optModel = eval(compile(model, { compiler }));
+        const inst = optModel({data: [{val: false}, {val: true}, {val: false}]}, funcLibrary);
+        expect(inst.anyTruthy).toEqual(true);
+        inst.clear([]);
+        expect(inst.anyTruthy).toEqual(false);
+      });
+    })
+
     it('simple keyBy', async () => {
       const model = {
         itemByIdx: root.keyBy(val => val.get('idx')).mapValues(val => val.get('text').call('tap')),

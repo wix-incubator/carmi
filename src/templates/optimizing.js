@@ -529,7 +529,7 @@ function library() {
         }
       }
       const $prevStop = $out.length > 0 ? $out[0] : -1;
-      if ($prevStop !== -1) {
+      if ($prevStop >= 0 && $prevStop < src.length) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
           const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);
@@ -544,7 +544,7 @@ function library() {
       }
       for (let key of $invalidatedKeys) {
         $invalidatedKeys.delete(key);
-        if (func([$invalidatedKeys, key], key, src[key], context)) {
+        if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;
           return true;
         }
@@ -562,8 +562,8 @@ function library() {
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key))
       }
-      const $prevStop = $out.length > 0 ? $out[0] : -1;
-      if ($prevStop !== -1) {
+      const $prevStop = $out.length > 0 ? $out[0] : null;
+      if ($prevStop !== null && src.hasOwnProperty($prevStop)) {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
           const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);
@@ -578,7 +578,7 @@ function library() {
       }
       for (let key of $invalidatedKeys) {
         $invalidatedKeys.delete(key);
-        if (func([$invalidatedKeys, key], key, src[key], context)) {
+        if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
           $out[0] = key;
           return true;
         }
