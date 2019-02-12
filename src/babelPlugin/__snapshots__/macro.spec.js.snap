@@ -340,8 +340,8 @@ module.exports = function () {
           if (!src.hasOwnProperty(key)) {
             return;
           }const res = '' + func([$invalidatedKeys, key], key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
-            setOnObject($out, res, {}, $invalidates);
-          }setOnObject($out[res], key, src[key], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
+            $out[res] = {};
+          }setOnObject($out[res], key, src[key], $invalidates);setOnObject($out, res, $out[res], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
           }
         });Object.keys(keysPendingDelete).forEach(res => {
@@ -868,8 +868,8 @@ module.exports = function () {
           if (!src.hasOwnProperty(key)) {
             return;
           }const res = '' + func([$invalidatedKeys, key], key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
-            setOnObject($out, res, {}, $invalidates);
-          }setOnObject($out[res], key, src[key], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
+            $out[res] = {};
+          }setOnObject($out[res], key, src[key], $invalidates);setOnObject($out, res, $out[res], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
           }
         });Object.keys(keysPendingDelete).forEach(res => {
@@ -1398,8 +1398,8 @@ const modelBuilder = (function () {
           if (!src.hasOwnProperty(key)) {
             return;
           }const res = '' + func([$invalidatedKeys, key], key, src[key], context);$keyToKey[key] = res;if (!$out[res]) {
-            setOnObject($out, res, {}, $invalidates);
-          }setOnObject($out[res], key, src[key], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
+            $out[res] = {};
+          }setOnObject($out[res], key, src[key], $invalidates);setOnObject($out, res, $out[res], $invalidates);if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
           }
         });Object.keys(keysPendingDelete).forEach(res => {

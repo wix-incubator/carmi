@@ -172,6 +172,30 @@ describe('testing objects', () => {
       expectTapFunctionToHaveBeenCalled(0, compiler);
     });
 
+    it('groupBy should invalidate external', async () => {
+      const itemsByState = root
+        .groupBy(item => item.get('state'))
+      const numOfDoneItems =
+        chain([itemsByState.get('archive'), itemsByState.get('done')])
+          .assign()
+          .mapValues(item => item.call('tap'))
+          .size();
+      const model = { numOfDoneItems, update: setter(arg0) };
+      const optModel = eval(compile(model, { compiler }));
+      const initialData = {
+        a: { state: 'done', text: 'a' },
+        b: { state: 'done', text: 'b' },
+        c: { state: 'archive', text: 'c' },
+        d: { state: 'pending', text: 'd' }
+      };
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.numOfDoneItems).toEqual(3);
+      expectTapFunctionToHaveBeenCalled(3, compiler);
+      inst.update('e', { state: 'done', text: 'e' });
+      expect(inst.numOfDoneItems).toEqual(4);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    })
+
     it('using simple constant objects', async () => {
       const translate = chain({ First: 'a', Second: 'b', Third: 'c' });
       const model = {
