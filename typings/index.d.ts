@@ -249,6 +249,19 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
      */
     toLowerCase(): StringGraph<string, F>
 
+    stringLength(): NumberGraph<number, F>
+
+    /**
+     * 
+     * @param start 
+     * @param end 
+     * 
+     * Resolves String.substring
+     */
+    substring(start: Argument<number>, end: Argument<number>): StringGraph<string, F>
+
+
+
     /**
      * Resolves to parseInt(NativeType, radix)
      * @param radix base (10, 16 etc)
