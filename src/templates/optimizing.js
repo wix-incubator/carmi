@@ -619,9 +619,10 @@ function library() {
           const res = '' + func([$invalidatedKeys, key], key, src[key], context);
           $keyToKey[key] = res;
           if (!$out[res]) {
-            setOnObject($out, res, {}, $invalidates);
+            $out[res] = {};
           }
           setOnObject($out[res], key, src[key], $invalidates);
+          setOnObject($out, res, $out[res], $invalidates);
           if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
           }

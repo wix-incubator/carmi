@@ -120,6 +120,8 @@ class NaiveCompiler {
       case 'toUpperCase':
       case 'toLowerCase':
         return `(${this.getNativeStringFunction(tokenType, source)}).call(${this.generateExpr(expr[1])})`;
+      case 'stringLength':
+          return `(${this.generateExpr(expr[1])}).length`
       case 'floor':
       case 'ceil':
       case 'round':

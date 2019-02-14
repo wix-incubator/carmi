@@ -123,6 +123,7 @@ const TokenTypeData = {
   endsWith: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
   toUpperCase: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   toLowerCase: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
+  stringLength: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2] }),
   floor: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2] }),
   ceil: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2] }),
   round: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2] }),

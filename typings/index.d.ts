@@ -249,6 +249,19 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
      */
     toLowerCase(): StringGraph<string, F>
 
+    stringLength(): NumberGraph<number, F>
+
+    /**
+     * 
+     * @param start 
+     * @param end 
+     * 
+     * Resolves String.substring
+     */
+    substring(start: Argument<number>, end: Argument<number>): StringGraph<string, F>
+
+
+
     /**
      * Resolves to parseInt(NativeType, radix)
      * @param radix base (10, 16 etc)
@@ -280,7 +293,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
     /**
     * returns true if the key/index exists on the object/array
     */
-    has(key: Argument<number|string>): BoolGraph<F>
+    has(key: Argument<string> | Argument<number>): BoolGraph<F>
 }
 
 /**
@@ -508,6 +521,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
      * @param scope
      */
     mapKeys<Scope, Ret>(functor: (value: ValueGraph, key?: StringGraph<string, F>, scope?: Scope) => Ret, scope?: Scope) : ObjectGraph<{[key in Ret extends string ? Ret : string]: Value}, F>
+    mapKeys(key: Argument<string>) : ObjectGraph<{[key: string]: Value}, F>
 
     /**
      * Resolves to a boolean representing whether the object contains any value for which the functor has resolved to true
@@ -540,7 +554,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
      * @param functor
      * @param scope
      */
-    recursiveMapValues<Scope, Ret>(functor: (loop: Looper<Ret>, value?: Value, key?: Key, scope?: Scope) => Argument<Ret>, scope?: Scope): ObjectGraph<{
+    recursiveMapValues<Scope, Ret>(functor: (loop: Looper<Ret>, value?: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope): ObjectGraph<{
         Key: Ret
     }, F>
 }
