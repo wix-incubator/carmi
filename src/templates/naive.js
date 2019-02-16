@@ -38,6 +38,7 @@ function base() {
     const $listeners = new Set();
     const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
+    /* EXT_LIBRARY */
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
     let $batchPending = [];

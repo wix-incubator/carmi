@@ -307,7 +307,7 @@ class NaiveCompiler {
   }
 
   mergeTemplate(template, placeHolders) {
-    return Object.keys(placeHolders)
+    return template ? Object.keys(placeHolders)
       .reduce((result, name) => {
         const replaceFunc = typeof placeHolders[name] === 'function' ? placeHolders[name]() : () => placeHolders[name];
         const commentRegex = new RegExp('/\\*\\s*' + name + '\\s*([\\s\\S]*?)\\*/', 'mg');
@@ -321,7 +321,7 @@ class NaiveCompiler {
           .replace(commentRegex, replaceFunc)
           .replace(dollarRegex, replaceFunc);
       }, template.toString())
-      .replace(/function\s*\w*\(\)\s*\{\s*([\s\S]+)\}/, (m, i) => i);
+      .replace(/function\s*\w*\(\)\s*\{\s*([\s\S]+)\}/, (m, i) => i) : '';
   }
 
   topLevelOverrides() {
@@ -339,8 +339,9 @@ class NaiveCompiler {
         }
         return acc;
       }, {}))) : '',
-      LIBRARY: () => this.mergeTemplate(this.template.library, {}),
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
+      LIBRARY: () => this.mergeTemplate(this.template.library, {}),
+      EXT_LIBRARY: () => this.mergeTemplate(this.template.extendedLibrary, {}),
       DERIVED: () =>
         topologicalSortGetters(this.getters)
           .filter(name => this.getters[name][0].$type !== 'func')

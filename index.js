@@ -22,6 +22,7 @@ const UnwrappedExpr = Symbol('UnwrappedExpr');
 compilerTypes.naive = require('./src/naive-compiler');
 compilerTypes.simple = require('./src/simple-compiler');
 compilerTypes.optimizing = require('./src/optimizing-compiler');
+compilerTypes.bytecode = require('./src/byteCode-compiler');
 try {
   compilerTypes.flow = require('./src/flow-compiler');
   compilerTypes.rust = require('./src/rust-compiler');
@@ -371,6 +372,8 @@ function compile(model, options) {
   if (hashFile) {
     fs.writeFileSync(hashFile, result);
   }
+
+  //console.log(result)
   return result;
 }
 

@@ -261,6 +261,7 @@ function library() {
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
+      debugger
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
