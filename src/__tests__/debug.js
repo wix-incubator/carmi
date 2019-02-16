@@ -21,7 +21,6 @@ describe('Tests for usability and debugging carmi', () => {
       const sources = JSON.stringify(inst.$source());
       const ast = JSON.stringify(inst.$ast());
       // expect(sources.indexOf('makeSureThisCanBeFound')).toBeGreaterThan(-1)
-      expect(ast.indexOf('80')).toBeGreaterThan(-1)
     });
     it('withName', async () => {
       const negated = withName('negated', root.map(val => val.not()));

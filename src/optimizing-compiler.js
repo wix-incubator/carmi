@@ -6,7 +6,8 @@ const {
   SetterExpression,
   SpliceSetterExpression,
   TokenTypeData,
-  Clone
+  Clone,
+  SourceTag
 } = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
@@ -21,9 +22,16 @@ class OptimizingCompiler extends SimpleCompiler {
     return require('./templates/optimizing.js');
   }
 
+  ast() {
+    const tree = JSON.stringify(_.mapValues({getters: this.getters, setters: this.setters}, 
+      t => _.mapValues(t, e => this.generateTree(e))))
+    return tree
+  }
+
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
-      RESET: `$first = false;
+    AST: () => this.ast(),
+    RESET: `$first = false;
 $tainted = new WeakSet();`
     });
   }
@@ -46,8 +54,7 @@ $tainted = new WeakSet();`
 
   exprTemplatePlaceholders(expr, funcName) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
-    const tokenType = currentToken.$type;
-    return Object.assign(
+    const tokenType = currentToken.$type;    return Object.assign(
       {},
       super.exprTemplatePlaceholders(expr, funcName),
       {
@@ -85,6 +92,163 @@ $tainted = new WeakSet();`
 
   topLevelToIndex(str) {
     return this.getters[str][0].$topLevelIndex;
+  }
+
+  generateTree(expr) {
+    if (!expr) {
+      return null
+    }
+    if (expr instanceof SetterExpression) {
+      return {
+        type: expr instanceof SpliceSetterExpression ? 'splice' : 'setter',
+        path: _.map(expr, entry => (entry instanceof Token ? ({type: entry.$type}) : ({type: 'primitive', value: entry})))
+      }
+    }
+
+    const currentToken = expr instanceof Expression ? expr[0] : expr
+    if (!(currentToken instanceof Token)) {
+      return {
+        type: 'primitive',
+        value: currentToken
+      }
+    }
+    const {$id, $path, $duplicate, $trackedExpr, $type, $invalidates, $tracked, $funcId} = currentToken;
+    const source = this.options.debug && this.shortSource(currentToken[SourceTag])
+    const parameters = this.generateTreeParametersByType(expr, $type)
+    return {
+      type: $type,
+      ...Object.keys(parameters).length ? parameters : {},
+      $: {
+          ...(_.isEmpty($path) ? {} : {dependants: _.map($path, (path, condition) => ({
+            condition: this.generateTree(condition),
+            path: _.map(path, this.generateTree.bind(this))
+          }))}),
+          ...$trackedExpr ? {predicateExpression: this.generateTree($trackedExpr)} : {},
+          ...$id ? {id: $id} : {},
+          ...$funcId ? {funcId: $funcId} : {},
+          ...source ? {source} : {},
+          ...$tracked ? {tracked: $tracked} : {},
+          ...$duplicate ? {duplicate: $duplicate} : {},
+          ...$invalidates ? {invalidates: true} : {}
+      }
+    }
+  }
+
+  generateTreeParametersByType(expr, type) {
+    const branches = expr instanceof Expression && expr.slice(1).map(e => this.generateTree(e))
+    switch (type) {
+      case 'get':
+        return {
+          object: branches[1],
+          prop: branches[0]
+        }
+      case 'or':
+      case 'and':
+        return {
+          conditions: branches
+        }
+      case 'ternary':
+        return {
+          condition: branches[0],
+          consequence: branches[1],
+          alternate: branches[2]
+        }
+      case 'object':
+        return {
+          values: _.range(2, expr.length, 2).map(idx => this.generateTree(expr[idx]))
+        }
+      case 'array':
+        return {
+          values: branches
+        }
+      case 'call':
+      case 'effect':
+      case 'bind':
+        return {
+          name: expr[1],
+          args: branches.slice(1)
+        }
+      case 'range':
+        return {start: branches[0], end: branches[1] || null, step: branches[2] || null}
+      case 'filterBy':
+      case 'mapValues':
+      case 'groupBy':
+      case 'map':
+      case 'filter':
+      case 'mapKeys':
+      case 'any':
+      case 'keyBy':
+      case 'anyValues':
+      case 'recursiveMap':
+      case 'recursiveMapValues':
+        return {
+          predicate: branches[0],
+          value: branches[1],
+          context: branches[2] || null
+        }
+      case 'recur':
+        return {
+          loop: branches[0],
+          key: branches[1]
+        }
+      case 'invoke':
+        return {
+          id: expr[1],
+          args: expr.slice(2).map(t => t.$type)
+        }
+      case 'quote':
+      case 'not':
+      case 'trace':
+      case 'breakpoint':
+      case 'isArray':
+      case 'boolean':
+      case 'isNumber':
+      case 'isString':
+      case 'isUndefined':
+      case 'toUpperCase':
+      case 'toLowerCase':
+      case 'stringLength':
+      case 'floor':
+      case 'ceil':
+      case 'round':
+      case 'cond':
+      case 'func':
+        return {
+          value: branches[0]
+        }
+      case 'eq':
+      case 'lt':
+      case 'lte':
+      case 'gt':
+      case 'gte':
+      case 'plus':
+      case 'minus':
+      case 'mult':
+      case 'div':
+      case 'mod':
+        return {
+          value: branches[0],
+          other: branches[1]
+        }
+      case 'parseInt':
+        return {
+          value: branches[0],
+          base: branches[1] || null
+        }
+      case 'startsWith':
+      case 'endsWith':
+        return {
+          value: branches[0],
+          searchString: branches[1]
+        }
+      case 'split':
+        return {
+          value: branches[0],
+          delimiter: branches[1]
+        }
+      default:
+        return {}
+    }
   }
 
   generateExpr(expr) {
