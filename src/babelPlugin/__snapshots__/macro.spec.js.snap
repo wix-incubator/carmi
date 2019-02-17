@@ -13,10 +13,8 @@ module.exports = {todosList};
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;let $trace = () => {};if ( /* DEBUG */false) {
-      if (typeof __CARMI_TRACE__ === 'function') {
-        $trace = __CARMI_TRACE__;
-      }$funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+      $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
           }throw new TypeError(\`Trying to call undefined function: \${functionName} \`);
@@ -495,21 +493,17 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;if ( /* DEBUG */false) {}($first || $invalidatedRoots.has(1)) && $array_temp_4_19_1Build();($first || $invalidatedRoots.has(0)) && $todosListBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;($first || $invalidatedRoots.has(1)) && $array_temp_4_19_1Build();($first || $invalidatedRoots.has(0)) && $todosListBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
     }function $applySetter(object, key, value) {
-      if ( /* DEBUG */false) {
-        $trace('applySetter', { object, key, value });
-      }if (typeof value === 'undefined') {
+      if (typeof value === 'undefined') {
         delete object[key];
       } else {
         object[key] = value;
       }
     }function $setter(func, ...args) {
-      if ( /* DEBUG */false) {
-        $trace('callSetter', { args });
-      }if ($inBatch || $inRecalculate || $batchingStrategy) {
+      if ($inBatch || $inRecalculate || $batchingStrategy) {
         if (!$inBatch && !$inRecalculate && $batchingStrategy) {
           $batchingStrategy.call($res);$inBatch = true;
         }$batchPending.push({ func, args });
@@ -553,10 +547,8 @@ module.exports = { first: root.get(0), second: root.get(1) };
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;let $trace = () => {};if ( /* DEBUG */false) {
-      if (typeof __CARMI_TRACE__ === 'function') {
-        $trace = __CARMI_TRACE__;
-      }$funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+      $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
           }throw new TypeError(\`Trying to call undefined function: \${functionName} \`);
@@ -1035,21 +1027,17 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;if ( /* DEBUG */false) {}($first || $invalidatedRoots.has(0)) && $firstBuild();($first || $invalidatedRoots.has(1)) && $secondBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;($first || $invalidatedRoots.has(0)) && $firstBuild();($first || $invalidatedRoots.has(1)) && $secondBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
     }function $applySetter(object, key, value) {
-      if ( /* DEBUG */false) {
-        $trace('applySetter', { object, key, value });
-      }if (typeof value === 'undefined') {
+      if (typeof value === 'undefined') {
         delete object[key];
       } else {
         object[key] = value;
       }
     }function $setter(func, ...args) {
-      if ( /* DEBUG */false) {
-        $trace('callSetter', { args });
-      }if ($inBatch || $inRecalculate || $batchingStrategy) {
+      if ($inBatch || $inRecalculate || $batchingStrategy) {
         if (!$inBatch && !$inRecalculate && $batchingStrategy) {
           $batchingStrategy.call($res);$inBatch = true;
         }$batchPending.push({ func, args });
@@ -1095,10 +1083,8 @@ const modelBuilder = carmi\`
 
 const modelBuilder = (function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;let $trace = () => {};if ( /* DEBUG */false) {
-      if (typeof __CARMI_TRACE__ === 'function') {
-        $trace = __CARMI_TRACE__;
-      }$funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+      $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
           }throw new TypeError(\`Trying to call undefined function: \${functionName} \`);
@@ -1577,21 +1563,17 @@ const modelBuilder = (function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;if ( /* DEBUG */false) {}($first || $invalidatedRoots.has(0)) && $allBuild();($first || $invalidatedRoots.has(1)) && $firstBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;($first || $invalidatedRoots.has(0)) && $allBuild();($first || $invalidatedRoots.has(1)) && $firstBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
     }function $applySetter(object, key, value) {
-      if ( /* DEBUG */false) {
-        $trace('applySetter', { object, key, value });
-      }if (typeof value === 'undefined') {
+      if (typeof value === 'undefined') {
         delete object[key];
       } else {
         object[key] = value;
       }
     }function $setter(func, ...args) {
-      if ( /* DEBUG */false) {
-        $trace('callSetter', { args });
-      }if ($inBatch || $inRecalculate || $batchingStrategy) {
+      if ($inBatch || $inRecalculate || $batchingStrategy) {
         if (!$inBatch && !$inRecalculate && $batchingStrategy) {
           $batchingStrategy.call($res);$inBatch = true;
         }$batchPending.push({ func, args });
