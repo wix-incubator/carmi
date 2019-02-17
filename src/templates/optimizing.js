@@ -939,6 +939,8 @@ function topLevel() {
     setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
     $res['$FUNCNAME'] = newValue;
     $invalidatedRoots.delete($TOP_LEVEL_INDEX);
+    /* TRACE_TOP_LEVEL */
+
     /* TRACKING */
     return $topLevel[$TOP_LEVEL_INDEX];
   }
