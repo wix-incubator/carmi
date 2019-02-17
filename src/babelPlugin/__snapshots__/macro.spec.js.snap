@@ -496,6 +496,12 @@ module.exports = function () {
       }$inRecalculate = true;($first || $invalidatedRoots.has(1)) && $array_temp_4_19_1Build();($first || $invalidatedRoots.has(0)) && $todosListBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
+    }function $applySetter(object, key, value) {
+      if (typeof value === 'undefined') {
+        delete object[key];
+      } else {
+        object[key] = value;
+      }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
         if (!$inBatch && !$inRecalculate && $batchingStrategy) {
@@ -1023,6 +1029,12 @@ module.exports = function () {
         return;
       }$inRecalculate = true;($first || $invalidatedRoots.has(0)) && $firstBuild();($first || $invalidatedRoots.has(1)) && $secondBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
+      }
+    }function $applySetter(object, key, value) {
+      if (typeof value === 'undefined') {
+        delete object[key];
+      } else {
+        object[key] = value;
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
@@ -1553,6 +1565,12 @@ const modelBuilder = (function () {
         return;
       }$inRecalculate = true;($first || $invalidatedRoots.has(0)) && $allBuild();($first || $invalidatedRoots.has(1)) && $firstBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
+      }
+    }function $applySetter(object, key, value) {
+      if (typeof value === 'undefined') {
+        delete object[key];
+      } else {
+        object[key] = value;
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {

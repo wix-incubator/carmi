@@ -57,6 +57,14 @@ function base() {
       }
     }
 
+    function $applySetter(object, key, value) {
+      if (typeof value === 'undefined') {
+        delete object[key]
+      } else {
+        object[key] = value;
+      }
+    }
+
     function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
         if ((!$inBatch && !$inRecalculate) && $batchingStrategy) {
