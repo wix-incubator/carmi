@@ -1,40 +1,43 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
-   
+
     if ($DEBUG_MODE) {
-    $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
-      get: (target, functionName) => {
-        if (target[functionName]) {
-          return target[functionName]
+      $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
+        get: (target, functionName) => {
+          if (target[functionName]) {
+            return target[functionName]
+          }
+
+          throw new TypeError(`Trying to call undefined function: ${functionName} `)
+        }
+      })
+    }
+
+    function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg
+        if (type !== 'number') {
+          throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
         }
 
-        throw new TypeError(`Trying to call undefined function: ${functionName} `)
-    }})
-  }
+        return Math[name](arg)
+      }
+    }
 
-  function mathFunction(name, source) {
-    return arg => {
-      const type = typeof arg
-      if (type !== 'number') {
-        throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
+    function checkType(input, name, type, functionName, source) {
+      if (typeof input === type) {
+        return
       }
 
-      return Math[name](arg)
-    }
-  }
+      const asString = typeof input === 'object' ? JSON.stringify(input) : input
 
-  function checkType(input, name, type, functionName, source) {
-    if (typeof input === type) {
-      return
+      throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
     }
 
-    const asString = typeof input === 'object' ? JSON.stringify(input) : input
-
-    throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
-  }
-
-  const $res = { $model };
+    const $res = {
+      $model
+    };
     const $listeners = new Set();
     const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
@@ -64,7 +67,10 @@ function base() {
           $batchingStrategy.call($res);
           $inBatch = true;
         }
-        $batchPending.push({ func, args });
+        $batchPending.push({
+          func,
+          args
+        });
       } else {
         func.apply($res, args);
         recalculate();
@@ -72,18 +78,19 @@ function base() {
     }
 
     Object.assign(
-      $res,
-      {
+      $res, {
         /* SETTERS */
-      },
-      {
+      }, {
         $startBatch: () => {
           $inBatch = true;
         },
         $endBatch: () => {
           $inBatch = false;
           if ($batchPending.length) {
-            $batchPending.forEach(({ func, args }) => {
+            $batchPending.forEach(({
+              func,
+              args
+            }) => {
               func.apply($res, args);
             });
             $batchPending = [];
@@ -109,7 +116,9 @@ function base() {
 
     if ($DEBUG_MODE) {
       Object.assign($res, {
-        $ast: () => { return $AST },
+        $ast: () => {
+          return $AST
+        },
         $source: () => null
       })
     }
@@ -120,7 +129,7 @@ function base() {
 
 function func() {
   function $FUNCNAME(val, key, context) {
-      return $EXPR1;
+    return $EXPR1;
   }
 }
 
@@ -132,7 +141,7 @@ function topLevel() {
 
 function recursiveMap() {
   function $FUNCNAME(val, key, context, loop) {
-      return $EXPR1;
+    return $EXPR1;
   }
 }
 
@@ -226,7 +235,8 @@ function library() {
 
   function range(end, start = 0, step = 1) {
     const res = [];
-    for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
+    for (let val = start;
+      (step > 0 && val < end) || (step < 0 && val > end); val += step) {
       res.push(val);
     }
     return res;
@@ -272,4 +282,12 @@ function library() {
   }
 }
 
-module.exports = { base, library, func, topLevel, helperFunc, recursiveMapValues, recursiveMap };
+module.exports = {
+  base,
+  library,
+  func,
+  topLevel,
+  helperFunc,
+  recursiveMapValues,
+  recursiveMap
+};
