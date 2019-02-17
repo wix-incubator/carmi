@@ -222,6 +222,10 @@ class NaiveCompiler {
     return res
   }
 
+  applySetter(expr) {
+    return `$applySetter(${this.pathToString(expr, 1)}, ${this.generateExpr(expr[expr.length - 1])}, value)`
+  }
+
   buildSetter(setterExpr, name) {
     const args = setterExpr
       .slice(1)
@@ -232,13 +236,7 @@ class NaiveCompiler {
         ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
     })`;
     }
-    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
-              if (typeof value === 'undefined') {
-                delete ${this.pathToString(setterExpr)}
-              } else {
-                ${this.pathToString(setterExpr)} = value;
-              }
-          })`;
+    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => ${this.applySetter(setterExpr)})`
   }
 
   shortSource(src) {

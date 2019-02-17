@@ -243,11 +243,7 @@ $tainted = new WeakSet();`
     }
     return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
               ${invalidate}
-              if (typeof value === 'undefined') {
-                delete ${this.pathToString(setterExpr)}
-              } else {
-                ${this.pathToString(setterExpr)}  = value;
-              }
+              ${this.applySetter(setterExpr)}
           })`;
   }
 
