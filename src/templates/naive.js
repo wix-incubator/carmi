@@ -1,14 +1,9 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
-    let $trace = () => {}
    
     if ($DEBUG_MODE) {
-      if (typeof __CARMI_TRACE__ === 'function') {
-        $trace = __CARMI_TRACE__
-      }
-
-      $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
+    $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
       get: (target, functionName) => {
         if (target[functionName]) {
           return target[functionName]
@@ -53,10 +48,6 @@ function base() {
         return;
       }
       $inRecalculate = true;
-      if ($DEBUG_MODE) {
-        /* TRACE_RECALC */
-      }
-
       /* DERIVED */
       /* RESET */
       $listeners.forEach(callback => callback());
@@ -67,9 +58,6 @@ function base() {
     }
 
     function $applySetter(object, key, value) {
-      if ($DEBUG_MODE) {
-        $trace('applySetter', {object, key, value})
-      }
       if (typeof value === 'undefined') {
         delete object[key]
       } else {
@@ -78,10 +66,6 @@ function base() {
     }
 
     function $setter(func, ...args) {
-      if ($DEBUG_MODE) {
-        $trace('callSetter', {args})
-      }
-
       if ($inBatch || $inRecalculate || $batchingStrategy) {
         if ((!$inBatch && !$inRecalculate) && $batchingStrategy) {
           $batchingStrategy.call($res);
