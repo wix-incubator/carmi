@@ -5,6 +5,7 @@ const {
   Expression,
   SetterExpression,
   SpliceSetterExpression,
+  SourceTag,
   TokenTypeData,
   Clone
 } = require('./lang');
@@ -24,7 +25,8 @@ class OptimizingCompiler extends SimpleCompiler {
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
       RESET: `$first = false;
-$tainted = new WeakSet();`
+$tainted = new WeakSet();`,
+      TRACE_RECALC: this.options.debug ? `{$trace('recalc', {invalidatedRoots: [...$invalidatedRoots]})}` : ''
     });
   }
 
@@ -53,6 +55,21 @@ $tainted = new WeakSet();`
       {
         TOP_LEVEL_INDEX: () => '' + (this.getters[funcName] ? this.topLevelToIndex(funcName) : -1),
         TRACKING: () => this.tracking(expr),
+        TRACE_TOP_LEVEL: () => {
+          if (this.options.debug) {
+              return `
+                  {$trace('topLevel', 
+                      {
+                        type: '${tokenType || ''}',
+                        value: newValue, 
+                        name: '${funcName || ''}',
+                        source: '${currentToken ? this.shortSource(currentToken[SourceTag]) : ''}'
+                      })}
+                  `
+          } else {
+            return ''
+          }
+        },
         PRETRACKING: () => {
           if (expr[0].$path && expr[0].$path.size) {
             const conditionals = expr[0].$trackedExpr
