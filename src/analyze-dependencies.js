@@ -55,19 +55,23 @@ function readModule(modulePath, visited, imports) {
   visited.add(modulePath)
   const p = fs.readFileSync(modulePath).toString()
 
-  let childDeps;
+  let childDeps = [];
 
-  switch (path.extname(modulePath)) {
-    case '.ts':
-      childDeps = readTS(p)
-      break;
+  try {
+    switch (path.extname(modulePath)) {
+      case '.ts':
+        childDeps = readTS(p)
+        break;
 
-    case '.js':
-      childDeps = readJS(p)
-      break;
+      case '.js':
+        childDeps = readJS(p)
+        break;
 
-    default:
-      return imports;
+      default:
+        return imports;
+    }
+  } catch (error) {
+    // fail gracefully, we treat this module as if it has no child dependencies
   }
 
   // const childDeps = readJS(p)
