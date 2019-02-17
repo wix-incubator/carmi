@@ -2,30 +2,11 @@
 const path = require('path')
 const fs = require('fs-extra')
 const resolve = require('resolve')
-const {parse} = require('babylon');
+const babelParser = require('@babel/parser');
 const walk = require('babylon-walk');
-const ts = require('typescript')
-
-function printAllChildren(node, deps) {
-  for (const c of node.getChildren()) {
-    printAllChildren(c, deps)
-    if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
-      // console.log(ts.formatSyntaxKind(c.kind))
-      deps.push(c.moduleSpecifier.text)
-    }
-  }
-}
-
-function readTS(p) {
-  const childDeps = [];
-  const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
-  printAllChildren(sourceFile, childDeps);
-  // console.log(sourceFile)
-  return childDeps
-}
 
 function readJS(p) {
-  const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
+  const ast = babelParser.parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
 
   const visitors = {
     ImportDeclaration(node, state) {
@@ -60,9 +41,6 @@ function readModule(modulePath, visited, imports) {
   try {
     switch (path.extname(modulePath)) {
       case '.ts':
-        childDeps = readTS(p)
-        break;
-
       case '.js':
         childDeps = readJS(p)
         break;
