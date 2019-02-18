@@ -1,9 +1,18 @@
 const _ = require('lodash');
 
 module.exports = function({chain, or, and}) {
+
+    function isEmpty(obj) {
+      return obj.size().eq(0)
+    }
+
     function getIn(obj, path) {
         const pathGetters = [obj].concat(path.map((_part, index) => path.slice(0,index + 1).reduce((acc, part) => acc.get(part),obj)))
         return and(...pathGetters);
+    }
+
+    function has(obj, key) {
+      return obj.get(key).isUndefined().not()
     }
 
     function assignIn(obj, args) {
@@ -34,17 +43,13 @@ module.exports = function({chain, or, and}) {
       return reduce(arr, (acc, value, index) => index.eq(0).ternary(acc.plus(value), acc.plus(separator).plus(value)), '')
     }
 
-    function isEmpty(obj) {
-      return obj.size().eq(0)
-    }
-
     function append(arr, value) {
       return chain([arr, [value]]).flatten()
       //return arr.size().plus(1).range().map(v => v.lt(arr.size()).ternary(arr.get(v), value))
     }
 
-    function simpleSet(base, part, value) {
-      return chain([base, {[part]: value}]).assign()
+    function simpleSet(base, key, value) {
+      return chain([base, {[key]: value}]).assign()
     }
 
     function setIn(obj, path, value) {
@@ -106,10 +111,6 @@ module.exports = function({chain, or, and}) {
     function pick(obj, arr) {
       const projection = Object.assign({},...arr.map(key => ({[key]: obj.get(key)})));
       return chain(projection).filterBy(item => item.isUndefined().not());
-    }
-
-    function has(obj, key) {
-      return obj.get(key).isUndefined().not()
     }
 
     function every(array, predicate) {
