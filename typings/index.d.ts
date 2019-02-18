@@ -252,10 +252,10 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
     stringLength(): NumberGraph<number, F>
 
     /**
-     * 
-     * @param start 
-     * @param end 
-     * 
+     *
+     * @param start
+     * @param end
+     *
      * Resolves String.substring
      */
     substring(start: Argument<number>, end: Argument<number>): StringGraph<string, F>
@@ -280,6 +280,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
     get<K extends keyof NativeType>(key: K|AbstractGraph): K extends AbstractGraph ? Graph<NativeType[keyof NativeType], F> : Graph<NativeType[K], F>
 
     /**
+     * [[sugar]]
      * Resolves to the deep value provided by path.
      * @param path
      */
