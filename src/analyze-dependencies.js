@@ -1,31 +1,14 @@
 'use strict'
-const path = require('path')
-const fs = require('fs-extra')
-const resolve = require('resolve')
-const {parse} = require('babylon');
+
+const path = require('path');
+const fs = require('fs-extra');
+const resolve = require('resolve');
+const babelParser = require('@babel/parser');
 const walk = require('babylon-walk');
-const ts = require('typescript')
 
-function printAllChildren(node, deps) {
-  for (const c of node.getChildren()) {
-    printAllChildren(c, deps)
-    if (ts.formatSyntaxKind(c.kind) === 'ImportDeclaration') {
-      // console.log(ts.formatSyntaxKind(c.kind))
-      deps.push(c.moduleSpecifier.text)
-    }
-  }
-}
-
-function readTS(p) {
-  const childDeps = [];
-  const sourceFile = ts.createSourceFile('foo.ts', p, ts.ScriptTarget.ES5, true);
-  printAllChildren(sourceFile, childDeps);
-  // console.log(sourceFile)
-  return childDeps
-}
-
-function readJS(p) {
-  const ast = parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
+function getDependencies(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const ast = babelParser.parse(content, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
 
   const visitors = {
     ImportDeclaration(node, state) {
@@ -41,55 +24,6 @@ function readJS(p) {
   const childDeps = [];
   walk.recursive(ast, visitors, childDeps);
   return childDeps;
-}
-
-/**
- * @param {string} modulePath
- * @param {Set} visited
- * @param {string[]} imports
- */
-function readModule(modulePath, visited, imports) {
-  if (visited.has(modulePath)) {
-    return
-  }
-  visited.add(modulePath)
-  const p = fs.readFileSync(modulePath).toString()
-
-  let childDeps;
-
-  switch (path.extname(modulePath)) {
-    case '.ts':
-      childDeps = readTS(p)
-      break;
-
-    case '.js':
-      childDeps = readJS(p)
-      break;
-
-    default:
-      return imports;
-  }
-
-  // const childDeps = readJS(p)
-
-  // node 10
-  // const {createRequireFromPath} = require('module')
-  // const requireUtil = createRequireFromPath(modulePath)
-
-  for (const i of childDeps) {
-    // try {
-    const p = tryResolveExt(path.dirname(modulePath), i)
-    if (shouldFollow(p)) {
-      imports.push(p)
-      readModule(p, visited, imports)
-    }
-    // } catch (e) {
-    //   console.log('error parsing file', i, e)
-    //   throw e
-    // }
-  }
-
-  return imports
 }
 
 /**
@@ -143,20 +77,84 @@ function addExt(f, ext = '.js') {
   return exts.includes(path.extname(f)) ? f : f + ext
 }
 
-/**
- * @param {string} file
- * @return {string[]}
- */
-function analyzeDependencies(file) {
-  const visited = new Set()
-  const imports = [file]
-  readModule(file, visited, imports)
-  // console.log(imports)
-  return imports
+function mtime(filename) {
+  return +fs.statSync(filename).mtime;
 }
 
-const getTime = file => fs.statSync(file).mtime
-const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
+function loadCache(cacheFilePath) {
+  if (!fs.existsSync(cacheFilePath)) {
+    return null;
+  }
+
+  let data;
+
+  try {
+    data = JSON.parse(fs.readFileSync(cacheFilePath));
+  } catch (err) {
+    return null;
+  }
+
+  return {data, time: mtime(cacheFilePath)};
+}
+
+function analyzeFile(filePath, cache) {
+  if (cache && cache.data[filePath] && mtime(filePath) <= cache.time) {
+    return cache.data[filePath];
+  }
+
+  let dependencies = [];
+
+  try {
+    switch (path.extname(filePath)) {
+      case '.ts':
+      case '.js':
+        dependencies = getDependencies(filePath);
+        break;
+
+      default:
+        break;
+    }
+  } catch (error) {
+    // fail gracefully, we treat this module as if it has no child dependencies
+    throw error;
+  }
+
+  return dependencies
+    .map(childFilePath => {
+      const absoluteChildPath = tryResolveExt(
+        path.dirname(filePath),
+        childFilePath,
+      );
+
+      return absoluteChildPath;
+    })
+    .filter(absoluteChildPath => {
+      return shouldFollow(absoluteChildPath);
+    });
+}
+
+function analyzeDependencies(entryFilePath, statsFilePath) {
+  const modules = {};
+  const cache = loadCache(statsFilePath);
+
+  const queue = [entryFilePath];
+
+  for (const filePath of queue) {
+    if (!modules[filePath]) {
+      const dependencies = analyzeFile(filePath, cache);
+
+      // push to queue
+      queue.push(...dependencies);
+
+      // set our state
+      modules[filePath] = dependencies;
+    }
+  }
+
+  return modules;
+}
+
+const isEveryFileBefore = (files, time) => files.every(f => mtime(f) < time)
 
 /**
  * @param {string[]} deps
@@ -164,15 +162,15 @@ const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
  * @return {boolean}
  */
 function isUpToDate(deps, cacheFilePath) {
+  const depsArray = Object.keys(deps)
+
   try {
-    const outTime = getTime(cacheFilePath)
-    return isEveryFileBefore(deps, outTime)
+    const outTime = mtime(cacheFilePath)
+    return isEveryFileBefore(depsArray, outTime)
   } catch (e) {
     return false
   }
 }
-
-// console.log(shouldFollow('/Users/idok/projects/bolt/bolt-main/node_modules/bolt-components'))
 
 module.exports = {
   isUpToDate,

@@ -28,6 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.2.2",
+    "@babel/parser": "^7.3.3",
     "@babel/plugin-transform-modules-commonjs": "^7.2.0",
     "@babel/plugin-transform-typescript": "^7.2.0",
     "@babel/preset-typescript": "^7.1.0",
@@ -54,8 +55,7 @@
     "prettier": "^1.13.5",
     "resolve": "^1.9.0",
     "tempy": "^0.2.1",
-    "toposort": "^1.0.6",
-    "typescript": "^3.2.1"
+    "toposort": "^1.0.6"
   },
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",

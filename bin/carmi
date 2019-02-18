@@ -52,12 +52,13 @@ async function run() {
     rootMode: 'upward',
     extensions: ['.ts', '.js'],
     ignore: [/node_modules/]
-  })
+  });
 
-  const dependencies = analyzeDependencies(absPath);
+  const statsFilePath = path.resolve(options.stats);
+  const dependencies = analyzeDependencies(absPath, statsFilePath);
 
   if (options.stats) {
-    await fs.outputJSON(path.resolve(options.stats), dependencies);
+    await fs.outputJSON(statsFilePath, dependencies);
   }
 
   let code;
