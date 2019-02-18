@@ -171,6 +171,33 @@ describe('Tests for usability and debugging carmi', () => {
 
       expect(e.message).toContain('3.mapValues')
     })
+
+    it('when using arrays with object functions, throw an error', () => {
+      const model = {bad: root.get('data').mapValues(a => a)}
+      const src = compile(model, { compiler, debug: true });
+      const optCode = eval(src)
+      let e
+      try {
+        optCode({data: [0]}, funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('[0].mapValues')
+    })
+    it('when using objects with array functions, throw an error', () => {
+      const model = {bad: root.get('data').filter(a => a)}
+      const src = compile(model, { compiler, debug: true });
+      const optCode = eval(src)
+      let e
+      try {
+        optCode({data: {a: 0}}, funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('0}.filter')
+    })
   })
 
 });
