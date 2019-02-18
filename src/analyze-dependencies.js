@@ -1,12 +1,14 @@
 'use strict'
-const path = require('path')
-const fs = require('fs-extra')
-const resolve = require('resolve')
+
+const path = require('path');
+const fs = require('fs-extra');
+const resolve = require('resolve');
 const babelParser = require('@babel/parser');
 const walk = require('babylon-walk');
 
-function readJS(p) {
-  const ast = babelParser.parse(p, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
+function getDependencies(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const ast = babelParser.parse(content, {sourceType: 'module', plugins: ['typescript', 'objectRestSpread', 'classProperties']})
 
   const visitors = {
     ImportDeclaration(node, state) {
@@ -22,56 +24,6 @@ function readJS(p) {
   const childDeps = [];
   walk.recursive(ast, visitors, childDeps);
   return childDeps;
-}
-
-/**
- * @param {string} modulePath
- * @param {Set} visited
- * @param {string[]} imports
- */
-function readModule(modulePath, visited, imports) {
-  if (visited.has(modulePath)) {
-    return
-  }
-  visited.add(modulePath)
-  const p = fs.readFileSync(modulePath).toString()
-
-  let childDeps = [];
-
-  try {
-    switch (path.extname(modulePath)) {
-      case '.ts':
-      case '.js':
-        childDeps = readJS(p)
-        break;
-
-      default:
-        return imports;
-    }
-  } catch (error) {
-    // fail gracefully, we treat this module as if it has no child dependencies
-  }
-
-  // const childDeps = readJS(p)
-
-  // node 10
-  // const {createRequireFromPath} = require('module')
-  // const requireUtil = createRequireFromPath(modulePath)
-
-  for (const i of childDeps) {
-    // try {
-    const p = tryResolveExt(path.dirname(modulePath), i)
-    if (shouldFollow(p)) {
-      imports.push(p)
-      readModule(p, visited, imports)
-    }
-    // } catch (e) {
-    //   console.log('error parsing file', i, e)
-    //   throw e
-    // }
-  }
-
-  return imports
 }
 
 /**
@@ -125,16 +77,81 @@ function addExt(f, ext = '.js') {
   return exts.includes(path.extname(f)) ? f : f + ext
 }
 
-/**
- * @param {string} file
- * @return {string[]}
- */
-function analyzeDependencies(file) {
-  const visited = new Set()
-  const imports = [file]
-  readModule(file, visited, imports)
-  // console.log(imports)
-  return imports
+function mtime(filename) {
+  return +fs.statSync(filename).mtime;
+}
+
+function loadCache(cacheFilePath) {
+  if (!fs.existsSync(cacheFilePath)) {
+    return null;
+  }
+
+  let data;
+
+  try {
+    data = JSON.parse(fs.readFileSync(cacheFilePath));
+  } catch (err) {
+    return null;
+  }
+
+  return {data, time: mtime(cacheFilePath)};
+}
+
+function analyzeFile(filePath, cache) {
+  if (cache && cache.data[filePath] && mtime(filePath) <= cache.time) {
+    return cache.data[filePath];
+  }
+
+  let dependencies = [];
+
+  try {
+    switch (path.extname(filePath)) {
+      case '.ts':
+      case '.js':
+        dependencies = getDependencies(filePath);
+        break;
+
+      default:
+        break;
+    }
+  } catch (error) {
+    // fail gracefully, we treat this module as if it has no child dependencies
+    throw error;
+  }
+
+  return dependencies
+    .map(childFilePath => {
+      const absoluteChildPath = tryResolveExt(
+        path.dirname(filePath),
+        childFilePath,
+      );
+
+      return absoluteChildPath;
+    })
+    .filter(absoluteChildPath => {
+      return shouldFollow(absoluteChildPath);
+    });
+}
+
+function analyzeDependencies(entryFilePath, statsFilePath) {
+  const modules = {};
+  const cache = loadCache(statsFilePath);
+
+  const queue = [entryFilePath];
+
+  for (const filePath of queue) {
+    if (!modules[filePath]) {
+      const dependencies = analyzeFile(filePath, cache);
+
+      // push to queue
+      queue.push(...dependencies);
+
+      // set our state
+      modules[filePath] = dependencies;
+    }
+  }
+
+  return modules;
 }
 
 const getTime = file => fs.statSync(file).mtime
@@ -153,8 +170,6 @@ function isUpToDate(deps, cacheFilePath) {
     return false
   }
 }
-
-// console.log(shouldFollow('/Users/idok/projects/bolt/bolt-main/node_modules/bolt-components'))
 
 module.exports = {
   isUpToDate,

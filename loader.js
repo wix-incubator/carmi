@@ -3,7 +3,6 @@
 
 'use strict';
 
-const path = require('path')
 const execa = require('execa')
 const dargs = require('dargs')
 const tempy = require('tempy')
@@ -25,7 +24,7 @@ module.exports = function CarmiLoader() {
   try {
     compiled = execa.sync('npx', ['carmi', ...dargs(options)]).stdout;
   } finally{
-    require(statsPath).forEach(filePath => {
+    Object.keys(require(statsPath)).forEach(filePath => {
       // Add those modules as loader dependencies
       // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
       this.addDependency(filePath)
