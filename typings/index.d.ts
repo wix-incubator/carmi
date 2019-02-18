@@ -210,9 +210,10 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
     mod(value: Argument<number>): NumberGraph<number, F>
 
     /**
-     * @returns a number array graph, with size equal to resolved "NativeType"
+     * creates a number array graph
      * @param start number to start from
      * @param skip number to skip between values
+     * @returns a number array graph, with size equal to resolved "NativeType"
      */
     range(start?: Argument<number>, skip?: Argument<number>): NumberGraph<number, F>[]
 
