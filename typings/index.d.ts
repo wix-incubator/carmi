@@ -271,10 +271,13 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
      */
     toLowerCase(): StringGraph<string, F>
 
+    /**
+     * returns the string length
+     */
     stringLength(): NumberGraph<number, F>
 
     /**
-     *
+     * Resolves String.substring
      * @param start
      * @param end
      *
