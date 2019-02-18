@@ -280,6 +280,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
     get<K extends keyof NativeType>(key: K|AbstractGraph): K extends AbstractGraph ? Graph<NativeType[keyof NativeType], F> : Graph<NativeType[K], F>
 
     /**
+     * [[sugar]]
      * Resolves to the deep value provided by path.
      * @param path
      */
