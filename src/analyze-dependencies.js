@@ -154,8 +154,7 @@ function analyzeDependencies(entryFilePath, statsFilePath) {
   return modules;
 }
 
-const getTime = file => fs.statSync(file).mtime
-const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
+const isEveryFileBefore = (files, time) => files.every(f => mtime(f) < time)
 
 /**
  * @param {string[]} deps
@@ -163,9 +162,11 @@ const isEveryFileBefore = (files, time) => files.every(f => getTime(f) < time)
  * @return {boolean}
  */
 function isUpToDate(deps, cacheFilePath) {
+  const depsArray = Object.keys(deps)
+
   try {
-    const outTime = getTime(cacheFilePath)
-    return isEveryFileBefore(deps, outTime)
+    const outTime = mtime(cacheFilePath)
+    return isEveryFileBefore(depsArray, outTime)
   } catch (e) {
     return false
   }
