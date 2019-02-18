@@ -81,7 +81,7 @@ class HomeSplash extends React.Component {
           <ProjectTitle />
           <PromoSection>
             <Button href={docUrl('getting-started.html', language)}>Getting Started</Button>
-            <Button href={docUrl('api.html', language)}>API</Button>
+            <Button href="/api.html">API</Button>
           </PromoSection>
         </div>
       </SplashContainer>
@@ -131,7 +131,7 @@ And unlike Mobx - you don't need to manually define tiny compute functions nor r
 `;
 
 const ComparedLodash = `
-Uses a simple declarative lodash inspired syntax, but because everything is declarative you can write the shared expressions in the context in which they make sense without paying for it in runtime/performance 
+Uses a simple declarative lodash inspired syntax, but because everything is declarative you can write the shared expressions in the context in which they make sense without paying for it in runtime/performance
 `;
 
 const Compared = props => (
@@ -181,45 +181,6 @@ const Intro = props => (
   </div>
 );
 
-const LearnHow = props => (
-  <Block background="light">
-    {[
-      {
-        content: 'Talk about learning how to use this',
-        image: imgUrl('docusaurus.svg'),
-        imageAlign: 'right',
-        title: 'Learn How'
-      }
-    ]}
-  </Block>
-);
-
-const TryOut = props => (
-  <Block id="try">
-    {[
-      {
-        content: 'Talk about trying this out',
-        image: imgUrl('docusaurus.svg'),
-        imageAlign: 'left',
-        title: 'Try it Out'
-      }
-    ]}
-  </Block>
-);
-
-const Description = props => (
-  <Block background="dark">
-    {[
-      {
-        content: '',
-        image: imgUrl('logo.png'),
-        imageAlign: 'right',
-        title: ''
-      }
-    ]}
-  </Block>
-);
-
 class Index extends React.Component {
   render() {
     let language = this.props.language || '';
@@ -231,9 +192,6 @@ class Index extends React.Component {
           <Intro />
           <Compared />
           <Features />
-          {/* <LearnHow /> */}
-          {/* <TryOut /> */}
-          <Description />
         </div>
       </div>
     );

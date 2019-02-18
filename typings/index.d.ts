@@ -61,6 +61,25 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     trace(label?: string): this
 
     /**
+     * Generates a console statement, continuing the chain if condition resolves to true.
+     * @param condition
+     * @sugar */
+    conditionalTrace<FunctionName extends keyof F>(condition: FunctionName): this
+
+    /**
+     * Triggers a breakpoint if the condition resolves to true.
+     * @param condition
+     * @sugar */
+    conditionalBreakpoint<FunctionName extends keyof F>(condition: FunctionName): this
+
+    /**
+     * lets you tap into the value and traces the result of tapFn
+     * @param tapFn
+     * @sugar */
+    tapTrace<FunctionName extends keyof F>(tapFn: FunctionName): this
+
+
+    /**
      * Resolves to !NativeType
      */
     not(): BoolGraph<F>
@@ -85,8 +104,8 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      *
      * @param caseTuples An array of pairs between a value and a consequent
      * @param defaultCase The graph to return in case no given case matches the boxed value
-     */
-    switch<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
+     * @sugar */
+    switchCase<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
         Graph<DefaultCase, F> |
         Graph<TupleType extends [Argument<NativeType>, infer Result] ? Result : never, F>
 
@@ -127,6 +146,8 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     * returns true if the context is of type string
     */
     isString(): BoolGraph<F>
+
+
 }
 
 /**
@@ -189,9 +210,10 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
     mod(value: Argument<number>): NumberGraph<number, F>
 
     /**
-     * @returns a number array graph, with size equal to resolved "NativeType"
+     * creates a number array graph
      * @param start number to start from
      * @param skip number to skip between values
+     * @returns a number array graph, with size equal to resolved "NativeType"
      */
     range(start?: Argument<number>, skip?: Argument<number>): NumberGraph<number, F>[]
 
@@ -252,10 +274,10 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
     stringLength(): NumberGraph<number, F>
 
     /**
-     * 
-     * @param start 
-     * @param end 
-     * 
+     *
+     * @param start
+     * @param end
+     *
      * Resolves String.substring
      */
     substring(start: Argument<number>, end: Argument<number>): StringGraph<string, F>
@@ -280,9 +302,14 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
     get<K extends keyof NativeType>(key: K|AbstractGraph): K extends AbstractGraph ? Graph<NativeType[keyof NativeType], F> : Graph<NativeType[K], F>
 
     /**
+     * does the object/array has any items
+     @sugar */
+    isEmpty(): BoolGraph<F>
+
+    /**
      * Resolves to the deep value provided by path.
      * @param path
-     */
+     * @sugar */
     getIn<K extends keyof NativeType>(path: [Argument<K>]): Graph<NativeType[K], F>
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(path: [Argument<K0>, Argument<K1>]): Graph<NativeType[K0][K1], F>
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1]>(path: [Argument<K0>, Argument<K1>, Argument<K2>]): Graph<NativeType[K0][K1][K2], F>
@@ -322,12 +349,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Resolves to the first item in an array
-     */
+     * @sugar */
     head(): ValueGraph
 
     /**
      * Resolves to the last item in an array
-     */
+     * @sugar */
     last(): ValueGraph
 
     /**
@@ -336,14 +363,8 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     sum(): Value extends number ? NumberGraph<number, F> : never
 
     /**
-     * Joins an array of strings to a single strings, like NativeType.join(separator)
-     * @param separator
-     */
-    join(separator: Argument<string>): Value extends string ? StringGraph<string, F> : never
-
-    /**
      * reverses the order of a given array
-     */
+     * @sugar */
     reverse(): ArrayGraph<Value[], F>
 
     /**
@@ -359,6 +380,10 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array, returning boolean
      * @param scope A variable to pass to the functor if inside another functor.
+     * @example ```
+     * chain([1, 2, 3]).any((value, index) => value.eq(2)) //true (function was executed twice)
+     * chain([1, 2, 3]).any((value, index) => value.eq(5)) //false (function was executed three times)
+     * ```
      */
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
@@ -367,7 +392,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array, returning boolean
      * @param scope A variable to pass to the functor if inside another functor.
-     */
+     * @sugar */
     every<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
     /**
@@ -388,19 +413,11 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     filter<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => any, scope?: Scope) : ArrayGraph<Value[], F>
 
     /**
-     * Resolved to the first value for which the functor resolved to true
-     *
-     * @param functor A function to run for every item of the array, returning a boolean
-     * @param scope A variable to pass to the functor if inside another functor.
-     */
-    find<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : ValueGraph
-
-    /**
      * Resolved to the index of the first value for which the functor resolved to true, or -1 if not found.
      *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
-     */
+     * @sugar */
     findIndex<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : KeyGraph
 
     /**
@@ -408,21 +425,35 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array, with the previous value as aggregate
      * @param initialValue The aggregate to pass to the first argument.
-     */
+     * @sugar */
     reduce<Ret>(functor: (aggregate: Argument<Ret>, value?: ValueGraph, key?: KeyGraph) => Argument<Ret>, initialValue?: Ret): NativeType extends any[] ? Ret : never
+
+    /**
+     * Resolves to an array which is a concatenated results of NativeType and one or more additional arrays
+     * @param arrays
+     * @sugar */
+    concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
+
+    /**
+     * Resolved to the first value for which the functor resolved to true
+     *
+     * @param functor A function to run for every item of the array, returning a boolean
+     * @param scope A variable to pass to the functor if inside another functor.
+     * @sugar */
+    find<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : ValueGraph
+
+    /**
+     * Joins an array of strings to a single strings, like NativeType.join(separator)
+     * @param separator
+     * @sugar */
+    join(separator: Argument<string>): Value extends string ? StringGraph<string, F> : never
 
     /**
      * Returns an array with an additional element (value) at its end
      *
      * @param value A value to add to the array, or a graph resolving to that value
-     */
+     * @sugar */
     append<T>(value: Argument<T>) : ArrayGraph<(Value|T)[], F>
-
-    /**
-     * Resolves to an array which is a concatenated results of NativeType and one or more additional arrays
-     * @param arrays
-     */
-    concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
      * Flattens inner arrays into an array
@@ -432,12 +463,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     /**
      * Resolves to true if the array contains an argument equal to value
      * @param value
-     */
+     * @sugar */
     includes(value: Argument<Value>): BoolGraph<F>
 
     /**
      * Resolves to the same array, with only truthy values
-     */
+    * @sugar */
     compact(): this
 
     /**
@@ -486,7 +517,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     /**
      * Resolve to true if NativeType object has a value equal to the value argument
      * @param value
-     */
+     * @sugar */
     includesValue(value: Argument<Value>): BoolGraph<F>
 
     /**
@@ -502,7 +533,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
      *
      * @param functor
      * @param scope
-     */
+     * @sugar */
     pick<K extends keyof NativeType>(keys: Argument<K[]>): this
 
     /**
@@ -539,12 +570,21 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     /**
      * Returns a new object which resolves to _.assign(NativeType, value)
      * @param value
-     */
+     * @sugar */
     assignIn<V extends object>(value: Argument<V>[]): ObjectGraph<NativeType & AsNative<V>, F>
 
     /**
-    * ??
-    */
+    * Sets value for given key
+    * @param key string
+    * @param value
+    * @sugar */
+    simpleSet(path: string): ObjectGraph<NativeType, F>
+
+    /**
+    * Sets value for given path
+    * @param path[] Array
+    * @param value
+    * @sugar */
     setIn(path: string[]): ObjectGraph<NativeType, F>
 
     /**

@@ -65,9 +65,6 @@
     "jest": "^23.6.0",
     "mobx": "^5.0.2",
     "random-seed": "^0.3.0",
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0",
-    "typedoc": "^0.14.2",
     "wnpm-ci": "latest"
   },
   "description": "CARMI - Compiler for Automatic Reactive Modelling of Inference"

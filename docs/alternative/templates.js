@@ -57,14 +57,14 @@ const genSignature = (signatures) => _(signatures)
 
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
-    //.tap((v) => console.dir(v.filter(({id}) => id == 667), {depth: null}))
+    //.tap((v) => console.dir(v.filter(({id}) => id == 833), {depth: null}))
     .map(({id, name, kindString: type, signatures}) =>
       <div className="card mt-2" id={`doc-${id}`}>
         <div className="card-body">
           <h5 className="card-title">
             <a className="text-secondary method-link" href={`#doc-${id}`}>🔗</a>
             <code>
-              {name}({genSignature(signatures)})
+              {name}({genSignature(signatures)}) {_.get(signatures, '0.comment.tags.0.tag', false) == 'sugar' ? '🍬' : ''}
             </code>
           </h5>
           <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
