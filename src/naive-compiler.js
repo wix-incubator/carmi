@@ -61,29 +61,29 @@ class NaiveCompiler {
 
         return `((() => {
           const value = (${this.generateExpr(inner)});
-          console.log(${label ? `${label}, `:''}{value, token: '${nextToken.$type}', source: '${this.shortSource(innerSrc)}'})
+          console.log(${label ? `${label}, ` : ''}{value, token: '${nextToken.$type}', source: '${this.shortSource(innerSrc)}'})
           return value;
         }) ())`
       }
       case 'and':
         return (
-          '(' +
+          `(${ 
           expr
             .slice(1)
             .map(e => this.generateExpr(e))
             .map(part => `(${part})`)
-            .join('&&') +
-          ')'
+            .join('&&') 
+          })`
         );
       case 'or':
         return (
-          '(' +
+          `(${ 
           expr
             .slice(1)
             .map(e => this.generateExpr(e))
             .map(part => `(${part})`)
-            .join('||') +
-          ')'
+            .join('||') 
+          })`
         );
       case 'not':
         return `!(${this.generateExpr(expr[1])})`;
@@ -142,7 +142,7 @@ class NaiveCompiler {
       case 'startsWith':
       case 'endsWith':
       case 'split':
-        return  `(${this.getNativeStringFunction(tokenType, source)}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
+        return `(${this.getNativeStringFunction(tokenType, source)}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])})`;
       case 'substring':
         return `(${this.getNativeStringFunction(tokenType, source)}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`;
       case 'get':
@@ -192,12 +192,12 @@ class NaiveCompiler {
       case 'call':
         return `($funcLib[${this.generateExpr(expr[1])}].call($res${expr
           .slice(2)
-          .map(subExpr => ',' + this.generateExpr(subExpr))
-          .join('')}) ${tokenType === 'effect' ? ' && void 0': ''})`;
+          .map(subExpr => `,${this.generateExpr(subExpr)}`)
+          .join('')}) ${tokenType === 'effect' ? ' && void 0' : ''})`;
       case 'bind':
         return `($funcLibRaw[${this.generateExpr(expr[1])}] || $res[${this.generateExpr(expr[1])}]).bind($res${expr
           .slice(2)
-          .map(subExpr => ',' + this.generateExpr(subExpr))
+          .map(subExpr => `,${this.generateExpr(subExpr)}`)
           .join('')})`;
       case 'invoke':
           return `(${expr[1]}(${expr.slice(2).map(t => t.$type).join(',')}))`
@@ -249,7 +249,7 @@ class NaiveCompiler {
     return {
       ROOTNAME: expr[0].$rootName,
       FUNCNAME: funcName,
-      EXPR1: () => (expr.length > 1 ? this.generateExpr(expr[1]) : ''),
+      EXPR1: () => expr.length > 1 ? this.generateExpr(expr[1]) : '',
       EXPR: () => this.generateExpr(expr),
       TYPE_CHECK: () => {
         const typeData = TokenTypeData[tokenType]
@@ -258,23 +258,23 @@ class NaiveCompiler {
           return ''
         }
 
-        const input = (expr[typeData.chainIndex] instanceof Expression || expr[typeData.chainIndex] instanceof Token) ? this.generateExpr(expr[typeData.chainIndex]) : expr[typeData.chainIndex]
+        const input = expr[typeData.chainIndex] instanceof Expression || expr[typeData.chainIndex] instanceof Token ? this.generateExpr(expr[typeData.chainIndex]) : expr[typeData.chainIndex]
         const name = currentToken.$rootName
         const source = this.shortSource(currentToken[SourceTag])
         return `checkType(${input}, '${name}', '${typeData.expectedType}', '${tokenType}', '${source}')`
       },
 
     ID: () => expr[0].$id,
-      FN_ARGS: () => ' ' + (expr[0].$type === 'func' ? expr.slice(2).map(t => t.$type).join(',') : '')
+      FN_ARGS: () => ` ${expr[0].$type === 'func' ? expr.slice(2).map(t => t.$type).join(',') : ''}`
     };
   }
 
   appendExpr(acc, type, expr, funcName) {
     acc.push(
       this.mergeTemplate(
-        expr[0].$type === 'func' && this.template[expr[0].$funcType]
-          ? this.template[expr[0].$funcType]
-          : this.template[type],
+        expr[0].$type === 'func' && this.template[expr[0].$funcType] ?
+          this.template[expr[0].$funcType] :
+          this.template[type],
         this.exprTemplatePlaceholders(expr, funcName)
       )
     );
@@ -308,10 +308,10 @@ class NaiveCompiler {
     return Object.keys(placeHolders)
       .reduce((result, name) => {
         const replaceFunc = typeof placeHolders[name] === 'function' ? placeHolders[name]() : () => placeHolders[name];
-        const commentRegex = new RegExp('/\\*\\s*' + name + '\\s*([\\s\\S]*?)\\*/', 'mg');
-        const dollarRegex = new RegExp('\\$' + name, 'g');
+        const commentRegex = new RegExp(`/\\*\\s*${name}\\s*([\\s\\S]*?)\\*/`, 'mg');
+        const dollarRegex = new RegExp(`\\$${name}`, 'g');
         const inCommentRegex = new RegExp(
-          '/\\*\\s*' + name + '\\s*\\*/([\\s\\S]*?)/\\*\\s*' + name + '\\-END\\s*\\*/',
+          `/\\*\\s*${name}\\s*\\*/([\\s\\S]*?)/\\*\\s*${name}\\-END\\s*\\*/`,
           'mg'
         );
         return result
@@ -328,7 +328,7 @@ class NaiveCompiler {
       AST: () => JSON.stringify(this.getters, null, 2),
       DEBUG_MODE: () => `/* DEBUG */${!!this.options.debug}`,
       COUNT_GETTERS: () => Object.keys(this.getters).length,
-      SOURCE_FILES: () => () => this.options.debug ? (JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
+      SOURCE_FILES: () => () => this.options.debug ? JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
         const tag = getter instanceof Expression && getter[0][SourceTag];
         const simpleFileName = tag && tagToSimpleFilename(tag);
         if (simpleFileName && !acc[simpleFileName]) {
@@ -336,7 +336,7 @@ class NaiveCompiler {
           acc[simpleFileName] = require('fs').readFileSync(fileName).toString();
         }
         return acc;
-      }, {}))) : '',
+      }, {})) : '',
       LIBRARY: () => this.mergeTemplate(this.template.library, {}),
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
       DERIVED: () =>

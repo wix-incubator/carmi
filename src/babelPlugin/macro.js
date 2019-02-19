@@ -11,8 +11,7 @@ module.exports = createMacro(macro);
 
 const extractNodeFromCarmiCode = code => babylon.parse(code).program.body[0].expression;
 
-const wrapWithModuleExports = node => {
-  return {
+const wrapWithModuleExports = node => ({
     type: 'ExpressionStatement',
     expression: {
       type: 'AssignmentExpression',
@@ -25,8 +24,7 @@ const wrapWithModuleExports = node => {
       },
       right: node
     }
-  };
-};
+  });
 
 const compile = (code, filename, isMJS = false) => {
   const newFilename = path.resolve(

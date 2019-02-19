@@ -13,10 +13,6 @@ const SimpleCompiler = require('./simple-compiler');
 const { splitSettersGetters, pathMatches, normalizeAndTagAllGetters } = require('./expr-tagging');
 
 class OptimizingCompiler extends SimpleCompiler {
-  constructor(model, options) {
-    super(model, options);
-  }
-
   get template() {
     return require('./templates/optimizing.js');
   }
@@ -34,11 +30,9 @@ $tainted = new WeakSet();`
     switch (tokenType) {
       case 'object':
         return {
-          ARGS: () => {
-            return _.range(1, expr.length, 2)
+          ARGS: () => _.range(1, expr.length, 2)
               .map(i => `'${expr[i]}'`)
-              .join(',');
-          }
+              .join(',')
         };
     }
     return {};
@@ -51,21 +45,19 @@ $tainted = new WeakSet();`
       {},
       super.exprTemplatePlaceholders(expr, funcName),
       {
-        TOP_LEVEL_INDEX: () => '' + (this.getters[funcName] ? this.topLevelToIndex(funcName) : -1),
+        TOP_LEVEL_INDEX: () => `${this.getters[funcName] ? this.topLevelToIndex(funcName) : -1}`,
         TRACKING: () => this.tracking(expr),
         PRETRACKING: () => {
           if (expr[0].$path && expr[0].$path.size) {
-            const conditionals = expr[0].$trackedExpr
-              ? Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`)
-              : [];
+            const conditionals = expr[0].$trackedExpr ?
+              Array.from(expr[0].$trackedExpr.values()).map(cond => `let $cond_${cond} = 0;`) :
+              [];
             return `${conditionals.join('')}`;
           }
           return '';
         },
-        INVALIDATES: () => {
-          return !!this.invalidates(expr);
-      },
-        FN_ARGS: () => expr[0].$type === 'func' ? expr.slice(2).map( t => `,${t.$type}`).join('')+' ' : ' '
+        INVALIDATES: () => !!this.invalidates(expr),
+        FN_ARGS: () => expr[0].$type === 'func' ? `${expr.slice(2).map(t => `,${t.$type}`).join('')} ` : ' '
       },
       this.byTokenTypesPlaceHolders(expr)
     );
@@ -74,9 +66,8 @@ $tainted = new WeakSet();`
   wrapExprCondPart(expr, indexInExpr) {
     if (!expr[0].$tracked) {
       return `(${this.generateExpr(expr[indexInExpr])})`;
-    } else {
+    } 
       return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`;
-    }
   }
 
   uniqueId(expr, extra = '') {
@@ -100,21 +91,21 @@ $tainted = new WeakSet();`
         return '$topLevel';
       case 'and':
         return (
-          '(' +
+          `(${ 
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('&&') +
-          ')'
+            .join('&&') 
+          })`
         );
       case 'or':
         return (
-          '(' +
+          `(${ 
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('||') +
-          ')'
+            .join('||') 
+          })`
         );
       case 'ternary':
         return `((${this.generateExpr(expr[1])})?${this.wrapExprCondPart(expr, 2)}:(${this.wrapExprCondPart(
@@ -172,9 +163,9 @@ $tainted = new WeakSet();`
         return `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
-        typeof expr[3] === 'undefined' || (expr[3] instanceof Token && expr[3].$type === 'null')
-          ? null
-          : `array($tracked,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
+        typeof expr[3] === 'undefined' || expr[3] instanceof Token && expr[3].$type === 'null' ?
+          null :
+          `array($tracked,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
       }, ${this.invalidates(expr)})`;
       case 'context':
         return 'context[0]';
@@ -277,21 +268,21 @@ $tainted = new WeakSet();`
               .map(fragment => this.generateExpr(fragment))
               .join(',')}]);`
           );
-        } else if (invalidatedPath.length > 1 && invalidatedPath[0].$type === 'topLevel' ) {
+        } else if (invalidatedPath.length > 1 && invalidatedPath[0].$type === 'topLevel') {
           tracks.push(
             `${precond} trackPath($tracked, [${invalidatedPath
-              .map((fragment, index) => index === 1 ? this.topLevelToIndex(fragment): this.generateExpr(fragment))
+              .map((fragment, index) => index === 1 ? this.topLevelToIndex(fragment) : this.generateExpr(fragment))
               .join(',')}]);`
           );
         } else if (invalidatedPath.length > 1 &&
           (invalidatedPath[0] instanceof Expression && invalidatedPath[0][0].$type === 'invoke')) {
           tracks.push(
             `${precond} trackPath($tracked, [${invalidatedPath
-              .map(fragment =>  this.generateExpr(fragment))
+              .map(fragment => this.generateExpr(fragment))
               .join(',')}]);`
           );
         } else if (invalidatedPath[0].$type === 'root' && invalidatedPath.length > 1) {
-          let settersMatched = Object.values(this.setters).filter(setter => pathMatches(invalidatedPath, setter));
+          const settersMatched = Object.values(this.setters).filter(setter => pathMatches(invalidatedPath, setter));
           if (settersMatched.length) {
             // settersMatched.forEach(setter => tracks.push(`// path matched ${JSON.stringify(setter)}`));
             tracks.push(

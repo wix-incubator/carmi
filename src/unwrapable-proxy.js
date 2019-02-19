@@ -36,7 +36,7 @@ function unwrapableProxies(proxyHandler) {
     return res;
   }
 
-  return { unwrap, wrap };
+  return {unwrap, wrap};
 }
 
 module.exports = unwrapableProxies;

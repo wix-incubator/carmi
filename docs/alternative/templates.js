@@ -3,7 +3,7 @@ const React = require('react')
 const { Fragment } = React
 const { renderToStaticMarkup } = require('react-dom/server')
 
-const css = (([css]) => <style dangerouslySetInnerHTML={{ "__html": css}} />)`
+const css = (([css]) => <style dangerouslySetInnerHTML={{ __html: css}} />)`
   .body {
     margin: 0 auto;
   }
@@ -23,7 +23,7 @@ const css = (([css]) => <style dangerouslySetInnerHTML={{ "__html": css}} />)`
     text-decoration:none;
   }
 `
-const Wrapper = (props) => (
+const Wrapper = (props) => 
   <html lang="en">
     <head>
       {/*<meta httpEquiv="refresh" content="20"/>*/}
@@ -38,15 +38,15 @@ const Wrapper = (props) => (
       {props.children}
     </body>
   </html>
-)
 
-const InheritedMethods = ({methods}) =>(
+
+const InheritedMethods = ({methods}) => 
   <ul>
-    {methods.map(({name, inheritedFrom: {name: parent, id}}) => (
+    {methods.map(({name, inheritedFrom: {name: parent, id}}) => 
       <li><a href={`#doc-${id}`}>{name}()</a></li>
-    ))}
+    )}
   </ul>
-)
+
 const genSignature = (signatures) => _(signatures)
   .get('0.parameters', [])
   .map((param) => _(param)
@@ -76,7 +76,7 @@ const SelfMethods = ({methods}) => <Fragment>
 
 const Section = ({id, comment: {shortText: name}, kindString: type, children}) => {
   const [inherited, methods] = _(children)
-    .filter(({kindString}) => 'Method' == kindString)
+    .filter(({kindString}) => kindString == 'Method')
     .sortBy('name')
     .partition('inheritedFrom')
     .value()
@@ -101,7 +101,7 @@ const Sidebar = ({data}) => <sidebar className="d-none d-md-block col-3 align-it
 
       <ul className="method-list">
         {_(children)
-          .filter(({kindString, inheritedFrom}) => 'Method' == kindString && !inheritedFrom)
+          .filter(({kindString, inheritedFrom}) => kindString == 'Method' && !inheritedFrom)
           .sortBy('name')
           .map(({id, name}) =>
             <li><small><code><a href={`#doc-${id}`}> {name}()</a></code></small></li>

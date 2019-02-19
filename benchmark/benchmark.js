@@ -1,7 +1,8 @@
 const carmi = require('../index');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const { fork } = require('child_process');
+
 const tests = ['todos', 'names'];
 const testsConfigs = {
   names: ['simple', 'carmi'],
@@ -22,11 +23,10 @@ const runsCount = 11;
 function resolveTestName(testname, type) {
   if (type === 'mobx') {
     return `./${testname}.mobx`;
-  } else {
-    const targetDir = path.resolve(__dirname, 'generated')
-    !fs.existsSync(targetDir) && fs.mkdirSync(targetDir)
-    return path.resolve(targetDir, `${testname}.${type}`);
   }
+  const targetDir = path.resolve(__dirname, 'generated')
+  fs.ensureDirSync(targetDir)
+  return path.resolve(targetDir, `${testname}.${type}`);
 }
 
 function precompileModel(testname, type) {
@@ -34,16 +34,16 @@ function precompileModel(testname, type) {
   const src = carmi.compile(model, {
     compiler: type,
     format: 'cjs',
-    name: testname,
+    name: testname
   });
-  fs.writeFileSync(resolveTestName(testname, type) + '.js', src);
+  fs.writeFileSync(`${resolveTestName(testname, type)}.js`, src);
 }
 
 function runSingleTest(testname, model, count, changes, batch) {
   return new Promise(resolve => {
     const child = fork(path.resolve(__dirname, './single-benchmark'), [testname, model, count, changes, batch]);
     let results = null;
-    child.on('message', msg => (results = msg));
+    child.on('message', msg => results = msg);
     child.on('close', () => resolve(results));
   });
 }
@@ -53,8 +53,8 @@ async function runBenchmarks(testname) {
   precompileModel(testname, 'simple');
   const results = [];
   for (let runIndex = 0; runIndex < runsCount; runIndex++) {
-    for (let type of testsConfigs[testname]) {
-      for (let run of runTypes[type]) {
+    for (const type of testsConfigs[testname]) {
+      for (const run of runTypes[type]) {
         const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
         results.push(Object.assign({ type, run }, vals));
       }
@@ -65,10 +65,10 @@ async function runBenchmarks(testname) {
 
 async function runAllBenchmarks() {
   const results = {};
-  for (let testname of tests) {
+  for (const testname of tests) {
     results[testname] = await runBenchmarks(testname);
   }
-  require('fs').writeFileSync(path.resolve(__dirname, 'generated', 'results.json'), JSON.stringify(results, null, 2));
+  fs.writeFileSync(path.resolve(__dirname, 'generated', 'results.json'), JSON.stringify(results, null, 2));
 }
 
 try {

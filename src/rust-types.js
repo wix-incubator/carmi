@@ -29,6 +29,7 @@ function isStruct(annotation) {
   return annotation.type === 'ObjectTypeAnnotation' && annotation.indexers.length === 0;
 }
 
+/*eslint no-fallthrough:0*/
 function flowAnnotationToRustType(annotation) {
   const fail = () => {
     throw new Error(`unknown annotation ${JSON.stringify(annotation, null, 2)}`);
@@ -50,7 +51,7 @@ function flowAnnotationToRustType(annotation) {
       return `enum ${annotation.name} {
             ${annotation.types
               .map((type, index) => {
-                const name = _.upperFirst(_.get(type, 'name.id', 'e' + index));
+                const name = _.upperFirst(_.get(type, 'name.id', `e${index}`));
                 return `${name}(${flowAnnotationToRustType(type)})`;
               })
               .join('\n')}
@@ -108,10 +109,10 @@ function replaceFullWithTypeRefs({ expr, types }) {
     .mapValues(type => objectHash(type))
     .invert()
     .value();
-  let cnt = 0;
+  const cnt = 0;
   const allNodesWithTypes = collectAllNodes(
     { expr, types },
-    node => node.type === 'UnionTypeAnnotation' || (node.type === 'ObjectTypeAnnotation' && node.indexers.length === 0)
+    node => node.type === 'UnionTypeAnnotation' || node.type === 'ObjectTypeAnnotation' && node.indexers.length === 0
   );
 
   const allNodesHashed = allNodesWithTypes.map(node => objectHash(node));
@@ -134,7 +135,7 @@ function replaceFullWithTypeRefs({ expr, types }) {
       });
     }
   });
-  _.forEach(types, (type, name) => (type.name = name));
+  _.forEach(types, (type, name) => type.name = name); //eslint-disable-line no-return-assign
   return { expr, types };
 }
 

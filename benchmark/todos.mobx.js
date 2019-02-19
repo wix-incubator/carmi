@@ -5,9 +5,7 @@ function todosMobx(initialState) {
   const todosDone = {};
   const canBeWorkedOnComputeds = {};
   Object.keys(initialState.todos).forEach(idx => {
-    todosDone[idx] = mobx.computed(() => {
-      return todosMap[idx].done;
-    });
+    todosDone[idx] = mobx.computed(() => todosMap[idx].done);
   });
   mobx.runInAction(() => {
     Object.keys(initialState.todos).forEach(idx => {

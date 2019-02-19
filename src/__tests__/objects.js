@@ -1,3 +1,4 @@
+/*eslint no-eval:0*/
 const { compile, and, or, root, arg0, setter, chain, splice } = require('../../index');
 
 const {
@@ -224,7 +225,7 @@ describe('testing objects', () => {
         set: setter(arg0)
       };
       const optModel = eval(compile(model, { compiler }));
-      const initalData = { '1': 'One', '2': 'Two', '3': 'Three' };
+      const initalData = { 1: 'One', 2: 'Two', 3: 'Three' };
       const inst = optModel(initalData, funcLibrary);
       expect(inst.byName).toEqual({
         One: { title: 'One', idx: '1' },
@@ -320,13 +321,11 @@ describe('testing objects', () => {
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
     it('create objects', async () => {
-      const itemsWithKey = root.mapValues((item, key) => {
-        return {
-          key: key,
+      const itemsWithKey = root.mapValues((item, key) => ({
+          key,
           text: item.get('text'),
           idx: item.get('idx')
-        };
-      });
+        }));
       const itemsByIdx = itemsWithKey.values().keyBy(item => item.get('idx'));
       const model = {
         itemsByIdx,
@@ -341,17 +340,17 @@ describe('testing objects', () => {
       };
       const inst = optModel(initialData, funcLibrary);
       expect(inst.itemsByIdx).toEqual({
-        '0': {
+        0: {
           idx: '0',
           key: 'a',
           text: 'A'
         },
-        '1': {
+        1: {
           idx: '1',
           key: 'b',
           text: 'B'
         },
-        '2': {
+        2: {
           idx: '2',
           key: 'c',
           text: 'C'
@@ -359,17 +358,17 @@ describe('testing objects', () => {
       });
       inst.updateIdx('a', '4');
       expect(inst.itemsByIdx).toEqual({
-        '4': {
+        4: {
           idx: '4',
           key: 'a',
           text: 'A'
         },
-        '1': {
+        1: {
           idx: '1',
           key: 'b',
           text: 'B'
         },
-        '2': {
+        2: {
           idx: '2',
           key: 'c',
           text: 'C'
@@ -377,12 +376,12 @@ describe('testing objects', () => {
       });
       inst.updateItem('a'); /// delete key
       expect(inst.itemsByIdx).toEqual({
-        '1': {
+        1: {
           idx: '1',
           key: 'b',
           text: 'B'
         },
-        '2': {
+        2: {
           idx: '2',
           key: 'c',
           text: 'C'
@@ -591,7 +590,7 @@ describe('testing objects', () => {
       it('should return true for empty object', async () => {
         const initialData = {data: {}}
         const model = {
-          isEmpty: root.get('data').isEmpty(),
+          isEmpty: root.get('data').isEmpty()
         };
         const optModel = eval(compile(model, { compiler }));
 
@@ -602,7 +601,7 @@ describe('testing objects', () => {
       it('should return false for non empty object', async () => {
         const initialData = {data: {a: 1}}
         const model = {
-          isEmpty: root.get('data').isEmpty(),
+          isEmpty: root.get('data').isEmpty()
         };
         const optModel = eval(compile(model, { compiler }));
 

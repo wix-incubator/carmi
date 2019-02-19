@@ -43,4 +43,4 @@ function describeCompilers(compilers, tests) {
   });
 }
 
-module.exports = { currentValues, expectTapFunctionToHaveBeenCalled, funcLibrary, describeCompilers, rand };
+module.exports = {currentValues, expectTapFunctionToHaveBeenCalled, funcLibrary, describeCompilers, rand};

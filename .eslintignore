@@ -1,3 +1,7 @@
 /src/testData
 /src/templates
 /src/babelPlugin/test.compiled.carmi.js
+/website/
+/src/tmp.js
+/docs
+/src/out.js
