@@ -22,6 +22,10 @@ const css = (([css]) => <style dangerouslySetInnerHTML={{ __html: css}} />)`
   .method-link:hover {
     text-decoration:none;
   }
+  .runkit-embed {
+    white-space: pre;
+    cursor:pointer;
+  }
 `
 
 const Wrapper = (props) =>
@@ -38,7 +42,7 @@ const Wrapper = (props) =>
     </head>
     <body>
       {props.children}
-      <script src="/static/runkit.js" />
+      <script src="/runkit.js" />
     </body>
   </html>
 
@@ -58,19 +62,21 @@ const genSignature = (signatures) => _(signatures)
   )
   .join(', ')
 
+const Runkit = ({source}) => source ? <code className="runkit-embed">{source.text}</code> : <small className="muted">example missing</small>
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
-    //.tap((v) => console.dir(v.filter(({id}) => id == 833), {depth: null}))
+    //.tap((v) => console.dir(v.filter(({id}) => id == 755), {depth: null}))
     .map(({id, name, kindString: type, signatures}) =>
       <div className="card mt-2" id={`doc-${id}`}>
         <div className="card-body">
           <h5 className="card-title">
             <a className="text-secondary method-link" href={`#doc-${id}`}>🔗</a>
             <code>
-              {name}({genSignature(signatures)}) {_.get(signatures, '0.comment.tags.0.tag', false) == 'sugar' ? '🍬' : ''}
+              {name}({genSignature(signatures)}) {_.chain(signatures).get('0.comment.tags', []).some({ tag: 'sugar' }).value() ? '🍬' : ''}
             </code>
           </h5>
           <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
+          <Runkit source={_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value()} />
         </div>
       </div>
     )
