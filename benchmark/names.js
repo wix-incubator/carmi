@@ -1,7 +1,7 @@
 function generateTestRecords(count) {
   const res = [];
   for (let idx = 0; idx < count; idx++) {
-    res[idx] = { id: `person_${idx}`, firstName: `first_${idx}`, lastName: `last_${idx}`};
+    res[idx] = {id: `person_${idx}`, firstName: `first_${idx}`, lastName: `last_${idx}`};
   }
   return res;
 }

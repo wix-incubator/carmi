@@ -1,7 +1,7 @@
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
-const { fork } = require('child_process');
+const {fork} = require('child_process');
 
 const tests = ['todos', 'names'];
 const testsConfigs = {
@@ -56,7 +56,7 @@ async function runBenchmarks(testname) {
     for (const type of testsConfigs[testname]) {
       for (const run of runTypes[type]) {
         const vals = await runSingleTest(testname, resolveTestName(testname, type), ...runTypesParams[run]);
-        results.push(Object.assign({ type, run }, vals));
+        results.push(Object.assign({type, run}, vals));
       }
     }
   }

@@ -37,4 +37,4 @@ function collectAllNodes(node, predicate, output) {
   return output;
 }
 
-module.exports = { omit, collectAllNodes, setTo };
+module.exports = {omit, collectAllNodes, setTo};

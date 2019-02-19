@@ -38,4 +38,4 @@ const instValues = Object.keys(inst).reduce((acc, key) => {
 }, {});
 const hash = objectHash(instValues);
 const msg = process.send ? process.send.bind(process) : console.log.bind(console);
-msg(Object.assign({ hash }, cpuUsage, process.memoryUsage()));
+msg(Object.assign({hash}, cpuUsage, process.memoryUsage()));

@@ -1,6 +1,6 @@
 const mobx = require('mobx');
 function todosMobx(initialState) {
-  const todosMap = mobx.observable.object(initialState.todos, {}, { deep: false });
+  const todosMap = mobx.observable.object(initialState.todos, {}, {deep: false});
   const canBeWorkedOn = {};
   const todosDone = {};
   const canBeWorkedOnComputeds = {};

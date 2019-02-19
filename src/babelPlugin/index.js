@@ -2,7 +2,7 @@
 
 const isCarmiRegex = /^(.+\.carmi)(?:\.js)?$/;
 const isCarmiFilename = x => isCarmiRegex.test(x);
-const { relative, resolve } = require('path');
+const {relative, resolve} = require('path');
 const compileFile = require('./compileFile');
 const babylon = require('babylon');
 
@@ -18,7 +18,7 @@ const findCarmiDeclarationComment = file => {
   return comments.find(comment => comment.value.trim().includes('@carmi'));
 };
 
-module.exports = function carmiBabelTransform({ types: t }) {
+module.exports = function carmiBabelTransform({types: t}) {
   return {
     name: 'carmi',
     pre() {

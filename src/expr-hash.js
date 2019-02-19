@@ -1,5 +1,5 @@
 const objectHash = require('object-hash');
-const { memoizeNonPrimitives } = require('./memoize');
+const {memoizeNonPrimitives} = require('./memoize');
 const _ = require('lodash');
 
 let strHash = {};

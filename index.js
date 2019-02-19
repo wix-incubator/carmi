@@ -36,7 +36,7 @@ const prettier = require('prettier');
 
 const unwrapableProxies = require('./src/unwrapable-proxy');
 const proxyHandler = {};
-const { wrap, unwrap } = unwrapableProxies(proxyHandler);
+const {wrap, unwrap} = unwrapableProxies(proxyHandler);
 
 const INDEX_FILE = __filename;
 const SUGAR_FILE = path.resolve(__dirname, 'src/sugar.js')
@@ -290,7 +290,7 @@ proxyHandler.apply = (target, thisArg, args) => {
 function compile(model, options) {
   clearHashStrings();
   if (typeof options === 'boolean' || typeof options === 'undefined') {
-    options = { compiler: options ? 'naive' : 'optimizing' };
+    options = {compiler: options ? 'naive' : 'optimizing'};
   }
   options.name = options.name || 'instance';
   if (options.compiler === 'carmi') {
@@ -301,7 +301,7 @@ function compile(model, options) {
   const hashFile =
     options.cache &&
     !options.ast &&
-    path.resolve(process.cwd(), options.cache, exprHash({ model, options }));
+    path.resolve(process.cwd(), options.cache, exprHash({model, options}));
   if (options.cache) {
     try {
       const result = fs
@@ -319,7 +319,7 @@ function compile(model, options) {
   let source = rawSource;
   if (options.prettier) {
     try {
-      source = prettier.format(rawSource, { parser: 'babylon' });
+      source = prettier.format(rawSource, {parser: 'babylon'});
     } catch (e) { } //eslint-disable-line no-empty
   }
   let result;

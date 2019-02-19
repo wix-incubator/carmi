@@ -10,7 +10,7 @@ const {
 } = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
-const { splitSettersGetters, pathMatches, normalizeAndTagAllGetters } = require('./expr-tagging');
+const {splitSettersGetters, pathMatches, normalizeAndTagAllGetters} = require('./expr-tagging');
 
 class OptimizingCompiler extends SimpleCompiler {
   get template() {

@@ -1,23 +1,23 @@
 const plugin = require('./index');
 const prettier = require('prettier');
 const fs = require('fs');
-const { resolve } = require('path');
+const {resolve} = require('path');
 const babel = require('babel-core');
 
 const formatCode = code =>
   prettier
-    .format(code, { parser: 'babylon' })
+    .format(code, {parser: 'babylon'})
     .trim()
     .replace(/\n+/g, '\n');
 
 it('compiles carmi files to a module that exposes a function', () => {
   const testFile = resolve(__dirname, 'test.carmi.js');
   const original = fs.readFileSync(testFile);
-  const { code } = babel.transform(original, {
+  const {code} = babel.transform(original, {
     plugins: [plugin],
     filename: testFile
   });
-  const fnLib = { sum: arr => arr.reduce((a, b) => a + b) };
+  const fnLib = {sum: arr => arr.reduce((a, b) => a + b)};
 
   // Test simple model
   const modelBuilder = eval(code);
@@ -31,7 +31,7 @@ it('doesn\'t compile non-carmi files', () => {
     const {root} = require('carmi')
     module.exports = {first: root.get(0)}
   `;
-  const { code } = babel.transform(original, {
+  const {code} = babel.transform(original, {
     plugins: [plugin],
     filename: __filename
   });
@@ -42,7 +42,7 @@ it('doesn\'t compile non-carmi files', () => {
 it('idempotent', () => {
   const testFile = resolve(__dirname, 'test.carmi.js');
   const original = fs.readFileSync(testFile);
-  const { code } = babel.transform(original, {
+  const {code} = babel.transform(original, {
     plugins: [plugin],
     filename: testFile
   });
@@ -50,7 +50,7 @@ it('idempotent', () => {
   const compiledTestFile = resolve(__dirname, 'test.compiled.carmi.js');
   fs.writeFileSync(compiledTestFile, code, 'utf-8');
 
-  const { code: code2 } = babel.transform(code, {
+  const {code: code2} = babel.transform(code, {
     plugins: [plugin],
     filename: compiledTestFile
   });
@@ -69,7 +69,7 @@ it('adds require statements for dependencies', () => {
     const _ = require('lodash')
     module.exports = {first: root.get(0)}
   `;
-  const { code } = babel.transform(original, {
+  const {code} = babel.transform(original, {
     plugins: [plugin],
     filename: resolve(__dirname, 'test.carmi.js')
   });
@@ -91,7 +91,7 @@ it('skips files without carmi declaration comment', () => {
     const _ = require('lodash')
     module.exports = {first: root.get(0)}
   `;
-  const { code } = babel.transform(original, {
+  const {code} = babel.transform(original, {
     plugins: [plugin],
     filename: resolve(__dirname, 'test.carmi.js')
   });

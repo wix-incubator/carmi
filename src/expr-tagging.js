@@ -21,7 +21,7 @@ const {
   SourceTag,
   cloneToken
 } = require('./lang');
-const { memoizeExprFunc, memoize } = require('./memoize');
+const {memoizeExprFunc, memoize} = require('./memoize');
 const {exprHash} = require('./expr-hash');
 const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {tagToSimpleFilename} = require('./expr-names');
@@ -136,7 +136,7 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   const allGettersChains = exprsByFunc.filter(
     expr => expr[0].$type === 'get' && (!expr[0].$parent || expr[0].$parent[0].$type !== 'get' || expr[0].$parent[2] !== expr)
   );
-  const foundByType = { root: false, context: false };
+  const foundByType = {root: false, context: false};
   _.forEach(allGettersChains, chainedGetter => {
     let currentStep = chainedGetter;
     const path = [];

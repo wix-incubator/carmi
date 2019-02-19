@@ -1,5 +1,5 @@
-const { root, compile } = require('../../index');
-const { describeCompilers } = require('../test-utils');
+const {root, compile} = require('../../index');
+const {describeCompilers} = require('../test-utils');
 
 describe('trace', () => { //eslint-disable-line padded-blocks
 
@@ -15,11 +15,11 @@ describe('trace', () => { //eslint-disable-line padded-blocks
       }
 
       const optModel = eval(compile(model))
-      const initialData = { a: 1 }
+      const initialData = {a: 1}
 
       const result = optModel(initialData)
 
-      expect(result).toHaveProperty('result', { a: 1})
+      expect(result).toHaveProperty('result', {a: 1})
       expect(console.log).toHaveBeenCalledWith('a', {
         source: 'src/__tests__/trace.js:14:22',
         token: 'root',
@@ -35,7 +35,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
       }
 
       const optModel = eval(compile(model))
-      const initialData = { a: 1 }
+      const initialData = {a: 1}
 
       const result = optModel(initialData)
       expect(result).toHaveProperty('withLabel', 2)
@@ -57,7 +57,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
           result: root.get('a').conditionalTrace(root.get('a'))
         };
 
-        const optModel = eval(compile(model, { compiler }));
+        const optModel = eval(compile(model, {compiler}));
         const initialData = {
           a: true
         };
@@ -74,7 +74,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
           result: root.get('a').conditionalTrace(root.get('a'))
         };
 
-        const optModel = eval(compile(model, { compiler }));
+        const optModel = eval(compile(model, {compiler}));
         const initialData = {
           a: false
         };
@@ -95,14 +95,14 @@ describe('trace', () => { //eslint-disable-line padded-blocks
           result: root.get('a').tapTrace(x => x.plus(2))
         };
 
-        const optModel = eval(compile(model, { compiler }));
+        const optModel = eval(compile(model, {compiler}));
         const initialData = {
           a: 1
         };
 
         const result = optModel(initialData);
         expect(result).toHaveProperty('result', 1)
-        expect(console.log).toHaveBeenCalledWith({ source: expect.any(String), token: 'plus', value: 3 });
+        expect(console.log).toHaveBeenCalledWith({source: expect.any(String), token: 'plus', value: 3});
       })
     })
   })

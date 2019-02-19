@@ -1,5 +1,5 @@
 const babylon = require('babylon');
-const { omit, collectAllNodes } = require('./annotation-utils');
+const {omit, collectAllNodes} = require('./annotation-utils');
 const omitFields = {
   loc: true,
   start: true,
@@ -11,7 +11,7 @@ const omitFields = {
 };
 
 function extractTypes(source) {
-  const ast = babylon.parse(source, { plugins: ['flow'] });
+  const ast = babylon.parse(source, {plugins: ['flow']});
   const types = collectAllNodes(ast, node => node.type === 'TypeAlias').reduce((acc, node) => {
     acc[node.id.name] = omit(node.right, omitFields);
     return acc;
@@ -27,7 +27,7 @@ function extractTypes(source) {
     acc[node.id.name.replace('annotate_', '')] = omit(node.returnType.typeAnnotation, omitFields);
     return acc;
   }, {});
-  return { expr, types };
+  return {expr, types};
 }
 
-module.exports = { extractTypes };
+module.exports = {extractTypes};

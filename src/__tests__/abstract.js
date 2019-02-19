@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, setter, chain, abstract, implement } = require('../../index');
+const {compile, and, or, root, arg0, setter, chain, abstract, implement} = require('../../index');
 const {
     describeCompilers,
     currentValues,
@@ -17,7 +17,7 @@ describe('test the usage of abstracts', () => {
         const allDone = todos.any(todoItem => todoItem.get('done').not()).not()
         implement(todos, root.get('todos'));
         const model = {allDone, todoTitles, set: setter('todos', arg0)}
-        const optCode = eval(compile(model, { compiler }));
+        const optCode = eval(compile(model, {compiler}));
         const initialState = {todos: [{text: 'first', done: false}, {text: 'second', done: true}]}
         const inst = optCode(initialState, funcLibrary);
         expect(inst.todoTitles).toEqual(['first', 'second']);
@@ -36,7 +36,7 @@ describe('test the usage of abstracts', () => {
       const items = root.map(item => item.plus(value));
       implement(value, chain(3));
       const model = {items, set: setter(arg0)}
-      const optCode = eval(compile(model, { compiler, debug: true }));
+      const optCode = eval(compile(model, {compiler, debug: true}));
       const initialState = [1, 2, 3]
       const inst = optCode(initialState, funcLibrary);
       expect(inst.items).toEqual([4, 5, 6]);

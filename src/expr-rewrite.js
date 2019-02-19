@@ -1,9 +1,9 @@
 const _ = require('lodash');
-const { flattenExpression, searchExpressions, searchExpressionsWithoutInnerFunctions, getAllFunctions, flattenExpressionWithoutInnerFunctions } = require('./expr-search');
-const { memoizeExprFunc, memoize } = require('./memoize');
+const {flattenExpression, searchExpressions, searchExpressionsWithoutInnerFunctions, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
+const {memoizeExprFunc, memoize} = require('./memoize');
 const {exprHash, hashString} = require('./expr-hash');
-const { TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func } = require('./lang');
-const { generateName, generateNameFromTag } = require('./expr-names');
+const {TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func} = require('./lang');
+const {generateName, generateNameFromTag} = require('./expr-names');
 const objectHash = require('object-hash');
 
 const countTokens = memoizeExprFunc(expr => _.sum(expr.map(countTokens)), () => 1)
@@ -90,7 +90,7 @@ function rewriteLocalsToFunctions(getters) {
             const hash = exprHash(e);
             const children = flattenExpressionWithoutInnerFunctions(e);
             // console.log(parents && parents.length, children.length);
-            countIdenticals[hash] = { counter: parents.length, children }
+            countIdenticals[hash] = {counter: parents.length, children}
         }
     });
 

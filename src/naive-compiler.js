@@ -1,6 +1,6 @@
-const { Expr, Token, Expression, SpliceSetterExpression, SourceTag, TokenTypeData } = require('./lang');
+const {Expr, Token, Expression, SpliceSetterExpression, SourceTag, TokenTypeData} = require('./lang');
 const _ = require('lodash');
-const { splitSettersGetters, topologicalSortGetters, tagAllExpressions, tagToSimpleFilename } = require('./expr-tagging');
+const {splitSettersGetters, topologicalSortGetters, tagAllExpressions, tagToSimpleFilename} = require('./expr-tagging');
 const objectHash = require('object-hash');
 
 const nativeOps = {
@@ -25,7 +25,7 @@ const typeOfChecks = {
 
 class NaiveCompiler {
   constructor(model, options) {
-    const { getters, setters } = splitSettersGetters(model);
+    const {getters, setters} = splitSettersGetters(model);
     tagAllExpressions(getters);
     this.getters = getters;
     this.setters = setters;
@@ -353,7 +353,7 @@ class NaiveCompiler {
   }
 
   hash() {
-    return objectHash({ getters: this.getters, setters: this.setters });
+    return objectHash({getters: this.getters, setters: this.setters});
   }
 
   get lang() {

@@ -1,5 +1,5 @@
 /*eslint no-eval:0*/
-const { compile, root, and, or, arg0, setter, splice } = require('./index');
+const {compile, root, and, or, arg0, setter, splice} = require('./index');
 const todosByIdx = root.keyBy('idx');
 const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get('done').not());
 const todosDisplayByIdx = todosByIdx.mapValues(todo =>
@@ -15,9 +15,9 @@ const model = {
 
 const todosModel = eval(compile(model));
 const todos = todosModel([
-  { idx: '1', done: false, task: 'write a blog post about carmi' },
-  { idx: '2', done: true, task: 'publish to npm' },
-  { idx: '3', done: false, task: 'write a demo for carmi' }
+  {idx: '1', done: false, task: 'write a blog post about carmi'},
+  {idx: '2', done: true, task: 'publish to npm'},
+  {idx: '3', done: false, task: 'write a demo for carmi'}
 ]);
 console.log(todos.todosDisplay);
 /*

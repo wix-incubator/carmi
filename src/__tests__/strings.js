@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, arg1, setter, splice, bind, chain, template } = require('../../index');
+const {compile, and, or, root, arg0, arg1, setter, splice, bind, chain, template} = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -12,8 +12,8 @@ describe('testing string functions', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
     function testStringFunction(str, func, args, expected) {
       it(`string function: ${func}`, async () => {
-        const model = { transform: root.map(val => val[func](...args).call('tap')) };
-        const optCode = eval(compile(model, { compiler }));
+        const model = {transform: root.map(val => val[func](...args).call('tap'))};
+        const optCode = eval(compile(model, {compiler}));
         const inst = optCode([str], funcLibrary);
         expect(inst.transform[0]).toEqual(expected);
         expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);

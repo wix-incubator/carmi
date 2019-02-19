@@ -1,5 +1,5 @@
-const { compile, and, or, root, arg0, setter } = require('../../index');
-const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
+const {compile, and, or, root, arg0, setter} = require('../../index');
+const {currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand} = require('../test-utils');
 
 const _ = require('lodash');
 

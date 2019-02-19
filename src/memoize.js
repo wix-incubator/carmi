@@ -1,4 +1,4 @@
-const { Expression } = require('./lang');
+const {Expression} = require('./lang');
 
 const memoize = func => {
   const cache = new WeakMap();

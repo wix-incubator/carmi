@@ -27,7 +27,7 @@ Object.keys(results).forEach(testname => {
         acc[key] = val;
         return acc;
       }, {}))
-    .mapValues(({ user, rss }) => `${(user / 1000).toFixed(3)}ms ${(rss / 1000000).toFixed(3)}MB`)
+    .mapValues(({user, rss}) => `${(user / 1000).toFixed(3)}ms ${(rss / 1000000).toFixed(3)}MB`)
     .value();
   console.log(grouped);
   const permCount = runClassOrders.run.length * runClassOrders.type.length;

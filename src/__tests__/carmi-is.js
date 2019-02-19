@@ -1,4 +1,4 @@
-const { setter, splice, isExpression, isSetterExpression, isSpliceExpression, root } = require('../../index');
+const {setter, splice, isExpression, isSetterExpression, isSpliceExpression, root} = require('../../index');
 const _ = require('lodash');
 
 describe('carmi-is', () => {

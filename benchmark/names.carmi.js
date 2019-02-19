@@ -1,4 +1,4 @@
-const { root, arg0, chain, setter } = require('../index');
+const {root, arg0, chain, setter} = require('../index');
 
 module.exports = {
   idToFullName: root.keyBy(record => record.get('id')).mapValues(record =>
