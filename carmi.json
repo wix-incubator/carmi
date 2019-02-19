@@ -139,7 +139,7 @@
               "tags": [
                 {
                   "tag": "example",
-                  "text": "\nconst { root } = require('carmi');\nconst instance = fromSource({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);\ninstance.output\n"
+                  "text": "\nconst { root } = require('carmi');\nconst instance = fromSource({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);\ninstance.output //true\n"
                 }
               ]
             },
