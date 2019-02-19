@@ -139,7 +139,7 @@
               "tags": [
                 {
                   "tag": "example",
-                  "text": "```\nchain([1, 2, 3]).any((value, index) => value.eq(2)) //true (function was executed twice)\nchain([1, 2, 3]).any((value, index) => value.eq(5)) //false (function was executed three times)\n```\n"
+                  "text": "\nconst { root } = require('carmi');\nconst instance = fromSource({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);\ninstance.output\n"
                 }
               ]
             },
