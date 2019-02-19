@@ -1,7 +1,7 @@
 const path = require('path');
 const uuid = require('uuid');
 const fs = require('fs');
-const babylon = require('babylon');
+const babylon = require('@babel/parser');
 const {createMacro, MacroError} = require('babel-plugin-macros');
 const babylonJsx = require('babylon-jsx').default;
 const generate = require('babel-generator');

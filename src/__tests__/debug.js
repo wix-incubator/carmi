@@ -161,7 +161,6 @@ describe('Tests for usability and debugging carmi', () => {
     it('when using non-objects with object functions, throw a nicer error', () => {
       const model = {three: chain(3).mapValues(a => a)}
       const src = compile(model, {compiler, debug: true, cwd: path.resolve(__dirname, '../..')});
-      console.log(src)
       const optCode = eval(src)
       let e
       try {

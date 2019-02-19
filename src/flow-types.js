@@ -1,4 +1,4 @@
-const babylon = require('babylon');
+const babylon = require('@babel/parser');
 const {omit, collectAllNodes} = require('./annotation-utils');
 const omitFields = {
   loc: true,
