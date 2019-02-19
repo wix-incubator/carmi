@@ -14,7 +14,7 @@ const parseCompiledFile = code => {
 
 const findCarmiDeclarationComment = file => {
   const comments = file.ast.comments;
-  if (!comments) return null;
+  if (!comments) {return null;}
   return comments.find(comment => comment.value.trim().includes('@carmi'));
 };
 
@@ -30,7 +30,7 @@ module.exports = function carmiBabelTransform({ types: t }) {
     },
     visitor: {
       Program(path, state) {
-        if (!this.doWork) return;
+        if (!this.doWork) {return;}
         this.programPath = path;
         this.carmiDeclarationComment.value = this.carmiDeclarationComment.value.replace(
           '@carmi',
@@ -38,7 +38,7 @@ module.exports = function carmiBabelTransform({ types: t }) {
         );
       },
       CallExpression(path) {
-        if (!this.doWork) return;
+        if (!this.doWork) {return;}
         if (
           path.node.callee.name === 'require' &&
           path.node.arguments[0].value !== 'carmi'
@@ -48,7 +48,7 @@ module.exports = function carmiBabelTransform({ types: t }) {
       }
     },
     post() {
-      if (!this.doWork) return;
+      if (!this.doWork) {return;}
       const compiledFile = compileFile(this.file.opts.filename);
       const functionAST = parseCompiledFile(compiledFile);
       const moduleExportsAssignment = t.assignmentExpression(

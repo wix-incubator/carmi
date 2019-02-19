@@ -49,14 +49,14 @@ function currentLine() {
     lines
       .slice(1)
       .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(SUGAR_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
-  return externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? '' + parseInt(str, 10) : str).join(':')
+  return externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? `${parseInt(str, 10)}` : str).join(':')
 }
 
 const GLOBAL_TOKEN = '__$CARMI$__';
 
 if (global[GLOBAL_TOKEN]) {
   throw new Error(
-    'require of multiple versions of Carmi is not supported previously loaded from:' + global[GLOBAL_TOKEN]
+    `require of multiple versions of Carmi is not supported previously loaded from:${global[GLOBAL_TOKEN]}`
   );
 }
 global[GLOBAL_TOKEN] = currentLine();
@@ -104,12 +104,11 @@ function convertArrayAndObjectsToExpr(v) {
       }, [])
     );
   } else if (v.constructor === Array) {
-    return createExpr(new Token('array', currentLine()), ...(v.map((entry, index) => withPathInfo(entry, index, path))));
+    return createExpr(new Token('array', currentLine()), ...v.map((entry, index) => withPathInfo(entry, index, path)));
   } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
     return new WrappedPrimitive(v);
-  } else {
+  } 
     return v;
-  }
 }
 
 function createExpr(...args) {
@@ -132,14 +131,14 @@ function createExpr(...args) {
 }
 
 const tokensNotAllowedToReuseFromOtherExpressions = {
-  'val': true,
-  'key': true,
-  'loop': true,
-  'context': true
+  val: true,
+  key: true,
+  loop: true,
+  context: true
 }
 
 function throwOnTokensFromOtherFuncs(expr, type, tag) {
-  searchExpressionsWithoutInnerFunctions( subExpr => {
+  searchExpressionsWithoutInnerFunctions(subExpr => {
     subExpr.forEach(token => {
       if (
         token instanceof Token &&
@@ -208,9 +207,7 @@ const implement = (abstract, expr) => {
   return abstract;
 }
 
-const template = (parts, ...args) => {
-  return parts.slice(1).reduce((result, current, index) => result.plus(args[index]).plus(chain(current)), chain(parts[0]))
-}
+const template = (parts, ...args) => parts.slice(1).reduce((result, current, index) => result.plus(args[index]).plus(chain(current)), chain(parts[0]))
 
 const frontend = {chain, abstract, implement, template}
 Object.keys(TokenTypeData).forEach(t => {
@@ -380,9 +377,9 @@ function withName(name, val) {
     const tokenData = TokenTypeData[tokenType];
     if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
       name = name.replace(/[\W_]+/g, '');
-      val[0][SourceTag] = val[0][SourceTag] + ':' + name;
+      val[0][SourceTag] = `${val[0][SourceTag]}:${name}`;
     } else {
-      throw new Error('can only name collection functions:' + name);
+      throw new Error(`can only name collection functions:${name}`);
     }
     return val;
   }

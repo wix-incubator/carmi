@@ -7,7 +7,7 @@ const res = f => resolve(__dirname, '../testData', f);
 const resObject = (obj) => {
   const result = {};
 
-  for (const key in obj) {
+  for (const key in obj) { //eslint-disable-line guard-for-in
     result[res(key)] = obj[key].map(res);
   }
 

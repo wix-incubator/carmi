@@ -1,3 +1,5 @@
+/*eslint no-nested-ternary:0*/
+
 class TokenType {
   constructor(options) {
     options = options || {};
@@ -10,10 +12,10 @@ class TokenType {
     this.nonChained = options.nonChained || this.nonVerb || false;
     this.recursive = options.recursive || false;
     this.tryToHoist = options.tryToHoist || this.collectionVerb;
-    this.expectedTypes = 
-    options.expectedTypes || 
-    (this.arrayVerb ? ['array'] :
-    this.collectionVerb ? ['object']: null)
+    this.expectedTypes =
+      options.expectedTypes ||
+      (this.arrayVerb ? ['array'] :
+        this.collectionVerb ? ['object'] : null)
   }
 }
 

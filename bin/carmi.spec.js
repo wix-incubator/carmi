@@ -4,8 +4,6 @@ const path = require('path');
 const tempy = require('tempy');
 const invert = require('invert-promise');
 
-const runBinary = args => exec(`${BINARY_PATH} ${args}`);
-
 const BINARY_PATH = path.resolve(__dirname, 'carmi');
 const CARMI_MODEL = path.resolve(
   __dirname,
@@ -14,6 +12,8 @@ const CARMI_MODEL = path.resolve(
   'babelPlugin',
   'test.carmi.js'
 );
+
+const runBinary = args => exec(`${BINARY_PATH} ${args}`);
 
 describe('carmi binary', () => {
   it('has a help menu', async () => {

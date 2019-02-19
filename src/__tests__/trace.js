@@ -1,7 +1,7 @@
 const { root, compile } = require('../../index');
 const { describeCompilers } = require('../test-utils');
 
-describe('trace', () => {
+describe('trace', () => { //eslint-disable-line padded-blocks
 
   afterEach(() => {
     jest.restoreAllMocks()
@@ -11,7 +11,7 @@ describe('trace', () => {
       jest.spyOn(console, 'log').mockReturnValue(undefined)
 
       const model = {
-        result: root.trace('a'),
+        result: root.trace('a')
       }
 
       const optModel = eval(compile(model))
@@ -21,9 +21,9 @@ describe('trace', () => {
 
       expect(result).toHaveProperty('result', { a: 1})
       expect(console.log).toHaveBeenCalledWith('a', {
-        "source": "src/__tests__/trace.js:14:22",
-        "token": "root",
-        "value": {a: 1}
+        source: 'src/__tests__/trace.js:14:22',
+        token: 'root',
+        value: {a: 1}
       })
     })
 
@@ -40,9 +40,9 @@ describe('trace', () => {
       const result = optModel(initialData)
       expect(result).toHaveProperty('withLabel', 2)
       expect(console.log).toHaveBeenCalledWith('a:', {
-        "source": "src/__tests__/trace.js:34:34",
-        "token": "plus",
-        "value": 2
+        source: 'src/__tests__/trace.js:34:34',
+        token: 'plus',
+        value: 2
       })
     })
   })
@@ -106,5 +106,4 @@ describe('trace', () => {
       })
     })
   })
-
 })

@@ -44,9 +44,9 @@ describe('Tests for usability and debugging carmi', () => {
       }
       const optCode = eval(compile(model, { compiler }));
       const inst = optCode([], funcLibrary);
-      expect(inst.test1).toEqual({test:true});
-      expect(inst.test2).toEqual({test:true});
-      expect(inst.test3).toEqual({test:false});
+      expect(inst.test1).toEqual({test: true});
+      expect(inst.test2).toEqual({test: true});
+      expect(inst.test3).toEqual({test: false});
     });
     it('throw on invalid arguments in setter function', async () => {
       const args = ['store', arg0, true]
@@ -158,7 +158,7 @@ describe('Tests for usability and debugging carmi', () => {
   });
 
   describeCompilers(['optimizing'], compiler => {
-    it ('when using non-objects with object functions, throw a nicer error', () => {
+    it('when using non-objects with object functions, throw a nicer error', () => {
       const model = {three: chain(3).mapValues(a => a)}
       const src = compile(model, { compiler, debug: true, cwd: path.resolve(__dirname, '../..') });
       const optCode = eval(src)
@@ -199,5 +199,4 @@ describe('Tests for usability and debugging carmi', () => {
       expect(e.message).toContain('0}.filter')
     })
   })
-
 });

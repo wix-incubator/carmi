@@ -54,7 +54,7 @@ describe('testing array', () => {
             todo.get('done'),
             todo
               .get('subTasks')
-              .any((idx, _, context) => idx.recur(context).not(), loop)
+              .any((idx, _, context) => idx.recur(context).not(), loop) //eslint-disable-line no-shadow
               .not()
           ).call('tap')
         ),

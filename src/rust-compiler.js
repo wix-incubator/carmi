@@ -28,9 +28,9 @@ class RustCompiler extends NaiveCompiler {
     super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, options);
   }
 
-  buildDerived(name) {
-    return `$${name}Build();`;
-  }
+  // buildDerived(name) {
+  //   return `$${name}Build();`;
+  // }
 
   classOfToken(token) {
     if (token instanceof Expression) {
@@ -38,7 +38,7 @@ class RustCompiler extends NaiveCompiler {
     } else if (constantsTypeAnnotations[typeof token]) {
       return { type: constantsTypeAnnotations[typeof token] };
     } else if (token.$type === 'root') {
-      return this.types['Model'];
+      return this.types.Model;
     } else if (token.$type === 'val') {
       return this.exprAnnotations[findFuncExpr(this.getters, token.$funcId)[0].$id].params[0].typeAnnotation;
     } else if (token.$type === 'key') {
@@ -47,9 +47,8 @@ class RustCompiler extends NaiveCompiler {
       return this.topLevelType;
     } else if (token.$type && token.$id && this.exprAnnotations[token.$id]) {
       return this.exprAnnotations[token.$id];
-    } else {
-      throw new Error('tried to classify unknown token ' + JSON.stringify(token));
-    }
+    } 
+      throw new Error(`tried to classify unknown token ${JSON.stringify(token)}`);
   }
 
   resolveToken(token) {
@@ -197,7 +196,7 @@ class RustCompiler extends NaiveCompiler {
           .join(',')})`;*/
       default:
         if (typeof currentToken === 'boolean' || typeof currentToken === 'number') {
-          return '' + currentToken;
+          return `${currentToken}`;
         }
         return `/*${JSON.stringify(currentToken)}*/`;
     }
@@ -257,16 +256,16 @@ impl JsConvertable for ${type.name} {
       ID: () => expr[0].$id,
       RETURN: () => flowAnnotationToRustType(currentToken === 'func' ? exprAnnotate.returnType : exprAnnotate),
       ARGS: () =>
-        currentToken === 'func'
-          ? exprAnnotate.params
+        currentToken === 'func' ?
+          exprAnnotate.params
               .map(
                 param =>
                   `,${param.name.name}: ${rustTypeBorrows(param.typeAnnotation) ? '&' : ''}${flowAnnotationToRustType(
                     param.typeAnnotation
                   )}`
               )
-              .join('')
-          : ''
+              .join('') :
+          ''
     };
   }
 
@@ -278,7 +277,7 @@ impl JsConvertable for ${type.name} {
   tagTokenAnnotations(expr, name) {
     if (expr instanceof Expression) {
       expr.forEach(child => {
-        if (child instanceof Expression && child[0].$type === 'func') {
+        if (child instanceof Expression && child[0].$type === 'func') { //eslint-disable-line no-empty
         }
       });
     }

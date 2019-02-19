@@ -28,6 +28,7 @@ function cloneToken(token) {
   return new Token(token.$type, token[SourceTag]);
 }
 
+/*eslint no-use-before-define:0*/
 function Clone(model) {
   if (model instanceof Token) {
     return cloneToken(model);
@@ -114,7 +115,7 @@ const TokenTypeData = {
   minus: new TokenTypes({ chainIndex: 1, len: [3, 3], expectedTypes: ['number']}),
   mult: new TokenTypes({ chainIndex: 1, len: [3, 3], expectedTypes: ['number']}),
   div: new TokenTypes({ chainIndex: 1, len: [3, 3], expectedTypes: ['number']}),
-  mod: new TokenTypes({ chainIndex: 1, len: [3, 3], expectedTypes: ['number']} ),
+  mod: new TokenTypes({ chainIndex: 1, len: [3, 3], expectedTypes: ['number']}),
   breakpoint: new TokenTypes({chainIndex: 1, len: [2, 2]}),
   call: new TokenTypes({ nonChained: true, chainIndex: 2, len: [3, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
   bind: new TokenTypes({ nonChained: true, chainIndex: 2, len: [2, Number.MAX_SAFE_INTEGER], tryToHoist: true }),
@@ -136,7 +137,7 @@ const TokenTypeData = {
   isNumber: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isArray: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   abstract: new TokenTypes({ nonChained: true, len: [3, 3], private: true }),
-  quote: new TokenTypes({ nonChained: true, len: [2, 2], private: true }),
+  quote: new TokenTypes({ nonChained: true, len: [2, 2], private: true })
 };
 
 const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
@@ -145,7 +146,10 @@ const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
 }, {});
 
 class Expression extends Array {
-  constructor(...tokens) {
+  /**
+   * @param {...string} tokens
+   */
+  constructor(...tokens) { //eslint-disable-line no-useless-constructor
     super(...tokens);
   }
 }
@@ -161,7 +165,7 @@ class SpliceSetterExpression extends SetterExpression {
   }
 }
 AllTokens.Token = Token;
-AllTokens.Expr = (...args) => new Expression(Clone(args[0]),...args.slice(1));
+AllTokens.Expr = (...args) => new Expression(Clone(args[0]), ...args.slice(1));
 
 function validatePathSegmentArguments(args) {
   const invalidArgs = args.filter(arg =>

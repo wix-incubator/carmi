@@ -35,7 +35,7 @@ const toposort = require('toposort');
 
 function printPaths(title, paths) {
   const output = []
-  paths.forEach((cond,path) => {
+  paths.forEach((cond, path) => {
     let condValue = cond
     if (cond instanceof Expression) {
       condValue = JSON.parse(JSON.stringify(cond))
@@ -75,10 +75,8 @@ function joinOr(...conds) {
 
 function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) {
   const pathPartsCnt = countPathParts(pathAsStr);
-  const nearestDeeperPaths = Object.keys(outputCondsByPathStr).filter(otherPathStr => {
-    return countPathParts(otherPathStr) === pathPartsCnt + 1 &&
-        otherPathStr.substr(0, pathAsStr.length) === pathAsStr;
-  });
+  const nearestDeeperPaths = Object.keys(outputCondsByPathStr).filter(otherPathStr => countPathParts(otherPathStr) === pathPartsCnt + 1 &&
+        otherPathStr.substr(0, pathAsStr.length) === pathAsStr);
   const nearestDeeperPathsCond = joinOr(...nearestDeeperPaths.map(otherPathStr => outputCondsByPathStr[otherPathStr]))
   const condsOfOnlyTested = [];
   const condsOfUsed = [];
@@ -107,7 +105,7 @@ function groupPathsThatCanBeInvalidated(paths) {
   paths.forEach((cond, path) => {
     const pathAsStr = path.map(part => {
       if (typeof part === 'string' || typeof part === 'number') {
-        return ''+part;
+        return `${part}`;
       }
       if (part instanceof Token && part.$type === 'root' || part.$type === 'topLevel') {
         return `***${part.$type}***`;
@@ -141,7 +139,7 @@ function annotatePathsThatCanBeInvalidated(exprsByFunc) {
   const foundByType = { root: false, context: false };
   _.forEach(allGettersChains, chainedGetter => {
     let currentStep = chainedGetter;
-    let path = [];
+    const path = [];
     while (currentStep instanceof Expression && currentStep[0].$type === 'get') {
       path.unshift(currentStep[1]);
       currentStep = currentStep[2];
@@ -170,9 +168,8 @@ function pathFragmentToString(token) {
     return token.$type;
   } else if (token instanceof Expression && token[0].$type === 'invoke') {
     return token[1];
-  } else {
+  } 
     return '*';
-  }
 }
 
 function pathToString(path) {
@@ -218,7 +215,7 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
         tagExpressions(subExpression, name, currentDepth, indexChain.concat(childIndex), funcType, rootName);
       } else {
         subExpression[0].$funcType = expr[0].$type;
-        tagExpressions(subExpression, name + '$' + expr[0].$id, currentDepth + 1, indexChain, expr[0].$type, rootName);
+        tagExpressions(subExpression, `${name}$${expr[0].$id}`, currentDepth + 1, indexChain, expr[0].$type, rootName);
       }
       subExpression[0].$parent = expr;
     } else if (subExpression instanceof Token) {
@@ -257,9 +254,9 @@ function tagUnconditionalExpressions(expr, cond) {
   }
   expr[0].$conditional = cond;
   const $type = expr[0].$type;
-  if ($type === 'or' || $type === 'and' || $type == 'ternary') {
+  if ($type === 'or' || $type === 'and' || $type === 'ternary') {
     tagUnconditionalExpressions(expr[1], cond);
-    expr.slice(2).forEach((subExpr,subIndex) => tagUnconditionalExpressions(subExpr, [expr, subIndex+2]));
+    expr.slice(2).forEach((subExpr, subIndex) => tagUnconditionalExpressions(subExpr, [expr, subIndex + 2]));
   } else if ($type === 'func') {
     tagUnconditionalExpressions(expr[1], false);
   } else {
@@ -270,9 +267,8 @@ function tagUnconditionalExpressions(expr, cond) {
 function parentFunction(expr) {
   if (expr[0].$type === 'func' || !expr[0].$parent) {
     return expr;
-  } else {
+  } 
     return parentFunction(expr[0].$parent);
-  }
 }
 
 function unmarkPathsThatHaveNoSetters(getters, setters) {
@@ -297,7 +293,7 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
           // console.log('path can be invalidated', JSON.stringify(path))
           canBeExprBeInvalidated = true;
           trackCond = true;
-        } else if (path[0].$type !== 'context')  {
+        } else if (path[0].$type !== 'context') {
           pathMap.delete(path);
         } else {
           trackCond = true;
@@ -359,6 +355,8 @@ const canHaveSideEffects = memoizeExprFunc(expr => {
   return expr.some(child => canHaveSideEffects(child));
 }, () => false)
 
+/*eslint no-fallthrough:0*/
+/*eslint no-case-declarations:0*/
 const deadCodeElimination = memoizeExprFunc(
   expr => {
     const children = expr.map((child, idx) => deadCodeElimination(child));
@@ -376,7 +374,7 @@ const deadCodeElimination = memoizeExprFunc(
       case 'and':
         const firstFalsy = expr
           .slice(1)
-          .findIndex(t => (Object(t) !== t && !t) || (t instanceof Token && t.$type === 'null'));
+          .findIndex(t => Object(t) !== t && !t || t instanceof Token && t.$type === 'null');
         if (firstFalsy === 0) {
           return children[1];
         } else if (firstFalsy > 0) {
@@ -395,7 +393,7 @@ function dedupFunctionsObjects(getters) {
   let duplicateFunctions = 0;
   allFunctions
     .forEach(expr => {
-      const hash = exprHash(expr) + '.' + expr[0].$parent[0].$type + '.' + expr[0].$invalidates;
+      const hash = `${exprHash(expr)}.${expr[0].$parent[0].$type}.${expr[0].$invalidates}`;
       if (!prevFunctions.has(hash)) {
         expr[0].$duplicate = false;
         prevFunctions.set(hash, expr)
@@ -425,16 +423,14 @@ function dedupFunctionsObjects(getters) {
   // console.log('duplicated', allFunctions.length, prevFunctions.size);
 }
 
-const allPathsInGetter = memoize(getter => {
-  return _(flattenExpression([getter]))
+const allPathsInGetter = memoize(getter => _(flattenExpression([getter]))
     .filter(e => e instanceof Expression && e[0].$path)
     .map(e => Array.from(e[0].$path.entries()))
     .flatten()
     .reduce((acc, item) => {
       acc.set(item[0], item[1]);
       return acc;
-    }, new Map());
-});
+    }, new Map()));
 
 function pathMatches(srcPath, trgPath) {
   // console.log('pathMatches', JSON.stringify(srcPath), JSON.stringify(trgPath));
@@ -450,7 +446,7 @@ function pathMatches(srcPath, trgPath) {
 
 function collectAllTopLevelInExpr(expr, acc) {
   acc = acc || {};
-  if ((expr[0].$type === 'get' && expr[2] instanceof Token && expr[2].$type === 'topLevel') || expr[0].$type === 'invoke') {
+  if (expr[0].$type === 'get' && expr[2] instanceof Token && expr[2].$type === 'topLevel' || expr[0].$type === 'invoke') {
     acc[expr[1]] = true;
   } else {
     expr.forEach(token => {

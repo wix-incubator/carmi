@@ -356,11 +356,11 @@ describe('testing array', () => {
         set: setter(arg0)
       }
       const optModel = eval(compile(model, { compiler }))
-      const initialData = [[1], [3], [4,[5]]]
+      const initialData = [[1], [3], [4, [5]]]
       const inst = optModel(initialData, funcLibrary)
-      expect(inst.result).toEqual([1,3,4,[5]])
+      expect(inst.result).toEqual([1, 3, 4, [5]])
       inst.set(0, [2])
-      expect(inst.result).toEqual([2,3,4,[5]])
+      expect(inst.result).toEqual([2, 3, 4, [5]])
     })
     it('flatten thats not deep with objects', async () => {
       const model = {
@@ -368,9 +368,9 @@ describe('testing array', () => {
         set: setter(arg0)
       }
       const optModel = eval(compile(model, { compiler }))
-      const initialData = [[{a:1}], [{a:3}], [{a:4}]]
+      const initialData = [[{a: 1}], [{a: 3}], [{a: 4}]]
       const inst = optModel(initialData, funcLibrary)
-      expect(inst.result).toEqual([{a:1}, {a:3}, {a:4}])
+      expect(inst.result).toEqual([{a: 1}, {a: 3}, {a: 4}])
     })
     it('flatten array changes length', async () => {
       const model = {
@@ -420,7 +420,7 @@ describe('testing array', () => {
       expect(inst.result).toEqual([68, 68, 3, 4])
       expect(inst.result2).toEqual([68, 68, 3, 4])
     })
-    it('flatten with two empty arrays',  async () => {
+    it('flatten with two empty arrays', async () => {
        const model = {
         clean: root.get('target'),
         data: root.get('target').map(v => v),
@@ -429,16 +429,15 @@ describe('testing array', () => {
         splice: splice('target')
       }
       const optModel = eval(compile(model, { compiler }))
-      const initialData = {target: [[],[]]}
+      const initialData = {target: [[], []]}
       const inst = optModel(initialData, funcLibrary)
       expect(inst.result).toEqual([])
       inst.splice(0, 0, [], [], [])
       expect(inst.result).toEqual([])
       inst.splice(2, 0, [1])
       expect(inst.result).toEqual([1])
-
     })
-    it('flatten with adding empty array',  async () => {
+    it('flatten with adding empty array', async () => {
        const model = {
         clean: root.get('target'),
         data: root.get('target').map(v => v),
@@ -454,7 +453,6 @@ describe('testing array', () => {
       expect(inst.result).toEqual([3, 4])
       inst.splice(0, 0, [], [6], [])
       expect(inst.result).toEqual([6, 3, 4])
-
     })
     it('flatten with empty array', async () => {
       const model = {
@@ -496,7 +494,7 @@ describe('testing array', () => {
         set: setter(arg0)
       };
       const optModel = eval(compile(model, { compiler }));
-      const initialData = [1,2,3,4];
+      const initialData = [1, 2, 3, 4];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual(10);
       inst.splice(0, 1)
@@ -527,7 +525,6 @@ describe('testing array', () => {
       expect(inst.result).toEqual([1, 3, 5]);
       inst.set(2, 1);
       expect(inst.result).toEqual([1, 3, 1]);
-
     });
 
     it('concat with empty array', async () => {
@@ -582,7 +579,7 @@ describe('testing array', () => {
         const initialData = { data: [1, 2, 3]};
         const value = 1
         const model = {
-          includes: root.get('data').includes(value),
+          includes: root.get('data').includes(value)
         };
         const optModel = eval(compile(model, { compiler }));
 
@@ -593,7 +590,7 @@ describe('testing array', () => {
         const initialData = { data: [1, 2, 3]};
         const value = 4
         const model = {
-          includes: root.get('data').includes(value),
+          includes: root.get('data').includes(value)
         };
         const optModel = eval(compile(model, { compiler }));
 
@@ -665,7 +662,7 @@ describe('testing array', () => {
       const extraFn = {
         double: x => x * 2,
         mult: (x, y) => x * y,
-        updateSelf: function(index, val) {
+        updateSelf(index, val) {
           this.set(index, val);
         }
       };
@@ -696,7 +693,7 @@ describe('testing array', () => {
       it('should return true for empty array', async () => {
         const initialData = {data: []}
         const model = {
-          isEmpty: root.get('data').isEmpty(),
+          isEmpty: root.get('data').isEmpty()
         };
         const optModel = eval(compile(model, { compiler }));
 
@@ -707,7 +704,7 @@ describe('testing array', () => {
       it('should return false for non empty array', async () => {
         const initialData = {data: [1]}
         const model = {
-          isEmpty: root.get('data').isEmpty(),
+          isEmpty: root.get('data').isEmpty()
         };
         const optModel = eval(compile(model, { compiler }));
 
@@ -776,7 +773,7 @@ describe('testing array', () => {
           isArray: root.isArray()
         };
         const optModel = eval(compile(model, { compiler }));
-        const initialData = [1,2,3];
+        const initialData = [1, 2, 3];
 
         const inst = optModel(initialData);
         expect(inst.isArray).toEqual(true);
@@ -791,8 +788,6 @@ describe('testing array', () => {
         const inst = optModel(initialData);
         expect(inst.isArray).toEqual(false);
       });
-
     });
-
   });
 });

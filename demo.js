@@ -1,3 +1,4 @@
+/*eslint no-eval:0*/
 const { compile, root, and, or, arg0, setter, splice } = require('./index');
 const todosByIdx = root.keyBy('idx');
 const anyTodoNotDone = todosByIdx.anyValues(todo => todo.get('done').not());
