@@ -23,8 +23,8 @@ const css = (([css]) => <style dangerouslySetInnerHTML={{ __html: css}} />)`
     text-decoration:none;
   }
   .runkit-embed {
-    white-space: pre;
-    cursor:pointer;
+    overflow: hidden;
+    cursor: pointer;
   }
 `
 
@@ -37,12 +37,15 @@ const Wrapper = (props) =>
       <link rel="shortcut icon" href="/img/favicon.ico"/>
       <title>{props.title}</title>
       <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" crossOrigin="anonymous"/>
+      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/tomorrow.min.css" />
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
       {css}
 
     </head>
     <body>
       {props.children}
       <script src="/runkit.js" />
+      <script>hljs.initHighlightingOnLoad()</script>
     </body>
   </html>
 
@@ -62,7 +65,7 @@ const genSignature = (signatures) => _(signatures)
   )
   .join(', ')
 
-const Runkit = ({source}) => source ? <code className="runkit-embed">{source.text}</code> : <small className="muted">example missing</small>
+const Runkit = ({source}) => source ? <pre><code className="runkit-embed lang-JavaScript">{source.text.trim()}</code></pre> : <small className="muted">example missing</small>
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
     //.tap((v) => console.dir(v.filter(({id}) => id == 755), {depth: null}))
