@@ -5,6 +5,7 @@
   	element.addEventListener('click', () => {
   		const source = element.innerText
   		const container = document.createElement('div')
+      container.style.overflow = 'hidden'
   		element.parentNode.parentNode.appendChild(container)
   		element.parentNode.style.display = 'none'
   		RunKit.createNotebook({
