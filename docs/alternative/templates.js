@@ -73,6 +73,7 @@ const IssueLink = ({name, id}) => <a target="_blank" href={`https://github.com/w
   \`\`\`
 `)}&title=${encodeURIComponent(`Example for ${name}`)}`}>Add example/suggest documentation</a>
 
+
 const Runkit = ({source, name, id}) => source ? <pre><code className="runkit-embed lang-JavaScript">{source.text.trim()}</code></pre> : <IssueLink name={name} id={id}/>
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
