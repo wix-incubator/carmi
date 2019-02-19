@@ -254,14 +254,14 @@ class NaiveCompiler {
       TYPE_CHECK: () => {
         const typeData = TokenTypeData[tokenType]
 
-        if (!this.options.debug || !typeData || !typeData.expectedType) {
+        if (!this.options.debug || !typeData || !_.size(typeData.expectedTypes)) {
           return ''
         }
 
         const input = (expr[typeData.chainIndex] instanceof Expression || expr[typeData.chainIndex] instanceof Token) ? this.generateExpr(expr[typeData.chainIndex]) : expr[typeData.chainIndex]
         const name = currentToken.$rootName
         const source = this.shortSource(currentToken[SourceTag])
-        return `checkType(${input}, '${name}', '${typeData.expectedType}', '${tokenType}', '${source}')`
+        return `checkTypes(${input}, '${name}', ${JSON.stringify(typeData.expectedTypes)}, '${tokenType}', '${source}')`
       },
 
     ID: () => expr[0].$id,
