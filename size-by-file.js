@@ -1,4 +1,4 @@
-const babylon = require('babylon');
+const babylon = require('@babel/parser');
 const args = process.argv.slice(2);
 const src = require('fs')
   .readFileSync(args[0])
