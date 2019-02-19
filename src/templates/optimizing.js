@@ -930,24 +930,25 @@ function library() {
     }
 
     function buildSetter({type, path}) {
-      const pathAsFunctions = path.map(token => token.arg ? args => args[token.arg] : () => token.prop)
+      const pathAsFunctions = path.map(token => token.hasOwnProperty('arg') ? args => args[token.arg] : () => token.prop)
+      const numArgs = path.filter(p => p.hasOwnProperty('arg')).length
       const resolvePath = args => pathAsFunctions.map(part => part(args))
       const getAssignablePath = (parts, index) => parts.slice(0, index).reduce((agg, p) => agg[p], $model)
       const invalidate = parts => {
         parts.forEach((part, index) => {
-          triggerInvalidations(getAssignablePath(parts, index), part, index === part.length - 1)
+          triggerInvalidations(getAssignablePath(parts, index), part, index === path.length - 1)
         })
       }
 
       const setterFunc = {
         set: (path, value) => {
           invalidate(path)
-          $applySetter(getAssignablePath(path, path.length), value)
+          $applySetter(getAssignablePath(path, path.length - 1), path[path.length - 1], value)
         },
 
         splice: (pathWithKey, len, ...newItems) => {
-          const key = pathWithKey[path .length - 1]
-          const path = pathWithKey.slice(0, path.length - 1)
+          const key = pathWithKey[pathWithKey.length - 1]
+          const path = pathWithKey.slice(0, pathWithKey.length - 1)
           const arr = getAssignablePath(path, path.length)
           const origLength = arr.length;
           const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
@@ -962,13 +963,12 @@ function library() {
 
       return $setter.bind(null, (...args) => {
         const resolvedPath = resolvePath(args)
-        setterFunc(resolvedPath, args.slice(resolvedPath.length))
+        setterFunc(resolvedPath, ...args.slice(numArgs))
       })
     }
 
     function buildSettersFromProjectionData() {
-      const {setters} = $projectionData
-      console.log(JSON.stringify($projectionData))
+      const setters = $projectionData.setters
       return Object.keys(setters).map(name => ({[name]: buildSetter(setters[name])})).reduce((agg, v) => Object.assign(agg, v), {})
     }
   }

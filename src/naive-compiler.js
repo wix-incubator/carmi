@@ -339,13 +339,13 @@ class NaiveCompiler {
       }, {})) : '',
       LIBRARY: () => this.mergeTemplate(this.template.library, {}),
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
-      PROJECTIONS: () => '',
+      PROJECTION_DATA: () => '{}',
       DERIVED: () =>
         topologicalSortGetters(this.getters)
           .filter(name => this.getters[name][0].$type !== 'func')
           .map(this.buildDerived.bind(this))
           .join('\n'),
-      SETTERS: () => _.map(this.setters, this.buildSetter.bind(this)).join(',')
+      SETTERS: () => `{${_.map(this.setters, this.buildSetter.bind(this)).join(',')}}`
     };
   }
 

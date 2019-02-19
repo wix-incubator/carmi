@@ -21,7 +21,7 @@ class OptimizingCompiler extends SimpleCompiler {
     return Object.assign({}, super.topLevelOverrides(), {
       RESET: `$first = false;
 $tainted = new WeakSet();`,
-      SETTERS: () => '...buildSettersFromProjectionData()',
+      SETTERS: () => 'buildSettersFromProjectionData()',
       PROJECTION_DATA: () => JSON.stringify(this.buildProjectionData())
     });
   }
@@ -211,18 +211,17 @@ $tainted = new WeakSet();`,
     const isSplice = setter instanceof SpliceSetterExpression
     const numTokens = setter.filter(part => part instanceof Token).length - 1
 
-    console.log(setter)
     return {type: isSplice ? 'splice' : 'set', path: [...setter.slice(1)]
       .map(token => {
         if (token instanceof Token) {
           if (isSplice && token.$type === 'key') {
-            return {arg: numTokens}
+            return {arg: numTokens - 1}
           }
           const argMatch = token.$type ? token.$type.match(/arg(\d)/) : null
           return argMatch ? {arg: +argMatch[1]} : token
         }
 
-        return token
+        return {prop: token}
       })
     }
   }
