@@ -68,7 +68,7 @@ async function runAllBenchmarks() {
   for (const testname of tests) {
     results[testname] = await runBenchmarks(testname);
   }
-  fs.writeFileSync(path.resolve(__dirname, 'generated', 'results.json'), JSON.stringify(results, null, 2));
+  fs.writeJsonSync(path.resolve(__dirname, 'generated', 'results.json'), results, {spaces: 2});
 }
 
 try {

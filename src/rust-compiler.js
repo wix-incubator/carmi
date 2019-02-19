@@ -3,9 +3,9 @@ const _ = require('lodash');
 const t = require('babel-types');
 const NaiveCompiler = require('./naive-compiler');
 const {splitSettersGetters, normalizeAndTagAllGetters, findFuncExpr} = require('./expr-tagging');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
-const {writeFile, readFile} = require('./promise-fs');
+const {writeFile, readFile} = require('fs-extra');
 const FlowCompiler = require('./flow-compiler');
 const {
   extractAllTypeDeclerations,
@@ -210,14 +210,13 @@ class RustCompiler extends NaiveCompiler {
     const annotationsFile = path.join(__dirname, '..', 'cache', `${this.hash()}.json`);
     console.log(annotationsFile);
     try {
-      const annotations = fs.readFileSync(annotationsFile);
-      this.annotations = JSON.parse(annotations.toString());
+      this.annotations = fs.readJsonSync(annotationsFile);
       console.log('annotations: found in cache');
     } catch (e) {
       const flowCompiler = new FlowCompiler(Object.assign({}, this.getters, this.setters), this.options);
       flowCompiler.compile();
       this.annotations = flowCompiler.annotations;
-      fs.writeFileSync(annotationsFile, JSON.stringify(this.annotations));
+      fs.writeJsonSync(annotationsFile, this.annotations);
       console.log('annotations: not found in cache, generated new');
     }
     return this.annotations;
