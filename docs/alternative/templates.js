@@ -23,6 +23,7 @@ const css = (([css]) => <style dangerouslySetInnerHTML={{ "__html": css}} />)`
     text-decoration:none;
   }
 `
+
 const Wrapper = (props) => (
   <html lang="en">
     <head>
@@ -33,9 +34,11 @@ const Wrapper = (props) => (
       <title>{props.title}</title>
       <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" crossOrigin="anonymous"/>
       {css}
+
     </head>
     <body>
       {props.children}
+      <script src="/static/runkit.js" />
     </body>
   </html>
 )
