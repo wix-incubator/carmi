@@ -1,5 +1,5 @@
-const { root, compile } = require('../../index');
-const { describeCompilers } = require('../test-utils');
+const {root, compile} = require('../../index');
+const {describeCompilers} = require('../test-utils');
 
 describe('switch', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
@@ -12,7 +12,7 @@ describe('switch', () => {
         ])
       };
 
-      const optModel = eval(compile(model, { compiler }));
+      const optModel = eval(compile(model, {compiler}));
       const initialData = {
         a: 2
       };
@@ -30,7 +30,7 @@ describe('switch', () => {
         ], 'Oops')
       };
 
-      const optModel = eval(compile(model, { compiler }));
+      const optModel = eval(compile(model, {compiler}));
       const initialData = {
         a: 4
       };

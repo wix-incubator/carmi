@@ -1,4 +1,4 @@
-const { and, or, root, arg0, setter } = require('../index');
+const {and, or, root, arg0, setter} = require('../index');
 
 function TodosModel() {
   const todos = root.get('todos');

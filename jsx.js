@@ -1,7 +1,7 @@
-const { chain } = require('./index');
+const {chain} = require('./index');
 
 function createElement(...args) {
   return chain([...args]).call('createElement');
 }
 
-module.exports = { createElement };
+module.exports = {createElement};

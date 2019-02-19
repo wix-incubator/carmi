@@ -1,7 +1,7 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
-const results = JSON.parse(fs.readFileSync(path.join(__dirname, 'generated', 'results.json')).toString());
+const results = fs.readJsonSync(path.join(__dirname, 'generated', 'results.json'));
 const runValues = ['user', 'rss'];
 const runClass = ['run', 'type'];
 const runClassOrders = {
@@ -20,16 +20,14 @@ Object.keys(results).forEach(testname => {
   console.log(testResults.length);
   const grouped = _(testResults)
     .groupBy(run => runClass.map(key => run[key]).join(':'))
-    .mapValues(runsOfType => {
-      return runValues.reduce((acc, key) => {
+    .mapValues(runsOfType => runValues.reduce((acc, key) => {
         const raw = _.map(runsOfType, key);
         // const val = _.sum(raw) / runsOfType.length;
         const val = raw.sort()[Math.round(runsOfType.length / 2)];
         acc[key] = val;
         return acc;
-      }, {});
-    })
-    .mapValues(({ user, rss }) => `${(user / 1000).toFixed(3)}ms ${(rss / 1000000).toFixed(3)}MB`)
+      }, {}))
+    .mapValues(({user, rss}) => `${(user / 1000).toFixed(3)}ms ${(rss / 1000000).toFixed(3)}MB`)
     .value();
   console.log(grouped);
   const permCount = runClassOrders.run.length * runClassOrders.type.length;

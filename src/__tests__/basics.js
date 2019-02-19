@@ -1,5 +1,5 @@
-const { compile, and, or, root, arg0, setter } = require('../../index');
-const { currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand } = require('../test-utils');
+const {compile, and, or, root, arg0, setter} = require('../../index');
+const {currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand} = require('../test-utils');
 
 const _ = require('lodash');
 
@@ -37,7 +37,7 @@ describe('simple todo', () => {
     );
 
     const blockedGrouped = pendingTodos.mapValues((val, key) =>
-      todos.filterBy((val, key, context) => val.get('blockedBy').eq(context), key)
+      todos.filterBy((val, key, context) => val.get('blockedBy').eq(context), key) //eslint-disable-line no-shadow
     );
 
     return {
@@ -60,14 +60,14 @@ describe('simple todo', () => {
     return {
       text: `todo_${idx}`,
       done: rand.range(2) === 0,
-      blockedBy: rand.range(4) === 2 ? '' + (idx + rand.range(countItems - 1)) % countItems : false
+      blockedBy: rand.range(4) === 2 ? `${(idx + rand.range(countItems - 1)) % countItems}` : false
     };
   }
 
   function generateTestTodoItems(count) {
     const res = {};
     for (let idx = 0; idx < count; idx++) {
-      res['' + idx] = randomTodoItem(idx);
+      res[`${idx}`] = randomTodoItem(idx);
     }
     return res;
   }
@@ -88,7 +88,7 @@ describe('simple todo', () => {
         const idx = rand.range(countItems);
         const todoItem = randomTodoItem(idx);
         return inst => {
-          inst.setTodo('' + idx, todoItem);
+          inst.setTodo(`${idx}`, todoItem);
         };
       },
       () => {

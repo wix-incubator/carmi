@@ -89,7 +89,7 @@ function loadCache(cacheFilePath) {
   let data;
 
   try {
-    data = JSON.parse(fs.readFileSync(cacheFilePath));
+    data = fs.readJsonSync(cacheFilePath);
   } catch (err) {
     return null;
   }
@@ -128,9 +128,7 @@ function analyzeFile(filePath, cache) {
 
       return absoluteChildPath;
     })
-    .filter(absoluteChildPath => {
-      return shouldFollow(absoluteChildPath);
-    });
+    .filter(absoluteChildPath => shouldFollow(absoluteChildPath));
 }
 
 function analyzeDependencies(entryFilePath, statsFilePath) {

@@ -1,21 +1,19 @@
 const _ = require('lodash');
-const { flattenExpression, searchExpressions, searchExpressionsWithoutInnerFunctions, getAllFunctions, flattenExpressionWithoutInnerFunctions } = require('./expr-search');
-const { memoizeExprFunc, memoize } = require('./memoize');
+const {flattenExpression, searchExpressions, searchExpressionsWithoutInnerFunctions, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
+const {memoizeExprFunc, memoize} = require('./memoize');
 const {exprHash, hashString} = require('./expr-hash');
-const { TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func } = require('./lang');
-const { generateName, generateNameFromTag } = require('./expr-names');
+const {TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func} = require('./lang');
+const {generateName, generateNameFromTag} = require('./expr-names');
 const objectHash = require('object-hash');
 
-const countTokens = memoizeExprFunc(expr => {
-    return _.sum(expr.map(countTokens))
-}, () => 1)
+const countTokens = memoizeExprFunc(expr => _.sum(expr.map(countTokens)), () => 1)
 
 function tryToHoist(expr) {
     return TokenTypeData[expr[0].$type].tryToHoist;
 }
 
 const isStaticExpression = memoize(expr => {
-    let res = true;
+    const res = true;
     const areChildrenStatic = expr.map(token => {
         if (token instanceof Expression) {
             return isStaticExpression(token);
@@ -24,9 +22,7 @@ const isStaticExpression = memoize(expr => {
         }
         return true;
     });
-    return _.every(areChildrenStatic, (isChildStatic, index) => {
-        return isChildStatic || (expr[index] instanceof Expression && expr[index][0].$type === 'func');
-    });
+    return _.every(areChildrenStatic, (isChildStatic, index) => isChildStatic || expr[index] instanceof Expression && expr[index][0].$type === 'func');
 });
 
 const getRewriteUsingTopLevels = namesByExpr => {
@@ -58,7 +54,7 @@ function rewriteStaticsToTopLevels(getters) {
     let nodeIndex = 1;
     _.forEach(allStaticAsStrings, (e, s) => {
         if (!namesByExpr[s] && tryToHoist(e)) {
-            namesByExpr[s] = '$' + e[0].$type + generateName(namesByExpr, e) + nodeIndex++;
+            namesByExpr[s] = `$${e[0].$type}${generateName(namesByExpr, e)}${nodeIndex++}`;
         }
     });
     const rewriteUsingTopLevels = getRewriteUsingTopLevels(namesByExpr);
@@ -94,18 +90,17 @@ function rewriteLocalsToFunctions(getters) {
             const hash = exprHash(e);
             const children = flattenExpressionWithoutInnerFunctions(e);
             // console.log(parents && parents.length, children.length);
-            countIdenticals[hash] = { counter: parents.length, children: children }
-
+            countIdenticals[hash] = {counter: parents.length, children}
         }
     });
 
     const newGetters = {};
     const namesByHash = {};
     const localTokens = {
-        'val': true,
-        'key': true,
-        'context': true,
-        'loop': true,
+        val: true,
+        key: true,
+        context: true,
+        loop: true
     }
 
     function rewriteExpr(e) { 
@@ -113,7 +108,7 @@ function rewriteLocalsToFunctions(getters) {
             const hash = exprHash(e);
             const found = countIdenticals[hash];
             if (found && found.counter > 2 && found.children.length > 4) {
-                const name = namesByHash[hash] ? namesByHash[hash] : '$$' + generateNameFromTag(e) + hash;
+                const name = namesByHash[hash] ? namesByHash[hash] : `$$${generateNameFromTag(e)}${hash}`;
                 if (!namesByHash[name]) {
                     const tokens = _(found.children)
                         .flatten()
@@ -127,14 +122,13 @@ function rewriteLocalsToFunctions(getters) {
                     newGetters[name] = Expr(Func, Expr(...e.map(rewriteExpr)), ...found.tokens);
                 }
                 return Expr(Invoke, name, ...found.tokens.map(t => new Token(t.$type)));
-            } else {
+            } 
                 return Expr(...e.map(rewriteExpr));
-            }
         }
         return e;
     }
 
-    Object.assign(newGetters, _.mapValues(getters,rewriteExpr))
+    Object.assign(newGetters, _.mapValues(getters, rewriteExpr))
     return newGetters;
 }
 

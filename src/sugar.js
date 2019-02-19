@@ -1,13 +1,12 @@
 const _ = require('lodash');
 
-module.exports = function({chain, or, and}) {
-
+module.exports = function ({chain, or, and}) {
     function isEmpty(obj) {
       return obj.size().eq(0)
     }
 
     function getIn(obj, path) {
-        const pathGetters = [obj].concat(path.map((_part, index) => path.slice(0,index + 1).reduce((acc, part) => acc.get(part),obj)))
+        const pathGetters = [obj].concat(path.map((_part, index) => path.slice(0, index + 1).reduce((acc, part) => acc.get(part), obj)))
         return and(...pathGetters);
     }
 
@@ -67,9 +66,7 @@ module.exports = function({chain, or, and}) {
         or(getIn(obj, path.slice(0, index)), chain({}))
       )
 
-      return path.reduceRight((acc, part, index) => {
-          return simpleSet(currentValues[index], part, acc)
-      }, value)
+      return path.reduceRight((acc, part, index) => simpleSet(currentValues[index], part, acc), value)
     }
 
     function head(array) {
@@ -87,17 +84,15 @@ module.exports = function({chain, or, and}) {
     function includesValue(collection, val) {
       if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
           return collection.anyValues((item, key, ctx) => item.eq(val))
-      } else {
-        return collection.anyValues((item, key, ctx) => item.eq(ctx), val)
       }
+      return collection.anyValues((item, key, ctx) => item.eq(ctx), val)
     }
 
     function includes(collection, val) {
         if (typeof val === 'boolean' || typeof val === 'number' || typeof val === 'string') {
             return collection.any((item, key, ctx) => item.eq(val))
-        } else {
-            return collection.any((item, key, ctx) => item.eq(ctx), val)
-        }
+        } 
+        return collection.any((item, key, ctx) => item.eq(ctx), val)
     }
 
     function findIndex(collection, predicate) {
@@ -109,7 +104,7 @@ module.exports = function({chain, or, and}) {
     }
 
     function pick(obj, arr) {
-      const projection = Object.assign({},...arr.map(key => ({[key]: obj.get(key)})));
+      const projection = Object.assign({}, ...arr.map(key => ({[key]: obj.get(key)})));
       return chain(projection).filterBy(item => item.isUndefined().not());
     }
 

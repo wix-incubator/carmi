@@ -10,9 +10,8 @@ function omit(node, fields) {
       }
       return acc;
     }, {});
-  } else {
-    return node;
   }
+  return node;
 }
 
 function setTo(dst, src) {
@@ -38,4 +37,4 @@ function collectAllNodes(node, predicate, output) {
   return output;
 }
 
-module.exports = { omit, collectAllNodes, setTo };
+module.exports = {omit, collectAllNodes, setTo};

@@ -2,7 +2,7 @@ const path = require('path');
 const uuid = require('uuid');
 const fs = require('fs');
 const babylon = require('babylon');
-const { createMacro, MacroError } = require('babel-plugin-macros');
+const {createMacro, MacroError} = require('babel-plugin-macros');
 const babylonJsx = require('babylon-jsx').default;
 const generate = require('babel-generator');
 const compileFile = require('./compileFile');
@@ -11,22 +11,20 @@ module.exports = createMacro(macro);
 
 const extractNodeFromCarmiCode = code => babylon.parse(code).program.body[0].expression;
 
-const wrapWithModuleExports = node => {
-  return {
+const wrapWithModuleExports = node => ({
     type: 'ExpressionStatement',
     expression: {
       type: 'AssignmentExpression',
       operator: '=',
       left: {
         type: 'MemberExpression',
-        object: { type: 'Identifier', name: 'module' },
-        property: { type: 'Identifier', name: 'exports' },
+        object: {type: 'Identifier', name: 'module'},
+        property: {type: 'Identifier', name: 'exports'},
         computed: false
       },
       right: node
     }
-  };
-};
+  });
 
 const compile = (code, filename, isMJS = false) => {
   const newFilename = path.resolve(
@@ -42,7 +40,7 @@ const compile = (code, filename, isMJS = false) => {
 
 const CARMI_COMMENT_RE = /\s*@carmi\s*/;
 
-function macro({ babel, state, references, source, config }) {
+function macro({babel, state, references, source, config}) {
   const commentTag = state.file.ast.comments.some(comment => CARMI_COMMENT_RE.test(comment.value));
   references = references.default || [];
   if (commentTag && references.length === 0) {
@@ -56,7 +54,7 @@ function macro({ babel, state, references, source, config }) {
     const transformed = compile(code, filename, isMJS);
     const node = extractNodeFromCarmiCode(transformed);
     body.splice(0, body.length, wrapWithModuleExports(node));
-    return { keepImports: true };
+    return {keepImports: true};
   } else if (references.length) {
     references.forEach(referencePath => {
       if (referencePath.parentPath.type === 'TaggedTemplateExpression') {

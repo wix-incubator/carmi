@@ -1,4 +1,4 @@
-const { compile, and, or, root, arg0, setter, splice } = require('../../index');
+const {compile, and, or, root, arg0, setter, splice} = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -20,7 +20,7 @@ describe('testing array', () => {
         ),
         set: setter(arg0)
       };
-      const optModel = eval(compile(model, { compiler }));
+      const optModel = eval(compile(model, {compiler}));
       const inst = optModel([1, 2, 3, 4, 5], funcLibrary);
       expectTapFunctionToHaveBeenCalled(5, compiler);
       expect(inst.sum).toEqual([1, 3, 6, 10, 15]);
@@ -38,7 +38,7 @@ describe('testing array', () => {
         ),
         set: setter(arg0)
       };
-      const optModel = eval(compile(model, { compiler }));
+      const optModel = eval(compile(model, {compiler}));
       const initialData = [1, 2, 3, -1, -2, 4];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.chain).toEqual([-1, -1, -1, -1, -2, -2]);
@@ -54,27 +54,27 @@ describe('testing array', () => {
             todo.get('done'),
             todo
               .get('subTasks')
-              .any((idx, _, context) => idx.recur(context).not(), loop)
+              .any((idx, _, context) => idx.recur(context).not(), loop) //eslint-disable-line no-shadow
               .not()
           ).call('tap')
         ),
         setDone: setter(arg0, 'done'),
         spliceBlockedBy: splice(arg0, 'subTasks')
       };
-      const optModel = eval(compile(model, { compiler }));
+      const optModel = eval(compile(model, {compiler}));
       const initialData = {
-        a: { done: true, subTasks: [] },
-        b: { done: false, subTasks: ['c'] },
-        c: { done: false, subTasks: ['d'] },
-        d: { done: true, subTasks: [] },
-        e: { done: false, subTasks: ['a', 'c'] }
+        a: {done: true, subTasks: []},
+        b: {done: false, subTasks: ['c']},
+        c: {done: false, subTasks: ['d']},
+        d: {done: true, subTasks: []},
+        e: {done: false, subTasks: ['a', 'c']}
       };
       const inst = optModel(initialData, funcLibrary);
-      expect(inst.allDone).toEqual({ a: true, b: false, c: false, d: true, e: false });
+      expect(inst.allDone).toEqual({a: true, b: false, c: false, d: true, e: false});
       inst.setDone('c', true);
-      expect(inst.allDone).toEqual({ a: true, b: false, c: true, d: true, e: false });
+      expect(inst.allDone).toEqual({a: true, b: false, c: true, d: true, e: false});
       inst.setDone('d', false);
-      expect(inst.allDone).toEqual({ a: true, b: false, c: false, d: false, e: false });
+      expect(inst.allDone).toEqual({a: true, b: false, c: false, d: false, e: false});
     });
   });
 });

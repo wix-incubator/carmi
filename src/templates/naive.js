@@ -24,14 +24,19 @@ function base() {
     }
   }
 
-  function checkType(input, name, type, functionName, source) {
-    if (typeof input === type) {
+  function checkTypes(input, name, types, functionName, source) {
+    function checkType(type) {
+      const isArray = Array.isArray(input)
+      return type == 'array' && isArray || (type === typeof input && !isArray)
+    }
+
+    if (types.some(checkType)) {
       return
     }
 
     const asString = typeof input === 'object' ? JSON.stringify(input) : input
 
-    throw new TypeError(`${functionName} expects ${type}. ${name}: ${asString}.${functionName} at ${source}`)
+    throw new TypeError(`${functionName} expects ${types.join('/')}. ${name} at ${source}: ${asString}.${functionName}`)
   }
 
   const $res = { $model };

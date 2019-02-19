@@ -1,11 +1,11 @@
-const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
+const {Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData} = require('./lang');
 const _ = require('lodash');
 const t = require('babel-types');
 const NaiveCompiler = require('./naive-compiler');
-const { splitSettersGetters, normalizeAndTagAllGetters, findFuncExpr } = require('./expr-tagging');
-const fs = require('fs');
+const {splitSettersGetters, normalizeAndTagAllGetters, findFuncExpr} = require('./expr-tagging');
+const fs = require('fs-extra');
 const path = require('path');
-const { writeFile, readFile } = require('./promise-fs');
+const {writeFile, readFile} = require('fs-extra');
 const FlowCompiler = require('./flow-compiler');
 const {
   extractAllTypeDeclerations,
@@ -24,21 +24,21 @@ const constantsTypeAnnotations = {
 
 class RustCompiler extends NaiveCompiler {
   constructor(model, options) {
-    const { getters, setters } = splitSettersGetters(model);
-    super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, options);
+    const {getters, setters} = splitSettersGetters(model);
+    super({...model, ...normalizeAndTagAllGetters(getters, setters)}, options);
   }
 
-  buildDerived(name) {
-    return `$${name}Build();`;
-  }
+  // buildDerived(name) {
+  //   return `$${name}Build();`;
+  // }
 
   classOfToken(token) {
     if (token instanceof Expression) {
       return this.exprAnnotations[token[0].$id];
     } else if (constantsTypeAnnotations[typeof token]) {
-      return { type: constantsTypeAnnotations[typeof token] };
+      return {type: constantsTypeAnnotations[typeof token]};
     } else if (token.$type === 'root') {
-      return this.types['Model'];
+      return this.types.Model;
     } else if (token.$type === 'val') {
       return this.exprAnnotations[findFuncExpr(this.getters, token.$funcId)[0].$id].params[0].typeAnnotation;
     } else if (token.$type === 'key') {
@@ -47,9 +47,8 @@ class RustCompiler extends NaiveCompiler {
       return this.topLevelType;
     } else if (token.$type && token.$id && this.exprAnnotations[token.$id]) {
       return this.exprAnnotations[token.$id];
-    } else {
-      throw new Error('tried to classify unknown token ' + JSON.stringify(token));
-    }
+    } 
+      throw new Error(`tried to classify unknown token ${JSON.stringify(token)}`);
   }
 
   resolveToken(token) {
@@ -92,7 +91,7 @@ class RustCompiler extends NaiveCompiler {
             return `${this.generateExpr(expr[2])}.${noDollar(expr[1])}`;
           }
         }
-        return `/* unknown get ${JSON.stringify({ expr, annotated }, null, 2)}*/`;
+        return `/* unknown get ${JSON.stringify({expr, annotated}, null, 2)}*/`;
       case 'ternary':
         if (annotated[1].type === 'NullableTypeAnnotation') {
           return `if ${this.generateExpr(expr[1])}.toJsBool() {
@@ -197,7 +196,7 @@ class RustCompiler extends NaiveCompiler {
           .join(',')})`;*/
       default:
         if (typeof currentToken === 'boolean' || typeof currentToken === 'number') {
-          return '' + currentToken;
+          return `${currentToken}`;
         }
         return `/*${JSON.stringify(currentToken)}*/`;
     }
@@ -211,14 +210,13 @@ class RustCompiler extends NaiveCompiler {
     const annotationsFile = path.join(__dirname, '..', 'cache', `${this.hash()}.json`);
     console.log(annotationsFile);
     try {
-      const annotations = fs.readFileSync(annotationsFile);
-      this.annotations = JSON.parse(annotations.toString());
+      this.annotations = fs.readJsonSync(annotationsFile);
       console.log('annotations: found in cache');
     } catch (e) {
       const flowCompiler = new FlowCompiler(Object.assign({}, this.getters, this.setters), this.options);
       flowCompiler.compile();
       this.annotations = flowCompiler.annotations;
-      fs.writeFileSync(annotationsFile, JSON.stringify(this.annotations));
+      fs.writeJsonSync(annotationsFile, this.annotations);
       console.log('annotations: not found in cache, generated new');
     }
     return this.annotations;
@@ -257,16 +255,16 @@ impl JsConvertable for ${type.name} {
       ID: () => expr[0].$id,
       RETURN: () => flowAnnotationToRustType(currentToken === 'func' ? exprAnnotate.returnType : exprAnnotate),
       ARGS: () =>
-        currentToken === 'func'
-          ? exprAnnotate.params
+        currentToken === 'func' ?
+          exprAnnotate.params
               .map(
                 param =>
                   `,${param.name.name}: ${rustTypeBorrows(param.typeAnnotation) ? '&' : ''}${flowAnnotationToRustType(
                     param.typeAnnotation
                   )}`
               )
-              .join('')
-          : ''
+              .join('') :
+          ''
     };
   }
 
@@ -278,7 +276,7 @@ impl JsConvertable for ${type.name} {
   tagTokenAnnotations(expr, name) {
     if (expr instanceof Expression) {
       expr.forEach(child => {
-        if (child instanceof Expression && child[0].$type === 'func') {
+        if (child instanceof Expression && child[0].$type === 'func') { //eslint-disable-line no-empty
         }
       });
     }

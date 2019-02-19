@@ -1,4 +1,4 @@
-const { isExpression, isToken } = require('./lang');
+const {isExpression, isToken} = require('./lang');
 const _ = require('lodash');
 
 function searchExpressions(callback, ...expressions) {

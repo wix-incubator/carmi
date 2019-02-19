@@ -1,7 +1,7 @@
 const args = process.argv.slice(2);
 // const args = 'todos ./generated/todos.carmi 50000 5000 10'.split(' ');
 const objectHash = require('object-hash');
-const test = require('./' + args[0]);
+const test = require(`./${args[0]}`);
 const countItems = parseInt(args[2], 10);
 const countChanges = parseInt(args[3], 10);
 const batchSize = parseInt(args[4], 10);
@@ -38,4 +38,4 @@ const instValues = Object.keys(inst).reduce((acc, key) => {
 }, {});
 const hash = objectHash(instValues);
 const msg = process.send ? process.send.bind(process) : console.log.bind(console);
-msg(Object.assign({ hash }, cpuUsage, process.memoryUsage()));
+msg(Object.assign({hash}, cpuUsage, process.memoryUsage()));

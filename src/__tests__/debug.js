@@ -1,4 +1,4 @@
-const { compile, chain, root, arg0, arg1, setter, splice, withName } = require('../../index');
+const {compile, chain, root, arg0, arg1, setter, splice, withName} = require('../../index');
 const {
   describeCompilers,
   currentValues,
@@ -14,8 +14,8 @@ describe('Tests for usability and debugging carmi', () => {
     it('should store source files and ast in debug mode', async () => {
       const makeSureThisCanBeFound = root.map(item => item.mult(2));
       const res = makeSureThisCanBeFound.map(item => item.plus(80));
-      const model = { res, set: setter(arg0) }
-      const optCode = eval(compile(model, { compiler, debug: true }));
+      const model = {res, set: setter(arg0)}
+      const optCode = eval(compile(model, {compiler, debug: true}));
       const inst = optCode([1, 2, 3], funcLibrary);
       expect(inst.res).toEqual([82, 84, 86]);
       const sources = JSON.stringify(inst.$source());
@@ -25,8 +25,8 @@ describe('Tests for usability and debugging carmi', () => {
     });
     it('withName', async () => {
       const negated = withName('negated', root.map(val => val.not()));
-      const model = { doubleNegated: negated.map(val => val.not().call('tap')), set: setter(arg0) };
-      const optCode = eval(compile(model, { compiler }));
+      const model = {doubleNegated: negated.map(val => val.not().call('tap')), set: setter(arg0)};
+      const optCode = eval(compile(model, {compiler}));
       const inst = optCode([true, 1, 0, false, null], funcLibrary);
       expect(inst.doubleNegated).toEqual([true, true, false, false, false]);
       expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
@@ -42,11 +42,11 @@ describe('Tests for usability and debugging carmi', () => {
         test2: chain({test: chain(true)}),
         test3: chain({test: chain(true).not()})
       }
-      const optCode = eval(compile(model, { compiler }));
+      const optCode = eval(compile(model, {compiler}));
       const inst = optCode([], funcLibrary);
-      expect(inst.test1).toEqual({test:true});
-      expect(inst.test2).toEqual({test:true});
-      expect(inst.test3).toEqual({test:false});
+      expect(inst.test1).toEqual({test: true});
+      expect(inst.test2).toEqual({test: true});
+      expect(inst.test3).toEqual({test: false});
     });
     it('throw on invalid arguments in setter function', async () => {
       const args = ['store', arg0, true]
@@ -70,8 +70,8 @@ describe('Tests for usability and debugging carmi', () => {
     it('expect to hoist shared expressions', async () => {
       const once = root.map(val => val.call('tap'));
       const twice = root.map(val => val.call('tap')).filter(val => val);
-      const model = { once, twice, set: setter(arg0) };
-      const optCode = eval(compile(model, { compiler }));
+      const model = {once, twice, set: setter(arg0)};
+      const optCode = eval(compile(model, {compiler}));
       const inst = optCode([false, 1, 0], funcLibrary);
       expect(inst.once).toEqual([false, 1, 0]);
       expect(inst.twice).toEqual([1]);
@@ -96,7 +96,7 @@ describe('Tests for usability and debugging carmi', () => {
 
     it('when using non-numbers with number functions, throw a nicer error', () => {
       const model = {three: chain({a: 1}).ceil()}
-      const optCode = eval(compile(model, { compiler, debug: true }));
+      const optCode = eval(compile(model, {compiler, debug: true}));
       let e
       try {
         optCode([], funcLibrary);
@@ -120,7 +120,7 @@ describe('Tests for usability and debugging carmi', () => {
 
     it('when calling a non-existent function, throw a readable error', () => {
       const model = {three: chain({a: 1}).call('nonExistentFunction')}
-      const optCode = eval(compile(model, { compiler, debug: true }));
+      const optCode = eval(compile(model, {compiler, debug: true}));
       let e
       try {
         optCode([], funcLibrary);
@@ -135,7 +135,7 @@ describe('Tests for usability and debugging carmi', () => {
       const model = {three: chain({a: () => 123}).call('func')}
       let e
       try {
-        compile(model, { compiler, debug: true });
+        compile(model, {compiler, debug: true});
       } catch (err) {
         e = err
       }
@@ -145,22 +145,22 @@ describe('Tests for usability and debugging carmi', () => {
 
     it('allow primitives on the model', async () => {
       const model = {three: chain(3)}
-      const optCode = eval(compile(model, { compiler }));
+      const optCode = eval(compile(model, {compiler}));
       const inst = optCode([], funcLibrary);
       expect(inst.three).toEqual(3);
     })
 
     it('should include relative paths in code', () => {
       const model = {three: chain(3).mapValues('func').call('func')}
-      const src = compile(model, { compiler, debug: true });
+      const src = compile(model, {compiler, debug: true});
       expect(src).not.toContain(__dirname)
     })
   });
 
   describeCompilers(['optimizing'], compiler => {
-    it ('when using non-objects with object functions, throw a nicer error', () => {
+    it('when using non-objects with object functions, throw a nicer error', () => {
       const model = {three: chain(3).mapValues(a => a)}
-      const src = compile(model, { compiler, debug: true, cwd: path.resolve(__dirname, '../..') });
+      const src = compile(model, {compiler, debug: true, cwd: path.resolve(__dirname, '../..')});
       const optCode = eval(src)
       let e
       try {
@@ -171,6 +171,32 @@ describe('Tests for usability and debugging carmi', () => {
 
       expect(e.message).toContain('3.mapValues')
     })
-  })
 
+    it('when using arrays with object functions, throw an error', () => {
+      const model = {bad: root.get('data').mapValues(a => a)}
+      const src = compile(model, {compiler, debug: true});
+      const optCode = eval(src)
+      let e
+      try {
+        optCode({data: [0]}, funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('[0].mapValues')
+    })
+    it('when using objects with array functions, throw an error', () => {
+      const model = {bad: root.get('data').filter(a => a)}
+      const src = compile(model, {compiler, debug: true});
+      const optCode = eval(src)
+      let e
+      try {
+        optCode({data: {a: 0}}, funcLibrary);
+      } catch (err) {
+        e = err
+      }
+
+      expect(e.message).toContain('0}.filter')
+    })
+  })
 });

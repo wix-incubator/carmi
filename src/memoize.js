@@ -1,4 +1,4 @@
-const { Expression } = require('./lang');
+const {Expression} = require('./lang');
 
 const memoize = func => {
   const cache = new WeakMap();
@@ -11,27 +11,20 @@ const memoize = func => {
 };
 
 const maybeMemoize = (testFunc, objFunc, primitiveFunc) => {
-  let funcOnMaybeObj, funcOnObj;
-  funcOnMaybeObj = token => {
+  let funcOnObj; //eslint-disable-line prefer-const
+  const funcOnMaybeObj = token => {
     if (testFunc(token)) {
       return funcOnObj(token);
-    } else {
+    } 
       return primitiveFunc(token);
-    }
   };
-  funcOnObj = memoize(token => {
-    return objFunc(token);
-  });
+  funcOnObj = memoize(token => objFunc(token));
   return funcOnMaybeObj;
 };
 
-const memoizeExprFunc = (exprFunc, nonExprFunc) => {
-  return maybeMemoize(t => t instanceof Expression, exprFunc, nonExprFunc);
-};
+const memoizeExprFunc = (exprFunc, nonExprFunc) => maybeMemoize(t => t instanceof Expression, exprFunc, nonExprFunc);
 
-const memoizeNonPrimitives = (objFunc, primitiveFunc) => {
-  return maybeMemoize(t => t && t === Object(t), objFunc, primitiveFunc);
-};
+const memoizeNonPrimitives = (objFunc, primitiveFunc) => maybeMemoize(t => t && t === Object(t), objFunc, primitiveFunc);
 
 module.exports = {
   memoizeNonPrimitives,
