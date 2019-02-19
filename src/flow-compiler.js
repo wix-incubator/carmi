@@ -1,10 +1,10 @@
-const { Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData } = require('./lang');
+const {Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData} = require('./lang');
 const SimpleCompiler = require('./simple-compiler');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { spawn, spawnSync } = require('child_process');
-const { extractTypes } = require('./flow-types');
+const {spawn, spawnSync} = require('child_process');
+const {extractTypes} = require('./flow-types');
 
 function spawnAsync(proc, args, options) {
   return new Promise((resolve, reject) => {
@@ -28,12 +28,12 @@ function spawnAsync(proc, args, options) {
   });
 }
 
-const { splitSettersGetters, normalizeAndTagAllGetters } = require('./expr-tagging');
+const {splitSettersGetters, normalizeAndTagAllGetters} = require('./expr-tagging');
 
 class FlowCompiler extends SimpleCompiler {
   constructor(model, options) {
-    const { getters, setters } = splitSettersGetters(model);
-    super({ ...model, ...normalizeAndTagAllGetters(getters, setters) }, options);
+    const {getters, setters} = splitSettersGetters(model);
+    super({...model, ...normalizeAndTagAllGetters(getters, setters)}, options);
   }
 
   get template() {
@@ -64,7 +64,7 @@ ${this.options.flow};
     ${src.replace(/\/\*::(.*?)\*\//g, '$1').replace(/\/\*:(.*?)\*\//g, ':$1')}
 `;
     fs.writeFileSync(tempFilename, srcBeforeFlowSuggest);
-    const flowCliOptions = { cwd: tempDirectory + path.sep };
+    const flowCliOptions = {cwd: tempDirectory + path.sep};
     spawnSync(require.resolve('flow-bin/cli'), ['init'], flowCliOptions);
     const postFlowSrc = spawnSync(require.resolve('flow-bin/cli'), ['suggest', tempFilename], flowCliOptions);
     this.annotations = extractTypes(postFlowSrc);

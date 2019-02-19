@@ -2,7 +2,7 @@ const { setter, splice, isExpression, isSetterExpression, isSpliceExpression, ro
 const _ = require('lodash');
 
 describe('carmi-is', () => {
-  describe('SetterExpression', function() {
+  describe('SetterExpression', () => {
     it('should return true if it is a setterExpression', async () => {
       const set = setter('path');
       expect(isSetterExpression(set)).toBe(true);
@@ -14,7 +14,7 @@ describe('carmi-is', () => {
     });
   });
 
-  describe('SpliceExpression', function() {
+  describe('SpliceExpression', () => {
     it('should return true if it is a spliceExpression', async () => {
       const splicer = splice('path');
       expect(isSpliceExpression(splicer)).toBe(true);
@@ -26,7 +26,7 @@ describe('carmi-is', () => {
     });
   });
 
-  describe('Expression', function() {
+  describe('Expression', () => {
     it('should return true if it is an expression', async () => {
       const expression = root.get('path');
       expect(isExpression(expression)).toBe(true);

@@ -10,9 +10,8 @@ function omit(node, fields) {
       }
       return acc;
     }, {});
-  } else {
-    return node;
   }
+  return node;
 }
 
 function setTo(dst, src) {
