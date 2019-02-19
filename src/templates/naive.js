@@ -1,5 +1,6 @@
 function base() {
-  function $NAME($model, $funcLibRaw, $batchingStrategy) {
+  ($projectionData => {
+  return function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
    
     if ($DEBUG_MODE) {
@@ -128,6 +129,7 @@ function base() {
     recalculate();
     return $res;
   }
+})($PROJECTION_DATA)
 }
 
 function func() {

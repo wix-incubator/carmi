@@ -928,6 +928,49 @@ function library() {
       }
       return $res;
     }
+
+    function buildSetter({type, path}) {
+      const pathAsFunctions = path.map(token => token.arg ? args => args[token.arg] : () => token.prop)
+      const resolvePath = args => pathAsFunctions.map(part => part(args))
+      const getAssignablePath = (parts, index) => parts.slice(0, index).reduce((agg, p) => agg[p], $model)
+      const invalidate = parts => {
+        parts.forEach((part, index) => {
+          triggerInvalidations(getAssignablePath(parts, index), part, index === part.length - 1)
+        })
+      }
+
+      const setterFunc = {
+        set: (path, value) => {
+          invalidate(path)
+          $applySetter(getAssignablePath(path, path.length), value)
+        },
+
+        splice: (pathWithKey, len, ...newItems) => {
+          const key = pathWithKey[path .length - 1]
+          const path = pathWithKey.slice(0, path.length - 1)
+          const arr = getAssignablePath(path, path.length)
+          const origLength = arr.length;
+          const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
+          for (let i = key; i < end; i++ ) {
+            triggerInvalidations(arr, i, true);
+          }
+          invalidate(path)
+          arr.splice(key, len, ...newItems)
+        }
+
+      }[type];
+
+      return $setter.bind(null, (...args) => {
+        const resolvedPath = resolvePath(args)
+        setterFunc(resolvedPath, args.slice(resolvedPath.length))
+      })
+    }
+
+    function buildSettersFromProjectionData() {
+      const {setters} = $projectionData
+      console.log(JSON.stringify($projectionData))
+      return Object.keys(setters).map(name => ({[name]: buildSetter(setters[name])})).reduce((agg, v) => Object.assign(agg, v), {})
+    }
   }
 
 function topLevel() {

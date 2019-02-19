@@ -339,6 +339,7 @@ class NaiveCompiler {
       }, {})) : '',
       LIBRARY: () => this.mergeTemplate(this.template.library, {}),
       ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
+      PROJECTIONS: () => '',
       DERIVED: () =>
         topologicalSortGetters(this.getters)
           .filter(name => this.getters[name][0].$type !== 'func')
