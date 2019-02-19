@@ -64,8 +64,16 @@ const genSignature = (signatures) => _(signatures)
     .get('name', '*')
   )
   .join(', ')
+const IssueLink = ({name, id}) => <a target="_blank" href={`https://github.com/wix-incubator/carmi/issues/new?assignee=LeonFedotov&body=${encodeURIComponent(`
+  Here is my Example for [${name}](https://carmi.js.org/api.html#doc-${id}):
+  \`\`\`javascript
+    const { root } = require('carmi');
+    const instance = fromSource({output: root.get(0)}, [2]);
+    instance.output //2
+  \`\`\`
+`)}&title=${encodeURIComponent(`Example for ${name}`)}`}>Add example/suggest documentation</a>
 
-const Runkit = ({source}) => source ? <pre><code className="runkit-embed lang-JavaScript">{source.text.trim()}</code></pre> : <small className="muted">example missing</small>
+const Runkit = ({source, name, id}) => source ? <pre><code className="runkit-embed lang-JavaScript">{source.text.trim()}</code></pre> : <IssueLink name={name} id={id}/>
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
     //.tap((v) => console.dir(v.filter(({id}) => id == 755), {depth: null}))
@@ -79,7 +87,7 @@ const SelfMethods = ({methods}) => <Fragment>
             </code>
           </h5>
           <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
-          <Runkit source={_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value()} />
+          <Runkit id={id} name={name} source={_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value()} />
         </div>
       </div>
     )
