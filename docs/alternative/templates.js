@@ -22,8 +22,13 @@ const css = (([css]) => <style dangerouslySetInnerHTML={{ __html: css}} />)`
   .method-link:hover {
     text-decoration:none;
   }
+  .runkit-embed {
+    overflow: hidden;
+    cursor: pointer;
+  }
 `
-const Wrapper = (props) => 
+
+const Wrapper = (props) =>
   <html lang="en">
     <head>
       {/*<meta httpEquiv="refresh" content="20"/>*/}
@@ -32,17 +37,22 @@ const Wrapper = (props) =>
       <link rel="shortcut icon" href="/img/favicon.ico"/>
       <title>{props.title}</title>
       <link rel="stylesheet" href="https://unpkg.com/bootstrap@4.1.0/dist/css/bootstrap.min.css" crossOrigin="anonymous"/>
+      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/tomorrow.min.css" />
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
       {css}
+
     </head>
     <body>
       {props.children}
+      <script src="/runkit.js" />
+      <script>hljs.initHighlightingOnLoad()</script>
     </body>
   </html>
 
 
-const InheritedMethods = ({methods}) => 
+const InheritedMethods = ({methods}) =>
   <ul>
-    {methods.map(({name, inheritedFrom: {name: parent, id}}) => 
+    {methods.map(({name, inheritedFrom: {name: parent, id}}) =>
       <li><a href={`#doc-${id}`}>{name}()</a></li>
     )}
   </ul>
@@ -55,19 +65,21 @@ const genSignature = (signatures) => _(signatures)
   )
   .join(', ')
 
+const Runkit = ({source}) => source ? <pre><code className="runkit-embed lang-JavaScript">{source.text.trim()}</code></pre> : <small className="muted">example missing</small>
 const SelfMethods = ({methods}) => <Fragment>
   {_.chain(methods)
-    //.tap((v) => console.dir(v.filter(({id}) => id == 833), {depth: null}))
+    //.tap((v) => console.dir(v.filter(({id}) => id == 755), {depth: null}))
     .map(({id, name, kindString: type, signatures}) =>
       <div className="card mt-2" id={`doc-${id}`}>
         <div className="card-body">
           <h5 className="card-title">
             <a className="text-secondary method-link" href={`#doc-${id}`}>🔗</a>
             <code>
-              {name}({genSignature(signatures)}) {_.get(signatures, '0.comment.tags.0.tag', false) == 'sugar' ? '🍬' : ''}
+              {name}({genSignature(signatures)}) {_.chain(signatures).get('0.comment.tags', []).some({ tag: 'sugar' }).value() ? '🍬' : ''}
             </code>
           </h5>
           <p className="card-text">{_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}</p>
+          <Runkit source={_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value()} />
         </div>
       </div>
     )
