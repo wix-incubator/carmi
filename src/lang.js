@@ -48,10 +48,10 @@ const TokenTypeData = {
   trace: new TokenTypes({chainIndex: 2, len: [2, 4]}),
   get: new TokenTypes({chainIndex: 2, len: [3, 3]}),
   root: new TokenTypes({nonVerb: true}),
-  mapValues: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4]}),
-  map: new TokenTypes({collectionVerb: true, chainIndex: 2, arrayVerb: true, len: [3, 4]}),
-  recursiveMapValues: new TokenTypes({collectionVerb: true, chainIndex: 2, recursive: true, len: [3, 4]}),
-  recursiveMap: new TokenTypes({collectionVerb: true, chainIndex: 2, arrayVerb: true, recursive: true, len: [3, 4]}),
+  mapValues: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4], stable: true}),
+  map: new TokenTypes({collectionVerb: true, chainIndex: 2, arrayVerb: true, len: [3, 4], stable: true}),
+  recursiveMapValues: new TokenTypes({collectionVerb: true, chainIndex: 2, recursive: true, len: [3, 4], stable: true}),
+  recursiveMap: new TokenTypes({collectionVerb: true, chainIndex: 2, arrayVerb: true, recursive: true, len: [3, 4], stable: true}),
   any: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2,
@@ -62,30 +62,32 @@ const TokenTypeData = {
     collectionVerb: true,
     chainIndex: 2,
     arrayVerb: true,
-    len: [3, 4]
+    len: [3, 4],
+    stable: true
   }),
   filter: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2,
     arrayVerb: true,
-    len: [3, 4]
+    len: [3, 4],
+    stable: true
   }),
   anyValues: new TokenTypes({
     collectionVerb: true,
     chainIndex: 2,
     len: [3, 4]
   }),
-  filterBy: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4]}),
-  mapKeys: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4]}),
-  groupBy: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4]}),
-  values: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2]}),
-  keys: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2]}),
-  flatten: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array']}),
+  filterBy: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4], stable: true}),
+  mapKeys: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4], stable: true}),
+  groupBy: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4], stable: true}),
+  values: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], stable: true}),
+  keys: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], stable: true}),
+  flatten: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array'], stable: true}),
   size: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array', 'object']}),
   sum: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array']}),
-  range: new TokenTypes({chainIndex: 1, len: [2, 4]}),
-  assign: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array']}),
-  defaults: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array']}),
+  range: new TokenTypes({chainIndex: 1, len: [2, 4], stable: true}),
+  assign: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array'], stable: true}),
+  defaults: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array'], stable: true}),
   loop: new TokenTypes({nonVerb: true}),
   recur: new TokenTypes({chainIndex: 2, len: [3, 3]}),
   context: new TokenTypes({nonVerb: true}),
@@ -118,7 +120,7 @@ const TokenTypeData = {
   mod: new TokenTypes({chainIndex: 1, len: [3, 3], expectedTypes: ['number']}),
   breakpoint: new TokenTypes({chainIndex: 1, len: [2, 2]}),
   call: new TokenTypes({nonChained: true, chainIndex: 2, len: [3, Number.MAX_SAFE_INTEGER], tryToHoist: true}),
-  bind: new TokenTypes({nonChained: true, chainIndex: 2, len: [2, Number.MAX_SAFE_INTEGER], tryToHoist: true}),
+  bind: new TokenTypes({nonChained: true, chainIndex: 2, len: [2, Number.MAX_SAFE_INTEGER], tryToHoist: true, stable: true}),
   effect: new TokenTypes({nonChained: true, chainIndex: 2, len: [3, Number.MAX_SAFE_INTEGER]}),
   startsWith: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3], expectedTypes: ['string']}),
   endsWith: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3], expectedTypes: ['string']}),
@@ -137,7 +139,7 @@ const TokenTypeData = {
   isNumber: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isArray: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   abstract: new TokenTypes({nonChained: true, len: [3, 3], private: true}),
-  quote: new TokenTypes({nonChained: true, len: [2, 2], private: true})
+  quote: new TokenTypes({nonChained: true, len: [2, 2], private: true, stable: true})
 };
 
 const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {

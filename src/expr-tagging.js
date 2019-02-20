@@ -304,6 +304,9 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
           ]).filter(e => e instanceof Expression && e[0].$type === 'cond');
           conditionalsByPath.forEach(condPath => condsThatAreTracked.add(condPath[1]));
         }
+        if (path[0].$type === 'topLevel' && path.length > 2 && TokenTypeData[getters[path[1]][0].$type].stable) {
+          path.splice(0, 2, Expr(Get, path[1], TopLevel))
+        }
       });
     });
     // if (name.indexOf('navigation') !== -1) {

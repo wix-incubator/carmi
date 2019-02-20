@@ -274,6 +274,12 @@ $tainted = new WeakSet();`
               .map((fragment, index) => index === 1 ? this.topLevelToIndex(fragment) : this.generateExpr(fragment))
               .join(',')}]);`
           );
+        } else if (invalidatedPath.length > 1 && invalidatedPath[0] instanceof Expression && invalidatedPath[0][0].$type === 'get' && invalidatedPath[0][2].$type === 'topLevel') {
+          tracks.push(
+            `${precond} trackPath($tracked, [${invalidatedPath
+              .map(fragment => this.generateExpr(fragment))
+              .join(',')}]);`
+          );
         } else if (invalidatedPath.length > 1 &&
           (invalidatedPath[0] instanceof Expression && invalidatedPath[0][0].$type === 'invoke')) {
           tracks.push(

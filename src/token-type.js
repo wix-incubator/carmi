@@ -12,6 +12,7 @@ class TokenType {
     this.nonChained = options.nonChained || this.nonVerb || false;
     this.recursive = options.recursive || false;
     this.tryToHoist = options.tryToHoist || this.collectionVerb;
+    this.stable = options.stable || false;
     this.expectedTypes =
       options.expectedTypes ||
       (this.arrayVerb ? ['array'] :
