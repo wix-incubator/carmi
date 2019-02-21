@@ -116,7 +116,6 @@ function analyzeFile(filePath, cache) {
     }
   } catch (error) {
     // fail gracefully, we treat this module as if it has no child dependencies
-    throw error;
   }
 
   return dependencies
