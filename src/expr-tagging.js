@@ -273,6 +273,7 @@ function parentFunction(expr) {
 
 function unmarkPathsThatHaveNoSetters(getters, setters) {
   const currentSetters = Object.values(setters);
+  // const invalidatingGetters = {}
   topologicalSortGetters(getters).forEach(name => {
     // console.log('unmarkPathsThatHaveNoSetters', name);
     const getter = getters[name];
@@ -296,6 +297,7 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
         } else if (path[0].$type !== 'context') {
           pathMap.delete(path);
         } else {
+          canBeExprBeInvalidated = true;
           trackCond = true;
         }
         if (cond && trackCond) {
@@ -338,7 +340,9 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
         expr[0].$invalidates = canBeExprBeInvalidated;
       }
     })
+    // invalidatingGetters[name] = canBeExprBeInvalidated
   });
+  // require('fs').writeFileSync('invalidates.json', JSON.stringify(invalidatingGetters, null, 2))
 }
 
 const wrapPrimitivesInQuotes = v => {
