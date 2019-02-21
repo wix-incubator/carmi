@@ -291,14 +291,14 @@ function library() {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          if (key >= src.length) {
-            setOnArray($out, key, undefined, $invalidates);
-            $out.length = src.length;
-          } else {
+          if (key < src.length) {
             const res = func([$invalidatedKeys, key], key, src[key], context);
             setOnArray($out, key, res, $invalidates);
           }
         })
+        if ($out.length > src.length) {
+          truncateArray($out, src.length, $invalidates)
+        }
       }
       $invalidatedKeys.clear();
       return $out;

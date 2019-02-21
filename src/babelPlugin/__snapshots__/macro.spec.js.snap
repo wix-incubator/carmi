@@ -181,12 +181,12 @@ module.exports = function () {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          if (key >= src.length) {
-            setOnArray($out, key, undefined, $invalidates);$out.length = src.length;
-          } else {
+          if (key < src.length) {
             const res = func([$invalidatedKeys, key], key, src[key], context);setOnArray($out, key, res, $invalidates);
           }
-        });
+        });if ($out.length > src.length) {
+          truncateArray($out, src.length, $invalidates);
+        }
       }$invalidatedKeys.clear();return $out;
     }function recursiveSteps(key, $tracked) {
       const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context, $invalidates } = this;if ($currentStack.length > 0) {
@@ -717,12 +717,12 @@ module.exports = function () {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          if (key >= src.length) {
-            setOnArray($out, key, undefined, $invalidates);$out.length = src.length;
-          } else {
+          if (key < src.length) {
             const res = func([$invalidatedKeys, key], key, src[key], context);setOnArray($out, key, res, $invalidates);
           }
-        });
+        });if ($out.length > src.length) {
+          truncateArray($out, src.length, $invalidates);
+        }
       }$invalidatedKeys.clear();return $out;
     }function recursiveSteps(key, $tracked) {
       const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context, $invalidates } = this;if ($currentStack.length > 0) {
@@ -1255,12 +1255,12 @@ const modelBuilder = (function () {
         }
       } else {
         $invalidatedKeys.forEach(key => {
-          if (key >= src.length) {
-            setOnArray($out, key, undefined, $invalidates);$out.length = src.length;
-          } else {
+          if (key < src.length) {
             const res = func([$invalidatedKeys, key], key, src[key], context);setOnArray($out, key, res, $invalidates);
           }
-        });
+        });if ($out.length > src.length) {
+          truncateArray($out, src.length, $invalidates);
+        }
       }$invalidatedKeys.clear();return $out;
     }function recursiveSteps(key, $tracked) {
       const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context, $invalidates } = this;if ($currentStack.length > 0) {
