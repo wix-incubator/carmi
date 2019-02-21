@@ -22,7 +22,7 @@ module.exports = function CarmiLoader() {
   let compiled;
 
   try {
-    compiled = execa.sync('npx', ['carmi', ...dargs(options)]).stdout;
+    compiled = execa.sync('node', [require.resolve('./bin/carmi'), ...dargs(options)]).stdout;
   } finally {
     Object.keys(require(statsPath)).forEach(filePath => {
       // Add those modules as loader dependencies
