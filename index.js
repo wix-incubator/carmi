@@ -319,7 +319,7 @@ function compile(model, options) {
   let source = rawSource;
   if (options.prettier) {
     try {
-      source = prettier.format(rawSource, {parser: 'babylon'});
+      source = prettier.format(rawSource, {parser: 'babel'});
     } catch (e) { } //eslint-disable-line no-empty
   }
   let result;

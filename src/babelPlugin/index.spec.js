@@ -6,7 +6,7 @@ const babel = require('babel-core');
 
 const formatCode = code =>
   prettier
-    .format(code, {parser: 'babylon'})
+    .format(code, {parser: 'babel'})
     .trim()
     .replace(/\n+/g, '\n');
 

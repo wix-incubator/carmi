@@ -4,7 +4,7 @@ const isCarmiRegex = /^(.+\.carmi)(?:\.js)?$/;
 const isCarmiFilename = x => isCarmiRegex.test(x);
 const {relative, resolve} = require('path');
 const compileFile = require('./compileFile');
-const babylon = require('babylon');
+const babylon = require('@babel/parser');
 
 const parseCompiledFile = code => {
   const compiledAST = babylon.parse(code);
