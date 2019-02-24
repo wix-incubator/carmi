@@ -368,6 +368,8 @@ function compile(model, options) {
   if (hashFile) {
     fs.writeFileSync(hashFile, result);
   }
+
+//  console.log(result)
   return result;
 }
 

@@ -85,9 +85,7 @@ function base() {
 
     Object.assign(
       $res,
-      {
-        /* SETTERS */
-      },
+      {$SETTERS},
       {
         $startBatch: () => {
           $inBatch = true;

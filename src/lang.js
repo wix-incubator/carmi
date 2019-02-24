@@ -160,10 +160,17 @@ class SetterExpression extends Array {
   toJSON() {
     return ['*setter*'].concat(this)
   }
+  setterType() {
+    return 'set'
+  }
 }
 class SpliceSetterExpression extends SetterExpression {
   toJSON() {
     return ['*splice*'].concat(this)
+  }
+
+  setterType() {
+    return 'splice'
   }
 }
 AllTokens.Token = Token;
