@@ -19,6 +19,24 @@ const _ = require('lodash');
 
 describe('setters', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
+    it('should allow variable args in between constant args', () => {
+      const model = {
+        data: root.get('a'),
+        setInner: setter('a', arg0, 'c')
+      }
+      const optCode = eval(compile(model, {
+        compiler
+      }));
+      const inst = optCode({
+        a: {b: {c: 'nothing'}}
+      }, funcLibrary);
+      inst.setInner('b', 'hello')
+      expect(inst.data).toEqual({
+        b: {
+          c: 'hello'
+        }
+      });
+    })
     it('should allow deep setting of an object', () => {
       const model = {
         outer: root.get('a').mapValues(a => a),
