@@ -6,23 +6,27 @@
 const execa = require('execa')
 const dargs = require('dargs')
 const tempy = require('tempy')
+const {readFileSync} = require('fs')
 const loaderUtils = require('loader-utils')
 
 module.exports = function CarmiLoader() {
   const statsPath = tempy.file({extension: 'json'})
-  const loaderOptions = loaderUtils.getOptions(this) || {};
+  const tempOutputPath = tempy.file({extension: 'js'})
+  const loaderOptions = loaderUtils.getOptions(this) || {}
 
   const options = {
     source: this.getDependencies()[0],
     stats: statsPath,
     format: 'cjs',
+    output: tempOutputPath,
     ...loaderOptions
   }
 
   let compiled;
 
   try {
-    compiled = execa.sync('node', [require.resolve('./bin/carmi'), ...dargs(options)]).stdout;
+    execa.sync('node', [require.resolve('./bin/carmi'), ...dargs(options)])
+    compiled = readFileSync(tempOutputPath, 'utf8')
   } finally {
     Object.keys(require(statsPath)).forEach(filePath => {
       // Add those modules as loader dependencies
