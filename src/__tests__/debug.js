@@ -11,7 +11,7 @@ const path = require('path')
 
 describe('Tests for usability and debugging carmi', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
-    it('should store source files and ast in debug mode', async () => {
+    it.skip('should store source files and ast in debug mode', async () => {
       const makeSureThisCanBeFound = root.map(item => item.mult(2));
       const res = makeSureThisCanBeFound.map(item => item.plus(80));
       const model = {res, set: setter(arg0)}
