@@ -205,32 +205,6 @@ $tainted = new WeakSet();`
     }
   }
 
-  buildSetter(setter, name) {
-    const setterType = setter.setterType()
-    const numTokens = setter.filter(part => part instanceof Token).length - 1
-    const pathExpr =
-      [...setter.slice(1)].map(token => {
-          if (!(token instanceof Token)) {
-            return JSON.stringify(token)
-          }
-
-          if (setterType === 'splice' && token.$type === 'key') {
-            return `args[${numTokens - 1}]`
-          }
-          const argMatch = token.$type ? token.$type.match(/arg(\d)/) : null
-          return argMatch ? `args[${argMatch[1]}]` : JSON.stringify(token)
-        }).join(',')   
-        return `${name}: $setter.bind(null, (...args) => ${setterType}([${pathExpr}], ...args.slice(${numTokens})))`
-      }
-
-  buildProjectionData() {
-    const setters = 
-      _(this.setters)
-        .mapValues((setter, name) => this.buildSetterProjectionData(setter, name))
-        .groupBy('type').mapValues((v, t) => _.map(v, o => _.omit(o, ['type'])).reduce(_.assign)).value()
-    return {setters}
-  }
-
   invalidates(expr) {
     return expr[0].$invalidates;
   }

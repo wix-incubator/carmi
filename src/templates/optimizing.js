@@ -929,22 +929,20 @@ function library() {
       return $res;
     }
 
-    function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model)
-    }
-
-
     function invalidatePath(path) {
         path.forEach((part, index) => {
           triggerInvalidations(getAssignableObject(path, index), part, index === path.length - 1)
         })
     }
+
     function set(path, value) {
+      ensurePath(path)
       invalidatePath(path)
-      $applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
+      applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
     }
 
     function splice(pathWithKey, len, ...newItems) {
+      ensurePath(pathWithKey)
       const key = pathWithKey[pathWithKey.length - 1]
       const path = pathWithKey.slice(0, pathWithKey.length - 1)
       const arr = getAssignableObject(path, path.length)

@@ -488,16 +488,14 @@ module.exports = function () {
           truncateArray($res, len, $invalidates);
         }
       }return $res;
-    }function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
     }function invalidatePath(path) {
       path.forEach((part, index) => {
         triggerInvalidations(getAssignableObject(path, index), part, index === path.length - 1);
       });
     }function set(path, value) {
-      invalidatePath(path);$applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value);
+      ensurePath(path);invalidatePath(path);applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value);
     }function splice(pathWithKey, len, ...newItems) {
-      const key = pathWithKey[pathWithKey.length - 1];const path = pathWithKey.slice(0, pathWithKey.length - 1);const arr = getAssignableObject(path, path.length);const origLength = arr.length;const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);for (let i = key; i < end; i++) {
+      ensurePath(pathWithKey);const key = pathWithKey[pathWithKey.length - 1];const path = pathWithKey.slice(0, pathWithKey.length - 1);const arr = getAssignableObject(path, path.length);const origLength = arr.length;const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);for (let i = key; i < end; i++) {
         triggerInvalidations(arr, i, true);
       }invalidatePath(path);arr.splice(key, len, ...newItems);
     }function $todosListBuild() {
@@ -510,7 +508,17 @@ module.exports = function () {
       }$inRecalculate = true;($first || $invalidatedRoots.has(1)) && $array_temp_4_19_1Build();($first || $invalidatedRoots.has(0)) && $todosListBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
-    }function $applySetter(object, key, value) {
+    }function ensurePath(path) {
+      if (path.length < 2) {
+        return;
+      }if (path.length > 2) {
+        ensurePath(path.slice(0, path.length - 1));
+      }const lastObjectKey = path[path.length - 2];const assignable = getAssignableObject(path, path.length - 2);if (assignable[lastObjectKey]) {
+        return;
+      }const lastType = typeof path[path.length - 1];assignable[lastObjectKey] = lastType === 'number' ? [] : {};
+    }function getAssignableObject(path, index) {
+      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
+    }function applySetter(object, key, value) {
       if (typeof value === 'undefined') {
         delete object[key];
       } else {
@@ -1036,16 +1044,14 @@ module.exports = function () {
           truncateArray($res, len, $invalidates);
         }
       }return $res;
-    }function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
     }function invalidatePath(path) {
       path.forEach((part, index) => {
         triggerInvalidations(getAssignableObject(path, index), part, index === path.length - 1);
       });
     }function set(path, value) {
-      invalidatePath(path);$applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value);
+      ensurePath(path);invalidatePath(path);applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value);
     }function splice(pathWithKey, len, ...newItems) {
-      const key = pathWithKey[pathWithKey.length - 1];const path = pathWithKey.slice(0, pathWithKey.length - 1);const arr = getAssignableObject(path, path.length);const origLength = arr.length;const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);for (let i = key; i < end; i++) {
+      ensurePath(pathWithKey);const key = pathWithKey[pathWithKey.length - 1];const path = pathWithKey.slice(0, pathWithKey.length - 1);const arr = getAssignableObject(path, path.length);const origLength = arr.length;const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);for (let i = key; i < end; i++) {
         triggerInvalidations(arr, i, true);
       }invalidatePath(path);arr.splice(key, len, ...newItems);
     }function $firstBuild() {
@@ -1058,7 +1064,17 @@ module.exports = function () {
       }$inRecalculate = true;($first || $invalidatedRoots.has(0)) && $firstBuild();($first || $invalidatedRoots.has(1)) && $secondBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
-    }function $applySetter(object, key, value) {
+    }function ensurePath(path) {
+      if (path.length < 2) {
+        return;
+      }if (path.length > 2) {
+        ensurePath(path.slice(0, path.length - 1));
+      }const lastObjectKey = path[path.length - 2];const assignable = getAssignableObject(path, path.length - 2);if (assignable[lastObjectKey]) {
+        return;
+      }const lastType = typeof path[path.length - 1];assignable[lastObjectKey] = lastType === 'number' ? [] : {};
+    }function getAssignableObject(path, index) {
+      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
+    }function applySetter(object, key, value) {
       if (typeof value === 'undefined') {
         delete object[key];
       } else {
@@ -1586,16 +1602,14 @@ const modelBuilder = (function () {
           truncateArray($res, len, $invalidates);
         }
       }return $res;
-    }function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
     }function invalidatePath(path) {
       path.forEach((part, index) => {
         triggerInvalidations(getAssignableObject(path, index), part, index === path.length - 1);
       });
     }function set(path, value) {
-      invalidatePath(path);$applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value);
+      ensurePath(path);invalidatePath(path);applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value);
     }function splice(pathWithKey, len, ...newItems) {
-      const key = pathWithKey[pathWithKey.length - 1];const path = pathWithKey.slice(0, pathWithKey.length - 1);const arr = getAssignableObject(path, path.length);const origLength = arr.length;const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);for (let i = key; i < end; i++) {
+      ensurePath(pathWithKey);const key = pathWithKey[pathWithKey.length - 1];const path = pathWithKey.slice(0, pathWithKey.length - 1);const arr = getAssignableObject(path, path.length);const origLength = arr.length;const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);for (let i = key; i < end; i++) {
         triggerInvalidations(arr, i, true);
       }invalidatePath(path);arr.splice(key, len, ...newItems);
     }function $allBuild() {
@@ -1608,7 +1622,17 @@ const modelBuilder = (function () {
       }$inRecalculate = true;($first || $invalidatedRoots.has(0)) && $allBuild();($first || $invalidatedRoots.has(1)) && $firstBuild();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       }
-    }function $applySetter(object, key, value) {
+    }function ensurePath(path) {
+      if (path.length < 2) {
+        return;
+      }if (path.length > 2) {
+        ensurePath(path.slice(0, path.length - 1));
+      }const lastObjectKey = path[path.length - 2];const assignable = getAssignableObject(path, path.length - 2);if (assignable[lastObjectKey]) {
+        return;
+      }const lastType = typeof path[path.length - 1];assignable[lastObjectKey] = lastType === 'number' ? [] : {};
+    }function getAssignableObject(path, index) {
+      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
+    }function applySetter(object, key, value) {
       if (typeof value === 'undefined') {
         delete object[key];
       } else {

@@ -213,6 +213,24 @@ class NaiveCompiler {
     return `${prefix} $${name}();`;
   }
 
+  buildSetter(setter, name) {
+    const setterType = setter.setterType()
+    const numTokens = setter.filter(part => part instanceof Token).length - 1
+    const pathExpr =
+      [...setter.slice(1)].map(token => {
+          if (!(token instanceof Token)) {
+            return JSON.stringify(token)
+          }
+
+          if (setterType === 'splice' && token.$type === 'key') {
+            return `args[${numTokens - 1}]`
+          }
+          const argMatch = token.$type ? token.$type.match(/arg(\d)/) : null
+          return argMatch ? `args[${argMatch[1]}]` : JSON.stringify(token)
+        }).join(',')
+        return `${name}: $setter.bind(null, (...args) => ${setterType}([${pathExpr}], ...args.slice(${numTokens})))`
+      }
+
   pathToString(path, n = 0) {
     this.disableTypeChecking = true
     const res = this.generateExpr(
@@ -220,23 +238,6 @@ class NaiveCompiler {
     );
     this.disableTypeChecking = false
     return res
-  }
-
-  applySetter(expr) {
-    return `$applySetter(${this.pathToString(expr, 1)}, ${this.generateExpr(expr[expr.length - 1])}, value)`
-  }
-
-  buildSetter(setterExpr, name) {
-    const args = setterExpr
-      .slice(1)
-      .filter(t => typeof t !== 'string' && typeof t !== 'number')
-      .map(t => t.$type);
-    if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
-        ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
-    })`;
-    }
-    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => ${this.applySetter(setterExpr)})`
   }
 
   shortSource(src) {
