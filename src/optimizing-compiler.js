@@ -20,7 +20,9 @@ class OptimizingCompiler extends SimpleCompiler {
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
       RESET: `$first = false;
-$tainted = new WeakSet();`
+$tainted = new WeakSet();`,
+      SETTERS: () => 'buildSettersFromProjectionData()',
+      PROJECTION_DATA: () => JSON.stringify(this.buildProjectionData())
     });
   }
 
@@ -205,37 +207,31 @@ $tainted = new WeakSet();`
     }
   }
 
-  buildSetter(setterExpr, name) {
-    const args = setterExpr
-      .slice(1)
-      .filter(t => typeof t !== 'string' && typeof t !== 'number')
-      .map(t => t.$type);
-    const invalidate = new Array(setterExpr.length - 1)
-      .fill()
-      .map(
-        (v, idx) =>
-          `triggerInvalidations(${this.pathToString(setterExpr, idx + 1)}, ${this.generateExpr(
-            setterExpr[setterExpr.length - idx - 1]
-          )}, ${idx === 0});`
-      )
-      .join('');
+  buildSetterProjectionData(setter, name) {
+    const isSplice = setter instanceof SpliceSetterExpression
+    const numTokens = setter.filter(part => part instanceof Token).length - 1
 
-    if (setterExpr instanceof SpliceSetterExpression) {
-      return `${name}:$setter.bind(null, (${args.concat(['len', '...newItems']).join(',')}) => {
-          const arr = ${this.pathToString(setterExpr, 1)};
-          const origLength = arr.length;
-          const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
-          for (let i = key; i < end; i++ ) {
-            triggerInvalidations(arr, i, true);
+    return {type: isSplice ? 'splice' : 'set', [name]:
+      _.map([...setter.slice(1)], token => {
+          if (!(token instanceof Token)) {
+            return token
           }
-          ${invalidate}
-          ${this.pathToString(setterExpr, 1)}.splice(key, len, ...newItems);
-      })`;
-    }
-    return `${name}:$setter.bind(null, (${args.concat('value').join(',')}) => {
-              ${invalidate}
-              ${this.applySetter(setterExpr)}
-          })`;
+
+          if (isSplice && token.$type === 'key') {
+            return [numTokens - 1]
+          }
+          const argMatch = token.$type ? token.$type.match(/arg(\d)/) : null
+          return argMatch ? [+argMatch[1]] : token
+        })
+      }
+  }
+
+  buildProjectionData() {
+    const setters = 
+      _(this.setters)
+        .mapValues((setter, name) => this.buildSetterProjectionData(setter, name))
+        .groupBy('type').mapValues((v, t) => _.map(v, o => _.omit(o, ['type'])).reduce(_.assign)).value()
+    return {setters}
   }
 
   invalidates(expr) {
