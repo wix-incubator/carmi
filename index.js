@@ -91,7 +91,7 @@ function convertArrayAndObjectsToExpr(v) {
       paths.set(v, path)
     }
   }
-  
+
   if (v === null) {
     return new Token('null');
   } else if (v.constructor === Object) {
@@ -107,7 +107,7 @@ function convertArrayAndObjectsToExpr(v) {
     return createExpr(new Token('array', currentLine()), ...v.map((entry, index) => withPathInfo(entry, index, path)));
   } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
     return new WrappedPrimitive(v);
-  } 
+  }
     return v;
 }
 
@@ -244,7 +244,7 @@ proxyHandler.get = (target, key) => {
     if (sugar[key]) {
       return (...args) => sugar[key](chain(target), ...args);
     }
-    throw new Error(`unknown token: ${key}, ${JSON.stringify(target)}`);
+    throw new Error(`unknown token: "${key}" at ${currentLine()}`);
   }
   if (key === UnwrappedExpr) {
     if (target[UnwrappedExpr]) {
