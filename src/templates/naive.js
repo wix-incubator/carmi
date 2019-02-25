@@ -62,7 +62,36 @@ function base() {
       }
     }
 
-    function $applySetter(object, key, value) {
+    function ensurePath(path) {
+      if (path.length < 2) {
+        return
+      }
+
+      if (path.length > 2) {
+        ensurePath(path.slice(0, path.length - 1))
+      }
+
+      const lastObjectKey = path[path.length - 2]
+
+      const assignable = getAssignableObject(path, path.length - 2)
+      if (assignable[lastObjectKey]) {
+        return
+      }
+      const lastType = typeof path[path.length - 1]
+      assignable[lastObjectKey] = lastType === 'number' ? [] : {}
+    }
+
+    function getAssignableObject(path, index) {
+      return path.slice(0, index).reduce((agg, p) => agg[p], $model)
+    }
+
+    function push(path, value) {
+      ensurePath([...path, 0])
+      const arr = getAssignableObject(path, path.length)
+      splice([...path, arr.length], 0, value)
+    }
+    
+    function applySetter(object, key, value) {
       if (typeof value === 'undefined') {
         delete object[key]
       } else {
@@ -85,9 +114,7 @@ function base() {
 
     Object.assign(
       $res,
-      {
-        /* SETTERS */
-      },
+      {$SETTERS},
       {
         $startBatch: () => {
           $inBatch = true;
@@ -281,6 +308,19 @@ function library() {
       loopFunction(resolved, res, func, src, context, key);
     });
     return res;
+  }
+
+  function set(path, value) {
+    ensurePath(path)
+    applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
+  }
+
+  function splice(pathWithKey, len, ...newItems) {
+    ensurePath(pathWithKey)
+    const key = pathWithKey[pathWithKey.length - 1]
+    const path = pathWithKey.slice(0, pathWithKey.length - 1)
+    const arr = getAssignableObject(path, path.length)
+    arr.splice(key, len, ...newItems)
   }
 }
 

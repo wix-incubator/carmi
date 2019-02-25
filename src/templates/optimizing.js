@@ -928,6 +928,32 @@ function library() {
       }
       return $res;
     }
+
+    function invalidatePath(path) {
+        path.forEach((part, index) => {
+          triggerInvalidations(getAssignableObject(path, index), part, index === path.length - 1)
+        })
+    }
+
+    function set(path, value) {
+      ensurePath(path)
+      invalidatePath(path)
+      applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
+    }
+
+    function splice(pathWithKey, len, ...newItems) {
+      ensurePath(pathWithKey)
+      const key = pathWithKey[pathWithKey.length - 1]
+      const path = pathWithKey.slice(0, pathWithKey.length - 1)
+      const arr = getAssignableObject(path, path.length)
+      const origLength = arr.length;
+      const end = len === newItems.length ? key + len : Math.max(origLength, origLength + newItems.length - len);
+      for (let i = key; i < end; i++ ) {
+        triggerInvalidations(arr, i, true);
+      }
+      invalidatePath(pathWithKey)
+      arr.splice(key, len, ...newItems)
+    }
   }
 
 function topLevel() {

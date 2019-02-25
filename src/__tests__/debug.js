@@ -50,11 +50,11 @@ describe('Tests for usability and debugging carmi', () => {
     });
     it('throw on invalid arguments in setter function', async () => {
       const args = ['store', arg0, true]
-      expect(() => setter(...args)).toThrowError(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+      expect(() => setter(...args)).toThrowError(`Invalid arguments for setter/splice/push - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
     });
     it('throw on invalid arguments in splice function', async () => {
       const args = ['store', arg0, true]
-      expect(() => splice(...args)).toThrowError(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+      expect(() => splice(...args)).toThrowError(`Invalid arguments for setter/splice/push - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
     });
     it('throw on invalids reuse of key/val/loop/context inside other functions', () => {
       expect(() => {

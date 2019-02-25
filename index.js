@@ -8,10 +8,12 @@ const {
   Setter,
   Expression,
   Splice,
+  Push,
   cloneToken,
   SourceTag,
   isSetterExpression,
   isSpliceExpression,
+  isPushExpression,
   isExpression,
   WrappedPrimitive
 } = require('./src/lang');
@@ -393,8 +395,10 @@ const API = {
   compile,
   setter: Setter,
   splice: Splice,
+  push: Push,
   isSetterExpression,
   isSpliceExpression,
+  isPushExpression,
   isExpression,
   withName,
   inferFromModel,

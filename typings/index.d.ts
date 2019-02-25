@@ -607,6 +607,7 @@ export interface Token { $type: string }
 type PathSegment = Token | string | number
 type SetterExpression<Model, Path, F> = {}
 type SpliceExpression<Model, Path, F> = {}
+type PushExpression<Model, Path, F> = {}
 
 export interface ArrayGraph<T extends any[], F extends FunctionLibrary> extends ArrayGraphImpl<T, F> {}
 export interface ObjectGraph<T extends object, F extends FunctionLibrary> extends ObjectGraphImpl<AsNative<T>, F> {}
@@ -660,9 +661,14 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     /**
     * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
     */
-    splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
+   splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
 
     /**
+    * declare a setter that adds an element to the end of an array. The setter will create the array if it doesn't exist
+    */
+   push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
+
+   /**
     * call a function called functionName from the function library passes the current value as the first argument, and extra arguments are well... extra
     */
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>

@@ -160,12 +160,29 @@ class SetterExpression extends Array {
   toJSON() {
     return ['*setter*'].concat(this)
   }
+  setterType() {
+    return 'set'
+  }
 }
 class SpliceSetterExpression extends SetterExpression {
   toJSON() {
     return ['*splice*'].concat(this)
   }
+
+  setterType() {
+    return 'splice'
+  }
 }
+class PushSetterExpression extends SetterExpression {
+  toJSON() {
+    return ['*push*'].concat(this)
+  }
+
+  setterType() {
+    return 'push'
+  }
+}
+
 AllTokens.Token = Token;
 AllTokens.Expr = (...args) => new Expression(Clone(args[0]), ...args.slice(1));
 
@@ -177,7 +194,7 @@ function validatePathSegmentArguments(args) {
       (arg.$type === 'arg0' || arg.$type === 'arg1' || arg.$type === 'arg2')));
 
   if (invalidArgs.length > 0) {
-    throw new Error(`Invalid arguments for setter/splice - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
+    throw new Error(`Invalid arguments for setter/splice/push - can only accept path (use arg0/arg1/arg2 - to define placeholders in the path), received [${args}]`);
   }
 }
 
@@ -192,13 +209,20 @@ AllTokens.Splice = (...args) => {
   validatePathSegmentArguments(args);
   return new SpliceSetterExpression(...args, new Token('key'));
 }
+AllTokens.Push = (...args) => {
+  validatePathSegmentArguments(args);
+  return new PushSetterExpression(...args);
+}
+
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
 AllTokens.SpliceSetterExpression = SpliceSetterExpression;
+AllTokens.PushSetterExpression = PushSetterExpression;
 
 AllTokens.isSetterExpression = expression => expression instanceof SetterExpression;
 AllTokens.isSpliceExpression = expression => expression instanceof SpliceSetterExpression;
+AllTokens.isPushExpression = expression => expression instanceof PushSetterExpression;
 AllTokens.isExpression = expression => expression instanceof Expression;
 AllTokens.isToken = token => token instanceof Token;
 
