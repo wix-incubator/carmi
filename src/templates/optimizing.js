@@ -957,16 +957,16 @@ function library() {
   }
 
 function topLevel() {
-  function $$FUNCNAMEBuild() {
-    const $tracked = [$invalidatedRoots, $TOP_LEVEL_INDEX];
+  function $$FUNCNAMEBuild($tracked) {
+    // const $tracked = [$invalidatedRoots, $TOP_LEVEL_INDEX];
     /* PRETRACKING */
     /* TYPE_CHECK */
     const newValue = $EXPR;
-    setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
-    $res['$FUNCNAME'] = newValue;
-    $invalidatedRoots.delete($TOP_LEVEL_INDEX);
+    // setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
+    // $res['$FUNCNAME'] = newValue;
+    // $invalidatedRoots.delete($TOP_LEVEL_INDEX);
     /* TRACKING */
-    return $topLevel[$TOP_LEVEL_INDEX];
+    return newValue
   }
 }
 
@@ -1009,10 +1009,26 @@ function helperFunc() {
 
 const base = require('./naive').base;
 
+function updateDerived() {
+  const builderFunctions = [/*BUILDER_FUNCS*/];
+  const builderNames = [/*BUILDER_NAMES*/];
+  function updateDerived() {
+    for (let i = 0; i < $COUNT_GETTERS; i++) {
+      if ($first || $invalidatedRoots.has(i)) {
+        const $tracked = [$invalidatedRoots, i];
+        const newValue = builderFunctions[i]($tracked);
+        setOnArray($topLevel, i, newValue, true);
+        $res[builderNames[i]] = newValue;
+      }
+    }
+  }
+}
+
 module.exports = {
   base,
   library,
   topLevel,
+  updateDerived,
   recursiveMap: recursiveFunc,
   recursiveMapValues: recursiveFunc,
   helperFunc,

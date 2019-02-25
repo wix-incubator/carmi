@@ -10,7 +10,7 @@ const {
 } = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
-const {splitSettersGetters, pathMatches, normalizeAndTagAllGetters} = require('./expr-tagging');
+const {topologicalSortGetters, pathMatches} = require('./expr-tagging');
 
 class OptimizingCompiler extends SimpleCompiler {
   get template() {
@@ -20,8 +20,28 @@ class OptimizingCompiler extends SimpleCompiler {
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
       RESET: `$first = false;
-$tainted = new WeakSet();`
+$tainted = new WeakSet();
+`,
+      DERIVED: 'updateDerived()'
     });
+  }
+
+  allExpressions() {
+    const realGetters = topologicalSortGetters(this.getters)
+      .filter(name => this.getters[name][0].$type !== 'func')
+const countTopLevels = realGetters.length;
+    
+    return `
+    const $topLevel = new Array(${countTopLevels}).fill(null);
+    ${super.allExpressions()}
+    ${
+      this.mergeTemplate(this.template.updateDerived, {
+        COUNT_GETTERS: () => countTopLevels,
+        BUILDER_FUNCS: () => realGetters.map(name => `$${name}Build`).join(','),
+        BUILDER_NAMES: () => realGetters.map(name => JSON.stringify(name)).join(',')
+      })
+    }
+`
   }
 
   byTokenTypesPlaceHolders(expr) {
@@ -178,10 +198,6 @@ $tainted = new WeakSet();`
       default:
         return super.generateExpr(expr);
     }
-  }
-
-  buildDerived(name) {
-    return `($first || $invalidatedRoots.has(${this.topLevelToIndex(name)})) && $${name}Build();`;
   }
 
   isStaticObject(expr) {

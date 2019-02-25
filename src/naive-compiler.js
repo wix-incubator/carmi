@@ -323,13 +323,17 @@ class NaiveCompiler {
       .replace(/function\s*\w*\(\)\s*\{\s*([\s\S]+)\}/, (m, i) => i);
   }
 
+
+  allExpressions() {
+    return _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n')
+  }
+
   topLevelOverrides() {
     return {
       NAME: this.options.name,
        // TODO: fix memory issue and reenable AST output
       AST: () => '', //JSON.stringify(this.getters, null, 2),
       DEBUG_MODE: () => `/* DEBUG */${!!this.options.debug}`,
-      COUNT_GETTERS: () => Object.keys(this.getters).length,
       SOURCE_FILES: () => () => this.options.debug ? JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
         const tag = getter instanceof Expression && getter[0][SourceTag];
         const simpleFileName = tag && tagToSimpleFilename(tag);
@@ -340,7 +344,7 @@ class NaiveCompiler {
         return acc;
       }, {})) : '',
       LIBRARY: () => this.mergeTemplate(this.template.library, {}),
-      ALL_EXPRESSIONS: () => _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n'),
+      ALL_EXPRESSIONS: () => this.allExpressions(),
       DERIVED: () =>
         topologicalSortGetters(this.getters)
           .filter(name => this.getters[name][0].$type !== 'func')

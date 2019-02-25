@@ -41,7 +41,6 @@ function base() {
 
   const $res = { $model };
     const $listeners = new Set();
-    const $topLevel = new Array($COUNT_GETTERS).fill(null);
     /* LIBRARY */
     /* ALL_EXPRESSIONS */
     let $inBatch = false;

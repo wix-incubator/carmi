@@ -519,8 +519,12 @@ function normalizeAndTagAllGetters(getters, setters) {
   //   })
   // })
   dedupFunctionsObjects(getters);
-  Object.values(getters).forEach((getter, index) => {
-    getter[0].$topLevelIndex = index;
+  let index = 0;
+  topologicalSortGetters(getters).forEach(name => {
+    if (getters[name][0].$type !== 'func') {// not a helper function
+      getters[name][0].$topLevelIndex = index;
+      index++
+    }
   })
   return getters;
 }
