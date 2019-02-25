@@ -951,7 +951,7 @@ function library() {
       for (let i = key; i < end; i++ ) {
         triggerInvalidations(arr, i, true);
       }
-      invalidatePath(path)
+      invalidatePath(pathWithKey)
       arr.splice(key, len, ...newItems)
     }
   }
