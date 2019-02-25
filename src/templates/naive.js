@@ -85,6 +85,12 @@ function base() {
       return path.slice(0, index).reduce((agg, p) => agg[p], $model)
     }
 
+    function push(path, value) {
+      ensurePath([...path, 0])
+      const arr = getAssignableObject(path, path.length)
+      splice([...path, arr.length], 0, value)
+    }
+    
     function applySetter(object, key, value) {
       if (typeof value === 'undefined') {
         delete object[key]
