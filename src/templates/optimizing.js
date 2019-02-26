@@ -958,13 +958,9 @@ function library() {
 
 function topLevel() {
   function $$FUNCNAMEBuild($tracked) {
-    // const $tracked = [$invalidatedRoots, $TOP_LEVEL_INDEX];
     /* PRETRACKING */
     /* TYPE_CHECK */
     const newValue = $EXPR;
-    // setOnObject($topLevel, $TOP_LEVEL_INDEX, newValue, $INVALIDATES);
-    // $res['$FUNCNAME'] = newValue;
-    // $invalidatedRoots.delete($TOP_LEVEL_INDEX);
     /* TRACKING */
     return newValue
   }
@@ -1015,9 +1011,11 @@ function updateDerived() {
   function updateDerived() {
     for (let i = 0; i < $COUNT_GETTERS; i++) {
       if ($first || $invalidatedRoots.has(i)) {
-        const $tracked = [$invalidatedRoots, i];
-        const newValue = builderFunctions[i]($tracked);
+        const newValue = builderFunctions[i]([$invalidatedRoots, i]);
         setOnArray($topLevel, i, newValue, true);
+        if (!$first) {
+          $invalidatedRoots.delete(i);
+        }
         if (builderNames[i]) {
           $res[builderNames[i]] = newValue;
         }

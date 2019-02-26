@@ -27,9 +27,14 @@ $tainted = new WeakSet();
   }
 
   allExpressions() {
-    const realGetters = topologicalSortGetters(this.getters)
-      .filter(name => this.getters[name][0].$type !== 'func')
-const countTopLevels = realGetters.length;
+    const realGetters = []
+    Object.keys(this.getters).forEach(name => {
+      const index = this.topLevelToIndex(name);
+      if (typeof index === 'number') {
+        realGetters[index] = name;
+      }
+    });
+    const countTopLevels = realGetters.length;
     
     return `
     const $topLevel = new Array(${countTopLevels}).fill(null);

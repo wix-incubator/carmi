@@ -62,6 +62,11 @@ function rewriteStaticsToTopLevels(getters) {
     _.forEach(namesByExpr, (name, hash) => {
         newGetters[name] = allStaticAsStrings[hash].map(rewriteUsingTopLevels);
     });
+    _.forEach(getters, (expr, name) => {
+        if (!newGetters[name]) {
+            newGetters[name] = Expr(Get, namesByExpr[exprHash(expr)], TopLevel);
+        }
+    })
     return newGetters;
 }
 

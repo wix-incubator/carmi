@@ -499,21 +499,15 @@ module.exports = function () {
         triggerInvalidations(arr, i, true);
       }invalidatePath(pathWithKey);arr.splice(key, len, ...newItems);
     }const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
-      // const $tracked = [$invalidatedRoots, 1];
-      const newValue = call($tracked, [\\"createElement\\", $topLevel[0 /*\\"$array_temp_4_19_1\\"*/]], '4', 2, false); // setOnObject($topLevel, 1, newValue, false);
-      // $res['todosList'] = newValue;
-      // $invalidatedRoots.delete(1);
-      return newValue;
+      const newValue = call($tracked, [\\"createElement\\", $topLevel[0 /*\\"$array_temp_4_19_1\\"*/]], '4', 2, false);return newValue;
     }function $array_temp_4_19_1Build($tracked) {
-      // const $tracked = [$invalidatedRoots, 0];
-      const newValue = array($tracked, [\\"div\\", null, $model[0]], '2', 3, false); // setOnObject($topLevel, 0, newValue, false);
-      // $res['$array_temp_4_19_1'] = newValue;
-      // $invalidatedRoots.delete(0);
-      return newValue;
+      const newValue = array($tracked, [\\"div\\", null, $model[0]], '2', 3, false);return newValue;
     }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
-          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);if (builderNames[i]) {
+          const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, true);if (!$first) {
+            $invalidatedRoots.delete(i);
+          }if (builderNames[i]) {
             $res[builderNames[i]] = newValue;
           }
         }
@@ -1073,21 +1067,15 @@ module.exports = function () {
         triggerInvalidations(arr, i, true);
       }invalidatePath(pathWithKey);arr.splice(key, len, ...newItems);
     }const $topLevel = new Array(2).fill(null);function $firstBuild($tracked) {
-      // const $tracked = [$invalidatedRoots, 0];
-      const newValue = $model[0]; // setOnObject($topLevel, 0, newValue, false);
-      // $res['first'] = newValue;
-      // $invalidatedRoots.delete(0);
-      return newValue;
+      const newValue = $model[0];return newValue;
     }function $secondBuild($tracked) {
-      // const $tracked = [$invalidatedRoots, 1];
-      const newValue = $model[1]; // setOnObject($topLevel, 1, newValue, false);
-      // $res['second'] = newValue;
-      // $invalidatedRoots.delete(1);
-      return newValue;
+      const newValue = $model[1];return newValue;
     }const builderFunctions = [$firstBuild, $secondBuild];const builderNames = [\\"first\\", \\"second\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
-          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);if (builderNames[i]) {
+          const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, true);if (!$first) {
+            $invalidatedRoots.delete(i);
+          }if (builderNames[i]) {
             $res[builderNames[i]] = newValue;
           }
         }
@@ -1649,21 +1637,15 @@ const modelBuilder = (function () {
         triggerInvalidations(arr, i, true);
       }invalidatePath(pathWithKey);arr.splice(key, len, ...newItems);
     }const $topLevel = new Array(2).fill(null);function $allBuild($tracked) {
-      // const $tracked = [$invalidatedRoots, 0];
-      const newValue = $model[\\"list\\"]; // setOnObject($topLevel, 0, newValue, false);
-      // $res['all'] = newValue;
-      // $invalidatedRoots.delete(0);
-      return newValue;
+      const newValue = $model[\\"list\\"];return newValue;
     }function $firstBuild($tracked) {
-      // const $tracked = [$invalidatedRoots, 1];
-      const newValue = $topLevel[0 /*\\"all\\"*/][0]; // setOnObject($topLevel, 1, newValue, false);
-      // $res['first'] = newValue;
-      // $invalidatedRoots.delete(1);
-      return newValue;
+      const newValue = $topLevel[0 /*\\"all\\"*/][0];return newValue;
     }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
-          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);if (builderNames[i]) {
+          const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, true);if (!$first) {
+            $invalidatedRoots.delete(i);
+          }if (builderNames[i]) {
             $res[builderNames[i]] = newValue;
           }
         }
