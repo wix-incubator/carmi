@@ -26,7 +26,7 @@ describe('Tests for usability and debugging carmi', () => {
     it('withName', async () => {
       const negated = withName('negated', root.map(val => val.not()));
       const model = {doubleNegated: negated.map(val => val.not().call('tap')), set: setter(arg0)};
-      const optCode = eval(compile(model, {compiler}));
+      const optCode = eval(compile(model, {compiler, debug: true}));
       const inst = optCode([true, 1, 0, false, null], funcLibrary);
       expect(inst.doubleNegated).toEqual([true, true, false, false, false]);
       expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);

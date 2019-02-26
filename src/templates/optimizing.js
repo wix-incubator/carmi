@@ -1018,7 +1018,9 @@ function updateDerived() {
         const $tracked = [$invalidatedRoots, i];
         const newValue = builderFunctions[i]($tracked);
         setOnArray($topLevel, i, newValue, true);
-        $res[builderNames[i]] = newValue;
+        if (builderNames[i]) {
+          $res[builderNames[i]] = newValue;
+        }
       }
     }
   }

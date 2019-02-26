@@ -510,10 +510,12 @@ module.exports = function () {
       // $res['$array_temp_4_19_1'] = newValue;
       // $invalidatedRoots.delete(0);
       return newValue;
-    }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"$array_temp_4_19_1\\", \\"todosList\\"];function updateDerived() {
+    }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
-          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);$res[builderNames[i]] = newValue;
+          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);if (builderNames[i]) {
+            $res[builderNames[i]] = newValue;
+          }
         }
       }
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
@@ -1085,7 +1087,9 @@ module.exports = function () {
     }const builderFunctions = [$firstBuild, $secondBuild];const builderNames = [\\"first\\", \\"second\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
-          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);$res[builderNames[i]] = newValue;
+          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);if (builderNames[i]) {
+            $res[builderNames[i]] = newValue;
+          }
         }
       }
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
@@ -1659,7 +1663,9 @@ const modelBuilder = (function () {
     }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
-          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);$res[builderNames[i]] = newValue;
+          const $tracked = [$invalidatedRoots, i];const newValue = builderFunctions[i]($tracked);setOnArray($topLevel, i, newValue, true);if (builderNames[i]) {
+            $res[builderNames[i]] = newValue;
+          }
         }
       }
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {

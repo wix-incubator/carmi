@@ -38,7 +38,7 @@ const countTopLevels = realGetters.length;
       this.mergeTemplate(this.template.updateDerived, {
         COUNT_GETTERS: () => countTopLevels,
         BUILDER_FUNCS: () => realGetters.map(name => `$${name}Build`).join(','),
-        BUILDER_NAMES: () => realGetters.map(name => JSON.stringify(name)).join(',')
+        BUILDER_NAMES: () => realGetters.map(name => this.options.debug || name.indexOf('$') !== 0 ? JSON.stringify(name) : '""').join(',')
       })
     }
 `
