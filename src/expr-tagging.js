@@ -56,6 +56,12 @@ function genUsedOnlyAsBooleanValue(expr) {
   if (parent && (parent[0].$type === 'ternary' && indexInParent === 1)) {
     return true;
   }
+  if (parent && (parent[0].$type === 'get' && indexInParent === 2)) {
+    return true;
+  }
+  if (parent && (parent[0].$type === 'not' || parent.$type === 'isUndefined')) {
+    return true;
+  }
   return false;
 }
 
@@ -95,9 +101,10 @@ function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) 
         condsOfUsed.push(condOfExpr)
       }
   });
-  const condOfTracking = joinOr(...condsOfUsed, Expr(And, Expr(Not, nearestDeeperPathsCond), joinOr(...condsOfOnlyTested)))
+  const touchedButNotDeeper = Expr(And, joinOr(...condsOfOnlyTested), Expr(Not, nearestDeeperPathsCond))
+  const pathCond = joinOr(...condsOfUsed, touchedButNotDeeper)
   // console.log(JSON.stringify(condOfTracking, null, 2));
-  return condOfTracking;
+  return {pathCond, used: joinOr(...condsOfUsed, ...condsOfOnlyTested)};
 }
 
 function groupPathsThatCanBeInvalidated(paths) {
@@ -124,8 +131,8 @@ function groupPathsThatCanBeInvalidated(paths) {
   pathStringsSortedInnerFirst
     .forEach(pathAsStr => {
       const similiarPaths = groupedPaths[pathAsStr];
-      const pathCond = generatePathCondExpr(similiarPaths.map(path => paths.get(path)), pathAsStr, outputCondsByPathStr)
-      outputCondsByPathStr[pathAsStr] = pathCond;
+      const {pathCond, used} = generatePathCondExpr(similiarPaths.map(path => paths.get(path)), pathAsStr, outputCondsByPathStr)
+      outputCondsByPathStr[pathAsStr] = used;
       outputPaths.set(similiarPaths[0], pathCond);
     });
   return outputPaths;
