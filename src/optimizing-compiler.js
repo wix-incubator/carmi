@@ -248,7 +248,7 @@ $tainted = new WeakSet();
         //     invalidatedPath[invalidatedPath.length - 1].$type
         //   }`
         // );
-        const precond = cond ? `(${this.generateExpr(cond)} ) && ` : '';
+        const precond = cond && cond !== true ? `(${this.generateExpr(cond)} ) && ` : '';
         if (invalidatedPath[0].$type === 'context') {
           const activePath = [0].concat(invalidatedPath.slice(1));
           tracks.push(

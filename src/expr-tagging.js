@@ -26,7 +26,7 @@ const {exprHash} = require('./expr-hash');
 const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {tagToSimpleFilename} = require('./expr-names');
 const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash} = require('./expr-rewrite');
-
+const {or, and, not} = require('./expr-logic');
 let exprCounter = 0;
 
 const _ = require('lodash');
@@ -69,21 +69,11 @@ function countPathParts(pathAsStr) {
   return pathAsStr.split(',').length;
 }
 
-function joinOr(...conds) {
-  if (conds.length === 0) {
-    return false;
-  }
-  if (conds.length === 1) {
-    return conds[0]
-  }
-  return Expr(Or, ...conds);
-} 
-
 function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) {
   const pathPartsCnt = countPathParts(pathAsStr);
   const nearestDeeperPaths = Object.keys(outputCondsByPathStr).filter(otherPathStr => countPathParts(otherPathStr) === pathPartsCnt + 1 &&
         otherPathStr.substr(0, pathAsStr.length) === pathAsStr);
-  const nearestDeeperPathsCond = joinOr(...nearestDeeperPaths.map(otherPathStr => outputCondsByPathStr[otherPathStr]))
+  const nearestDeeperPathsCond = or(...nearestDeeperPaths.map(otherPathStr => outputCondsByPathStr[otherPathStr]))
   const condsOfOnlyTested = [];
   const condsOfUsed = [];
   pathExpressions.forEach(expr => {
@@ -101,10 +91,10 @@ function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) 
         condsOfUsed.push(condOfExpr)
       }
   });
-  const touchedButNotDeeper = Expr(And, joinOr(...condsOfOnlyTested), Expr(Not, nearestDeeperPathsCond))
-  const pathCond = joinOr(...condsOfUsed, touchedButNotDeeper)
+  const touchedButNotDeeper = and(or(...condsOfOnlyTested), not(nearestDeeperPathsCond))
+  const pathCond = or(...condsOfUsed, touchedButNotDeeper)
   // console.log(JSON.stringify(condOfTracking, null, 2));
-  return {pathCond, used: joinOr(...condsOfUsed, ...condsOfOnlyTested)};
+  return {pathCond, used: or(...condsOfUsed, ...condsOfOnlyTested)};
 }
 
 function groupPathsThatCanBeInvalidated(paths) {
@@ -133,7 +123,9 @@ function groupPathsThatCanBeInvalidated(paths) {
       const similiarPaths = groupedPaths[pathAsStr];
       const {pathCond, used} = generatePathCondExpr(similiarPaths.map(path => paths.get(path)), pathAsStr, outputCondsByPathStr)
       outputCondsByPathStr[pathAsStr] = used;
-      outputPaths.set(similiarPaths[0], pathCond);
+      if (pathCond) {
+        outputPaths.set(similiarPaths[0], pathCond);
+      }
     });
   return outputPaths;
 }
