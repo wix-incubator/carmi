@@ -83,7 +83,7 @@ module.exports = function () {
       let $changed = false;let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || $val && typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           $changed = true;triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;return $changed;
@@ -99,7 +99,7 @@ module.exports = function () {
       let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $key >= $target.length || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val)) {
+        }if ($hard || $key >= $target.length || $target[$key] !== $val || $val && typeof $target[$key] === 'object' && $tainted.has($val)) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
@@ -651,7 +651,7 @@ module.exports = function () {
       let $changed = false;let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || $val && typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           $changed = true;triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;return $changed;
@@ -667,7 +667,7 @@ module.exports = function () {
       let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $key >= $target.length || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val)) {
+        }if ($hard || $key >= $target.length || $target[$key] !== $val || $val && typeof $target[$key] === 'object' && $tainted.has($val)) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
@@ -1221,7 +1221,7 @@ const modelBuilder = (function () {
       let $changed = false;let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $target[$key] !== $val || typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+        }if ($hard || $target[$key] !== $val || $val && typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
           $changed = true;triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;return $changed;
@@ -1237,7 +1237,7 @@ const modelBuilder = (function () {
       let $hard = false;if ($invalidates && !$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
-        }if ($hard || $key >= $target.length || $target[$key] !== $val || typeof $target[$key] === 'object' && $tainted.has($val)) {
+        }if ($hard || $key >= $target.length || $target[$key] !== $val || $val && typeof $target[$key] === 'object' && $tainted.has($val)) {
           triggerInvalidations($target, $key, $hard);
         }
       }$target[$key] = $val;
