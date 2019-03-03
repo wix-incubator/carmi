@@ -10,6 +10,7 @@ const compilerTypes = {};
 compilerTypes.naive = require('./naive-compiler');
 compilerTypes.simple = require('./simple-compiler');
 compilerTypes.optimizing = require('./optimizing-compiler');
+compilerTypes.vm = require('./vm/vm-compiler');
 try {
   compilerTypes.flow = require('./flow-compiler');
   compilerTypes.rust = require('./rust-compiler');
