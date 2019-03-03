@@ -12,7 +12,7 @@ const formatCarmiResult = carmiResult =>
 const compileFile = carmiModelFilePath => {
   const moduleSupport = path.extname(carmiModelFilePath) === '.mjs' ? '--experimental-modules' : '';
   const compiled = execSync(
-    `node ${moduleSupport} ${carmiPath} --compiler optimizing --format iife --source ${carmiModelFilePath}`
+    `node --inspect-brk=127.0.0.1:9222 ${moduleSupport} ${carmiPath} --compiler optimizing --format iife --source ${carmiModelFilePath}`
   ).toString('utf8');
   return formatCarmiResult(compiled);
 };

@@ -51,7 +51,9 @@ function currentLine() {
     lines
       .slice(1)
       .filter(l => l.indexOf(INDEX_FILE) === -1 && l.indexOf(JSX_FILE) === -1 && l.indexOf(SUGAR_FILE) === -1 && l.indexOf(':') !== -1)[0] || 'unknown';
-  return externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? `${parseInt(str, 10)}` : str).join(':')
+  const retVal = externalLine.substr(externalLine.indexOf(path.sep)).split(':').map((str, idx) => idx > 0 ? `${parseInt(str, 10)}` : str).join(':')
+  require('fs').appendFileSync('/tmp/aa', retVal)
+  return retVal
 }
 
 const GLOBAL_TOKEN = '__$CARMI$__';
@@ -290,6 +292,7 @@ proxyHandler.apply = (target, thisArg, args) => {
 };
 
 function compile(model, options) {
+  debugger
   clearHashStrings();
   if (typeof options === 'boolean' || typeof options === 'undefined') {
     options = {compiler: options ? 'naive' : 'optimizing'};

@@ -3,6 +3,7 @@ const plugin = require('babel-plugin-macros');
 const path = require('path');
 const babel = require('babel-core');
 
+debugger
 pluginTester({
   plugin,
   snapshot: true,
@@ -11,20 +12,6 @@ pluginTester({
     presets: ['react']
   },
   tests: {
-    'template-literal': `
-      const carmi = require('./macro')
-
-      const modelBuilder = carmi\`
-        const {root} = require('../..')
-        module.exports = {all: root.get('list'), first: root.get('list').get(0)}
-      \`
-    `,
-    'magic-comment': `
-  // @carmi
-  import carmi from './macro'
-  const { root } = require('../../index');
-  module.exports = { first: root.get(0), second: root.get(1) };
-`,
     'carmi-react': `
     // @carmi
     import carmi from './macro'
