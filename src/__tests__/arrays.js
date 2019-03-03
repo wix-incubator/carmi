@@ -502,7 +502,7 @@ describe('testing array', () => {
       inst.splice(0, 0, 6)
       expect(inst.result).toEqual(15)
     });
-    it.only('concat', async () => {
+    it('concat', async () => {
       const model = {
         result: root.get('a').concat(root.get('b')),
         set: setter('a', arg0)
@@ -511,7 +511,6 @@ describe('testing array', () => {
       const initialData = {a: [1, 3, 5], b: [2, 6]};
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual([1, 3, 5, 2, 6]);
-      debugger
       inst.set(2, 1);
       expect(inst.result).toEqual([1, 3, 1, 2, 6]);
     });

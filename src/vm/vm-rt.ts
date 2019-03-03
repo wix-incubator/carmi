@@ -101,7 +101,7 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
             (scope: EvalScope) => func(...args.map(a => a(scope)))
 
     const wrapCond = (test: Evaluator, index: number, tracked: boolean) =>
-        tracked ? (scope: EvalScope) => (scope.conds[index] = index) && test(scope) : test
+        tracked ? ((scope: EvalScope) => (scope.conds[index] = index) && test(scope)) : test
 
     const ternary = (name: 'ternary', [test, then, alt]: Evaluator[], index: number, metaData: Partial<ProjectionMetaData>) => {
         const tracked = !!metaData.tracked
@@ -187,6 +187,7 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         parseInt: simpleResolver((a, radix) => parseInt(a, radix || 10)),
         map: topLevelResolver,
         any: topLevelResolver,
+        mapValues: topLevelResolver,
         recursiveMap: topLevelResolver,
         filter: topLevelResolver,
         keyBy: topLevelResolver,
@@ -198,7 +199,16 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         defaults: assignOrDefaults,
         bind,
         recur,
-        arg0: argResolver
+        arg0: argResolver,
+        arg1: argResolver,
+        arg2: argResolver,
+        arg3: argResolver,
+        arg4: argResolver,
+        arg5: argResolver,
+        arg6: argResolver,
+        arg7: argResolver,
+        arg8: argResolver,
+        arg9: argResolver
     }
     const buildEvaluator = (getter: GetterProjection, index: number): Evaluator => {
         const [typeIndex, argRefs, getterMetadata] = getter
