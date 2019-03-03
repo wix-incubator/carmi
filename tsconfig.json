@@ -2,12 +2,14 @@
   "compilerOptions": {
     "target": "es2017",
     "noImplicitAny": true,
+    "allowJs": true,
     "module": "commonjs",
     "strict": true,
     "moduleResolution": "node",
     "typeRoots": ["./typings"],
-    "types": ["node"]
+    "types": ["node", "lodash"]
   },
+  "include": ["**/*.ts"],
   "compileOnSave": true,
   "exclude": ["node_modules", ".vscode"]
 }

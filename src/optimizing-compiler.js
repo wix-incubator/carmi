@@ -26,7 +26,7 @@ $tainted = new WeakSet();
     });
   }
 
-  allExpressions() {
+  getRealGetters() {
     const realGetters = []
     Object.keys(this.getters).forEach(name => {
       const index = this.topLevelToIndex(name);
@@ -34,6 +34,11 @@ $tainted = new WeakSet();
         realGetters[index] = name;
       }
     });
+    return realGetters
+  }
+
+  allExpressions() {
+    const realGetters = this.getRealGetters()
     const countTopLevels = realGetters.length;
     
     return `
