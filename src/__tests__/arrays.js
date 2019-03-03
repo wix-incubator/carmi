@@ -9,7 +9,7 @@ const {
 const _ = require('lodash');
 
 describe('testing array', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['vm'], compiler => {
     it('simple map', async () => {
       const model = {negated: root.map(val => val.not().call('tap')), set: setter(arg0)};
       const optCode = eval(compile(model, {compiler}));

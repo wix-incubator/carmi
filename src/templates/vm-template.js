@@ -12,7 +12,7 @@ function updateDerived() {
             any: anyOpt,
             filter: filterOpt,
             mapValues: mapValuesOpt,
-            rescursiveMap: recursiveMapOpt,
+            recursiveMap: recursiveMapOpt,
             recursiveMapValues: recursiveMapValuesOpt,
             keyBy: keyByOpt,
             mapKeys: mapKeysOpt,
