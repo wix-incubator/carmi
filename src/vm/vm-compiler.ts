@@ -1,184 +1,302 @@
-const OptimizingCompiler = require('../optimizing-compiler')
-import * as rt from './vm-rt'
-import * as _ from 'lodash'
-import { exprHash } from '../expr-hash'
+const OptimizingCompiler = require("../optimizing-compiler");
+import * as rt from "./vm-rt";
+import * as _ from "lodash";
+import { exprHash } from "../expr-hash";
+import {pathMatches} from '../expr-tagging'
 
-import { ProjectionData, GetterProjection, PrimitiveIndex, ProjectionMetaData, ProjectionType, SetterProjection } from './types'
-import { Token, Expression, SourceTag, SetterExpression } from '../lang';
+import {
+  ProjectionData,
+  GetterProjection,
+  PrimitiveIndex,
+  ProjectionMetaData,
+  ProjectionType,
+  SetterProjection,
+  Reference
+} from "./types";
+import { Token, Expression, SourceTag, SetterExpression } from "../lang";
 
-const { packPrimitiveIndex } = rt
-type IntermediateReferenceKey = '$$ref' | '$$primitive'
+const { packPrimitiveIndex } = rt;
+type IntermediateReferenceKey = "$$ref" | "$$primitive";
 
 interface IntermediateReference {
-    ref: string
-    table: 'primitives' | 'projections'
+  ref: string;
+  table: "primitives" | "projections";
 }
 
-type MetaDataHash = string
-type PrimitiveHash = string
-type ProjectionHash = string
+interface IntermediateMetaData {
+    source: string
+    paths: Array<[IntermediateReference, IntermediateReference[]]>
+    trackedExpr: number[]
+    tracked: boolean
+    invalidates: boolean
+}
+
+type MetaDataHash = string;
+type PrimitiveHash = string;
+type ProjectionHash = string;
 interface IntermediateProjection {
-    type: PrimitiveHash
-    metaData: MetaDataHash
-    args: IntermediateReference[]
+  type: PrimitiveHash;
+  metaData: MetaDataHash;
+  args: IntermediateReference[];
 }
 
 class VMCompiler extends OptimizingCompiler {
-    buildRT() {
-        return _.map(rt, func => func.toString()).join('\n')
-    }
-    topLevelOverrides() {
-        return Object.assign({}, super.topLevelOverrides(), {
-            SETTERS: ''
-        });
-    }
+  buildRT() {
+    return _.map(rt, func => func.toString()).join("\n");
+  }
+  topLevelOverrides() {
+    return Object.assign({}, super.topLevelOverrides(), {
+      SETTERS: ""
+    });
+  }
 
-    get template() {
-        return require('../templates/vm-template.js');
-    }
+  get template() {
+    return require("../templates/vm-template.js");
+  }
 
-    buildEnvelope() {
-        return `
+  buildEnvelope() {
+    return `
             function buildEnvelope($projectionData) {
                 return ${super.compile()}
-            }`
-    }
+            }`;
+  }
 
+  buildProjectionData(): ProjectionData {
+    debugger;
+    const projectionsByHash: {
+      [hash: string]: Partial<IntermediateProjection>;
+    } = {};
+    const primitivesByHash: { [hash: string]: any } = {};
+    const metaDataByHash: { [hash: string]: Partial<IntermediateMetaData> } = {};
+    const astGetters = this.getRealGetters() as string[];
+    const addPrimitive = (p: any): string => {
+      const hash = exprHash(p);
+      if (!_.has(primitivesByHash, hash)) {
+        primitivesByHash[hash] = p;
+      }
 
+      return hash;
+    };
 
-    buildProjectionData(): ProjectionData {
-        debugger
-        const projectionsByHash: { [hash: string]: Partial<IntermediateProjection> } = {}
-        const primitivesByHash: { [hash: string]: any } = {}
-        const metaDataByHash: { [hash: string]: Partial<ProjectionMetaData> } = {}
-        const astGetters = this.getRealGetters() as string[]
-        const addPrimitive = (p: any): string => {
-            const hash = exprHash(p)
-            if (!_.has(primitivesByHash, hash)) {
-                primitivesByHash[hash] = p
-            }
+    const addMetaData = (m: Partial<IntermediateMetaData> = {}): string => {
+      const mdHash = exprHash(m);
+      if (!_.has(metaDataByHash, mdHash)) {
+        metaDataByHash[mdHash] = m;
+      }
 
-            return hash
+      return mdHash;
+    };
+
+    const generateProjectionFromExpression = (
+      expression: Expression | Token
+    ): Partial<IntermediateProjection> => {
+      const currentToken: Token =
+        expression instanceof Token ? expression : expression[0];
+      const args = expression instanceof Expression ? expression.slice(1) : [];
+      const $type: ProjectionType = currentToken.$type;
+      const source = currentToken[SourceTag];
+      const pathsThatInvalidate = currentToken.$path || new Map;
+      const paths: Array<[IntermediateReference, IntermediateReference[]]> = [];
+      pathsThatInvalidate.forEach(
+        (cond: Expression, invalidatedPath: Expression[]) => {
+          const condProj = serializeProjection(cond);
+          if (invalidatedPath[0].$type === "context") {
+            paths.push([
+              condProj,
+              [invalidatedPath[0], 0, ...invalidatedPath.slice(1)].map(
+                serializeProjection
+              )
+            ]);
+          } else if (
+            invalidatedPath.length > 1 &&
+            invalidatedPath[0].$type === "topLevel"
+          ) {
+            paths.push([
+              condProj,
+              [
+                invalidatedPath[0],
+                this.topLevelToIndex(invalidatedPath[1]),
+                ...invalidatedPath.slice(2).map(this.topLevelToIndex.bind(this))
+              ].map(serializeProjection)
+            ]);
+          } else if (
+            (invalidatedPath.length > 1 &&
+              invalidatedPath[0] instanceof Expression &&
+              invalidatedPath[0][0].$type === "get" &&
+              invalidatedPath[0][2].$type === "topLevel") ||
+            (invalidatedPath[0].$type === "root" &&
+              invalidatedPath.length > 1 &&
+              Object.values(this.setters).filter(setter =>
+                pathMatches(invalidatedPath, setter)
+              ).length)
+          ) {
+            paths.push([condProj, invalidatedPath.map(serializeProjection)]);
+          }
+        }
+      );
+
+      const type = addPrimitive($type);
+      const metaData = addMetaData({
+        ...(source ? { source: this.shortSource(source) } : {}),
+        ...(currentToken.$tracked ? { tracked: true } : {}),
+        ...(currentToken.$invalidates ? { invalidates: true } : {}),
+        ...(paths ? {paths} : {}),
+        ...(currentToken.trackedExpr ? {trackedExpr: Array.from(currentToken.trackedExpr.values())} : {})
+      });
+      switch ($type) {
+        case "get": {
+          const isTopLevel =
+            expression[2] instanceof Token &&
+            expression[2].$type === "topLevel";
+          return {
+            type,
+            args: [
+              serializeProjection(expression[2]),
+              serializeProjection(
+                isTopLevel ? this.topLevelToIndex(expression[1]) : expression[1]
+              )
+            ]
+          };
+        }
+        case "range":
+          return {
+            type,
+            args: _.map(
+              [args[0], _.defaultTo(args[1], 0), _.defaultTo(args[2], 1)],
+              serializeProjection
+            ),
+            metaData
+          };
+        default:
+          return { type, args: _.map(args, serializeProjection), metaData };
+      }
+    };
+
+    const serializeProjection = (expression: any): IntermediateReference => {
+      if (
+        !expression ||
+        _.isPlainObject(expression) ||
+        !_.isObject(expression)
+      ) {
+        return { ref: addPrimitive(expression), table: "primitives" };
+      }
+
+      // Short-circuit func optimization, it's a code-size optimization
+      if (expression instanceof Expression && expression[0].$type === "func") {
+        return serializeProjection(expression[1]);
+      }
+
+      const hash = exprHash(expression);
+      if (!_.has(projectionsByHash, hash)) {
+        projectionsByHash[hash] = generateProjectionFromExpression(expression);
+      }
+
+      return { ref: hash, table: "projections" };
+    };
+
+    const packRef = (r: IntermediateReference) =>
+      r.table === "primitives"
+        ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref))
+        : rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
+
+    const packProjection = (
+      p: Partial<IntermediateProjection>
+    ): GetterProjection => [
+      primitiveHashes.indexOf(p.type || ""),
+      (p.args || []).map(packRef),
+      0
+    ];
+
+    const intermediateTopLevels: Array<{
+      name: string;
+      hash: ProjectionHash;
+    }> = astGetters.map(name => ({
+      name,
+      hash: serializeProjection(this.getters[name]).ref
+    }));
+
+    type IntermediateSetter = [string, string, IntermediateReference[], number];
+
+    const serializeSetter = (
+      setter: SetterExpression,
+      name: string
+    ): IntermediateSetter => {
+      const setterType = setter.setterType();
+      const numTokens =
+        setter.filter((part: Token | string | number) => part instanceof Token)
+          .length - 1;
+      const setterProjection = [...setter.slice(1)].map(token => {
+        if (token instanceof Token && token.$type === "key") {
+          return serializeProjection(new Token(`arg${numTokens - 1}`, ""));
         }
 
-        const addMetaData = (m: Partial<ProjectionMetaData> = {}): string => {
-            const mdHash = exprHash(m)
-            if (!_.has(metaDataByHash, mdHash)) {
-                metaDataByHash[mdHash] = m
-            }
+        return serializeProjection(token);
+      });
+      return [
+        addPrimitive(setterType),
+        addPrimitive(name),
+        setterProjection,
+        numTokens
+      ];
+    };
 
-            return mdHash
-        }
+    const intermediateSetters = _.map(this.setters, serializeSetter);
 
-        const generateProjectionFromExpression = (expression: Expression | Token): Partial<IntermediateProjection> => {
-            const currentToken: Token = expression instanceof Token ? expression : expression[0]
-            const args = expression instanceof Expression ? expression.slice(1) : []
-            const $type: ProjectionType = currentToken.$type
-            const source = currentToken[SourceTag]
-            const type = addPrimitive($type)
-            const metaData = addMetaData({
-                ...source ? { source: this.shortSource(source) } : {},
-                ...currentToken.$tracked ? { tracked: true } : {},
-                ...currentToken.$invalidates ? { invalidates: true } : {},
-                invalidatingPath: [],
-                trackedExpr: null
-            })
-            switch ($type) {
-                case 'get': {
-                    const isTopLevel = expression[2] instanceof Token && expression[2].$type === 'topLevel'
-                    return {
-                        type,
-                        args: [
-                            serializeProjection(expression[2]),
-                            serializeProjection(isTopLevel ? this.topLevelToIndex(expression[1]) : expression[1])
-                        ]
-                    }
-                }
-                case 'range':
-                    return { type, args: _.map([args[0], _.defaultTo(args[1], 0), _.defaultTo(args[2], 1)], serializeProjection), metaData }
-                default:
-                    return { type, args: _.map(args, serializeProjection), metaData }
-            }
-        }
+    const projectionHashes = Object.keys(projectionsByHash);
+    const primitiveHashes = Object.keys(primitivesByHash);
+    const mdHashes = Object.keys(metaDataByHash);
 
-        const serializeProjection = (expression: any): IntermediateReference => {
-            if (!expression || _.isPlainObject(expression) || !_.isObject(expression)) {
-                return { ref: addPrimitive(expression), table: 'primitives' }
-            }
+    const getters = projectionHashes.map(hash =>
+      packProjection(projectionsByHash[hash])
+    );
+    const primitives = primitiveHashes.map(hash => primitivesByHash[hash]);
 
-            // Short-circuit func optimization, it's a code-size optimization
-            if (expression instanceof Expression && expression[0].$type === 'func') {
-                return serializeProjection(expression[1])
-            }
-
-            const hash = exprHash(expression)
-            if (!_.has(projectionsByHash, hash)) {
-                projectionsByHash[hash] = generateProjectionFromExpression(expression)
-            }
-
-            return { ref: hash, table: 'projections' }
-        }
-
-        const packRef = (r: IntermediateReference) =>
-            r.table === 'primitives' ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref)) : rt.packProjectionIndex(projectionHashes.indexOf(r.ref))
-
-        const packProjection = (p: Partial<IntermediateProjection>): GetterProjection =>
-            [primitiveHashes.indexOf(p.type || ''), (p.args || []).map(packRef), 0]
-
-        const intermediateTopLevels: Array<{ name: string, hash: ProjectionHash }> =
-            astGetters.map(name => ({ name, hash: serializeProjection(this.getters[name]).ref }))
-
-        type IntermediateSetter = [string, string, IntermediateReference[], number]
-
-        const serializeSetter = (setter: SetterExpression, name: string) : IntermediateSetter => {
-            const setterType = setter.setterType()
-            const numTokens = setter.filter((part: Token | string | number) => part instanceof Token).length - 1
-            const setterProjection = [...setter.slice(1)].map(token => {
-                if (token instanceof Token && token.$type === 'key') {
-                    return serializeProjection(new Token(`arg${numTokens - 1}`, ''))
-                }
-
-                return serializeProjection(token)    
-            })
-            return [addPrimitive(setterType), addPrimitive(name), setterProjection, numTokens]
-        }
-
-        const intermediateSetters = _.map(this.setters, serializeSetter)
-
-        const projectionHashes = Object.keys(projectionsByHash)
-        const primitiveHashes = Object.keys(primitivesByHash)
-        const mdHashes = Object.keys(metaDataByHash)
-
-        const getters = projectionHashes.map(hash => packProjection(projectionsByHash[hash]))
-        const primitives = primitiveHashes.map(hash => primitivesByHash[hash])
-
-        const metaData = mdHashes.map(hash => metaDataByHash[hash])
-        const setters = intermediateSetters.map(([typeHash, nameHash, projection, numTokens] : IntermediateSetter)=> 
-            [primitiveHashes.indexOf(typeHash), primitiveHashes.indexOf(nameHash), projection.map(packRef), numTokens]) as SetterProjection[]
-
-        const topLevels = intermediateTopLevels.map(({ name, hash }: { name: string, hash: ProjectionHash }) =>
-            [projectionHashes.indexOf(hash), name] as [number, string])
-        
-            
-        return {
-            getters,
-            primitives,
-            topLevels,
-            metaData,
-            setters
-        }
-    }
-
-    compile() {
-        return `(${this.buildEnvelope()})(${JSON.stringify(this.buildProjectionData())})`
-    }
-
-    allExpressions() {
-        return this.mergeTemplate(this.template.updateDerived, {
-            RT: this.buildRT()
+    const packMetaData = (md: Partial<IntermediateMetaData>) : ProjectionMetaData =>
+        ({
+            source: md.source || '',
+            tracked: !!md.tracked,
+            invalidates: !!md.invalidates,
+            paths: (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
+                packRef(cond), path.map(packRef)
+            ]) as Array<[number, number[]]>,
+            trackedExpr: md.trackedExpr || []
         })
-    }
+
+    const metaData = mdHashes.map(hash => packMetaData(metaDataByHash[hash]));
+    const setters = intermediateSetters.map(
+      ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [
+        primitiveHashes.indexOf(typeHash),
+        primitiveHashes.indexOf(nameHash),
+        projection.map(packRef),
+        numTokens
+      ]
+    ) as SetterProjection[];
+
+    const topLevels = intermediateTopLevels.map(
+      ({ name, hash }: { name: string; hash: ProjectionHash }) =>
+        [projectionHashes.indexOf(hash), name] as [number, string]
+    );
+
+    return {
+      getters,
+      primitives,
+      topLevels,
+      metaData,
+      setters
+    };
+  }
+
+  compile() {
+    return `(${this.buildEnvelope()})(${JSON.stringify(
+      this.buildProjectionData()
+    )})`;
+  }
+
+  allExpressions() {
+    return this.mergeTemplate(this.template.updateDerived, {
+      RT: this.buildRT()
+    });
+  }
 }
 
-
-module.exports = VMCompiler
+module.exports = VMCompiler;

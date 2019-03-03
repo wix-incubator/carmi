@@ -12,13 +12,13 @@ export type InvalidatedRoots = Set<number>
 export type TopLevel = [number, string]
 
 export type SetterProjection = [TypeIndex, NameIndex, Reference[], number] 
-
+export type InvalidationPath = [Reference, Reference[]]
 export interface ProjectionMetaData {
     source: string
     tracked: boolean
     invalidates: boolean
-    invalidatingPath: any
-    trackedExpr: any
+    paths: InvalidationPath[]
+    trackedExpr: number[]
 }
 
 export interface ProjectionData {
