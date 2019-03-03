@@ -614,6 +614,7 @@ function library() {
         });
         $invalidatedKeys.forEach(key => {
           if (!src.hasOwnProperty(key)) {
+            delete $keyToKey[key]
             return;
           }
           const res = '' + func([$invalidatedKeys, key], key, src[key], context);
