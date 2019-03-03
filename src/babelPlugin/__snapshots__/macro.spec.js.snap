@@ -432,12 +432,10 @@ module.exports = function () {
       }if ($new) {
         Object.assign($out, ...src);
       } else {
-        const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
-          setOnObject($out, key, res[key], $invalidates);
-        });Object.keys($out).forEach(key => {
-          if (!res.hasOwnProperty(key)) {
-            deleteOnObject($out, key, $invalidates);
-          }
+        const $keysPendingDelete = new Set(Object.keys($out));const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
+          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], $invalidates);
+        });$keysPendingDelete.forEach(key => {
+          deleteOnObject($out, key, $invalidates);
         });$invalidatedKeys.clear();
       }return $out;
     }function flatten($tracked, src, identifier) {
@@ -501,9 +499,9 @@ module.exports = function () {
         triggerInvalidations(arr, i, true);
       }invalidatePath(pathWithKey);arr.splice(key, len, ...newItems);
     }const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
-      const newValue = call($tracked, [\\"createElement\\", $topLevel[0 /*\\"$array_temp_4_19_1\\"*/]], '1', 2, false);return newValue;
+      const newValue = call($tracked, [\\"createElement\\", $topLevel[0 /*\\"$array_temp_4_19_1\\"*/]], '4', 2, false);return newValue;
     }function $array_temp_4_19_1Build($tracked) {
-      const newValue = array($tracked, [\\"div\\", null, $model[0]], '3', 3, false);return newValue;
+      const newValue = array($tracked, [\\"div\\", null, $model[0]], '2', 3, false);return newValue;
     }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
@@ -1002,12 +1000,10 @@ module.exports = function () {
       }if ($new) {
         Object.assign($out, ...src);
       } else {
-        const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
-          setOnObject($out, key, res[key], $invalidates);
-        });Object.keys($out).forEach(key => {
-          if (!res.hasOwnProperty(key)) {
-            deleteOnObject($out, key, $invalidates);
-          }
+        const $keysPendingDelete = new Set(Object.keys($out));const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
+          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], $invalidates);
+        });$keysPendingDelete.forEach(key => {
+          deleteOnObject($out, key, $invalidates);
         });$invalidatedKeys.clear();
       }return $out;
     }function flatten($tracked, src, identifier) {
@@ -1574,12 +1570,10 @@ const modelBuilder = (function () {
       }if ($new) {
         Object.assign($out, ...src);
       } else {
-        const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
-          setOnObject($out, key, res[key], $invalidates);
-        });Object.keys($out).forEach(key => {
-          if (!res.hasOwnProperty(key)) {
-            deleteOnObject($out, key, $invalidates);
-          }
+        const $keysPendingDelete = new Set(Object.keys($out));const res = Object.assign({}, ...src);Object.keys(res).forEach(key => {
+          $keysPendingDelete.delete(key);setOnObject($out, key, res[key], $invalidates);
+        });$keysPendingDelete.forEach(key => {
+          deleteOnObject($out, key, $invalidates);
         });$invalidatedKeys.clear();
       }return $out;
     }function flatten($tracked, src, identifier) {

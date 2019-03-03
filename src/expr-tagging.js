@@ -18,7 +18,6 @@ const {
   Clone,
   WrappedPrimitive,
   TokenTypeData,
-  isExpression,
   SourceTag,
   cloneToken
 } = require('./lang');
@@ -28,7 +27,7 @@ const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunction
 const {tagToSimpleFilename} = require('./expr-names');
 const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash} = require('./expr-rewrite');
 const {or, and, not} = require('./expr-logic');
-let exprCounter = 1;
+let exprCounter = 0;
 
 const _ = require('lodash');
 const toposort = require('toposort');
@@ -48,20 +47,20 @@ function printPaths(title, paths) {
   console.log(title, output);
 }
 
-function genUsedOnlyAsBooleanValue(expr, condOfExpr) {
+function genUsedOnlyAsBooleanValue(expr) {
   const parent = expr[0].$parent;
   const indexInParent = parent ? parent.indexOf(expr) : -1;
   if (parent && (parent[0].$type === 'and' || parent[0].$type === 'or')) {
-    return Expr(Gte, Expr(Cond, parent[0].$id), indexInParent)
+    return Expr(Gt, Expr(Cond, parent.$id), indexInParent)
   }
   if (parent && (parent[0].$type === 'ternary' && indexInParent === 1)) {
-    return condOfExpr;
+    return true;
   }
   if (parent && (parent[0].$type === 'get' && indexInParent === 2)) {
-    return condOfExpr;
+    return true;
   }
-  if (parent && (parent[0].$type === 'not' || parent[0].$type === 'isUndefined')) {
-    return condOfExpr;
+  if (parent && (parent[0].$type === 'not' || parent.$type === 'isUndefined')) {
+    return true;
   }
   return false;
 }
@@ -77,7 +76,6 @@ function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) 
   const nearestDeeperPathsCond = or(...nearestDeeperPaths.map(otherPathStr => outputCondsByPathStr[otherPathStr]))
   const condsOfOnlyTested = [];
   const condsOfUsed = [];
-  const condsAll = []
   pathExpressions.forEach(expr => {
       let condOfExpr = true;
       if (expr[0].$conditional) {
@@ -86,10 +84,9 @@ function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) 
         const condIsTernary = expr[0].$conditional[0][0].$type === 'ternary';
         condOfExpr = Expr(condIsTernary ? Eq : Gte, Expr(Cond, condId), condBranch);
       }
-      condsAll.push(condOfExpr)
-      const usedAsBool = genUsedOnlyAsBooleanValue(expr, condOfExpr);
+      const usedAsBool = genUsedOnlyAsBooleanValue(expr);
       if (usedAsBool) {
-        condsOfOnlyTested.push(usedAsBool);
+        condsOfOnlyTested.push(condOfExpr);
       } else {
         condsOfUsed.push(condOfExpr)
       }
@@ -97,7 +94,7 @@ function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) 
   const touchedButNotDeeper = and(or(...condsOfOnlyTested), not(nearestDeeperPathsCond))
   const pathCond = or(...condsOfUsed, touchedButNotDeeper)
   // console.log(JSON.stringify(condOfTracking, null, 2));
-  return {pathCond, used: or(...condsAll)};
+  return {pathCond, used: or(...condsOfUsed, ...condsOfOnlyTested)};
 }
 
 function groupPathsThatCanBeInvalidated(paths) {
@@ -364,12 +361,6 @@ const canHaveSideEffects = memoizeExprFunc(expr => {
   return expr.some(child => canHaveSideEffects(child));
 }, () => false)
 
-const removeFromAndExprStableChildren = (...children) => Expr(...children.reduce((acc, child, index) => {
-    if (index === 0 || index === children.length - 1 || !isExpression(children[index]) || !TokenTypeData[children[index][0].$type].stable) {
-      acc.push(child)
-    }
-    return acc;
-  }, []))
 /*eslint no-fallthrough:0*/
 /*eslint no-case-declarations:0*/
 const deadCodeElimination = memoizeExprFunc(
@@ -379,26 +370,22 @@ const deadCodeElimination = memoizeExprFunc(
     switch (tokenType) {
       case 'quote':
         return children[1];
-      case 'or': {
+      case 'or':
         const firstTruthy = expr.slice(1).findIndex(t => Object(t) !== t && t);
         if (firstTruthy === 0) {
           return children[1];
         } else if (firstTruthy > 0) {
           return Expr(...children.slice(0, firstTruthy + 2));
         }
-        break;
-      }
-      case 'and': {
+      case 'and':
         const firstFalsy = expr
           .slice(1)
           .findIndex(t => Object(t) !== t && !t || t instanceof Token && t.$type === 'null');
         if (firstFalsy === 0) {
           return children[1];
         } else if (firstFalsy > 0) {
-          return removeFromAndExprStableChildren(...children.slice(0, firstFalsy + 2));
+          return Expr(...children.slice(0, firstFalsy + 2));
         }
-        return removeFromAndExprStableChildren(...children);
-      }
     }
     return children;
   },
