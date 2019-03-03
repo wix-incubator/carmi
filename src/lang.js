@@ -147,14 +147,7 @@ const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {
   return acc;
 }, {});
 
-class Expression extends Array {
-  /**
-   * @param {...string} tokens
-   */
-  constructor(...tokens) { //eslint-disable-line no-useless-constructor
-    super(...tokens);
-  }
-}
+class Expression extends Array {}
 
 class SetterExpression extends Array {
   toJSON() {
@@ -214,6 +207,20 @@ AllTokens.Push = (...args) => {
   return new PushSetterExpression(...args);
 }
 
+AllTokens.withName = (name, val) => {
+  if (val instanceof Expression) {
+    const tokenType = val[0].$type;
+    const tokenData = TokenTypeData[tokenType];
+    if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
+      name = name.replace(/[\W_]+/g, '');
+      val[0][SourceTag] = `${val[0][SourceTag]}:${name}`;
+    } else {
+      throw new Error(`can only name collection functions:${name}`);
+    }
+    return val;
+  }
+}
+
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;
@@ -230,4 +237,5 @@ AllTokens.Clone = Clone;
 AllTokens.cloneToken = cloneToken;
 AllTokens.SourceTag = SourceTag;
 AllTokens.WrappedPrimitive = WrappedPrimitive;
+AllTokens.UnwrappedExpr = Symbol('UnwrappedExpr');
 module.exports = AllTokens;
