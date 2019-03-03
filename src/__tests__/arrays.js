@@ -634,7 +634,7 @@ describe('testing array', () => {
         expect(inst.findIndex).toEqual(-1);
       });
     })
-    it('branching - soft tracking', async () => {
+    it.only('branching - soft tracking', async () => {
       const valuesInArrays = root.map(item => or(item.get('arr'), [item.get('val')]));
       const indexes = root.map((item, idx) => idx);
       const model = {

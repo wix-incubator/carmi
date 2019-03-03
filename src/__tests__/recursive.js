@@ -9,7 +9,7 @@ const {
 const _ = require('lodash');
 
 describe('testing array', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'vm'], compiler => {
     it('simple sum', async () => {
       const model = {
         sum: root.recursiveMap((loop, val, key) =>

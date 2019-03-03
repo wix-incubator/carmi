@@ -2,7 +2,7 @@ const {root, compile} = require('../../index');
 const {describeCompilers} = require('../test-utils');
 
 describe('switch', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'vm'], compiler => {
     it('should return the result of the matching case tuple', () => {
       const model = {
         result: root.get('a').switch([

@@ -54,13 +54,13 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
     const scopeResolver = (key: string, args: Evaluator[], index: number) => (scope: EvalScope) => scope.publicScope[key as keyof PublicScope]
     const predicateFunction = (ev: Evaluator, outerScope: EvalScope) =>
         ($tracked: Tracked, key: ProjectionResult, val: ProjectionResult, context: ProjectionResult, loop: ProjectionResult) =>
-            ev({ ...outerScope, publicScope: { ...outerScope.publicScope, key, val, context, loop } })
+            ev({ ...outerScope,
+                runtimeState: {...outerScope.runtimeState, $tracked},
+                publicScope: { ...outerScope.publicScope, key, val, context, loop } 
+            })
 
     const topLevelResolver = (type: string, args: Evaluator[], index: number) => (scope: EvalScope) => {
         const tracked = scope.runtimeState.$tracked
-        if (!library.hasOwnProperty(type)) {
-            console.log(type)
-        }
         return library[type as 'map'](tracked, index, predicateFunction(args[0], scope), args[1](scope), args[2] ? args[2](scope) : null, true)
     }
 
@@ -75,6 +75,13 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         const isAssign = type === 'assign'
         return (scope: EvalScope) =>
             func(scope.runtimeState.$tracked, index, args[0](scope), isAssign, !!metaData.invalidates)
+    }
+
+    const keysOrValues = (type: string, args: Evaluator[], index: number, metaData: Partial<ProjectionMetaData>) => {
+        const func = library.valuesOrKeysForObject
+        const isValues = type === 'values'
+        return (scope: EvalScope) =>
+            func(scope.runtimeState.$tracked, index, args[0](scope), isValues, !!metaData.invalidates)
     }
 
     type StringFunc = (...args: any[]) => any
@@ -151,9 +158,21 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         return (scope: EvalScope) => scope.args[index]
     }
 
+    const trace = (name: 'trace', args: Evaluator[]) => {
+        const getLabel = args.length === 2 ? args[1] : null
+        const getValue = args.length === 2 ? args[1] : args[0]
+
+        return (evalScope: EvalScope) => {
+            const value = getValue(evalScope)
+            console.log(getLabel ? getLabel(evalScope) + ', ' : '', value)
+            return value
+        }
+    }
+
     const resolvers: Partial<{ [key in ProjectionType]: Resolver }> = {
         val: scopeResolver,
         key: scopeResolver,
+        context: scopeResolver,
         root: scopeResolver,
         topLevel: scopeResolver,
         loop: scopeResolver,
@@ -177,6 +196,7 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         mod: simpleResolver((a, b) => a % b),
         not: simpleResolver(a => !a),
         null: simpleResolver(() => null),
+        isUndefined: simpleResolver(a => (typeof a === 'undefined')),
         ternary,
         or,
         and,
@@ -186,17 +206,25 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         stringLength: simpleResolver(a => a.length),
         parseInt: simpleResolver((a, radix) => parseInt(a, radix || 10)),
         map: topLevelResolver,
-        any: topLevelResolver,
         mapValues: topLevelResolver,
+        any: topLevelResolver,
+        anyValues: topLevelResolver,
         recursiveMap: topLevelResolver,
+        recursiveMapValues: topLevelResolver,
         filter: topLevelResolver,
+        filterBy: topLevelResolver,
         keyBy: topLevelResolver,
+        groupBy: topLevelResolver,
+        mapKeys: topLevelResolver,
         size: topLevelNonPredicate,
         sum: topLevelNonPredicate,
         range: topLevelNonPredicate,
         flatten: topLevelNonPredicate,
         assign: assignOrDefaults,
         defaults: assignOrDefaults,
+        keys: keysOrValues,
+        values: keysOrValues,
+        trace,
         bind,
         recur,
         arg0: argResolver,
@@ -239,7 +267,7 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
         const type = primitives[typeIndex] as 'push' | 'splice' | 'set'
         const path = projections.map(resolveArgRef)
         $res[name] = library.$setter.bind(null, (...args: any[]) =>
-            library[type](path.map(arg => arg( {args} as EvalScope)), args.slice(numTokens)))
+            library[type](path.map(arg => arg( {args} as EvalScope)), ...args.slice(numTokens)))
     })
 
 
@@ -263,13 +291,13 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res 
             conds: {}
         }
         topLevelEvaluators.forEach((evaluator, i) => {
-            if ($first || $invalidatedRoots.has(i)) {
+//            if ($first || $invalidatedRoots.has(i)) {
                 const newValue = evaluator({ ...evalScope, runtimeState: { ...evalScope.runtimeState, $tracked: [$invalidatedRoots, i] } });
                 setOnArray(topLevelResults, i, newValue, true);
                 if (!$first) {
                     $invalidatedRoots.delete(i);
                 }
-            }
+  //          }
         })
     }
 

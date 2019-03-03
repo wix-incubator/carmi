@@ -49,7 +49,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
 
 
   describe('conditionalTrace', () => {
-    describeCompilers(['simple', 'optimizing'], compiler => {
+    describeCompilers(['simple', 'optimizing', 'vm'], compiler => {
       it('should trace if the condition is met', () => {
         jest.spyOn(console, 'log').mockReturnValue(undefined)
 

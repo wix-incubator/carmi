@@ -134,7 +134,7 @@ class VMCompiler extends OptimizingCompiler {
             const setterType = setter.setterType()
             const numTokens = setter.filter((part: Token | string | number) => part instanceof Token).length - 1
             const setterProjection = [...setter.slice(1)].map(token => {
-                if (setterType === 'splice' && token instanceof Token && token.$type === 'key') {
+                if (token instanceof Token && token.$type === 'key') {
                     return serializeProjection(new Token(`arg${numTokens - 1}`, ''))
                 }
 

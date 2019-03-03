@@ -53,6 +53,7 @@ interface OptimizerLibrary {
     set: SetterFunc
     splice: SetterFunc
     push: SetterFunc
+    valuesOrKeysForObject: (tracked: Tracked, identifier: string | number, src: any[], values: boolean, invalidates: boolean) => any
     $setter: (func: SetterFunc) => any
     setOnArray: <T>(target: T[], key: number, val: T, invalidates: boolean) => void
 }

@@ -20,7 +20,7 @@ const {
 const _ = require('lodash');
 
 describe('setters', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'vm'], compiler => {
     it('push', () => {
       const model = {
         data: root.get('data').map(v => v.call('tap')),

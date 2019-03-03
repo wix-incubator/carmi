@@ -11,7 +11,7 @@ const {
 const _ = require('lodash');
 
 describe('testing objects', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'vm'], compiler => {
     describe('get', () => {
       it('not passing', async () => {
         const model = {
