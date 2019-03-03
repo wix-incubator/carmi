@@ -48,14 +48,13 @@ function updateDerived() {
             checkTypes,
         }
     });
-    
+
     function updateDerived() {
         $vm.step({
             $invalidatedRoots,
             $tainted,
             $first,
             $res,
-            $topLevel,
             $model
         })
     }

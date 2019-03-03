@@ -8,13 +8,12 @@ const {
 } = require('../test-utils');
 const _ = require('lodash');
 
-describe('testing string functions', () => {
-  describeCompilers(['vm'], compiler => {
+describe.only('testing string functions', () => {
+  describeCompilers(['simple', 'optimizing', 'vm'], compiler => {
     function testStringFunction(str, func, args, expected) {
       it(`string function: ${func}`, async () => {
         const model = {transform: root.map(val => val[func](...args).call('tap'))};
         const src = compile(model, {compiler})
-        console.log(src)
         const optCode = eval(src);
         const inst = optCode([str], funcLibrary);
         expect(inst.transform[0]).toEqual(expected);
@@ -22,10 +21,7 @@ describe('testing string functions', () => {
       });
     }
 
-    describe.only('bla', () => {
-      testStringFunction('abc', 'endsWith', ['c'], true);
-    })
-
+    testStringFunction('abc', 'endsWith', ['c'], true);
     testStringFunction('abcde', 'substring', [1, 3], 'bc');
     testStringFunction('abcde', 'toUpperCase', [], 'ABCDE');
     testStringFunction('abcDE', 'toLowerCase', [], 'abcde');
