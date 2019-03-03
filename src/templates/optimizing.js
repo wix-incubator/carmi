@@ -98,7 +98,7 @@ function library() {
         if (
           $hard ||
           $target[$key] !== $val ||
-          (typeof $val === 'object' && $tainted.has($val)) ||
+          ($val && typeof $val === 'object' && $tainted.has($val)) ||
           (!$target.hasOwnProperty($key) && $target[$key] === undefined)
         ) {
           $changed = true;
@@ -134,7 +134,7 @@ function library() {
           $hard ||
           $key >= $target.length ||
           $target[$key] !== $val ||
-          (typeof $target[$key] === 'object' && $tainted.has($val))
+          ($val && typeof $target[$key] === 'object' && $tainted.has($val))
         ) {
           triggerInvalidations($target, $key, $hard);
         }
