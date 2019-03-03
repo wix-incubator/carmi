@@ -805,14 +805,14 @@ function library() {
       if ($new) {
         Object.assign($out, ...src);
       } else {
-        const $keysPendingDelete = new Set(Object.keys($out));
         const res = Object.assign({}, ...src);
         Object.keys(res).forEach(key => {
-          $keysPendingDelete.delete(key);
           setOnObject($out, key, res[key], $invalidates);
         });
-        $keysPendingDelete.forEach(key => {
+        Object.keys($out).forEach(key => {
+          if (!res.hasOwnProperty(key)) {
           deleteOnObject($out, key, $invalidates)
+          }
         });
         $invalidatedKeys.clear();
       }
