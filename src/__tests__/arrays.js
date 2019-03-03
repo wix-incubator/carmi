@@ -511,6 +511,7 @@ describe('testing array', () => {
       const initialData = {a: [1, 3, 5], b: [2, 6]};
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual([1, 3, 5, 2, 6]);
+      debugger
       inst.set(2, 1);
       expect(inst.result).toEqual([1, 3, 1, 2, 6]);
     });
