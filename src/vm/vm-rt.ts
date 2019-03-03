@@ -1,4 +1,4 @@
-import { VMParams, StepParams, GetterProjection, ProjectionType, InvalidatedRoots, Tracked, ProjectionMetaData, OptimizerFuncNonPredicate } from './types'
+import { VMParams, StepParams, GetterProjection, ProjectionType, InvalidatedRoots, Tracked, ProjectionMetaData, OptimizerFuncNonPredicate, SetterProjection } from './types'
 import { call } from '../../typings';
 
 export function packPrimitiveIndex(index: number) {
@@ -31,10 +31,10 @@ interface PublicScope {
 interface RuntimeState {
     $invalidatedRoots: InvalidatedRoots
     $tracked: Tracked
-    $res: { [name: string]: ProjectionResult }
 }
 
 interface EvalScope {
+    args: (string | number)[]
     publicScope: PublicScope
     runtimeState: RuntimeState
     conds: { [key: number]: number }
@@ -44,8 +44,8 @@ interface EvalScope {
 type Evaluator = (scope: EvalScope) => any
 type Resolver = (type: any, args: Evaluator[], index: number, metaData: Partial<ProjectionMetaData>) => Evaluator
 
-export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library }: VMParams) {
-    const { getters, primitives, topLevels, metaData } = $projectionData
+export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library, $res }: VMParams) {
+    const { getters, primitives, topLevels, metaData, setters } = $projectionData
     const { setOnArray } = library
     const primitiveEvaluator = (value: any) => () => value
     const resolveArgRef = (ref: number): Evaluator =>
@@ -57,11 +57,11 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library }: VMP
             ev({ ...outerScope, publicScope: { ...outerScope.publicScope, key, val, context, loop } })
 
     const topLevelResolver = (type: string, args: Evaluator[], index: number) => (scope: EvalScope) => {
-        const { $tracked } = scope.runtimeState
+        const tracked = scope.runtimeState.$tracked
         if (!library.hasOwnProperty(type)) {
             console.log(type)
         }
-        return library[type as 'map']($tracked, index, predicateFunction(args[0], scope), args[1](scope), args[2] ? args[2](scope) : null, true)
+        return library[type as 'map'](tracked, index, predicateFunction(args[0], scope), args[1](scope), args[2] ? args[2](scope) : null, true)
     }
 
     const topLevelNonPredicate = (type: string, args: Evaluator[], index: number) => {
@@ -145,6 +145,12 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library }: VMP
         (scope: EvalScope) =>
             key(scope).recursiveSteps(loop(scope), scope.runtimeState.$tracked)
 
+    const argResolver = (name: string) => {
+        const argMatch = name.match(/arg(\d)/)
+        const index = argMatch ? +argMatch[1] : 0
+        return (scope: EvalScope) => scope.args[index]
+    }
+
     const resolvers: Partial<{ [key in ProjectionType]: Resolver }> = {
         val: scopeResolver,
         key: scopeResolver,
@@ -191,7 +197,8 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library }: VMP
         assign: assignOrDefaults,
         defaults: assignOrDefaults,
         bind,
-        recur
+        recur,
+        arg0: argResolver
     }
     const buildEvaluator = (getter: GetterProjection, index: number): Evaluator => {
         const [typeIndex, argRefs, getterMetadata] = getter
@@ -209,12 +216,24 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library }: VMP
         const result = evaluators[projectionIndex](evalScope)
         topLevelResults[index] = result
         if (name) {
-            evalScope.runtimeState.$res[name] = result
+           $res[name] = result
         }
         return result
     })
 
-    function step({ $first, $invalidatedRoots, $tainted, $res, $model }: StepParams) {
+
+    setters.forEach((s: SetterProjection) => {
+        debugger
+        const [typeIndex, nameIndex, projections, numTokens] = s
+        const name = primitives[nameIndex]
+        const type = primitives[typeIndex] as 'push' | 'splice' | 'set'
+        const path = projections.map(resolveArgRef)
+        $res[name] = library.$setter.bind(null, (...args: any[]) =>
+            library[type](path.map(arg => arg( {args} as EvalScope)), args.slice(numTokens)))
+    })
+
+
+    function step({ $first, $invalidatedRoots, $tainted, $model }: StepParams) {
         debugger
         const evalScope: EvalScope = {
             publicScope: {
@@ -228,10 +247,9 @@ export function buildVM({ $projectionData, $funcLib, $funcLibRaw, library }: VMP
 
             runtimeState: {
                 $invalidatedRoots,
-                $res,
                 $tracked: []
             },
-
+            args: [],
             conds: {}
         }
         topLevelEvaluators.forEach((evaluator, i) => {

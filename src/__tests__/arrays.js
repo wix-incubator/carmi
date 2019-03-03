@@ -502,7 +502,7 @@ describe('testing array', () => {
       inst.splice(0, 0, 6)
       expect(inst.result).toEqual(15)
     });
-    it('concat', async () => {
+    it.only('concat', async () => {
       const model = {
         result: root.get('a').concat(root.get('b')),
         set: setter('a', arg0)

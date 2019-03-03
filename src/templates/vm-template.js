@@ -7,6 +7,7 @@ function updateDerived() {
         $projectionData,
         $funcLib,
         $funcLibRaw,
+        $res,
         library: {
             map: mapOpt,
             any: anyOpt,
