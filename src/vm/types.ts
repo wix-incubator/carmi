@@ -14,17 +14,18 @@ export type TopLevel = [number, string]
 export type SetterProjection = [TypeIndex, NameIndex, Reference[], number] 
 export type InvalidationPath = [Reference, Reference[]]
 export interface ProjectionMetaData {
-    source: string
     tracked: boolean
     invalidates: boolean
     paths: InvalidationPath[]
     trackedExpr: number[]
 }
 
+export type Source = [number, number, number]
 export interface ProjectionData {
     getters: GetterProjection[]
     setters: SetterProjection[]
     metaData: Partial<ProjectionMetaData>[]
+    sources: (Source | null)[]
     topLevels: TopLevel[]
     primitives: any[]   
 }
@@ -53,9 +54,11 @@ interface OptimizerLibrary {
     set: SetterFunc
     splice: SetterFunc
     push: SetterFunc
-    valuesOrKeysForObject: (tracked: Tracked, identifier: string | number, src: any[], values: boolean, invalidates: boolean) => any
+    range: (tracked: Tracked, end: number, start: number, step: number, identifier: string | number, invalidates: boolean) => number[]
+    valuesOrKeysForObject: (tracked: Tracked, identifier: string | number, src: any[], values: boolean, invalidates: boolean) => any[]
     $setter: (func: SetterFunc) => any
     setOnArray: <T>(target: T[], key: number, val: T, invalidates: boolean) => void
+    trackPath: (tracked: Tracked, path: any[]) => void
 }
 
 export interface VMParams {

@@ -1,8 +1,12 @@
 const OptimizingCompiler = require("../optimizing-compiler");
 import * as rt from "./vm-rt";
 import * as _ from "lodash";
-import { exprHash } from "../expr-hash";
-import {pathMatches} from '../expr-tagging'
+import {
+  exprHash
+} from "../expr-hash";
+import {
+  pathMatches
+} from '../expr-tagging'
 
 import {
   ProjectionData,
@@ -11,11 +15,19 @@ import {
   ProjectionMetaData,
   ProjectionType,
   SetterProjection,
-  Reference
+  Reference,
+  Source
 } from "./types";
-import { Token, Expression, SourceTag, SetterExpression } from "../lang";
+import {
+  Token,
+  Expression,
+  SourceTag,
+  SetterExpression
+} from "../lang";
 
-const { packPrimitiveIndex } = rt;
+const {
+  packPrimitiveIndex
+} = rt;
 type IntermediateReferenceKey = "$$ref" | "$$primitive";
 
 interface IntermediateReference {
@@ -24,11 +36,11 @@ interface IntermediateReference {
 }
 
 interface IntermediateMetaData {
-    source: string
-    paths: Array<[IntermediateReference, IntermediateReference[]]>
+  source: string
+  paths: Array < [IntermediateReference, IntermediateReference[]] >
     trackedExpr: number[]
-    tracked: boolean
-    invalidates: boolean
+  tracked: boolean
+  invalidates: boolean
 }
 
 type MetaDataHash = string;
@@ -37,7 +49,14 @@ type ProjectionHash = string;
 interface IntermediateProjection {
   type: PrimitiveHash;
   metaData: MetaDataHash;
+  source: number
   args: IntermediateReference[];
+}
+
+interface IntermediateSource {
+  file: string
+  line: number
+  col: number
 }
 
 class VMCompiler extends OptimizingCompiler {
@@ -64,10 +83,15 @@ class VMCompiler extends OptimizingCompiler {
   buildProjectionData(): ProjectionData {
     debugger;
     const projectionsByHash: {
-      [hash: string]: Partial<IntermediateProjection>;
+      [hash: string]: Partial < IntermediateProjection > ;
     } = {};
-    const primitivesByHash: { [hash: string]: any } = {};
-    const metaDataByHash: { [hash: string]: Partial<IntermediateMetaData> } = {};
+    const primitivesByHash: {
+      [hash: string]: any
+    } = {};
+    const metaDataByHash: {
+      [hash: string]: Partial < IntermediateMetaData >
+    } = {};
+    const intermediateSources: (IntermediateSource | null)[] = [null]
     const astGetters = this.getRealGetters() as string[];
     const addPrimitive = (p: any): string => {
       const hash = exprHash(p);
@@ -78,7 +102,20 @@ class VMCompiler extends OptimizingCompiler {
       return hash;
     };
 
-    const addMetaData = (m: Partial<IntermediateMetaData> = {}): string => {
+    const addSource = (s?: string): number => {
+      if (!s) {
+        return 0
+      }
+
+      const parseSource = /([^\s]+)\:(\d+)\:(\d+)$/.exec(s)
+      if (!parseSource) {
+        return 0
+      }
+      intermediateSources.push({file: addPrimitive(parseSource[1]), line: +parseSource[2], col: +parseSource[3]})
+      return intermediateSources.length - 1
+    }
+
+    const addMetaData = (m: Partial < IntermediateMetaData > = {}): string => {
       const mdHash = exprHash(m);
       if (!_.has(metaDataByHash, mdHash)) {
         metaDataByHash[mdHash] = m;
@@ -89,14 +126,13 @@ class VMCompiler extends OptimizingCompiler {
 
     const generateProjectionFromExpression = (
       expression: Expression | Token
-    ): Partial<IntermediateProjection> => {
+    ): Partial < IntermediateProjection > => {
       const currentToken: Token =
         expression instanceof Token ? expression : expression[0];
       const args = expression instanceof Expression ? expression.slice(1) : [];
       const $type: ProjectionType = currentToken.$type;
-      const source = currentToken[SourceTag];
       const pathsThatInvalidate = currentToken.$path || new Map;
-      const paths: Array<[IntermediateReference, IntermediateReference[]]> = [];
+      const paths: Array < [IntermediateReference, IntermediateReference[]] > = [];
       pathsThatInvalidate.forEach(
         (cond: Expression, invalidatedPath: Expression[]) => {
           const condProj = serializeProjection(cond);
@@ -116,7 +152,7 @@ class VMCompiler extends OptimizingCompiler {
               [
                 invalidatedPath[0],
                 this.topLevelToIndex(invalidatedPath[1]),
-                ...invalidatedPath.slice(2).map(this.topLevelToIndex.bind(this))
+                ...invalidatedPath.slice(2)
               ].map(serializeProjection)
             ]);
           } else if (
@@ -136,28 +172,37 @@ class VMCompiler extends OptimizingCompiler {
       );
 
       const type = addPrimitive($type);
+      const source = addSource(currentToken[SourceTag])
       const metaData = addMetaData({
-        ...(source ? { source: this.shortSource(source) } : {}),
-        ...(currentToken.$tracked ? { tracked: true } : {}),
-        ...(currentToken.$invalidates ? { invalidates: true } : {}),
-        ...(paths ? {paths} : {}),
-        ...(currentToken.trackedExpr ? {trackedExpr: Array.from(currentToken.trackedExpr.values())} : {})
+        ...(currentToken.$tracked ? {
+          tracked: true
+        } : {}),
+        ...(currentToken.$invalidates ? {
+          invalidates: true
+        } : {}),
+        ...(paths ? {
+          paths
+        } : {}),
+        ...(currentToken.trackedExpr ? {
+          trackedExpr: Array.from(currentToken.trackedExpr.values())
+        } : {})
       });
       switch ($type) {
-        case "get": {
-          const isTopLevel =
-            expression[2] instanceof Token &&
-            expression[2].$type === "topLevel";
-          return {
-            type,
-            args: [
-              serializeProjection(expression[2]),
-              serializeProjection(
-                isTopLevel ? this.topLevelToIndex(expression[1]) : expression[1]
-              )
-            ]
-          };
-        }
+        case "get":
+          {
+            const isTopLevel =
+              expression[2] instanceof Token &&
+              expression[2].$type === "topLevel";
+            return {
+              type,
+              args: [
+                serializeProjection(expression[2]),
+                serializeProjection(
+                  isTopLevel ? this.topLevelToIndex(expression[1]) : expression[1]
+                )
+              ]
+            };
+          }
         case "range":
           return {
             type,
@@ -168,7 +213,12 @@ class VMCompiler extends OptimizingCompiler {
             metaData
           };
         default:
-          return { type, args: _.map(args, serializeProjection), metaData };
+          return {
+            type,
+            args: _.map(args, serializeProjection),
+            metaData,
+            source
+          };
       }
     };
 
@@ -178,7 +228,10 @@ class VMCompiler extends OptimizingCompiler {
         _.isPlainObject(expression) ||
         !_.isObject(expression)
       ) {
-        return { ref: addPrimitive(expression), table: "primitives" };
+        return {
+          ref: addPrimitive(expression),
+          table: "primitives"
+        };
       }
 
       // Short-circuit func optimization, it's a code-size optimization
@@ -191,26 +244,29 @@ class VMCompiler extends OptimizingCompiler {
         projectionsByHash[hash] = generateProjectionFromExpression(expression);
       }
 
-      return { ref: hash, table: "projections" };
+      return {
+        ref: hash,
+        table: "projections"
+      };
     };
 
     const packRef = (r: IntermediateReference) =>
-      r.table === "primitives"
-        ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref))
-        : rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
+      r.table === "primitives" ?
+      packPrimitiveIndex(primitiveHashes.indexOf(r.ref)) :
+      rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
 
     const packProjection = (
-      p: Partial<IntermediateProjection>
+      p: Partial < IntermediateProjection >
     ): GetterProjection => [
       primitiveHashes.indexOf(p.type || ""),
       (p.args || []).map(packRef),
       0
     ];
 
-    const intermediateTopLevels: Array<{
+    const intermediateTopLevels: Array < {
       name: string;
       hash: ProjectionHash;
-    }> = astGetters.map(name => ({
+    } > = astGetters.map(name => ({
       name,
       hash: serializeProjection(this.getters[name]).ref
     }));
@@ -224,7 +280,7 @@ class VMCompiler extends OptimizingCompiler {
       const setterType = setter.setterType();
       const numTokens =
         setter.filter((part: Token | string | number) => part instanceof Token)
-          .length - 1;
+        .length - 1;
       const setterProjection = [...setter.slice(1)].map(token => {
         if (token instanceof Token && token.$type === "key") {
           return serializeProjection(new Token(`arg${numTokens - 1}`, ""));
@@ -251,16 +307,15 @@ class VMCompiler extends OptimizingCompiler {
     );
     const primitives = primitiveHashes.map(hash => primitivesByHash[hash]);
 
-    const packMetaData = (md: Partial<IntermediateMetaData>) : ProjectionMetaData =>
-        ({
-            source: md.source || '',
-            tracked: !!md.tracked,
-            invalidates: !!md.invalidates,
-            paths: (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
-                packRef(cond), path.map(packRef)
-            ]) as Array<[number, number[]]>,
-            trackedExpr: md.trackedExpr || []
-        })
+    const packMetaData = (md: Partial < IntermediateMetaData > ): ProjectionMetaData =>
+      ({
+        tracked: !!md.tracked,
+        invalidates: !!md.invalidates,
+        paths: (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
+          packRef(cond), path.map(packRef)
+        ]) as Array < [number, number[]] > ,
+        trackedExpr: md.trackedExpr || []
+      })
 
     const metaData = mdHashes.map(hash => packMetaData(metaDataByHash[hash]));
     const setters = intermediateSetters.map(
@@ -273,16 +328,23 @@ class VMCompiler extends OptimizingCompiler {
     ) as SetterProjection[];
 
     const topLevels = intermediateTopLevels.map(
-      ({ name, hash }: { name: string; hash: ProjectionHash }) =>
-        [projectionHashes.indexOf(hash), name] as [number, string]
+      ({
+        name,
+        hash
+      }: {
+        name: string;hash: ProjectionHash
+      }) => [projectionHashes.indexOf(hash), name] as[number, string]
     );
+
+    const sources: (Source | null)[] = intermediateSources.map(source => source ? [source.line, source.col, primitiveHashes.indexOf(source.file)] as Source : null)
 
     return {
       getters,
       primitives,
       topLevels,
       metaData,
-      setters
+      setters,
+      sources
     };
   }
 
