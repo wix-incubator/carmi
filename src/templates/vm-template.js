@@ -49,15 +49,14 @@ function updateDerived() {
 
             mathFunction,
             checkTypes
-        }
-    },
-    $vmOptions);
+        },
+        ...$vmOptions
+    });
 
     function updateDerived() {
         $vm.step({
             $invalidatedRoots,
             $first,
-            $res,
             $model
         })
     }

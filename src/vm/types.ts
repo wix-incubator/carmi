@@ -67,10 +67,8 @@ interface OptimizerLibrary {
 export interface VMParams {
     $projectionData: ProjectionData
     $res: any
+    $funcLib: any
     library: OptimizerLibrary
-}
-
-export interface VMOptions {
     debugMode: boolean
 }
 
