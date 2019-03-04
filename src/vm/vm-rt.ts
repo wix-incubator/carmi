@@ -10,6 +10,7 @@ import {
     Reference,
     SetterProjection
 } from "./types";
+import { debug } from "util";
 
 export function packPrimitiveIndex(index: number) {
     return index | 0x1000000;
@@ -198,8 +199,7 @@ export function buildVM({
             return result;
         };
     };
-
-    const topLevelResolver = (
+    const topLevelResolver = (...types: ('array' | 'object')[]) => (
         type: string,
         args: Evaluator[],
         index: number,
@@ -207,7 +207,7 @@ export function buildVM({
         argsMetaData: Array < Partial < ProjectionMetaData >>
     ) => {
         const pred = predicateFunction(args[0], argsMetaData[0]);
-        const evalSource = args[1];
+        const evalInput = args[1];
         const context = args[2];
         const evalContext = context ?
             (scope: EvalScope) =>
@@ -219,17 +219,22 @@ export function buildVM({
                 true
             ) :
             () => null;
-        const func = library[type as "map"];
+        const func = library[type as 'map'];
         const invalidates = !!metaData.invalidates;
-        return (scope: EvalScope) =>
-            func(
+        return (scope: EvalScope) => {
+            const input = evalInput(scope)
+            if (debugMode) {
+                library.checkTypes(input, type, types, type, resolveSource(index))
+            }
+            return func(
                 scope.runtimeState.$tracked,
                 index,
                 pred(scope),
-                evalSource(scope),
+                evalInput(scope),
                 evalContext(scope),
                 invalidates
             );
+        }
     };
 
     const topLevelNonPredicate = (
@@ -506,7 +511,7 @@ export function buildVM({
         topLevel: scopeResolver,
         loop: scopeResolver,
         call,
-        effect: call,
+        effect,
         startsWith: stringResolver,
         endsWith: stringResolver,
         substring: stringResolver,
@@ -545,17 +550,17 @@ export function buildVM({
         get: simpleResolver((obj, prop) => obj[prop]),
         stringLength: simpleResolver(a => a.length),
         parseInt: simpleResolver((a, radix) => parseInt(a, radix || 10)),
-        map: topLevelResolver,
-        mapValues: topLevelResolver,
-        any: topLevelResolver,
-        anyValues: topLevelResolver,
-        recursiveMap: topLevelResolver,
-        recursiveMapValues: topLevelResolver,
-        filter: topLevelResolver,
-        filterBy: topLevelResolver,
-        keyBy: topLevelResolver,
-        groupBy: topLevelResolver,
-        mapKeys: topLevelResolver,
+        map: topLevelResolver('array'),
+        mapValues: topLevelResolver('object'),
+        any: topLevelResolver('array'),
+        anyValues: topLevelResolver('object'),
+        recursiveMap: topLevelResolver('array'),
+        recursiveMapValues: topLevelResolver('object'),
+        filter: topLevelResolver('array'),
+        filterBy: topLevelResolver('object'),
+        keyBy: topLevelResolver('array'),
+        groupBy: topLevelResolver('object'),
+        mapKeys: topLevelResolver('object'),
         size: topLevelNonPredicate,
         sum: topLevelNonPredicate,
         flatten: topLevelNonPredicate,

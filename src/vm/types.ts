@@ -62,6 +62,8 @@ interface OptimizerLibrary {
     $setter: (func: SetterFunc) => any
     setOnArray: <T>(target: T[], key: number, val: T, invalidates: boolean) => void
     trackPath: (tracked: Tracked, path: any[]) => void
+    checkTypes: (input: any, name: string, types: ('array' | 'object')[], functionName: string, source: string) => void
+
 }
 
 export interface VMParams {
