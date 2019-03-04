@@ -2,6 +2,7 @@ function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
    
+    let intoTimeMachineHolder = () => {}
     if ($DEBUG_MODE) {
     $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
       get: (target, functionName) => {
@@ -11,21 +12,50 @@ function base() {
 
         throw new TypeError(`Trying to call undefined function: ${functionName} `)
     }})
-    var timeMachine = []
-    function deepCloneState(){
-      return JSON.parse(JSON.stringify($model))
+    var timeMachine = [/*mergeDeep({}, $model)*/];
+
+    function isObject(item) {
+      return (item && typeof item === 'object' && !Array.isArray(item));
     }
-    function eq(obj1, obj2) {
-        return JSON.stringify(obj1) == JSON.stringify(obj2)
+
+    const objBuilder = (path, value) => {
+      let retVal = value
+      return path.slice().reverse().reduce((acc, v) => {
+        const p = {[v]: acc}
+        return p
+      }, value)
     }
-    function snapShot() {
-        const latestState = timeMachine[timeMachine.length -1]
-        const currentState = deepCloneState()
-        if(!latestState || !eq(currentState, latestState)) {
-            timeMachine.push(deepCloneState())
+
+
+    intoTimeMachineHolder = (path, value) => timeMachineHolder.push(objBuilder(path, value))
+    function mergeDeep(target, ...sources) {
+        //this needs to be iterative
+      if (!sources.length) return target;
+      const source = sources.shift();
+
+      if (isObject(target) && isObject(source)) {
+        for (const key in source) {
+          if (isObject(source[key])) {
+            if (!target[key]) Object.assign(target, { [key]: {} });
+            mergeDeep(target[key], source[key]);
+          } else {
+            Object.assign(target, { [key]: source[key] });
+          }
         }
+      }
+
+      return mergeDeep(target, ...sources);
     }
-    snapShot()
+
+    let timeMachineHolder = []
+    function snapShot() {
+
+      if(timeMachineHolder.length) {
+        const res = mergeDeep({}, ...timeMachineHolder)
+        timeMachine.push(res)
+        timeMachineHolder = []
+      }
+    }
   }
 
   function mathFunction(name, source) {
@@ -76,7 +106,7 @@ function base() {
       }
 
       if($DEBUG_MODE) {
-        snapShot()
+        snapShot();
       }
     }
 
@@ -330,6 +360,7 @@ function library() {
   }
 
   function set(path, value) {
+    intoTimeMachineHolder(path, value)
     ensurePath(path)
     applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
   }

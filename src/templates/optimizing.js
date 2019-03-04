@@ -937,6 +937,7 @@ function library() {
     }
 
     function set(path, value) {
+      intoTimeMachineHolder(path, value)
       ensurePath(path)
       invalidatePath(path)
       applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
