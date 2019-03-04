@@ -5,7 +5,8 @@ export type TypeIndex = number
 export type NameIndex = number
 export type PrimitiveIndex = number
 export type MetaDataIndex = number
-export type GetterProjection = [TypeIndex, Reference[], MetaDataIndex]
+export type SourceIndex = number
+export type GetterProjection = [TypeIndex, Reference[], MetaDataIndex, SourceIndex]
 export type ProjectionType = keyof typeof TokenTypeData
 export type GetterArgs = Reference[]
 export type InvalidatedRoots = Set<number>
@@ -14,6 +15,7 @@ export type TopLevel = [number, string]
 export type SetterProjection = [TypeIndex, NameIndex, Reference[], number] 
 export type InvalidationPath = [Reference, Reference[]]
 export interface ProjectionMetaData {
+    id: number
     tracked: boolean
     invalidates: boolean
     paths: InvalidationPath[]
@@ -40,7 +42,7 @@ type SetterFunc = (...args: any[]) => any
 
 type ArrayFunc =  ($tracked: Tracked, identifier: number | string, func : (tracked: any, key: any, val: any, context: any, loop: any) => any, src: any[], context: any, $invalidates: boolean) => any[]
 export type OptimizerFuncNonPredicate = ($tracked: Tracked, src: object, identifier: number | string) => any
-type GeneralOptimizerFunc = (tracked: Tracked, newVal: any, identifier: number, len: number, invalidates: boolean) => any
+type GeneralOptimizerFunc = (tracked: Tracked, newVal: any, identifier: number|string, len: number, invalidates: boolean) => any
 interface OptimizerLibrary {
     map: ArrayFunc
     size: OptimizerFuncNonPredicate
@@ -54,6 +56,7 @@ interface OptimizerLibrary {
     set: SetterFunc
     splice: SetterFunc
     push: SetterFunc
+    mathFunction: (name: string, source: string) => (arg: number) => number
     range: (tracked: Tracked, end: number, start: number, step: number, identifier: string | number, invalidates: boolean) => number[]
     valuesOrKeysForObject: (tracked: Tracked, identifier: string | number, src: any[], values: boolean, invalidates: boolean) => any[]
     $setter: (func: SetterFunc) => any
@@ -63,16 +66,17 @@ interface OptimizerLibrary {
 
 export interface VMParams {
     $projectionData: ProjectionData
-    $funcLib: FunctionLibrary
-    $funcLibRaw: FunctionLibrary
     $res: any
     library: OptimizerLibrary
+}
+
+export interface VMOptions {
+    debugMode: boolean
 }
 
 export interface StepParams {
     $first: boolean
     $invalidatedRoots: InvalidatedRoots
-    $tainted: any
     $model: any
 }
 

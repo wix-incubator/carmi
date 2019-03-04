@@ -12,7 +12,8 @@ module.exports = api => {
 
             // also consider monorepo packages "root" and load their .babelrc files.
             '{,!(node_modules)*}'
-        ]
+        ],
+        presets: ['@babel/preset-typescript']
     }
 
     // optimize to specific envs

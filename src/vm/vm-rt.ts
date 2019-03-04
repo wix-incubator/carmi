@@ -1,380 +1,488 @@
 import {
-    VMParams,
-    StepParams,
-    GetterProjection,
-    ProjectionType,
-    InvalidatedRoots,
-    Tracked,
-    ProjectionMetaData,
-    OptimizerFuncNonPredicate,
-    SetterProjection,
-    ProjectionData
+  VMParams,
+  StepParams,
+  GetterProjection,
+  ProjectionType,
+  InvalidatedRoots,
+  Tracked,
+  ProjectionMetaData,
+  OptimizerFuncNonPredicate,
+  SetterProjection,
+  VMOptions,
+  ProjectionData
 } from "./types";
-import {
-    call
-} from "../../typings";
-import {
-    Reference
-} from './types';
+import { call } from "../../typings";
+import { Reference, Source } from "./types";
 
 export function packPrimitiveIndex(index: number) {
-    return index | 0x1000000;
+  return index | 0x1000000;
 }
 
 export function unpackPrimitiveIndex(index: number) {
-    return index & 0xffffff;
+  return index & 0xffffff;
 }
 
 export function isPrimitiveIndex(index: number) {
-    return index & 0x1000000;
+  return index & 0x1000000;
 }
 
 export function packProjectionIndex(index: number) {
-    return index;
+  return index;
 }
 
 type ProjectionResult = any;
 
 interface PublicScope {
-    key: ProjectionResult;
-    val: ProjectionResult;
-    context: ProjectionResult;
-    loop: ProjectionResult;
-    topLevel: ProjectionResult[];
-    root: any;
+  key: ProjectionResult;
+  val: ProjectionResult;
+  context: ProjectionResult;
+  loop: ProjectionResult;
+  topLevel: ProjectionResult[];
+  root: any;
 }
 
 interface RuntimeState {
-    $invalidatedRoots: InvalidatedRoots;
-    $tracked: Tracked;
+  $invalidatedRoots: InvalidatedRoots;
+  $tracked: Tracked;
+  trackingPhase?: boolean;
 }
 
 interface EvalScope {
-    args: (string | number)[];
-    publicScope: PublicScope;
-    runtimeState: RuntimeState;
-    conds: {
-        [key: number]: number
-    };
+  args: (string | number)[];
+  publicScope: PublicScope;
+  runtimeState: RuntimeState;
+  conds: {
+    [key: number]: number;
+  };
 }
 
 type Evaluator = (scope: EvalScope) => any;
 type Resolver = (
-    type: any,
-    args: Evaluator[],
-    index: number,
-    metaData: Partial < ProjectionMetaData >
+  type: any,
+  args: Evaluator[],
+  index: number,
+  metaData: Partial<ProjectionMetaData>,
+  argsMetaData: Array<Partial<ProjectionMetaData>>
 ) => Evaluator;
 
-export function buildVM({
-    $projectionData,
-    $funcLib,
-    $funcLibRaw,
-    library,
-    $res
-}: VMParams) {
-    const {
-        getters,
-        primitives,
-        topLevels,
-        metaData,
-        setters
-    } = $projectionData;
-    const {
-        setOnArray
-    } = library;
-    const primitiveEvaluator = (value: any) => () => value;
-    const resolveArgRef = (ref: number): Evaluator =>
-        isPrimitiveIndex(ref) ?
-        primitiveEvaluator(primitives[unpackPrimitiveIndex(ref)]) :
-        (scope: EvalScope) => evaluators[ref](scope);
+export function buildVM(
+  { $projectionData, library, $res }: VMParams,
+  { debugMode }: VMOptions
+) {
+  const {
+    getters,
+    primitives,
+    topLevels,
+    metaData,
+    setters,
+    sources
+  } = $projectionData;
+  const { setOnArray } = library;
+  const primitiveEvaluator = (value: any) => {
+    if (typeof value === "undefined") {
+      debugger;
+    }
+    return () => value;
+  };
+  const resolveArgRef = (ref: number): Evaluator =>
+    isPrimitiveIndex(ref)
+      ? primitiveEvaluator(primitives[unpackPrimitiveIndex(ref)])
+      : (scope: EvalScope) => evaluators[ref](scope);
 
-    const scopeResolver = (key: string, args: Evaluator[], index: number) => (
-        scope: EvalScope
-    ) => scope.publicScope[key as keyof PublicScope];
-    const predicateFunction = (ev: Evaluator, outerScope: EvalScope) => (
-            $tracked: Tracked,
-            key: ProjectionResult,
-            val: ProjectionResult,
-            context: ProjectionResult,
-            loop: ProjectionResult
-        ) =>
-        ev({
-            ...outerScope,
-            runtimeState: {
-                ...outerScope.runtimeState,
-                $tracked
-            },
-            publicScope: {
-                ...outerScope.publicScope,
-                key,
-                val,
-                context,
-                loop
-            }
-        });
+  const scopeResolver = (key: string, args: Evaluator[], index: number) => (
+    scope: EvalScope
+  ) => scope.publicScope[key as keyof PublicScope];
 
-    const topLevelResolver = (type: string, args: Evaluator[], index: number) => (
-        scope: EvalScope
-    ) => {
-        const tracked = scope.runtimeState.$tracked;
-        return library[type as "map"](
-            tracked,
-            index,
-            predicateFunction(args[0], scope),
-            args[1](scope),
-            args[2] ? args[2](scope) : null,
-            true
-        );
-    };
+  const context = (key: "context") => (scope: EvalScope) =>
+    scope.runtimeState.trackingPhase
+      ? scope.publicScope.context
+      : scope.publicScope.context[0];
 
-    const topLevelNonPredicate = (
-        type: string,
-        args: Evaluator[],
-        index: number
-    ) => {
-        debugger
-        const func = library[
-            type as keyof typeof library
-        ] as OptimizerFuncNonPredicate;
-        return (scope: EvalScope) =>
-            func(scope.runtimeState.$tracked, args[0](scope), index);
-    };
-    const range = (
-        type: string,
-        [end, start, step]: Evaluator[],
-        index: number,
-        metaData: Partial<ProjectionMetaData>
-    ) => {
-        debugger
-        const func = library[
-            type as keyof typeof library
-        ] as OptimizerFuncNonPredicate;
-        const invalidates = !!metaData.invalidates
-        return (scope: EvalScope) =>
-            library.range(scope.runtimeState.$tracked, end(scope), start(scope), step(scope), index, invalidates)
-    };
+  const resolvePretracking = (
+    { paths, trackedExpr }: Partial<ProjectionMetaData> = {
+      paths: [],
+      trackedExpr: []
+    }
+  ): ((e: EvalScope) => EvalScope) => {
+    const hasPath = paths && !!paths.length;
+    debugger
+    const hasConds = trackedExpr && !!trackedExpr.length;
+    if (!hasPath || !hasConds) {
+      return (e: EvalScope) => e;
+    }
 
-    const assignOrDefaults = (
-        type: string,
-        args: Evaluator[],
-        index: number,
-        metaData: Partial < ProjectionMetaData >
-    ) => {
-        const func = library.assignOrDefaults;
-        const isAssign = type === "assign";
-        return (scope: EvalScope) =>
-            func(
-                scope.runtimeState.$tracked,
-                index,
-                args[0](scope),
-                isAssign,
-                !!metaData.invalidates
-            );
-    };
+    const conds = (trackedExpr || [])
+      .reduce(
+        (a, c) => ({
+          ...a,
+          [c]: 0
+        }),
+        {}
+      );
 
-    const keysOrValues = (
-        type: string,
-        args: Evaluator[],
-        index: number,
-        metaData: Partial < ProjectionMetaData >
-    ) => {
-        const func = library.valuesOrKeysForObject;
-        const isValues = type === "values";
-        return (scope: EvalScope) =>
-            func(
-                scope.runtimeState.$tracked,
-                index,
-                args[0](scope),
-                isValues,
-                !!metaData.invalidates
-            );
-    };
+      return (evalScope: EvalScope) => ({
+      ...evalScope,
+      conds: {...conds}
+    });
+  };
 
-    type StringFunc = (...args: any[]) => any;
+  const resolveTracking = (
+    { paths }: Partial<ProjectionMetaData> = { paths: [] }
+  ) => {
+    if (!paths || !paths.length) {
+      return () => {};
+    }
 
-    const nativeStringResolver = (
-            func: StringFunc,
-            self: Evaluator,
-            args: Evaluator[]
-        ) => (evalScope: EvalScope) =>
-        func.apply(self(evalScope) as string, args.map(a => a(evalScope)));
-
-    const stringResolver = (type: string, args: Evaluator[], index: number) =>
-        nativeStringResolver(
-            String.prototype[type as keyof string] as StringFunc,
-            args[0],
-            args.slice(1)
-        );
-
-    // TODO: invalidates
-    const call = (type: "call" | "effect", args: Evaluator[], index: number) => (
-            evalScope: EvalScope
-        ) =>
-        library.call(
-            evalScope.runtimeState.$tracked,
-            args.map(a => a(evalScope)),
-            index,
-            args.length,
-            true
-        );
-
-    const bind = (
-        type: "bind",
-        args: Evaluator[],
-        index: number,
-        md: Partial < ProjectionMetaData >
-    ) => {
-        const len = args.length;
-        return (evalScope: EvalScope) =>
-            library.bind(
-                evalScope.runtimeState.$tracked,
-                args.map(a => a(evalScope)),
-                index,
-                args.length,
-                !!md.invalidates
-            );
-    };
-
-    const simpleResolver = (func: (...args: any[]) => any) => (
-        type: string,
-        args: Evaluator[],
-        index: number
-    ) => (scope: EvalScope) => func(...args.map(a => a(scope)));
-
-    const wrapCond = (test: Evaluator, index: number, tracked: boolean) =>
-        tracked ?
-        (scope: EvalScope) => (scope.conds[index] = index) && test(scope) :
-        test;
-
-    const ternary = (
-        name: "ternary",
-        [test, then, alt]: Evaluator[],
-        index: number,
-        metaData: Partial < ProjectionMetaData >
-    ) => {
-        const tracked = !!metaData.tracked;
-        const thenWrapped = wrapCond(then, 2, tracked);
-        const altWrapped = wrapCond(alt, 3, tracked);
-        return (scope: EvalScope) =>
-            test(scope) ? thenWrapped(scope) : altWrapped(scope);
-    };
-
-    const or = (
-        name: "or",
-        args: Evaluator[],
-        index: number,
-        metaData: Partial < ProjectionMetaData >
-    ) => {
-        const tracked = !!metaData.tracked;
-        const wrappedArgs = args.map((e, index) => wrapCond(e, index + 1, tracked));
-        return (scope: EvalScope) =>
-            wrappedArgs.reduce(
-                (current: any, next: Evaluator) => current || next(scope),
-                false
-            );
-    };
-
-    const and = (
-        name: "and",
-        args: Evaluator[],
-        index: number,
-        metaData: Partial < ProjectionMetaData >
-    ) => {
-        const tracked = !!metaData.tracked;
-        const wrappedArgs = args.map((e, index) => wrapCond(e, index + 1, tracked));
-        return (scope: EvalScope) =>
-            wrappedArgs.reduce(
-                (current: any, next: Evaluator) => current && next(scope),
-                true
-            );
-    };
-
-    const array = (
-            name: "array",
-            args: Evaluator[],
-            index: number,
-            metaData: Partial < ProjectionMetaData >
-        ) => (scope: EvalScope) =>
-        library.array(
+    const tracks = paths.map(([cond, path]: [Reference, Reference[]]) => {
+      const precond: Evaluator = cond ? resolveArgRef(cond) : () => true;
+      const pathToTrack: Evaluator[] = (path || []).map(resolveArgRef);
+      return (scope: EvalScope) => {
+        const trackingScope = {
+          ...scope,
+          runtimeState: { ...scope.runtimeState, trackingPhase: true }
+        };
+        return (
+          precond(trackingScope) &&
+          library.trackPath(
             scope.runtimeState.$tracked,
-            args.map(a => a(scope)),
-            index,
-            args.length,
-            !!metaData.invalidates
+            pathToTrack.map(p => p(trackingScope))
+          )
         );
+      };
+    });
 
-    const object = (
-        name: "object",
-        args: Evaluator[],
-        index: number,
-        metaData: Partial < ProjectionMetaData >
+    return (scope: EvalScope) => tracks.forEach(t => t(scope));
+  };
+
+  const getMetaData = (projectionIndex: number) =>
+    metaData[getters[projectionIndex][2]];
+
+  const predicateFunction = (
+    ev: Evaluator,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const tracking = resolveTracking(metaData);
+    const pretracking = resolvePretracking(metaData);
+    return (outerScope: EvalScope) => (
+      $tracked: Tracked,
+      key: ProjectionResult,
+      val: ProjectionResult,
+      context: ProjectionResult,
+      loop: ProjectionResult
     ) => {
-        debugger
-        const keys: Evaluator[] = [];
-        const values: Evaluator[] = [];
-        args.forEach((a, i) => {
-            if (i % 2) {
-                values.push(args[i]);
-            } else {
-                keys.push(args[i]);
-            }
-        });
-        return (scope: EvalScope) =>
-            library.object(
-                scope.runtimeState.$tracked,
-                values.map(a => a(scope)),
-                index,
-                keys.map(a => a(scope)),
-                !!metaData.invalidates
-            );
-    };
-
-    const recur = (
-            name: "recur",
-            [key, loop]: Evaluator[],
-            index: number,
-            metaData: Partial < ProjectionMetaData >
-        ) => (scope: EvalScope) =>
-        key(scope).recursiveSteps(loop(scope), scope.runtimeState.$tracked);
-
-    const argResolver = (name: string) => {
-        const argMatch = name.match(/arg(\d)/);
-        const index = argMatch ? +argMatch[1] : 0;
-        return (scope: EvalScope) => scope.args[index];
-    };
-
-    const cond = (num: number) => (scope: EvalScope) => scope.conds[num]
-
-    const trace = (name: "trace", args: Evaluator[]) => {
-        const getLabel = args.length === 2 ? args[1] : null;
-        const getValue = args.length === 2 ? args[1] : args[0];
-
-        return (evalScope: EvalScope) => {
-            const value = getValue(evalScope);
-            console.log(getLabel ? getLabel(evalScope) + ", " : "", value);
-            return value;
+      const innerScope = pretracking({
+        ...outerScope,
+        runtimeState: {
+          ...outerScope.runtimeState,
+          $tracked
+        },
+        publicScope: {
+          ...outerScope.publicScope,
+          key,
+          val,
+          context,
+          loop
         }
-    }
+      });
+      const result = ev(innerScope);
+      tracking(innerScope);
+      return result;
+    };
+  };
 
-    const breakpoint = (name: 'breakpoint', [getValue]: Evaluator[]) =>
-        (evalScope: EvalScope) => {
-            const value = getValue(evalScope)
-            debugger
-            return value
-        }
+  const topLevelResolver = (
+    type: string,
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>,
+    argsMetaData: Array<Partial<ProjectionMetaData>>
+  ) => {
+    const pred = predicateFunction(args[0], argsMetaData[0]);
+    const evalSource = args[1];
+    const context = args[2];
+    const evalContext = context
+      ? (scope: EvalScope) =>
+          library.array(
+            scope.runtimeState.$tracked,
+            [context(scope)],
+            `${index}_arr`,
+            1,
+            true
+          )
+      : () => null;
+    const func = library[type as "map"];
+    const invalidates = !!metaData.invalidates;
+    return (scope: EvalScope) =>
+      func(
+        scope.runtimeState.$tracked,
+        index,
+        pred(scope),
+        evalSource(scope),
+        evalContext(scope),
+        invalidates
+      );
+  };
 
-    const errorResolver = (name: string) => {
-        throw new TypeError(`Invalid verb: ${name}`)
-    }
+  const topLevelNonPredicate = (
+    type: string,
+    args: Evaluator[],
+    index: number
+  ) => {
+    const func = library[
+      type as keyof typeof library
+    ] as OptimizerFuncNonPredicate;
+    return (scope: EvalScope) =>
+      func(scope.runtimeState.$tracked, args[0](scope), index);
+  };
+  const range = (
+    type: string,
+    [end, start, step]: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const func = library.range;
+    const invalidates = !!metaData.invalidates;
+    return (scope: EvalScope) =>
+      func(
+        scope.runtimeState.$tracked,
+        end(scope),
+        start(scope),
+        step(scope),
+        index,
+        invalidates
+      );
+  };
 
+  const assignOrDefaults = (
+    type: string,
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const func = library.assignOrDefaults;
+    const isAssign = type === "assign";
+    return (scope: EvalScope) =>
+      func(
+        scope.runtimeState.$tracked,
+        index,
+        args[0](scope),
+        isAssign,
+        !!metaData.invalidates
+      );
+  };
 
-const resolvers: Partial < {
-    [key in ProjectionType]: Resolver
-} > = {
+  const keysOrValues = (
+    type: string,
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const func = library.valuesOrKeysForObject;
+    const isValues = type === "values";
+    return (scope: EvalScope) =>
+      func(
+        scope.runtimeState.$tracked,
+        index,
+        args[0](scope),
+        isValues,
+        !!metaData.invalidates
+      );
+  };
+
+  type StringFunc = (...args: any[]) => any;
+
+  const nativeStringResolver = (
+    func: StringFunc,
+    self: Evaluator,
+    args: Evaluator[]
+  ) => (evalScope: EvalScope) =>
+    func.apply(self(evalScope) as string, args.map(a => a(evalScope)));
+
+  const stringResolver = (type: string, args: Evaluator[], index: number) =>
+    nativeStringResolver(
+      String.prototype[type as keyof string] as StringFunc,
+      args[0],
+      args.slice(1)
+    );
+
+  const call = (
+    type: "call" | "effect",
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => (evalScope: EvalScope) =>
+    library.call(
+      evalScope.runtimeState.$tracked,
+      args.map(a => a(evalScope)),
+      index,
+      args.length,
+      !!metaData.invalidates
+    );
+
+  const bind = (
+    type: "bind",
+    args: Evaluator[],
+    index: number,
+    md: Partial<ProjectionMetaData>
+  ) => {
+    const len = args.length;
+    return (evalScope: EvalScope) =>
+      library.bind(
+        evalScope.runtimeState.$tracked,
+        args.map(a => a(evalScope)),
+        index,
+        args.length,
+        !!md.invalidates
+      );
+  };
+
+  const simpleResolver = (func: (...args: any[]) => any) => (
+    type: string,
+    args: Evaluator[]
+  ) => (scope: EvalScope) => func(...args.map(a => a(scope)));
+
+  const wrapCond = (test: Evaluator, id: number, index: number, tracked: boolean) =>
+    tracked
+      ? (scope: EvalScope) => (scope.conds[id] = index) && test(scope)
+      : test;
+
+  const ternary = (
+    name: "ternary",
+    [test, then, alt]: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const tracked = !!metaData.tracked;
+    const thenWrapped = wrapCond(then, metaData.id || -1, 2, tracked);
+    const altWrapped = wrapCond(alt, metaData.id || -1, 3, tracked);
+    return (scope: EvalScope) =>
+      test(scope) ? thenWrapped(scope) : altWrapped(scope);
+  };
+
+  const or = (
+    name: "or",
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const tracked = !!metaData.tracked;
+    const wrappedArgs = args.map((e, i) => wrapCond(e, metaData.id || -1, i + 1, tracked));
+    return (scope: EvalScope) =>
+      wrappedArgs.reduce(
+        (current: any, next: Evaluator) => current || next(scope),
+        false
+      );
+  };
+
+  const and = (
+    name: "and",
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    const tracked = !!metaData.tracked;
+    const wrappedArgs = args.map((e, i) => wrapCond(e, metaData.id || -1, i + 1, tracked));
+    return (scope: EvalScope) =>
+      wrappedArgs.reduce(
+        (current: any, next: Evaluator) => current && next(scope),
+        true
+      );
+  };
+
+  const array = (
+    name: "array",
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => (scope: EvalScope) =>
+    library.array(
+      scope.runtimeState.$tracked,
+      args.map(a => a(scope)),
+      index,
+      args.length,
+      !!metaData.invalidates
+    );
+
+  const object = (
+    name: "object",
+    args: Evaluator[],
+    index: number,
+    metaData: Partial<ProjectionMetaData>
+  ) => {
+    debugger;
+    const keys: Evaluator[] = [];
+    const values: Evaluator[] = [];
+    args.forEach((a, i) => {
+      if (i % 2) {
+        values.push(args[i]);
+      } else {
+        keys.push(args[i]);
+      }
+    });
+    return (scope: EvalScope) =>
+      library.object(
+        scope.runtimeState.$tracked,
+        values.map(a => a(scope)),
+        index,
+        keys.map(a => a(scope)),
+        !!metaData.invalidates
+      );
+  };
+
+  const recur = (name: "recur", [key, loop]: Evaluator[]) => (
+    scope: EvalScope
+  ) => key(scope).recursiveSteps(loop(scope), scope.runtimeState.$tracked);
+
+  const argResolver = (name: string) => {
+    const argMatch = name.match(/arg(\d)/);
+    const index = argMatch ? +argMatch[1] : 0;
+    return (scope: EvalScope) => scope.args[index];
+  };
+
+  const cond = (name: 'cond', [getNum]: Evaluator[]) =>
+    { return (scope: EvalScope) => scope.conds[getNum(scope)]; }
+
+  const trace = (name: "trace", args: Evaluator[]) => {
+    const getLabel = args.length === 2 ? args[1] : null;
+    const getValue = args.length === 2 ? args[1] : args[0];
+
+    return (evalScope: EvalScope) => {
+      const value = getValue(evalScope);
+      console.log(getLabel ? getLabel(evalScope) + ", " : "", value);
+      return value;
+    };
+  };
+
+  const resolveFunc = (name: "func", [getExpr]: Evaluator[]) => getExpr;
+
+  const breakpoint = (name: "breakpoint", [getValue]: Evaluator[]) => (
+    evalScope: EvalScope
+  ) => {
+    const value = getValue(evalScope);
+    debugger;
+    return value;
+  };
+
+  const errorResolver = (name: string) => {
+    throw new TypeError(`Invalid verb: ${name}`);
+  };
+
+  const resolveSource = (projectionIndex: number) => {
+      const src = sources[getters[projectionIndex][3]]
+      return src ? `${primitives[src[0]]}:${src[1]}:${src[2]}` : ""
+  }
+
+  const mathResolver = (name: string, [getSrc]: Evaluator[], index: number) => {
+    const func = debugMode
+      ? library.mathFunction(name, resolveSource(index))
+      : Math[name as "ceil" | "floor" | "round"];
+    return (evalScope: EvalScope) => func(getSrc(evalScope));
+  };
+
+  const resolvers: Partial<{ [key in ProjectionType]: Resolver }> = {
     val: scopeResolver,
     key: scopeResolver,
-    context: scopeResolver,
+    context,
     root: scopeResolver,
     topLevel: scopeResolver,
     loop: scopeResolver,
@@ -399,17 +507,17 @@ const resolvers: Partial < {
     mod: simpleResolver((a, b) => a % b),
     not: simpleResolver(a => !a),
     null: simpleResolver(() => null),
-    floor: simpleResolver(a => Math.floor(a)),
-    ceil: simpleResolver(a => Math.ceil(a)),
-    round: simpleResolver(a => Math.round(a)),
+    floor: mathResolver,
+    ceil: mathResolver,
+    round: mathResolver,
     quote: simpleResolver(a => a),
     isUndefined: simpleResolver(a => typeof a === "undefined"),
     isBoolean: simpleResolver(a => typeof a === "boolean"),
-    isNumber: simpleResolver(a => typeof a ==='number'),
-    isString: simpleResolver(a => typeof a === 'string'),
+    isNumber: simpleResolver(a => typeof a === "number"),
+    isString: simpleResolver(a => typeof a === "string"),
     abstract: errorResolver,
     invoke: errorResolver,
-    func: errorResolver,
+    func: resolveFunc,
     ternary,
     or,
     and,
@@ -431,8 +539,8 @@ const resolvers: Partial < {
     mapKeys: topLevelResolver,
     size: topLevelNonPredicate,
     sum: topLevelNonPredicate,
-    range,
     flatten: topLevelNonPredicate,
+    range,
     assign: assignOrDefaults,
     defaults: assignOrDefaults,
     keys: keysOrValues,
@@ -452,143 +560,99 @@ const resolvers: Partial < {
     arg7: argResolver,
     arg8: argResolver,
     arg9: argResolver
-};
-const metaDataForEvaluator = new WeakMap <
-    Evaluator,
-    Partial < ProjectionMetaData >
-    >
-    ();
-const buildEvaluator = (
+  };
+
+  const buildEvaluator = (
     getter: GetterProjection,
     index: number
-): Evaluator => {
+  ): Evaluator => {
     const [typeIndex, argRefs, getterMetadata] = getter;
     const md = metaData[getterMetadata];
     const type = primitives[typeIndex] as keyof typeof resolvers;
     const args = argRefs.map(resolveArgRef);
     if (!resolvers[type]) {
-        throw new Error(`${type} is not implemented`);
+      throw new Error(`${type} is not implemented`);
     }
-    const evaluator = (resolvers[type] as Resolver)(type, args, index, md);
-    metaDataForEvaluator.set(evaluator, md);
+    const evaluator = (resolvers[type] as Resolver)(
+      type,
+      args,
+      index,
+      md,
+      argRefs.map(arg => (isPrimitiveIndex(arg) ? {} : getMetaData(arg)))
+    );
     return evaluator;
-};
-const evaluators: Evaluator[] = getters.map(buildEvaluator);
-const topLevelResults: ProjectionResult[] = [];
-const resolvePretracking = (hasPath: boolean, conds ? : number[]): ((e: EvalScope) => EvalScope) => {
-    const newConds = (conds || []).map(c => ({
-        [c]: 0
-    })).reduce((a, o) => ({
-        ...a,
-        o
-    }), {})
-    return (hasPath && conds && conds.length) ?
-        (evalScope: EvalScope) =>
-        ({
-            ...evalScope,
-            conds: {
-                ...evalScope.conds,
-                ...newConds
-            }
-        }) :
-        (evalScope: EvalScope) => evalScope
-}
+  };
+  const evaluators: Evaluator[] = getters.map(buildEvaluator);
+  const topLevelResults: ProjectionResult[] = [];
 
-
-const resolveTracking = ({
-    paths
-}: Partial < ProjectionMetaData > ) => {
-    if (!paths || !paths.length) {
-        return () => {}
+  const topLevelEvaluators = topLevels.map(
+    ([projectionIndex]: [number, string], index: number) => {
+      const evaluator = evaluators[projectionIndex];
+      const md = getMetaData(projectionIndex);
+      const pretracking = resolvePretracking(md);
+      const tracking = resolveTracking(md);
+      return (evalScope: EvalScope) => {
+        evalScope = pretracking(evalScope);
+        const result = evaluator(evalScope);
+        tracking(evalScope);
+        return result;
+      };
     }
+  );
 
-    const tracks: Evaluator[] = []
-
-    paths.forEach(([cond, path]: [Reference, Reference[]]) => {
-        const precond: Evaluator = cond ? resolveArgRef(cond) : () => true
-        const pathToTrack: Evaluator[] = (path || []).map(resolveArgRef)
-        const track = (scope: EvalScope) =>
-            precond(scope) && library.trackPath(scope.runtimeState.$tracked, pathToTrack.map(p => p(scope)))
-        tracks.push(track)
-    })
-
-    return (scope: EvalScope) => tracks.forEach(t => t(scope))
-}
-
-const topLevelEvaluators = topLevels.map(
-    ([projectionIndex, name]: [number, string], index: number) => {
-        const evaluator = evaluators[projectionIndex];
-        const metaData = metaDataForEvaluator.get(evaluator) || {};
-        const hasPaths = metaData && !!metaData.paths && !!metaData.paths.length
-        const pretracking = resolvePretracking(hasPaths, metaData.trackedExpr || [])
-        const tracking = resolveTracking(metaData)
-        return (evalScope: EvalScope) => {
-            evalScope = pretracking(evalScope);
-            const result = evaluator(evalScope);
-            topLevelResults[index] = result;
-            if (name) {
-                $res[name] = result;
-            }
-            tracking(evalScope);
-            return result;
-        };
-    }
-);
-
-setters.forEach((s: SetterProjection) => {
+  setters.forEach((s: SetterProjection) => {
     const [typeIndex, nameIndex, projections, numTokens] = s;
     const name = primitives[nameIndex];
     const type = primitives[typeIndex] as "push" | "splice" | "set";
     const path = projections.map(resolveArgRef);
     $res[name] = library.$setter.bind(null, (...args: any[]) =>
-        library[type](
-            path.map((arg: Evaluator) => arg({args} as EvalScope)),
-            ...args.slice(numTokens)
-        )
+      library[type](
+        path.map((arg: Evaluator) => arg({ args } as EvalScope)),
+        ...args.slice(numTokens)
+      )
     );
-});
+  });
 
-function step({
-    $first,
-    $invalidatedRoots,
-    $tainted,
-    $model
-}: StepParams) {
+  function step({ $first, $invalidatedRoots, $model }: StepParams) {
     const evalScope: EvalScope = {
-        publicScope: {
-            root: $model,
-            topLevel: topLevelResults,
-            key: null,
-            val: null,
-            context: null,
-            loop: null
-        },
+      publicScope: {
+        root: $model,
+        topLevel: topLevelResults,
+        key: null,
+        val: null,
+        context: null,
+        loop: null
+      },
 
-        runtimeState: {
-            $invalidatedRoots,
-            $tracked: []
-        },
-        args: [],
-        conds: {}
+      runtimeState: {
+        $invalidatedRoots,
+        $tracked: []
+      },
+      args: [],
+      conds: {}
     };
     topLevelEvaluators.forEach((evaluator: Evaluator, i: number) => {
-//        if ($first || $invalidatedRoots.has(i)) {
-            const newValue = evaluator({
-                ...evalScope,
-                runtimeState: {
-                    ...evalScope.runtimeState,
-                    $tracked: [$invalidatedRoots, i]
-                }
-            });
-            setOnArray(topLevelResults, i, newValue, true);
-            if (!$first) {
-                $invalidatedRoots.delete(i);
-            }
-//        }
+        const name = topLevels[i][1]
+      if ($first || $invalidatedRoots.has(i)) {
+        const result = evaluator({
+          ...evalScope,
+          runtimeState: {
+            ...evalScope.runtimeState,
+            $tracked: [$invalidatedRoots, i]
+          }
+        });
+        setOnArray(topLevelResults, i, result, true);
+        if (!$first) {
+          $invalidatedRoots.delete(i);
+        }
+        if (name) {
+          $res[name] = result;
+        }
+      }
     });
-}
+  }
 
-return {
+  return {
     step
-};
+  };
 }

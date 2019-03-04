@@ -880,7 +880,6 @@ function library() {
     }
 
     function sum($tracked, src, identifier) {
-      debugger
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2]

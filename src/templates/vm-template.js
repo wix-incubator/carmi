@@ -3,6 +3,7 @@ const {library} = require('./optimizing')
 const {rt} = require('../vm/vm-rt')
 function updateDerived() {
     /* RT */
+    debugger
     const $vm = buildVM({
         $projectionData,
         $funcLib,
@@ -47,14 +48,14 @@ function updateDerived() {
             untrack,
 
             mathFunction,
-            checkTypes,
+            checkTypes
         }
-    });
+    },
+    $vmOptions);
 
     function updateDerived() {
         $vm.step({
             $invalidatedRoots,
-            $tainted,
             $first,
             $res,
             $model

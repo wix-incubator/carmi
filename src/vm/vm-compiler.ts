@@ -41,6 +41,7 @@ interface IntermediateMetaData {
     trackedExpr: number[]
   tracked: boolean
   invalidates: boolean
+  id: number
 }
 
 type MetaDataHash = string;
@@ -75,7 +76,7 @@ class VMCompiler extends OptimizingCompiler {
 
   buildEnvelope() {
     return `
-            function buildEnvelope($projectionData) {
+            function buildEnvelope($projectionData, $vmOptions) {
                 return ${super.compile()}
             }`;
   }
@@ -103,11 +104,11 @@ class VMCompiler extends OptimizingCompiler {
     };
 
     const addSource = (s?: string): number => {
-      if (!s) {
+      if (!s || !this.options.debug) {
         return 0
       }
 
-      const parseSource = /([^\s]+)\:(\d+)\:(\d+)$/.exec(s)
+      const parseSource = /([^\s]+)\:(\d+)\:(\d+)$/.exec(this.shortSource(s))
       if (!parseSource) {
         return 0
       }
@@ -129,7 +130,7 @@ class VMCompiler extends OptimizingCompiler {
     ): Partial < IntermediateProjection > => {
       const currentToken: Token =
         expression instanceof Token ? expression : expression[0];
-      const args = expression instanceof Expression ? expression.slice(1) : [];
+      const expressionArgs = expression instanceof Expression ? expression.slice(1) : [];
       const $type: ProjectionType = currentToken.$type;
       const pathsThatInvalidate = currentToken.$path || new Map;
       const paths: Array < [IntermediateReference, IntermediateReference[]] > = [];
@@ -180,46 +181,41 @@ class VMCompiler extends OptimizingCompiler {
         ...(currentToken.$invalidates ? {
           invalidates: true
         } : {}),
+        ...(currentToken.$id ? {
+          id: currentToken.$id
+        } : {}),
         ...(paths ? {
           paths
         } : {}),
-        ...(currentToken.trackedExpr ? {
-          trackedExpr: Array.from(currentToken.trackedExpr.values())
+        ...(currentToken.$trackedExpr ? {
+          trackedExpr: Array.from(currentToken.$trackedExpr.values())
         } : {})
       });
-      switch ($type) {
-        case "get":
-          {
-            const isTopLevel =
-              expression[2] instanceof Token &&
-              expression[2].$type === "topLevel";
-            return {
-              type,
-              args: [
-                serializeProjection(expression[2]),
-                serializeProjection(
-                  isTopLevel ? this.topLevelToIndex(expression[1]) : expression[1]
-                )
-              ]
-            };
-          }
-        case "range":
-          return {
-            type,
-            args: _.map(
-              [args[0], _.defaultTo(args[1], 0), _.defaultTo(args[2], 1)],
-              serializeProjection
-            ),
-            metaData
-          };
-        default:
-          return {
-            type,
-            args: _.map(args, serializeProjection),
-            metaData,
-            source
-          };
+
+      const argsManipulators : {[key: string]: (args: Token[]) => any[]} = {
+        get: ([prop, obj]: Token[]) => 
+          [obj, obj instanceof Token && obj.$type === "topLevel" ? this.topLevelToIndex(prop) : prop],
+
+        trace: (args: Token[]) => {
+          const inner = args.length === 2 ? expression[1] : expression[0]
+          const nextToken = inner instanceof Expression ? inner[0] : inner
+          const innerSrc = nextToken[SourceTag] || currentToken[SourceTag]
+          return [
+            args[0],
+            nextToken.$type,
+            innerSrc
+          ]
+        },
+        range: ([end, start, step]: Token[]) => [end, _.defaultTo(start, 0), _.defaultTo(step, 1)]
       }
+
+      const args = _.map((argsManipulators[$type] || _.identity)(expressionArgs), serializeProjection)
+        return {
+          type,
+          args,
+          metaData,
+          source
+        };
     };
 
     const serializeProjection = (expression: any): IntermediateReference => {
@@ -232,11 +228,6 @@ class VMCompiler extends OptimizingCompiler {
           ref: addPrimitive(expression),
           table: "primitives"
         };
-      }
-
-      // Short-circuit func optimization, it's a code-size optimization
-      if (expression instanceof Expression && expression[0].$type === "func") {
-        return serializeProjection(expression[1]);
       }
 
       const hash = exprHash(expression);
@@ -260,7 +251,8 @@ class VMCompiler extends OptimizingCompiler {
     ): GetterProjection => [
       primitiveHashes.indexOf(p.type || ""),
       (p.args || []).map(packRef),
-      0
+      p.metaData ? mdHashes.indexOf(p.metaData) : 0,
+      p.source || 0
     ];
 
     const intermediateTopLevels: Array < {
@@ -300,7 +292,7 @@ class VMCompiler extends OptimizingCompiler {
 
     const projectionHashes = Object.keys(projectionsByHash);
     const primitiveHashes = Object.keys(primitivesByHash);
-    const mdHashes = Object.keys(metaDataByHash);
+    const mdHashes = ['', ...Object.keys(metaDataByHash)]
 
     const getters = projectionHashes.map(hash =>
       packProjection(projectionsByHash[hash])
@@ -309,6 +301,7 @@ class VMCompiler extends OptimizingCompiler {
 
     const packMetaData = (md: Partial < IntermediateMetaData > ): ProjectionMetaData =>
       ({
+        id: _.defaultTo(md.id, -1),
         tracked: !!md.tracked,
         invalidates: !!md.invalidates,
         paths: (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
@@ -317,7 +310,7 @@ class VMCompiler extends OptimizingCompiler {
         trackedExpr: md.trackedExpr || []
       })
 
-    const metaData = mdHashes.map(hash => packMetaData(metaDataByHash[hash]));
+    const metaData = mdHashes.map((hash, index) => index ? packMetaData(metaDataByHash[hash]) : {});
     const setters = intermediateSetters.map(
       ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [
         primitiveHashes.indexOf(typeHash),
@@ -351,7 +344,7 @@ class VMCompiler extends OptimizingCompiler {
   compile() {
     return `(${this.buildEnvelope()})(${JSON.stringify(
       this.buildProjectionData()
-    )})`;
+    )}, {debugMode: ${!!this.options.debug}})`;
   }
 
   allExpressions() {

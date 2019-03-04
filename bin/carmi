@@ -3,8 +3,16 @@
 'use strict';
 
 const commandLineArgs = require('command-line-args');
-const carmi = require('../index');
 const path = require('path');
+
+require('@babel/register')({
+  rootMode: 'upward',
+  cwd: path.resolve(__dirname, '..'),
+  extensions: ['.ts', '.js'],
+  ignore: [/node_modules/]
+});
+
+const carmi = require('../index');
 const fs = require('fs-extra');
 const {isUpToDate, analyzeDependencies} = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
@@ -47,12 +55,6 @@ async function run() {
 
   const absPath = path.resolve(process.cwd(), options.source);
   const cacheFilePath = getCacheFilePath(absPath);
-
-  require('@babel/register')({
-    rootMode: 'upward',
-    extensions: ['.ts', '.js'],
-    ignore: [/node_modules/]
-  });
 
   const statsFilePath = path.resolve(options.stats);
   const dependencies = analyzeDependencies(absPath, statsFilePath);
