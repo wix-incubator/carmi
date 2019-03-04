@@ -11,6 +11,21 @@ function base() {
 
         throw new TypeError(`Trying to call undefined function: ${functionName} `)
     }})
+    var timeMachine = []
+    function deepCloneState(){
+      return JSON.parse(JSON.stringify($model))
+    }
+    function eq(obj1, obj2) {
+        return JSON.stringify(obj1) == JSON.stringify(obj2)
+    }
+    function snapShot() {
+        const latestState = timeMachine[timeMachine.length -1]
+        const currentState = deepCloneState()
+        if(!latestState || !eq(currentState, latestState)) {
+            timeMachine.push(deepCloneState())
+        }
+    }
+    snapShot()
   }
 
   function mathFunction(name, source) {
@@ -58,6 +73,10 @@ function base() {
       $inRecalculate = false;
       if ($batchPending.length) {
         $res.$endBatch();
+      }
+
+      if($DEBUG_MODE) {
+        snapShot()
       }
     }
 
@@ -148,7 +167,8 @@ function base() {
     if ($DEBUG_MODE) {
       Object.assign($res, {
         $ast: () => { return $AST },
-        $source: () => null
+        $source: () => null,
+        timeMachine
       })
     }
     recalculate();
