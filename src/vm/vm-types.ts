@@ -9,11 +9,11 @@ export type SourceIndex = number
 export type GetterProjection = [number, TypeIndex, Reference[], MetaDataIndex, SourceIndex]
 export type ProjectionType = keyof typeof TokenTypeData
 export type InvalidatedRoots = Set<number>
-export type TopLevel = [number, string]
+export type TopLevel = number | [number, string]
 
 export type SetterProjection = [TypeIndex, NameIndex, Reference[], number] 
 export type InvalidationPath = [Reference, Reference[]]
-export type ProjectionMetaData = [number, InvalidationPath[], string | null]
+export type ProjectionMetaData = [number, InvalidationPath[], number[]]
 
 export type Source = [number, number, number]
 export interface ProjectionData {

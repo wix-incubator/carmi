@@ -8,7 +8,8 @@ import {
     ProjectionMetaData,
     OptimizerFuncNonPredicate,
     Reference,
-    SetterProjection
+    SetterProjection,
+    TopLevel
 } from "./vm-types";
 import { debug } from "util";
 
@@ -600,18 +601,20 @@ export function buildVM({
     const evaluators: Evaluator[] = getters.map(buildEvaluator);
     const topLevelResults: ProjectionResult[] = [];
 
-    const topLevelEvaluators = topLevels.map(
-        ([projectionIndex]: [number, string], index: number) => {
+    const topLevelEvaluators: [string | null, Evaluator][] = topLevels.map(
+        (tl: number | TopLevel, index: number) => {
+            const projectionIndex = typeof tl === 'number' ? tl : tl[0]
+            const name = typeof tl === 'number' ? null : tl[1]
             const evaluator = evaluators[projectionIndex];
             const md = getMetaData(projectionIndex);
             const pretracking = resolvePretracking(md);
             const tracking = resolveTracking(md);
-            return (evalScope: EvalScope) => {
+            return [name, (evalScope: EvalScope) => {
                 evalScope = pretracking(evalScope);
                 const result = evaluator(evalScope);
                 tracking(evalScope);
                 return result;
-            };
+            }] as [string | null, Evaluator]
         }
     );
 
@@ -650,8 +653,7 @@ export function buildVM({
             args: [],
             conds: {}
         };
-        topLevelEvaluators.forEach((evaluator: Evaluator, i: number) => {
-            const name = topLevels[i][1]
+        topLevelEvaluators.forEach(([name, evaluator]: [string | null, Evaluator], i: number) => {
             if ($first || $invalidatedRoots.has(i)) {
                 const result = evaluator({
                     ...evalScope,
