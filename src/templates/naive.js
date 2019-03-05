@@ -1,7 +1,7 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
-   
+
     if ($DEBUG_MODE) {
     $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
       get: (target, functionName) => {
@@ -89,7 +89,7 @@ function base() {
       const arr = getAssignableObject(path, path.length)
       splice([...path, arr.length], 0, value)
     }
-    
+
     function applySetter(object, key, value) {
       if (typeof value === 'undefined') {
         delete object[key]
@@ -100,11 +100,11 @@ function base() {
 
     function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
-        if ((!$inBatch && !$inRecalculate) && $batchingStrategy) {
-          $batchingStrategy.call($res);
-          $inBatch = true;
-        }
         $batchPending.push({ func, args });
+        if ((!$inBatch && !$inRecalculate) && $batchingStrategy) {
+          $inBatch = true;
+          $batchingStrategy.call($res);
+        }
       } else {
         func.apply($res, args);
         recalculate();
