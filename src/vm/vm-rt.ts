@@ -105,7 +105,7 @@ export function buildVM({
 
     const resolvePretracking = ([flags,
         paths,
-        trackedExpr
+        ...trackedExpr
     ]: ProjectionMetaData): ((e: EvalScope) => EvalScope) => {
         const hasPath = paths && !!paths.length;
         const hasConds = trackedExpr && !!trackedExpr.length;
@@ -611,7 +611,7 @@ export function buildVM({
             args,
             index,
             md,
-            argRefs.map(arg => (isPrimitiveIndex(arg) ? [0, [], []] as ProjectionMetaData : getMetaData(arg)))
+            argRefs.map(arg => (isPrimitiveIndex(arg) ? [0, [], ...[]] as ProjectionMetaData : getMetaData(arg)))
         );
         return evaluator;
     };
@@ -636,7 +636,7 @@ export function buildVM({
     );
 
     setters.forEach((s: SetterProjection) => {
-        const [typeIndex, nameIndex, projections, numTokens] = s;
+        const [typeIndex, nameIndex, numTokens, ...projections] = s;
         const name = primitives[nameIndex];
         const type = primitives[typeIndex] as "push" | "splice" | "set";
         const path = projections.map(resolveArgRef);

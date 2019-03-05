@@ -306,20 +306,20 @@ class VMCompiler extends OptimizingCompiler {
           path.map(packRef)
         ]
       ) as Array<[number, number[]]>,
-      md.trackedExpr || []
+      ...(md.trackedExpr || [])
     ];
 
     const metaData = mdHashes.map((hash, index) =>
       index
         ? packMetaData(metaDataByHash[hash])
-        : ([0, [], []] as ProjectionMetaData)
+        : ([0, [], ...[]] as ProjectionMetaData)
     );
     const setters = intermediateSetters.map(
       ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [
         primitiveHashes.indexOf(typeHash),
         primitiveHashes.indexOf(nameHash),
-        projection.map(packRef),
-        numTokens
+        numTokens,
+        ...projection.map(packRef)
       ]
     ) as SetterProjection[];
 

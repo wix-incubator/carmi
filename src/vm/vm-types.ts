@@ -11,9 +11,9 @@ export type ProjectionType = keyof typeof TokenTypeData
 export type InvalidatedRoots = Set<number>
 export type TopLevel = number | [number, string]
 
-export type SetterProjection = [TypeIndex, NameIndex, Reference[], number] 
+export type SetterProjection = [TypeIndex, NameIndex, number, ...Reference[]] 
 export type InvalidationPath = [Reference, Reference[]]
-export type ProjectionMetaData = [number, InvalidationPath[], number[]]
+export type ProjectionMetaData = [number, InvalidationPath[], ...number[]]
 
 export interface ProjectionData {
     getters: GetterProjection[]
