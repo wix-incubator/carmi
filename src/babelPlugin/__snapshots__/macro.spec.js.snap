@@ -538,9 +538,9 @@ module.exports = function () {
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
-        if (!$inBatch && !$inRecalculate && $batchingStrategy) {
-          $batchingStrategy.call($res);$inBatch = true;
-        }$batchPending.push({ func, args });
+        $batchPending.push({ func, args });if (!$inBatch && !$inRecalculate && $batchingStrategy) {
+          $inBatch = true;$batchingStrategy.call($res);
+        }
       } else {
         func.apply($res, args);recalculate();
       }
@@ -1106,9 +1106,9 @@ module.exports = function () {
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
-        if (!$inBatch && !$inRecalculate && $batchingStrategy) {
-          $batchingStrategy.call($res);$inBatch = true;
-        }$batchPending.push({ func, args });
+        $batchPending.push({ func, args });if (!$inBatch && !$inRecalculate && $batchingStrategy) {
+          $inBatch = true;$batchingStrategy.call($res);
+        }
       } else {
         func.apply($res, args);recalculate();
       }
@@ -1676,9 +1676,9 @@ const modelBuilder = (function () {
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
-        if (!$inBatch && !$inRecalculate && $batchingStrategy) {
-          $batchingStrategy.call($res);$inBatch = true;
-        }$batchPending.push({ func, args });
+        $batchPending.push({ func, args });if (!$inBatch && !$inRecalculate && $batchingStrategy) {
+          $inBatch = true;$batchingStrategy.call($res);
+        }
       } else {
         func.apply($res, args);recalculate();
       }
