@@ -39,12 +39,23 @@ module.exports = (model, options) => {
       return result;
     } catch (e) { } //eslint-disable-line no-empty
   }
+
+  if (options.json) {
+    return JSON.stringify(new compilerTypes.vm(model, options).buildProjectionData())
+  }
+
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
   if (options.ast) {
     return JSON.stringify(compiler.getters, null, 2);
   }
-  const rawSource = compiler.compile();
+  let rawSource
+  
+  if (options.envelope) {
+    rawSource = compiler.buildEnvelope();
+  } else {
+    rawSource = compiler.compile();
+  }
   let source = rawSource;
   if (options.prettier) {
     try {

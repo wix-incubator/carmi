@@ -5,14 +5,6 @@
 const commandLineArgs = require('command-line-args');
 const path = require('path');
 
-require('@babel/register')({
-  rootMode: 'upward',
-  cwd: path.resolve(__dirname, '..'),
-  extensions: ['.ts', '.js'],
-  ignore: [/node_modules/]
-});
-
-const carmi = require('../index');
 const fs = require('fs-extra');
 const {isUpToDate, analyzeDependencies} = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
@@ -28,8 +20,10 @@ const optionDefinitions = [
     description: 'compiler version to use naive/simple/optimizing'
   },
   { name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code' },
+  { name: 'envelope', type: Boolean, defaultValue: false, description: 'build envelope only (vm mode)' },
   { name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code' },
   { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
+  { name: 'json', type: Boolean, defaultValue: false, description: 'output JSON projection data (vm mode)' },
   { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
   { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
   { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
@@ -49,11 +43,20 @@ ${optionDefinitions
 const options = commandLineArgs(optionDefinitions);
 
 async function run() {
+  require('@babel/register')({
+    rootMode: 'upward',
+    cwd: options.cwd || path.resolve(__dirname, '..'),
+    extensions: ['.ts', '.js'],
+    ignore: [/node_modules/]
+  });
+  
+  const carmi = require('../index');
+
   if (options.help) {
     return console.log(HELP);
   }
 
-  const absPath = path.resolve(process.cwd(), options.source);
+  const absPath = path.resolve(process.cwd(), options.source || '.');
   const cacheFilePath = getCacheFilePath(absPath);
 
   const statsFilePath = path.resolve(options.stats);

@@ -5,6 +5,7 @@
     "allowJs": true,
     "module": "commonjs",
     "strict": true,
+    "noEmit": true,
     "moduleResolution": "node",
     "typeRoots": ["./typings"],
     "types": ["node", "lodash"]

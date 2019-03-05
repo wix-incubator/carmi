@@ -223,12 +223,12 @@ class NaiveCompiler {
           }
 
           if (setterType === 'splice' && token.$type === 'key') {
-            return `arg${numTokens - 1}`
+            return `args[${numTokens - 1}]`
           }
-
-          return token.$type
+          const argMatch = token.$type ? token.$type.match(/arg(\d)/) : null
+          return argMatch ? `args[${argMatch[1]}]` : JSON.stringify(token)
         }).join(',')
-        return `${name}: $setter.bind(null, (${Array(numTokens).fill(null).map((a, i) => `arg${i}`).concat('...additionalArgs').join(',')}) => ${setterType}([${pathExpr}], ...additionalArgs))`
+        return `${name}: $setter.bind(null, (...args) => ${setterType}([${pathExpr}], ...args.slice(${numTokens})))`
       }
 
   pathToString(path, n = 0) {

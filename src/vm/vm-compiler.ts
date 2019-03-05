@@ -11,13 +11,11 @@ import {
 import {
   ProjectionData,
   GetterProjection,
-  PrimitiveIndex,
   ProjectionMetaData,
   ProjectionType,
   SetterProjection,
-  Reference,
   Source
-} from "./types";
+} from "./vm-types";
 import {
   Token,
   Expression,
@@ -32,7 +30,7 @@ type IntermediateReferenceKey = "$$ref" | "$$primitive";
 
 interface IntermediateReference {
   ref: string;
-  table: "primitives" | "projections";
+  table: "primitives" | "projections" | "id";
 }
 
 interface IntermediateMetaData {
@@ -41,13 +39,13 @@ interface IntermediateMetaData {
     trackedExpr: number[]
   tracked: boolean
   invalidates: boolean
-  id: number
 }
 
 type MetaDataHash = string;
 type PrimitiveHash = string;
 type ProjectionHash = string;
 interface IntermediateProjection {
+  id: number
   type: PrimitiveHash;
   metaData: MetaDataHash;
   source: number
@@ -181,9 +179,6 @@ class VMCompiler extends OptimizingCompiler {
         ...(currentToken.$invalidates ? {
           invalidates: true
         } : {}),
-        ...(currentToken.$id ? {
-          id: currentToken.$id
-        } : {}),
         ...(paths ? {
           paths
         } : {}),
@@ -211,6 +206,7 @@ class VMCompiler extends OptimizingCompiler {
 
       const args = _.map((argsManipulators[$type] || _.identity)(expressionArgs), serializeProjection)
         return {
+          id: currentToken.$id,
           type,
           args,
           metaData,
@@ -249,6 +245,7 @@ class VMCompiler extends OptimizingCompiler {
     const packProjection = (
       p: Partial < IntermediateProjection >
     ): GetterProjection => [
+      p.id || 0,
       primitiveHashes.indexOf(p.type || ""),
       (p.args || []).map(packRef),
       p.metaData ? mdHashes.indexOf(p.metaData) : 0,
@@ -300,17 +297,15 @@ class VMCompiler extends OptimizingCompiler {
     const primitives = primitiveHashes.map(hash => primitivesByHash[hash]);
 
     const packMetaData = (md: Partial < IntermediateMetaData > ): ProjectionMetaData =>
-      ({
-        id: _.defaultTo(md.id, -1),
-        tracked: !!md.tracked,
-        invalidates: !!md.invalidates,
-        paths: (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
+      ([
+        (md.tracked ? 1 : 0) | (md.invalidates ? 2 : 0),
+        (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
           packRef(cond), path.map(packRef)
         ]) as Array < [number, number[]] > ,
-        trackedExpr: md.trackedExpr || []
-      })
+        md.trackedExpr || []
+      ])
 
-    const metaData = mdHashes.map((hash, index) => index ? packMetaData(metaDataByHash[hash]) : {});
+    const metaData = mdHashes.map((hash, index) => index ? packMetaData(metaDataByHash[hash]) : [0, [], []] as ProjectionMetaData);
     const setters = intermediateSetters.map(
       ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [
         primitiveHashes.indexOf(typeHash),
