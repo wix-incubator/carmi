@@ -20,7 +20,8 @@
     "index.js",
     "jsx.js",
     "loader.js",
-    "macro.js"
+    "macro.js",
+    "carmiRoot.js"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
