@@ -98,7 +98,6 @@ export function buildVM({
 
     const getInvalidates = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & 2) : false
     const getTracked = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & 1) : false
-    const getID = (index: number) => getters[index][0]
 
     const resolvePretracking = ([flags,
         paths,
@@ -156,7 +155,7 @@ export function buildVM({
     };
 
     const getMetaData = (projectionIndex: number) =>
-        metaData[getters[projectionIndex][2]];
+        metaData[getters[projectionIndex][1]];
 
     const predicateFunction = (
         ev: Evaluator,
@@ -354,32 +353,32 @@ export function buildVM({
         args: Evaluator[]
     ) => (scope: EvalScope) => func(...args.map(a => a(scope)));
 
-    const wrapCond = (test: Evaluator, id: number, index: number, tracked: boolean) =>
+    const wrapCond = (test: Evaluator, id: Evaluator, index: number, tracked: boolean) =>
         tracked ?
-        (scope: EvalScope) => (scope.conds[id] = index) && test(scope) :
+        (scope: EvalScope) => (scope.conds[id(scope)] = index) && test(scope) :
         test;
 
     const ternary = (
         name: "ternary",
-        [test, then, alt]: Evaluator[],
+        [id, test, then, alt]: Evaluator[],
         index: number,
         metaData: ProjectionMetaData
     ) => {
         const tracked = getTracked(metaData);
-        const thenWrapped = wrapCond(then, getID(index) || -1, 2, tracked);
-        const altWrapped = wrapCond(alt, getID(index) || -1, 3, tracked);
+        const thenWrapped = wrapCond(then, id, 2, tracked);
+        const altWrapped = wrapCond(alt, id, 3, tracked);
         return (scope: EvalScope) =>
             test(scope) ? thenWrapped(scope) : altWrapped(scope);
     };
 
     const or = (
         name: "or",
-        args: Evaluator[],
+        [id, ...args]: Evaluator[],
         index: number,
         metaData: ProjectionMetaData
     ) => {
         const tracked = getTracked(metaData);
-        const wrappedArgs = args.map((e, i) => wrapCond(e, getID(index) || -1, i + 1, tracked));
+        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1, tracked));
         return (scope: EvalScope) =>
             wrappedArgs.reduce(
                 (current: any, next: Evaluator) => current || next(scope),
@@ -389,12 +388,12 @@ export function buildVM({
 
     const and = (
         name: "and",
-        args: Evaluator[],
+        [id, ...args]: Evaluator[],
         index: number,
         metaData: ProjectionMetaData
     ) => {
         const tracked = getTracked(metaData);
-        const wrappedArgs = args.map((e, i) => wrapCond(e, getID(index) || -1, i + 1, tracked));
+        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1, tracked));
         return (scope: EvalScope) =>
             wrappedArgs.reduce(
                 (current: any, next: Evaluator) => current && next(scope),
@@ -578,7 +577,7 @@ export function buildVM({
         getter: GetterProjection,
         index: number
     ): Evaluator => {
-        const [id, typeIndex, getterMetadata, ...argRefs] = getter;
+        const [typeIndex, getterMetadata, ...argRefs] = getter;
         const md = metaData[getterMetadata];
         const type = primitives[typeIndex] as keyof typeof resolvers;
         const args = argRefs.map(resolveArgRef);

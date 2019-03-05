@@ -91,7 +91,7 @@ class VMCompiler extends OptimizingCompiler {
     } = {};
     const astGetters = this.getRealGetters() as string[];
     const addPrimitive = (p: any): string => {
-      const hash = exprHash(p);
+      const hash = exprHash(_.defaultTo(p, null));
       if (!_.has(primitivesByHash, hash)) {
         primitivesByHash[hash] = p;
       }
@@ -171,6 +171,8 @@ class VMCompiler extends OptimizingCompiler {
         } : {})
       });
 
+      const prependID = (args: Token[]) => [currentToken.$id, ...args]
+
       const argsManipulators : {[key: string]: (args: Token[]) => any[]} = {
         get: ([prop, obj]: Token[]) => 
           [obj, obj instanceof Token && obj.$type === "topLevel" ? this.topLevelToIndex(prop) : prop],
@@ -185,12 +187,14 @@ class VMCompiler extends OptimizingCompiler {
             innerSrc
           ]
         },
+        and: prependID,
+        or: prependID,
+        ternary: prependID,
         range: ([end, start, step]: Token[]) => [end, _.defaultTo(start, 0), _.defaultTo(step, 1)]
       }
 
       const args = _.map((argsManipulators[$type] || _.identity)(expressionArgs), serializeProjection)
         return {
-          id: currentToken.$id,
           type,
           args,
           metaData,
@@ -229,7 +233,6 @@ class VMCompiler extends OptimizingCompiler {
     const packProjection = (
       p: Partial < IntermediateProjection >
     ): GetterProjection => [
-      p.id || 0,
       primitiveHashes.indexOf(p.type || ""),
       p.metaData ? mdHashes.indexOf(p.metaData) : 0,
       ...(p.args || []).map(packRef)
