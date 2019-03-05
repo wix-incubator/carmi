@@ -227,7 +227,7 @@ export function buildVM({
         }
     };
 
-    const topLevelNonPredicate = (
+    const topLevelNonPredicate = (...types: ('object' | 'array')[]) => (
         type: string,
         args: Evaluator[],
         index: number
@@ -235,9 +235,16 @@ export function buildVM({
         const func = library[
             type as keyof typeof library
         ] as OptimizerFuncNonPredicate;
-        return (scope: EvalScope) =>
-            func(scope.runtimeState.$tracked, args[0](scope), index);
-    };
+
+        return (scope: EvalScope) => {
+            const input = args[0](scope)
+            if (debugMode) {
+                library.checkTypes(input, type, types, type, resolveSource(index) || '')
+            }
+            return func(scope.runtimeState.$tracked, input, index);
+        }
+    }
+
     const range = (
         type: string,
         [end, start, step]: Evaluator[],
@@ -265,14 +272,20 @@ export function buildVM({
     ) => {
         const func = library.assignOrDefaults;
         const isAssign = type === "assign";
-        return (scope: EvalScope) =>
-            func(
+        return (scope: EvalScope) => {
+            const input = args[0](scope)
+            if (debugMode) {
+                library.checkTypes(input, type, ['array'], type, resolveSource(index) || '')
+            }
+
+            return func(
                 scope.runtimeState.$tracked,
                 index,
-                args[0](scope),
+                input,
                 isAssign,
                 getInvalidates(metaData)
             );
+        }
     };
 
     const keysOrValues = (
@@ -283,14 +296,19 @@ export function buildVM({
     ) => {
         const func = library.valuesOrKeysForObject;
         const isValues = type === "values";
-        return (scope: EvalScope) =>
-            func(
+        return (scope: EvalScope) => {
+            const input = args[0](scope)
+            if (debugMode) {
+                library.checkTypes(input, type, ['object'], type, resolveSource(index) || '')
+            }
+            return func(
                 scope.runtimeState.$tracked,
                 index,
-                args[0](scope),
+                input,
                 isValues,
                 getInvalidates(metaData)
             );
+        }
     };
 
     type StringFunc = (...args: any[]) => any;
@@ -548,9 +566,9 @@ export function buildVM({
         keyBy: topLevelResolver('array'),
         groupBy: topLevelResolver('object'),
         mapKeys: topLevelResolver('object'),
-        size: topLevelNonPredicate,
-        sum: topLevelNonPredicate,
-        flatten: topLevelNonPredicate,
+        size: topLevelNonPredicate('object', 'array'),
+        sum: topLevelNonPredicate('array'),
+        flatten: topLevelNonPredicate('array'),
         range,
         assign: assignOrDefaults,
         defaults: assignOrDefaults,
@@ -597,7 +615,7 @@ export function buildVM({
     const topLevelResults: ProjectionResult[] = [];
 
     const topLevelEvaluators: [string | null, Evaluator][] = topLevels.map(
-        (tl: number | TopLevel, index: number) => {
+        (tl: number | TopLevel) => {
             const projectionIndex = typeof tl === 'number' ? tl : tl[0]
             const name = typeof tl === 'number' ? null : tl[1]
             const evaluator = evaluators[projectionIndex];

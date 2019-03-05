@@ -1,12 +1,8 @@
 const OptimizingCompiler = require("../optimizing-compiler");
 import * as rt from "./vm-rt";
 import * as _ from "lodash";
-import {
-  exprHash
-} from "../expr-hash";
-import {
-  pathMatches
-} from '../expr-tagging'
+import { exprHash } from "../expr-hash";
+import { pathMatches } from "../expr-tagging";
 
 import {
   ProjectionData,
@@ -15,16 +11,9 @@ import {
   ProjectionType,
   SetterProjection
 } from "./vm-types";
-import {
-  Token,
-  Expression,
-  SourceTag,
-  SetterExpression
-} from "../lang";
+import { Token, Expression, SourceTag, SetterExpression } from "../lang";
 
-const {
-  packPrimitiveIndex
-} = rt;
+const { packPrimitiveIndex } = rt;
 type IntermediateReferenceKey = "$$ref" | "$$primitive";
 
 interface IntermediateReference {
@@ -32,30 +21,29 @@ interface IntermediateReference {
   table: "primitives" | "projections" | "id";
 }
 
-
 interface IntermediateMetaData {
-  source: string
-  paths: Array < [IntermediateReference, IntermediateReference[]] >
-    trackedExpr: number[]
-  tracked: boolean
-  invalidates: boolean
+  source: string;
+  paths: Array<[IntermediateReference, IntermediateReference[]]>;
+  trackedExpr: number[];
+  tracked: boolean;
+  invalidates: boolean;
 }
 
 type MetaDataHash = string;
 type PrimitiveHash = string;
 type ProjectionHash = string;
 interface IntermediateProjection {
-  id: number
+  id: number;
   type: PrimitiveHash;
   metaData: MetaDataHash;
-  source: string | null
+  source: string | null;
   args: IntermediateReference[];
 }
 
 interface IntermediateSource {
-  file: string
-  line: number
-  col: number
+  file: string;
+  line: number;
+  col: number;
 }
 
 class VMCompiler extends OptimizingCompiler {
@@ -81,13 +69,13 @@ class VMCompiler extends OptimizingCompiler {
 
   buildProjectionData(): ProjectionData {
     const projectionsByHash: {
-      [hash: string]: Partial < IntermediateProjection > ;
+      [hash: string]: Partial<IntermediateProjection>;
     } = {};
     const primitivesByHash: {
-      [hash: string]: any
+      [hash: string]: any;
     } = {};
     const metaDataByHash: {
-      [hash: string]: Partial < IntermediateMetaData >
+      [hash: string]: Partial<IntermediateMetaData>;
     } = {};
     const astGetters = this.getRealGetters() as string[];
     const addPrimitive = (p: any): string => {
@@ -99,7 +87,7 @@ class VMCompiler extends OptimizingCompiler {
       return hash;
     };
 
-    const addMetaData = (m: Partial < IntermediateMetaData > = {}): string => {
+    const addMetaData = (m: Partial<IntermediateMetaData> = {}): string => {
       const mdHash = exprHash(m);
       if (!_.has(metaDataByHash, mdHash)) {
         metaDataByHash[mdHash] = m;
@@ -110,13 +98,14 @@ class VMCompiler extends OptimizingCompiler {
 
     const generateProjectionFromExpression = (
       expression: Expression | Token
-    ): Partial < IntermediateProjection > => {
+    ): Partial<IntermediateProjection> => {
       const currentToken: Token =
         expression instanceof Token ? expression : expression[0];
-      const expressionArgs = expression instanceof Expression ? expression.slice(1) : [];
+      const expressionArgs =
+        expression instanceof Expression ? expression.slice(1) : [];
       const $type: ProjectionType = currentToken.$type;
-      const pathsThatInvalidate = currentToken.$path || new Map;
-      const paths: Array < [IntermediateReference, IntermediateReference[]] > = [];
+      const pathsThatInvalidate = currentToken.$path || new Map();
+      const paths: Array<[IntermediateReference, IntermediateReference[]]> = [];
       pathsThatInvalidate.forEach(
         (cond: Expression, invalidatedPath: Expression[]) => {
           const condProj = serializeProjection(cond);
@@ -157,49 +146,68 @@ class VMCompiler extends OptimizingCompiler {
 
       const type = addPrimitive($type);
       const metaData = addMetaData({
-        ...(currentToken.$tracked ? {
-          tracked: true
-        } : {}),
-        ...(currentToken.$invalidates ? {
-          invalidates: true
-        } : {}),
-        ...(paths ? {
-          paths
-        } : {}),
-        ...(currentToken.$trackedExpr ? {
-          trackedExpr: Array.from(currentToken.$trackedExpr.values())
-        } : {})
+        ...(currentToken.$tracked
+          ? {
+              tracked: true
+            }
+          : {}),
+        ...(currentToken.$invalidates
+          ? {
+              invalidates: true
+            }
+          : {}),
+        ...(paths
+          ? {
+              paths
+            }
+          : {}),
+        ...(currentToken.$trackedExpr
+          ? {
+              trackedExpr: Array.from(currentToken.$trackedExpr.values())
+            }
+          : {})
       });
 
-      const prependID = (args: Token[]) => [currentToken.$id, ...args]
+      const prependID = (args: Token[]) => [currentToken.$id, ...args];
 
-      const argsManipulators : {[key: string]: (args: Token[]) => any[]} = {
-        get: ([prop, obj]: Token[]) => 
-          [obj, obj instanceof Token && obj.$type === "topLevel" ? this.topLevelToIndex(prop) : prop],
+      const argsManipulators: { [key: string]: (args: Token[]) => any[] } = {
+        get: ([prop, obj]: Token[]) => [
+          obj,
+          obj instanceof Token && obj.$type === "topLevel"
+            ? this.topLevelToIndex(prop)
+            : prop
+        ],
 
         trace: (args: Token[]) => {
-          const inner = args.length === 2 ? expression[1] : expression[0]
-          const nextToken = inner instanceof Expression ? inner[0] : inner
-          const innerSrc = this.shortSource(nextToken[SourceTag] || currentToken[SourceTag])
-          return [
-            args[0],
-            nextToken.$type,
-            innerSrc
-          ]
+          const inner = args.length === 2 ? expression[1] : expression[0];
+          const nextToken = inner instanceof Expression ? inner[0] : inner;
+          const innerSrc = this.shortSource(
+            nextToken[SourceTag] || currentToken[SourceTag]
+          );
+          return [args[0], nextToken.$type, innerSrc];
         },
         and: prependID,
         or: prependID,
         ternary: prependID,
-        range: ([end, start, step]: Token[]) => [end, _.defaultTo(start, 0), _.defaultTo(step, 1)]
-      }
+        range: ([end, start, step]: Token[]) => [
+          end,
+          _.defaultTo(start, 0),
+          _.defaultTo(step, 1)
+        ]
+      };
 
-      const args = _.map((argsManipulators[$type] || _.identity)(expressionArgs), serializeProjection)
-        return {
-          type,
-          args,
-          metaData,
-          source: this.options.debug ? this.shortSource(currentToken[SourceTag]) : null
-        };
+      const args = _.map(
+        (argsManipulators[$type] || _.identity)(expressionArgs),
+        serializeProjection
+      );
+      return {
+        type,
+        args,
+        metaData,
+        source: this.options.debug
+          ? this.shortSource(currentToken[SourceTag])
+          : null
+      };
     };
 
     const serializeProjection = (expression: any): IntermediateReference => {
@@ -226,22 +234,22 @@ class VMCompiler extends OptimizingCompiler {
     };
 
     const packRef = (r: IntermediateReference) =>
-      r.table === "primitives" ?
-      packPrimitiveIndex(primitiveHashes.indexOf(r.ref)) :
-      rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
+      r.table === "primitives"
+        ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref))
+        : rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
 
     const packProjection = (
-      p: Partial < IntermediateProjection >
+      p: Partial<IntermediateProjection>
     ): GetterProjection => [
       primitiveHashes.indexOf(p.type || ""),
       p.metaData ? mdHashes.indexOf(p.metaData) : 0,
       ...(p.args || []).map(packRef)
     ];
 
-    const intermediateTopLevels: Array < {
+    const intermediateTopLevels: Array<{
       name: string;
       hash: ProjectionHash;
-    } > = astGetters.map(name => ({
+    }> = astGetters.map(name => ({
       name,
       hash: serializeProjection(this.getters[name]).ref
     }));
@@ -255,7 +263,7 @@ class VMCompiler extends OptimizingCompiler {
       const setterType = setter.setterType();
       const numTokens =
         setter.filter((part: Token | string | number) => part instanceof Token)
-        .length - 1;
+          .length - 1;
       const setterProjection = [...setter.slice(1)].map(token => {
         if (token instanceof Token && token.$type === "key") {
           return serializeProjection(new Token(`arg${numTokens - 1}`, ""));
@@ -274,25 +282,35 @@ class VMCompiler extends OptimizingCompiler {
     const intermediateSetters = _.map(this.setters, serializeSetter);
 
     const projectionHashes = Object.keys(projectionsByHash);
-    const sources : (string | null)[] = this.options.debug ? projectionHashes.map(hash => projectionsByHash[hash].source || null) : []
+    const sources: (string | null)[] = this.options.debug
+      ? projectionHashes.map(hash => projectionsByHash[hash].source || null)
+      : [];
     const primitiveHashes = Object.keys(primitivesByHash);
-    const mdHashes = ['', ...Object.keys(metaDataByHash)]
+    const mdHashes = ["", ...Object.keys(metaDataByHash)];
 
     const getters = projectionHashes.map(hash =>
       packProjection(projectionsByHash[hash])
     );
     const primitives = primitiveHashes.map(hash => primitivesByHash[hash]);
 
-    const packMetaData = (md: Partial < IntermediateMetaData > ): ProjectionMetaData =>
-      ([
-        (md.tracked ? 1 : 0) | (md.invalidates ? 2 : 0),
-        (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
-          packRef(cond), path.map(packRef)
-        ]) as Array < [number, number[]] > ,
-        md.trackedExpr || []
-      ])
+    const packMetaData = (
+      md: Partial<IntermediateMetaData>
+    ): ProjectionMetaData => [
+      (md.tracked ? 1 : 0) | (md.invalidates ? 2 : 0),
+      (md.paths || []).map(
+        ([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
+          packRef(cond),
+          path.map(packRef)
+        ]
+      ) as Array<[number, number[]]>,
+      md.trackedExpr || []
+    ];
 
-    const metaData = mdHashes.map((hash, index) => index ? packMetaData(metaDataByHash[hash]) : [0, [], []] as ProjectionMetaData);
+    const metaData = mdHashes.map((hash, index) =>
+      index
+        ? packMetaData(metaDataByHash[hash])
+        : ([0, [], []] as ProjectionMetaData)
+    );
     const setters = intermediateSetters.map(
       ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [
         primitiveHashes.indexOf(typeHash),
@@ -303,12 +321,8 @@ class VMCompiler extends OptimizingCompiler {
     ) as SetterProjection[];
 
     const topLevels = intermediateTopLevels.map(
-      ({
-        name,
-        hash
-      }: {
-        name: string;hash: ProjectionHash
-      }) => [projectionHashes.indexOf(hash), name] as[number, string]
+      ({ name, hash }: { name: string; hash: ProjectionHash }) =>
+        [projectionHashes.indexOf(hash), name] as [number, string]
     );
 
     return {
