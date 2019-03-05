@@ -11,7 +11,6 @@ import {
     SetterProjection,
     TopLevel
 } from "./vm-types";
-import { debug } from "util";
 
 export function packPrimitiveIndex(index: number) {
     return index | 0x1000000;
@@ -157,7 +156,7 @@ export function buildVM({
     };
 
     const getMetaData = (projectionIndex: number) =>
-        metaData[getters[projectionIndex][3]];
+        metaData[getters[projectionIndex][2]];
 
     const predicateFunction = (
         ev: Evaluator,
@@ -216,7 +215,7 @@ export function buildVM({
         return (scope: EvalScope) => {
             const input = evalInput(scope)
             if (debugMode) {
-                library.checkTypes(input, type, types, type, resolveSource(index))
+                library.checkTypes(input, type, types, type, resolveSource(index) || '')
             }
             return func(
                 scope.runtimeState.$tracked,
@@ -481,14 +480,11 @@ export function buildVM({
         throw new TypeError(`Invalid verb: ${name}`);
     };
 
-    const resolveSource = (projectionIndex: number) => {
-        const src = sources[getters[projectionIndex][4]]
-        return src ? `${primitives[src[0]]}:${src[1]}:${src[2]}` : ""
-    }
+    const resolveSource = (projectionIndex: number) => sources[projectionIndex]
 
     const mathResolver = (name: string, [getSrc]: Evaluator[], index: number) => {
         const func = debugMode ?
-            library.mathFunction(name, resolveSource(index)) :
+            library.mathFunction(name, resolveSource(index) || '') :
             Math[name as "ceil" | "floor" | "round"];
         return (evalScope: EvalScope) => func(getSrc(evalScope));
     };
@@ -582,7 +578,7 @@ export function buildVM({
         getter: GetterProjection,
         index: number
     ): Evaluator => {
-        const [id, typeIndex, argRefs, getterMetadata] = getter;
+        const [id, typeIndex, getterMetadata, ...argRefs] = getter;
         const md = metaData[getterMetadata];
         const type = primitives[typeIndex] as keyof typeof resolvers;
         const args = argRefs.map(resolveArgRef);

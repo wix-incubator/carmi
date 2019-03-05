@@ -241,7 +241,7 @@ class NaiveCompiler {
   }
 
   shortSource(src) {
-    return require('path').relative(this.options.cwd || '.', src)
+    return src ? require('path').relative(this.options.cwd || '.', src) : null
   }
 
   exprTemplatePlaceholders(expr, funcName) {

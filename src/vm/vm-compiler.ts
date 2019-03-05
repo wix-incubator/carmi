@@ -13,8 +13,7 @@ import {
   GetterProjection,
   ProjectionMetaData,
   ProjectionType,
-  SetterProjection,
-  Source
+  SetterProjection
 } from "./vm-types";
 import {
   Token,
@@ -49,7 +48,7 @@ interface IntermediateProjection {
   id: number
   type: PrimitiveHash;
   metaData: MetaDataHash;
-  source: number
+  source: string | null
   args: IntermediateReference[];
 }
 
@@ -81,7 +80,6 @@ class VMCompiler extends OptimizingCompiler {
   }
 
   buildProjectionData(): ProjectionData {
-    debugger;
     const projectionsByHash: {
       [hash: string]: Partial < IntermediateProjection > ;
     } = {};
@@ -91,7 +89,6 @@ class VMCompiler extends OptimizingCompiler {
     const metaDataByHash: {
       [hash: string]: Partial < IntermediateMetaData >
     } = {};
-    const intermediateSources: (IntermediateSource | null)[] = [null]
     const astGetters = this.getRealGetters() as string[];
     const addPrimitive = (p: any): string => {
       const hash = exprHash(p);
@@ -101,19 +98,6 @@ class VMCompiler extends OptimizingCompiler {
 
       return hash;
     };
-
-    const addSource = (s?: string): number => {
-      if (!s || !this.options.debug) {
-        return 0
-      }
-
-      const parseSource = /([^\s]+)\:(\d+)\:(\d+)$/.exec(this.shortSource(s))
-      if (!parseSource) {
-        return 0
-      }
-      intermediateSources.push({file: addPrimitive(parseSource[1]), line: +parseSource[2], col: +parseSource[3]})
-      return intermediateSources.length - 1
-    }
 
     const addMetaData = (m: Partial < IntermediateMetaData > = {}): string => {
       const mdHash = exprHash(m);
@@ -172,7 +156,6 @@ class VMCompiler extends OptimizingCompiler {
       );
 
       const type = addPrimitive($type);
-      const source = addSource(currentToken[SourceTag])
       const metaData = addMetaData({
         ...(currentToken.$tracked ? {
           tracked: true
@@ -195,7 +178,7 @@ class VMCompiler extends OptimizingCompiler {
         trace: (args: Token[]) => {
           const inner = args.length === 2 ? expression[1] : expression[0]
           const nextToken = inner instanceof Expression ? inner[0] : inner
-          const innerSrc = nextToken[SourceTag] || currentToken[SourceTag]
+          const innerSrc = this.shortSource(nextToken[SourceTag] || currentToken[SourceTag])
           return [
             args[0],
             nextToken.$type,
@@ -211,7 +194,7 @@ class VMCompiler extends OptimizingCompiler {
           type,
           args,
           metaData,
-          source
+          source: this.options.debug ? this.shortSource(currentToken[SourceTag]) : null
         };
     };
 
@@ -248,9 +231,8 @@ class VMCompiler extends OptimizingCompiler {
     ): GetterProjection => [
       p.id || 0,
       primitiveHashes.indexOf(p.type || ""),
-      (p.args || []).map(packRef),
       p.metaData ? mdHashes.indexOf(p.metaData) : 0,
-      p.source || 0
+      ...(p.args || []).map(packRef)
     ];
 
     const intermediateTopLevels: Array < {
@@ -289,6 +271,7 @@ class VMCompiler extends OptimizingCompiler {
     const intermediateSetters = _.map(this.setters, serializeSetter);
 
     const projectionHashes = Object.keys(projectionsByHash);
+    const sources : (string | null)[] = this.options.debug ? projectionHashes.map(hash => projectionsByHash[hash].source || null) : []
     const primitiveHashes = Object.keys(primitivesByHash);
     const mdHashes = ['', ...Object.keys(metaDataByHash)]
 
@@ -324,8 +307,6 @@ class VMCompiler extends OptimizingCompiler {
         name: string;hash: ProjectionHash
       }) => [projectionHashes.indexOf(hash), name] as[number, string]
     );
-
-    const sources: (Source | null)[] = intermediateSources.map(source => source ? [source.line, source.col, primitiveHashes.indexOf(source.file)] as Source : null)
 
     return {
       getters,
