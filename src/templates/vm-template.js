@@ -3,7 +3,6 @@ const {library} = require('./optimizing')
 const {rt} = require('../vm/vm-rt')
 function updateDerived() {
     /* RT */
-    debugger
     const $vm = buildVM({
         $projectionData,
         $funcLib,

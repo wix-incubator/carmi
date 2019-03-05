@@ -285,7 +285,6 @@ describe('testing objects', () => {
       const inst = optModel(initialData, funcLibrary);
       expect(inst.inRange).toEqual({five: 'five', three: 'three', one: 'one'});
       expectTapFunctionToHaveBeenCalled(3, compiler);
-      debugger //eslint-disable-line
       inst.setCenter(9);
       expect(inst.inRange).toEqual({eight: 'eight', twelve: 'twelve', ten: 'ten'});
       expectTapFunctionToHaveBeenCalled(3, compiler);

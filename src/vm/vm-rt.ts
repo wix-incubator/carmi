@@ -81,12 +81,7 @@ export function buildVM({
     const {
         setOnArray
     } = library;
-    const primitiveEvaluator = (value: any) => {
-        if (typeof value === "undefined") {
-            debugger;
-        }
-        return () => value;
-    };
+    const primitiveEvaluator = (value: any) => () => value
     const resolveArgRef = (ref: number): Evaluator =>
         isPrimitiveIndex(ref) ?
         primitiveEvaluator(primitives[unpackPrimitiveIndex(ref)]) :
@@ -110,7 +105,6 @@ export function buildVM({
         trackedExpr
     ]: ProjectionMetaData): ((e: EvalScope) => EvalScope) => {
         const hasPath = paths && !!paths.length;
-        debugger
         const hasConds = trackedExpr && !!trackedExpr.length;
         if (!hasPath || !hasConds) {
             return (e: EvalScope) => e;
@@ -334,7 +328,8 @@ export function buildVM({
             type: "effect",
             args: Evaluator[]
         ) => (evalScope: EvalScope) => {
-            $funcLib[args[0](evalScope)](args.slice(1).map(a => a(evalScope)))
+          const name = args[0](evalScope) as string
+            ($res[name] || $funcLib[name]).apply($res, args.slice(1).map(a => a(evalScope)))
         }
 
     const bind = (
@@ -427,7 +422,6 @@ export function buildVM({
         index: number,
         metaData: ProjectionMetaData
     ) => {
-        debugger;
         const keys: Evaluator[] = [];
         const values: Evaluator[] = [];
         args.forEach((a, i) => {
