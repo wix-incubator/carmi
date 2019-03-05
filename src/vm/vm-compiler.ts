@@ -12,6 +12,7 @@ import {
   SetterProjection
 } from "./vm-types";
 import { Token, Expression, SourceTag, SetterExpression } from "../lang";
+import { TrackedFlag, InvalidatesFlag } from './vm-rt'
 
 const { packPrimitiveIndex } = rt;
 type IntermediateReferenceKey = "$$ref" | "$$primitive";
@@ -48,7 +49,9 @@ interface IntermediateSource {
 
 class VMCompiler extends OptimizingCompiler {
   buildRT() {
-    return _.map(rt, func => func.toString()).join("\n");
+    return _.map(rt, (val: any, name: string) => 
+        _.isFunction(val) ? val.toString() : `exports.${name} = ${JSON.stringify(val)}`)
+      .join("\n");
   }
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
@@ -296,7 +299,7 @@ class VMCompiler extends OptimizingCompiler {
     const packMetaData = (
       md: Partial<IntermediateMetaData>
     ): ProjectionMetaData => [
-      (md.tracked ? 1 : 0) | (md.invalidates ? 2 : 0),
+      (md.tracked ? TrackedFlag : 0) | (md.invalidates ? InvalidatesFlag : 0),
       (md.paths || []).map(
         ([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
           packRef(cond),

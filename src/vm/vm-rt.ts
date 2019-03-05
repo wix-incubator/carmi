@@ -12,16 +12,19 @@ import {
     TopLevel
 } from "./vm-types";
 
+export const IndexBits = 18
+export const TrackedFlag = 1 << 0
+export const InvalidatesFlag = 1 << 1
 export function packPrimitiveIndex(index: number) {
-    return index | 0x1000000;
+    return index | (1 << IndexBits);
 }
 
 export function unpackPrimitiveIndex(index: number) {
-    return index & 0xffffff;
+    return index & ((1 << IndexBits) - 1);
 }
 
 export function isPrimitiveIndex(index: number) {
-    return index & 0x1000000;
+    return index & (1 << IndexBits);
 }
 
 export function packProjectionIndex(index: number) {
@@ -78,6 +81,7 @@ export function buildVM({
         setters,
         sources
     } = $projectionData;
+
     const {
         setOnArray
     } = library;
@@ -96,8 +100,8 @@ export function buildVM({
         scope.publicScope.context :
         scope.publicScope.context[0];
 
-    const getInvalidates = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & 2) : false
-    const getTracked = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & 1) : false
+    const getInvalidates = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & InvalidatesFlag) : false
+    const getTracked = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & TrackedFlag) : false
 
     const resolvePretracking = ([flags,
         paths,
