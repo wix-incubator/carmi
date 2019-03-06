@@ -19,9 +19,11 @@ export interface ProjectionData {
     getters: GetterProjection[]
     setters: SetterProjection[]
     metaData: ProjectionMetaData[]
-    sources: (string | null)[]
-    topLevels: (TopLevel | number)[]
+    topLevelProjections: number[]
+
+    topLevelNames: string[]
     primitives: any[]   
+    sources: (string | null)[]
 }
 
 export type Tracked = any[]

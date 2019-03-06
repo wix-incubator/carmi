@@ -76,7 +76,8 @@ export function buildVM({
     const {
         getters,
         primitives,
-        topLevels,
+        topLevelNames,
+        topLevelProjections,
         metaData,
         setters,
         sources
@@ -618,10 +619,9 @@ export function buildVM({
     const evaluators: Evaluator[] = getters.map(buildEvaluator);
     const topLevelResults: ProjectionResult[] = [];
 
-    const topLevelEvaluators: [string | null, Evaluator][] = topLevels.map(
-        (tl: number | TopLevel) => {
-            const projectionIndex = typeof tl === 'number' ? tl : tl[0]
-            const name = typeof tl === 'number' ? null : tl[1]
+    const topLevelEvaluators: [string | null, Evaluator][] = topLevelProjections.map(
+        (projectionIndex: number, i: number) => {
+            const name = topLevelNames[i]
             const evaluator = evaluators[projectionIndex];
             const md = getMetaData(projectionIndex);
             const pretracking = resolvePretracking(md);
