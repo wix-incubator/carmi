@@ -13,7 +13,7 @@ import {
 } from "./vm-types";
 import { Token, Expression, SourceTag, SetterExpression } from "../lang";
 
-const { packPrimitiveIndex, InvalidatesFlag } = rt;
+const { packPrimitiveIndex, packProjectionHeader } = rt;
 
 interface IntermediateReference {
   ref: string;
@@ -31,7 +31,8 @@ type PrimitiveHash = string;
 type ProjectionHash = string;
 interface IntermediateProjection {
   id: number;
-  type: PrimitiveHash;
+  type: string;
+  invalidates: boolean
   metaData: MetaDataHash;
   source: string | null;
   args: IntermediateReference[];
@@ -102,7 +103,7 @@ class VMCompiler extends OptimizingCompiler {
         expression instanceof Token ? expression : expression[0];
       const expressionArgs =
         expression instanceof Expression ? expression.slice(1) : [];
-      const $type: ProjectionType = currentToken.$type;
+      const type: string = currentToken.$type;
       const pathsThatInvalidate = currentToken.$path || new Map();
       const paths: Array<[IntermediateReference, IntermediateReference[]]> = [];
       pathsThatInvalidate.forEach(
@@ -143,19 +144,7 @@ class VMCompiler extends OptimizingCompiler {
         }
       );
 
-      const type = addPrimitive($type);
-      const metaData = addMetaData({
-        ...(currentToken.$invalidates
-          ? {
-              invalidates: true
-            }
-          : {}),
-        ...(paths
-          ? {
-              paths
-            }
-          : {})
-      });
+      const metaData = paths && paths.length ? addMetaData({paths}) : null
 
       const prependID = (args: Token[]) => [currentToken.$tracked ? currentToken.$id : -1, ...args];
 
@@ -186,13 +175,14 @@ class VMCompiler extends OptimizingCompiler {
       };
 
       const args = _.map(
-        (argsManipulators[$type] || _.identity)(expressionArgs),
+        (argsManipulators[type] || _.identity)(expressionArgs),
         serializeProjection
       );
       return {
         type,
         args,
-        metaData,
+        invalidates: currentToken.$invalidates,
+        ...(metaData ? {metaData} : {}),
         source: this.options.debug
           ? this.shortSource(currentToken[SourceTag])
           : null
@@ -233,8 +223,7 @@ class VMCompiler extends OptimizingCompiler {
     const packProjection = (
       p: Partial<IntermediateProjection>
     ): GetterProjection => [
-      primitiveHashes.indexOf(p.type || ""),
-      p.metaData ? mdHashes.indexOf(p.metaData) : 0,
+      packProjectionHeader(p.type || '', p.metaData ? mdHashes.indexOf(p.metaData): 0, !!p.invalidates),
       ...(p.args || []).map(packRef)
     ];
 
@@ -296,25 +285,20 @@ class VMCompiler extends OptimizingCompiler {
 
     const packMetaData = (
       md: Partial<IntermediateMetaData>
-    ): [number, string[]] => [
-      (md.invalidates ? InvalidatesFlag : 0),
-      (md.paths || []).map(
-        ([cond, path]: [IntermediateReference, IntermediateReference[]]) => addPath([
+    ): string[] => (md.paths || []).map(([cond, path]: [IntermediateReference, IntermediateReference[]]) => addPath([
           packRef(cond),
           ...path.map(packRef)
-        ])
-      )
-    ];
+        ]))
 
     const metaData2 = mdHashes.map((hash, index) =>
       index
         ? packMetaData(metaDataByHash[hash])
-        : ([0, []] as [number, string[]])
+        : ([] as string[])
     );
 
     const pathHashes = Object.keys(pathByHash)
 
-    const metaData = metaData2.map(([flags, paths]: [number, string[]]) => [flags, ...paths.map(hash => pathHashes.indexOf(hash))]) as ProjectionMetaData[]
+    const metaData = metaData2.map((paths: string[]) => paths.map(hash => pathHashes.indexOf(hash))) as ProjectionMetaData[]
 
     const setters = intermediateSetters.map(
       ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [

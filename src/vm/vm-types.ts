@@ -6,7 +6,8 @@ export type NameIndex = number
 export type PrimitiveIndex = number
 export type MetaDataIndex = number
 export type SourceIndex = number
-export type GetterProjection = [TypeIndex, MetaDataIndex, ...Reference[]]
+export type GetterHeader = number
+export type GetterProjection = [GetterHeader, ...Reference[]]
 export type ProjectionType = keyof typeof TokenTypeData
 export type InvalidatedRoots = Set<number>
 export type TopLevel = number | [number, string]
@@ -14,7 +15,7 @@ export type TopLevel = number | [number, string]
 export type SetterProjection = [TypeIndex, NameIndex, number, ...Reference[]] 
 export type InvalidationPath = Reference[]
 export type PathIndex = number
-export type ProjectionMetaData = [number, ...PathIndex[]]
+export type ProjectionMetaData = PathIndex[]
 
 export interface ProjectionData {
     getters: GetterProjection[]

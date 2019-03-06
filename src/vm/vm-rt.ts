@@ -13,13 +13,30 @@ import {
     InvalidationPath
 } from "./vm-types";
 
-export const PrimitiveBits = 18
-export const ProjectionBits = 19
+import {TokenTypeData} from '../lang'
+
+export const tokenTypes = Object.keys(TokenTypeData)
+
+export const PrimitiveBits = 16
+export const ProjectionBits = 17
+export const MetaDataBits = 10
 export const InvalidatesFlag = 1
 
 export function canBeStoredInRef(n: number) {
     return n === unpackIndex(n)
 }
+
+export function packProjectionHeader(type: string, metaDataIndex: number, invalidates: boolean) : number {
+    return tokenTypes.indexOf(type) | 
+        ((invalidates ? 1 : 0) << 8) | 
+        metaDataIndex << MetaDataBits
+}
+
+
+export function getTypeFromHeader(n: number) {
+    return tokenTypes[n & 0xff]
+}
+
 export function packPrimitiveIndex(index: number) {
     return index | (1 << PrimitiveBits);
 }
@@ -71,8 +88,8 @@ type Resolver = (
     type: any,
     args: Evaluator[],
     index: number,
-    metaData: ProjectionMetaData ,
-    argsMetaData: Array <ProjectionMetaData>
+    metaData: ProjectionMetaData | null,
+    argsMetaData: Array <ProjectionMetaData | null>
 ) => Evaluator;
 
 export function buildVM({
@@ -112,15 +129,18 @@ export function buildVM({
         scope.publicScope.context :
         scope.publicScope.context[0];
 
-    const getInvalidates = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & InvalidatesFlag) : false
+    const getInvalidates = (n: number) => !!((getters[n][0] >> 8) & 1)
 
-    const resolveTracking = ([flags, ...pathIndices]: ProjectionMetaData) => {
-        const paths = pathIndices.map(index => invPaths[index]) as InvalidationPath[]
-        if (!paths || !paths.length) {
+    const resolveTracking = (pathIndices: ProjectionMetaData | null) => {
+        if (!pathIndices || !pathIndices.length) {
             return () => {};
         }
 
-        const tracks = paths.map(([cond, ...path]: Reference[]) => {
+        const paths = pathIndices.map(index => invPaths[index]) as InvalidationPath[]
+
+        const tracks = paths.map((p: Reference[] | null) => {
+            const cond = p ? p[0] : 0
+            const path = p ? p.slice(1) : []
             const precond: Evaluator = cond ? resolveArgRef(cond) : () => true;
             const pathToTrack: Evaluator[] = (path || []).map(resolveArgRef);
             return (scope: EvalScope) => {
@@ -144,12 +164,14 @@ export function buildVM({
         return (scope: EvalScope) => tracks.forEach(t => t(scope));
     };
 
-    const getMetaData = (projectionIndex: number) =>
-        metaData[getters[projectionIndex][1]];
+    const getMetaData = (projectionIndex: number) : number[] | null => {
+        const metaDataIndex = (getters[projectionIndex][0]) >> MetaDataBits
+        return metaDataIndex ? metaData[metaDataIndex] : null
+    }
 
     const predicateFunction = (
         ev: Evaluator,
-        metaData: ProjectionMetaData
+        metaData: ProjectionMetaData | null
     ) => {
         const tracking = resolveTracking(metaData);
         return (outerScope: EvalScope) => (
@@ -183,8 +205,8 @@ export function buildVM({
         type: string,
         args: Evaluator[],
         index: number,
-        metaData: ProjectionMetaData ,
-        argsMetaData: Array < ProjectionMetaData>
+        metaData: ProjectionMetaData | null,
+        argsMetaData: Array < ProjectionMetaData | null>
     ) => {
         const pred = predicateFunction(args[0], argsMetaData[0]);
         const evalInput = args[1];
@@ -200,7 +222,7 @@ export function buildVM({
             ) :
             () => null;
         const func = library[type as 'map'];
-        const invalidates = getInvalidates(metaData);
+        const invalidates = getInvalidates(index);
         return (scope: EvalScope) => {
             const input = evalInput(scope)
             if (debugMode) {
@@ -238,11 +260,10 @@ export function buildVM({
     const range = (
         type: string,
         [end, start, step]: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
+        index: number
     ) => {
         const func = library.range;
-        const invalidates = getInvalidates(metaData);
+        const invalidates = getInvalidates(index);
         return (scope: EvalScope) =>
             func(
                 scope.runtimeState.$tracked,
@@ -257,8 +278,7 @@ export function buildVM({
     const assignOrDefaults = (
         type: string,
         args: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
+        index: number
     ) => {
         const func = library.assignOrDefaults;
         const isAssign = type === "assign";
@@ -273,7 +293,7 @@ export function buildVM({
                 index,
                 input,
                 isAssign,
-                getInvalidates(metaData)
+                getInvalidates(index)
             );
         }
     };
@@ -281,8 +301,7 @@ export function buildVM({
     const keysOrValues = (
         type: string,
         args: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
+        index: number
     ) => {
         const func = library.valuesOrKeysForObject;
         const isValues = type === "values";
@@ -296,7 +315,7 @@ export function buildVM({
                 index,
                 input,
                 isValues,
-                getInvalidates(metaData)
+                getInvalidates(index)
             );
         }
     };
@@ -321,14 +340,14 @@ export function buildVM({
             type: "call",
             args: Evaluator[],
             index: number,
-            metaData: ProjectionMetaData
+            metaData: ProjectionMetaData | null
         ) => (evalScope: EvalScope) =>
         library.call(
             evalScope.runtimeState.$tracked,
             args.map(a => a(evalScope)),
             index,
             args.length,
-            getInvalidates(metaData)
+            getInvalidates(index)
         );
 
     const effect = (
@@ -342,8 +361,7 @@ export function buildVM({
     const bind = (
         type: "bind",
         args: Evaluator[],
-        index: number,
-        md: ProjectionMetaData
+        index: number
     ) => {
         const len = args.length;
         return (evalScope: EvalScope) =>
@@ -351,8 +369,8 @@ export function buildVM({
                 evalScope.runtimeState.$tracked,
                 args.map(a => a(evalScope)),
                 index,
-                args.length,
-                getInvalidates(md)
+                len,
+                getInvalidates(index)
             );
     };
 
@@ -368,9 +386,7 @@ export function buildVM({
 
     const ternary = (
         name: "ternary",
-        [evalID, test, then, alt]: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
+        [evalID, test, then, alt]: Evaluator[]
     ) => {
         const id = evalID({} as EvalScope)
         const thenWrapped = wrapCond(then, id, 2);
@@ -400,22 +416,20 @@ export function buildVM({
     const array = (
             name: "array",
             args: Evaluator[],
-            index: number,
-            metaData: ProjectionMetaData
+            index: number
         ) => (scope: EvalScope) =>
         library.array(
             scope.runtimeState.$tracked,
             args.map(a => a(scope)),
             index,
             args.length,
-            getInvalidates(metaData)
+            getInvalidates(index)
         );
 
     const object = (
         name: "object",
         args: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
+        index: number
     ) => {
         const keys: Evaluator[] = [];
         const values: Evaluator[] = [];
@@ -432,7 +446,7 @@ export function buildVM({
                 values.map(a => a(scope)),
                 index,
                 keys.map(a => a(scope)),
-                getInvalidates(metaData)
+                getInvalidates(index)
             );
     };
 
@@ -573,9 +587,10 @@ export function buildVM({
         getter: GetterProjection,
         index: number
     ): Evaluator => {
-        const [typeIndex, getterMetadata, ...argRefs] = getter;
-        const md = metaData[getterMetadata];
-        const type = primitives[typeIndex] as keyof typeof resolvers;
+        debugger
+        const [header, ...argRefs] = getter;
+        const md = getMetaData(index)
+        const type = getTypeFromHeader(header) as keyof typeof resolvers
         const args = argRefs.map(resolveArgRef);
         if (!resolvers[type]) {
             throw new Error(`${type} is not implemented`);
