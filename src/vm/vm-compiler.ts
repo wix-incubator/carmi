@@ -14,11 +14,10 @@ import {
 import { Token, Expression, SourceTag, SetterExpression } from "../lang";
 
 const { packPrimitiveIndex, InvalidatesFlag } = rt;
-type IntermediateReferenceKey = "$$ref" | "$$primitive";
 
 interface IntermediateReference {
   ref: string;
-  table: "primitives" | "projections" | "id";
+  table: "primitives" | "projections" | "ints"
 }
 
 interface IntermediateMetaData {
@@ -201,6 +200,9 @@ class VMCompiler extends OptimizingCompiler {
     };
 
     const serializeProjection = (expression: any): IntermediateReference => {
+      if (_.isInteger(expression) && rt.canBeStoredInRef(expression)) {
+        return {ref: expression, table: 'ints'}
+      }
       if (
         !expression ||
         _.isPlainObject(expression) ||
@@ -224,8 +226,8 @@ class VMCompiler extends OptimizingCompiler {
     };
 
     const packRef = (r: IntermediateReference) =>
-      r.table === "primitives"
-        ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref))
+        r.table === 'ints' ? +r.ref :
+        r.table === "primitives" ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref))
         : rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
 
     const packProjection = (
@@ -237,12 +239,12 @@ class VMCompiler extends OptimizingCompiler {
     ];
 
     const intermediateTopLevels: Array<{
-      name: string;
+      name: string | null
       hash: ProjectionHash;
-    }> = astGetters.map(name => ({
-      name,
-      hash: serializeProjection(this.getters[name]).ref
-    }));
+    }> = astGetters.map(name => {
+      const proj = serializeProjection(this.getters[name])
+      return {name: (this.options.debug || name[0] !== '$') ? addPrimitive(name) : null, hash: proj.ref}
+    })
 
     type IntermediateSetter = [string, string, IntermediateReference[], number];
 
@@ -324,8 +326,9 @@ class VMCompiler extends OptimizingCompiler {
     ) as SetterProjection[];
 
     const topLevelProjections = intermediateTopLevels.map(
-      ({ name, hash }: { name: string; hash: ProjectionHash }) => projectionHashes.indexOf(hash))
-    const topLevelNames = intermediateTopLevels.map(({ name, hash }: {name: string, hash: string}) => name)
+      ({ name, hash }: { name: string | null; hash: ProjectionHash }) => projectionHashes.indexOf(hash))
+
+      const topLevelNames = intermediateTopLevels.map(({ name, hash }: {name: string | null, hash: string}) => name ? primitiveHashes.indexOf(name) : -1)
   
     return {
       getters,

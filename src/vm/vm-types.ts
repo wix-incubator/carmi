@@ -23,7 +23,7 @@ export interface ProjectionData {
     metaData: ProjectionMetaData[]
 
     topLevelProjections: number[]
-    topLevelNames: string[]
+    topLevelNames: number[]
     primitives: any[]   
     sources: (string | null)[]
 }
