@@ -9,6 +9,7 @@ import {
   GetterProjection,
   ProjectionMetaData,
   ProjectionType,
+  Reference,
   SetterProjection
 } from "./vm-types";
 import { Token, Expression, SourceTag, SetterExpression } from "../lang";
@@ -16,8 +17,8 @@ import { Token, Expression, SourceTag, SetterExpression } from "../lang";
 const { packPrimitiveIndex, packProjectionHeader } = rt;
 
 interface IntermediateReference {
-  ref: string;
-  table: "primitives" | "projections" | "ints"
+  ref: string | number
+  table: "primitives" | "projections" | "numbers"
 }
 
 interface IntermediateMetaData {
@@ -101,9 +102,11 @@ class VMCompiler extends OptimizingCompiler {
     ): Partial<IntermediateProjection> => {
       const currentToken: Token =
         expression instanceof Token ? expression : expression[0];
+      
       const expressionArgs =
         expression instanceof Expression ? expression.slice(1) : [];
       const type: string = currentToken.$type;
+
       const pathsThatInvalidate = currentToken.$path || new Map();
       const paths: Array<[IntermediateReference, IntermediateReference[]]> = [];
       pathsThatInvalidate.forEach(
@@ -156,6 +159,10 @@ class VMCompiler extends OptimizingCompiler {
             : prop
         ],
 
+        invoke: ([name]: Token[]) => {
+          return [serializeProjection(this.getters[name])]
+        },
+
         trace: (args: Token[]) => {
           const inner = args.length === 2 ? expression[1] : expression[0];
           const nextToken = inner instanceof Expression ? inner[0] : inner;
@@ -190,8 +197,8 @@ class VMCompiler extends OptimizingCompiler {
     };
 
     const serializeProjection = (expression: any): IntermediateReference => {
-      if (_.isInteger(expression) && rt.canBeStoredInRef(expression)) {
-        return {ref: expression, table: 'ints'}
+      if (_.isNumber(expression)) {
+        return {ref: expression, table: 'numbers'}
       }
       if (
         !expression ||
@@ -202,6 +209,12 @@ class VMCompiler extends OptimizingCompiler {
           ref: addPrimitive(expression),
           table: "primitives"
         };
+      }
+
+      const currentToken: Token = expression instanceof Token ? expression : expression[0];
+      
+      if (currentToken.$type === 'invoke') {
+        return serializeProjection(this.getters[expression[1]][1])
       }
 
       const hash = exprHash(expression);
@@ -216,9 +229,9 @@ class VMCompiler extends OptimizingCompiler {
     };
 
     const packRef = (r: IntermediateReference) =>
-        r.table === 'ints' ? +r.ref :
-        r.table === "primitives" ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref))
-        : rt.packProjectionIndex(projectionHashes.indexOf(r.ref));
+        r.table === 'numbers' ? +r.ref :
+        r.table === "primitives" ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref as string))
+        : rt.packProjectionIndex(projectionHashes.indexOf(r.ref as string));
 
     const packProjection = (
       p: Partial<IntermediateProjection>
@@ -232,7 +245,7 @@ class VMCompiler extends OptimizingCompiler {
       hash: ProjectionHash;
     }> = astGetters.map(name => {
       const proj = serializeProjection(this.getters[name])
-      return {name: (this.options.debug || name[0] !== '$') ? addPrimitive(name) : null, hash: proj.ref}
+      return {name: (this.options.debug || name[0] !== '$') ? addPrimitive(name) : null, hash: proj.ref as string}
     })
 
     type IntermediateSetter = [string, string, IntermediateReference[], number];
@@ -273,9 +286,9 @@ class VMCompiler extends OptimizingCompiler {
       packProjection(projectionsByHash[hash])
     );
     const primitives = primitiveHashes.map(hash => primitivesByHash[hash]);
-    const pathByHash: {[hash: string]: number[]} = {}
+    const pathByHash: {[hash: string]: Reference[]} = {}
 
-    const addPath = (path: number[]) : string => {
+    const addPath = (path: Reference[]) : string => {
       const hash = exprHash(path)
       if (!_.has(pathByHash, hash)) {
         pathByHash[hash] = path

@@ -17,14 +17,9 @@ import {TokenTypeData} from '../lang'
 
 export const tokenTypes = Object.keys(TokenTypeData)
 
-export const PrimitiveBits = 16
-export const ProjectionBits = 17
+export const ProjectionBits = 16
 export const MetaDataBits = 10
 export const InvalidatesFlag = 1
-
-export function canBeStoredInRef(n: number) {
-    return n === unpackIndex(n)
-}
 
 export function packProjectionHeader(type: string, metaDataIndex: number, invalidates: boolean) : number {
     return tokenTypes.indexOf(type) | 
@@ -37,24 +32,25 @@ export function getTypeFromHeader(n: number) {
     return tokenTypes[n & 0xff]
 }
 
-export function packPrimitiveIndex(index: number) {
-    return index | (1 << PrimitiveBits);
+export function packPrimitiveIndex(index: number) : [number] {
+    return [index]
 }
 
-export function unpackIndex(index: number) {
-    return index & ((1 << PrimitiveBits) - 1);
+export function unpackIndex(r: Reference) {
+    const n : number = typeof r === 'number' ? r : r[0]
+    return n & ((1 << ProjectionBits) - 1)
 }
 
-export function isPrimitiveIndex(index: number) {
-    return index & (1 << PrimitiveBits);
+export function isPrimitiveIndex(r: Reference) {
+    return Array.isArray(r) && !isProjectionIndex(r);
 }
 
-export function isProjectionIndex(index: number) {
-    return index & (1 << ProjectionBits);
+export function isProjectionIndex(r: Reference) {
+    return Array.isArray(r) && r[0] & (1 << ProjectionBits);
 }
 
-export function packProjectionIndex(index: number) {
-    return index | (1 << ProjectionBits);
+export function packProjectionIndex(index: number): [number] {
+    return [index | (1 << ProjectionBits)]
 }
 
 type ProjectionResult = any;
@@ -115,10 +111,10 @@ export function buildVM({
     } = library;
     const primitiveEvaluator = (value: any) => () => value
     const 
-    resolveArgRef = (ref: number): Evaluator =>
+    resolveArgRef = (ref: Reference): Evaluator =>
+        (typeof ref === 'number') ? primitiveEvaluator(ref) :
         isPrimitiveIndex(ref) ? primitiveEvaluator(primitives[unpackIndex(ref)]) :
-        isProjectionIndex(ref) ? ((index: number) => (scope: EvalScope) => evaluators[index](scope))(unpackIndex(ref)) :
-        primitiveEvaluator(ref)
+        ((index: number) => (scope: EvalScope) => evaluators[index](scope))(unpackIndex(ref))
 
     const scopeResolver = (key: string, args: Evaluator[], index: number) => (
         scope: EvalScope
@@ -608,11 +604,11 @@ export function buildVM({
     const topLevelResults: ProjectionResult[] = [];
 
     const topLevelEvaluators: [string | null, Evaluator][] = topLevels.map(
-        (tl: number[] | number, i: number) => {
-            const projectionIndex = (typeof tl === 'number' ? tl : tl[0])
-            const name = typeof tl === 'number' ? null : primitives[tl[1]]
+        (tl: TopLevel, i: number) => {
+            const projectionIndex = unpackIndex(typeof tl === 'number' ? tl : tl[0])
+            const name = typeof tl === 'number' ? null : primitives[(tl as [Reference, number])[1]]
             const evaluator = evaluators[projectionIndex];
-            const md = getMetaData(unpackIndex(projectionIndex));
+            const md = getMetaData(projectionIndex);
             const tracking = resolveTracking(md);
             return [name, (outerScope: EvalScope) => {
                 const evalScope = {...outerScope, conds: {}}

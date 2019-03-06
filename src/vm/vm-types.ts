@@ -1,6 +1,6 @@
 import {TokenTypeData, Setter} from '../lang'
 
-export type Reference = number
+export type Reference = number | [number]
 export type TypeIndex = number
 export type NameIndex = number
 export type PrimitiveIndex = number
@@ -10,7 +10,7 @@ export type GetterHeader = number
 export type GetterProjection = [GetterHeader, ...Reference[]]
 export type ProjectionType = keyof typeof TokenTypeData
 export type InvalidatedRoots = Set<number>
-export type TopLevel = number | [number, string]
+export type TopLevel = Reference | [Reference, number]
 
 export type SetterProjection = [TypeIndex, NameIndex, number, ...Reference[]] 
 export type InvalidationPath = Reference[]
@@ -23,7 +23,7 @@ export interface ProjectionData {
     paths: InvalidationPath[]
     metaData: ProjectionMetaData[]
 
-    topLevels: Array<number | [number, number]>
+    topLevels: TopLevel[]
     primitives: any[]
     sources: (string | null)[]
 }
