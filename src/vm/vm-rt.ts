@@ -108,7 +108,7 @@ export function buildVM({
             return () => {};
         }
 
-        const tracks = paths.map(([cond, path]: [Reference, Reference[]]) => {
+        const tracks = paths.map(([cond, ...path]: Reference[]) => {
             const precond: Evaluator = cond ? resolveArgRef(cond) : () => true;
             const pathToTrack: Evaluator[] = (path || []).map(resolveArgRef);
             return (scope: EvalScope) => {

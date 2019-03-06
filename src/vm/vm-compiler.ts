@@ -290,9 +290,9 @@ class VMCompiler extends OptimizingCompiler {
       (md.paths || []).map(
         ([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
           packRef(cond),
-          path.map(packRef)
+          ...path.map(packRef)
         ]
-      ) as Array<[number, number[]]>
+      )
     ];
 
     const metaData = mdHashes.map((hash, index) =>
