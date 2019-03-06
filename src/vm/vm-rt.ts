@@ -371,24 +371,18 @@ export function buildVM({
         name: "or",
         [evalID, ...args]: Evaluator[]) => {
         const id = evalID({} as EvalScope)
-        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1));
-        return (scope: EvalScope) =>
-            wrappedArgs.reduce(
-                (current: any, next: Evaluator) => current || next(scope),
-                false
-            );
+        return args.map((e, i) => wrapCond(e, id, i + 1))
+            .reduce((current: any, next: Evaluator) => 
+                (scope: EvalScope) => current(scope) || next(scope), () => false)
     };
 
     const and = (
         name: "and",
         [evalID, ...args]: Evaluator[]) => {
         const id = evalID({} as EvalScope)
-        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1));
-        return (scope: EvalScope) =>
-            wrappedArgs.reduce(
-                (current: any, next: Evaluator) => current && next(scope),
-                true
-            );
+        return args.map((e, i) => wrapCond(e, id, i + 1))
+            .reduce((current: any, next: Evaluator) => 
+                (scope: EvalScope) => current(scope) && next(scope), () => true)
     };
 
     const array = (
