@@ -22,8 +22,7 @@ export interface ProjectionData {
     paths: InvalidationPath[]
     metaData: ProjectionMetaData[]
 
-    topLevelProjections: number[]
-    topLevelNames: number[]
+    topLevels: number[][]
     primitives: any[]   
     sources: (string | null)[]
 }

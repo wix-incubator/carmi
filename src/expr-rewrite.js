@@ -109,7 +109,7 @@ function rewriteLocalsToFunctions(getters) {
     }
 
     function rewriteExpr(e) { 
-        if (e instanceof Expression) {
+        if (false && e instanceof Expression) {
             const hash = exprHash(e);
             const found = countIdenticals[hash];
             if (found && found.counter > 2 && found.children.length > 4) {

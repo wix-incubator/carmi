@@ -325,16 +325,15 @@ class VMCompiler extends OptimizingCompiler {
       ]
     ) as SetterProjection[];
 
-    const topLevelProjections = intermediateTopLevels.map(
-      ({ name, hash }: { name: string | null; hash: ProjectionHash }) => projectionHashes.indexOf(hash))
-
-      const topLevelNames = intermediateTopLevels.map(({ name, hash }: {name: string | null, hash: string}) => name ? primitiveHashes.indexOf(name) : -1)
+    const topLevels = intermediateTopLevels.map(
+      ({ name, hash }: { name: string | null; hash: ProjectionHash }) => [
+        projectionHashes.indexOf(hash),
+        ...(name ? [primitiveHashes.indexOf(name)] : [])])
   
     return {
       getters,
       primitives,
-      topLevelNames,
-      topLevelProjections,
+      topLevels,
       metaData,
       paths: pathHashes.map(hash => pathByHash[hash]),
       setters,
