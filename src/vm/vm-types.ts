@@ -22,8 +22,8 @@ export interface ProjectionData {
     paths: InvalidationPath[]
     metaData: ProjectionMetaData[]
 
-    topLevels: number[][]
-    primitives: any[]   
+    topLevels: Array<number | [number, number]>
+    primitives: any[]
     sources: (string | null)[]
 }
 

@@ -593,9 +593,9 @@ export function buildVM({
     const topLevelResults: ProjectionResult[] = [];
 
     const topLevelEvaluators: [string | null, Evaluator][] = topLevels.map(
-        (tl: number[], i: number) => {
-            const projectionIndex = tl[0]
-            const name = tl.length > 1 ? primitives[tl[1]] : null
+        (tl: number[] | number, i: number) => {
+            const projectionIndex = (typeof tl === 'number' ? tl : tl[0])
+            const name = typeof tl === 'number' ? null : primitives[tl[1]]
             const evaluator = evaluators[projectionIndex];
             const md = getMetaData(unpackIndex(projectionIndex));
             const tracking = resolveTracking(md);
