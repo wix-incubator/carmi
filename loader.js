@@ -19,9 +19,11 @@ module.exports = function CarmiLoader() {
     stats: statsPath,
     format: 'cjs',
     output: tempOutputPath,
+    compiler: 'vm',
     ...loaderOptions
   }
 
+  
   let compiled;
 
   try {

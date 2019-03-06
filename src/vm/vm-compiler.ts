@@ -282,24 +282,38 @@ class VMCompiler extends OptimizingCompiler {
       packProjection(projectionsByHash[hash])
     );
     const primitives = primitiveHashes.map(hash => primitivesByHash[hash]);
+    const pathByHash: {[hash: string]: number[]} = {}
+
+    const addPath = (path: number[]) : string => {
+      const hash = exprHash(path)
+      if (!_.has(pathByHash, hash)) {
+        pathByHash[hash] = path
+      }
+      return hash
+    }
 
     const packMetaData = (
       md: Partial<IntermediateMetaData>
-    ): ProjectionMetaData => [
+    ): [number, string[]] => [
       (md.invalidates ? InvalidatesFlag : 0),
       (md.paths || []).map(
-        ([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
+        ([cond, path]: [IntermediateReference, IntermediateReference[]]) => addPath([
           packRef(cond),
           ...path.map(packRef)
-        ]
+        ])
       )
     ];
 
-    const metaData = mdHashes.map((hash, index) =>
+    const metaData2 = mdHashes.map((hash, index) =>
       index
         ? packMetaData(metaDataByHash[hash])
-        : ([0, [], ...[]] as ProjectionMetaData)
+        : ([0, []] as [number, string[]])
     );
+
+    const pathHashes = Object.keys(pathByHash)
+
+    const metaData = metaData2.map(([flags, paths]: [number, string[]]) => [flags, ...paths.map(hash => pathHashes.indexOf(hash))]) as ProjectionMetaData[]
+
     const setters = intermediateSetters.map(
       ([typeHash, nameHash, projection, numTokens]: IntermediateSetter) => [
         primitiveHashes.indexOf(typeHash),
@@ -319,6 +333,7 @@ class VMCompiler extends OptimizingCompiler {
       topLevelNames,
       topLevelProjections,
       metaData,
+      paths: pathHashes.map(hash => pathByHash[hash]),
       setters,
       sources
     };

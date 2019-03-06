@@ -44,6 +44,10 @@ module.exports = (model, options) => {
     return JSON.stringify(new compilerTypes.vm(model, options).buildProjectionData())
   }
 
+  if (options.envelope) {
+    options.compiler = 'vm'
+  }
+
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
   if (options.ast) {

@@ -9,10 +9,11 @@ import {
     OptimizerFuncNonPredicate,
     Reference,
     SetterProjection,
-    TopLevel
+    TopLevel,
+    InvalidationPath
 } from "./vm-types";
 
-export const IndexBits = 18
+export const PrimitiveBits = 18
 export const InvalidatesFlag = 1 << 1
 
 export function packPrimitiveIndex(index: number) {
@@ -28,7 +29,7 @@ export function isPrimitiveIndex(index: number) {
 }
 
 export function packProjectionIndex(index: number) {
-    return index;
+    return index | ;
 }
 
 type ProjectionResult = any;
@@ -83,6 +84,8 @@ export function buildVM({
         sources
     } = $projectionData;
 
+    const invPaths = $projectionData.paths
+
     const {
         setOnArray
     } = library;
@@ -103,7 +106,8 @@ export function buildVM({
 
     const getInvalidates = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & InvalidatesFlag) : false
 
-    const resolveTracking = ([flags, paths]: ProjectionMetaData) => {
+    const resolveTracking = ([flags, ...pathIndices]: ProjectionMetaData) => {
+        const paths = pathIndices.map(index => invPaths[index]) as InvalidationPath[]
         if (!paths || !paths.length) {
             return () => {};
         }
@@ -573,7 +577,7 @@ export function buildVM({
             args,
             index,
             md,
-            argRefs.map(arg => (isPrimitiveIndex(arg) ? [0, [], ...[]] as ProjectionMetaData : getMetaData(arg)))
+            argRefs.map(arg => (isPrimitiveIndex(arg) ? [0] as ProjectionMetaData : getMetaData(arg)))
         );
         return evaluator;
     };

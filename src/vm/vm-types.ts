@@ -13,14 +13,16 @@ export type TopLevel = number | [number, string]
 
 export type SetterProjection = [TypeIndex, NameIndex, number, ...Reference[]] 
 export type InvalidationPath = Reference[]
-export type ProjectionMetaData = [number, InvalidationPath[]]
+export type PathIndex = number
+export type ProjectionMetaData = [number, ...PathIndex[]]
 
 export interface ProjectionData {
     getters: GetterProjection[]
     setters: SetterProjection[]
+    paths: InvalidationPath[]
     metaData: ProjectionMetaData[]
-    topLevelProjections: number[]
 
+    topLevelProjections: number[]
     topLevelNames: string[]
     primitives: any[]   
     sources: (string | null)[]

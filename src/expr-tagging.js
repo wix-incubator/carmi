@@ -499,11 +499,14 @@ function findFuncExpr(getters, funcId) {
 }
 
 function normalizeAndTagAllGetters(getters, setters) {
+  if (!_.size(getters)) {
+    return getters
+  }
   getters = rewriteUniqueByHash(getters);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
   getters = rewriteStaticsToTopLevels(getters);
   getters = rewriteUniqueByHash(getters);
-   getters = rewriteLocalsToFunctions(getters);
+  getters = rewriteLocalsToFunctions(getters);
    getters = cloneExpressions(getters);
   tagAllExpressions(getters);
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));

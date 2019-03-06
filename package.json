@@ -4,8 +4,11 @@
   "main": "./index.js",
   "typings": "./typings/index.d.ts",
   "scripts": {
-    "pretest": "eslint .",
+    "pretest": "eslint . && yarn tsc",
     "tsc": "tsc --noEmit",
+    "build:devel": "./bin/carmi --envelope --debug --format cjs --output ./dist/vm.devel.js --no-cache --prettier",
+    "build:prod": "./bin/carmi --envelope --format cjs --output ./dist/vm.prod.js --no-cache --prettier",
+    "build": "yarn build:devel; yarn build:prod",
     "jest": "jest",
     "test": "yarn jest",
     "docgen": "node ./docs/alternative/generate",
