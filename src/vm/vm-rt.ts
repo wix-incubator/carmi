@@ -613,39 +613,33 @@ export function buildVM({
         $invalidatedRoots,
         $model
     }: StepParams) {
-        const evalScope: EvalScope = {
-            publicScope: {
-                root: $model,
-                topLevel: topLevelResults,
-                key: null,
-                val: null,
-                context: null,
-                loop: null
-            },
-
-            runtimeState: {
-                $invalidatedRoots,
-                $tracked: []
-            },
-            args: [],
-            conds: {}
-        };
         topLevelEvaluators.forEach(([name, evaluator]: [string | null, Evaluator], i: number) => {
-            if ($first || $invalidatedRoots.has(i)) {
-                const result = evaluator({
-                    ...evalScope,
-                    runtimeState: {
-                        ...evalScope.runtimeState,
-                        $tracked: [$invalidatedRoots, i]
-                    }
-                });
-                setOnArray(topLevelResults, i, result, true);
-                if (!$first) {
-                    $invalidatedRoots.delete(i);
+            if (!$first && !$invalidatedRoots.has(i)) {
+                return
+            }
+
+            const result = evaluator({
+                publicScope: {
+                    root: $model,
+                    topLevel: topLevelResults,
+                    key: null,
+                    val: null,
+                    context: null,
+                    loop: null
+                },
+                args: [],
+                conds: {},
+                runtimeState: {
+                    $invalidatedRoots,
+                    $tracked: [$invalidatedRoots, i]
                 }
-                if (name) {
-                    $res[name] = result;
-                }
+            });
+            setOnArray(topLevelResults, i, result, true);
+            if (!$first) {
+                $invalidatedRoots.delete(i);
+            }
+            if (name) {
+                $res[name] = result;
             }
         });
     }
