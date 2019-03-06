@@ -13,8 +13,8 @@ import {
 } from "./vm-types";
 
 export const IndexBits = 18
-export const TrackedFlag = 1 << 0
 export const InvalidatesFlag = 1 << 1
+
 export function packPrimitiveIndex(index: number) {
     return index | (1 << IndexBits);
 }
@@ -102,33 +102,6 @@ export function buildVM({
         scope.publicScope.context[0];
 
     const getInvalidates = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & InvalidatesFlag) : false
-    const getTracked = (metaData?: ProjectionMetaData) => metaData ? !!(metaData[0] & TrackedFlag) : false
-
-    const resolvePretracking = ([flags,
-        paths,
-        ...trackedExpr
-    ]: ProjectionMetaData): ((e: EvalScope) => EvalScope) => {
-        const hasPath = paths && !!paths.length;
-        const hasConds = trackedExpr && !!trackedExpr.length;
-        if (!hasPath || !hasConds) {
-            return (e: EvalScope) => e;
-        }
-
-        const conds = (trackedExpr || [])
-            .reduce(
-                (a, c) => ({
-                    ...a,
-                    [c]: 0
-                }), {}
-            );
-
-        return (evalScope: EvalScope) => ({
-            ...evalScope,
-            conds: {
-                ...conds
-            }
-        });
-    };
 
     const resolveTracking = ([flags, paths]: ProjectionMetaData) => {
         if (!paths || !paths.length) {
@@ -167,7 +140,6 @@ export function buildVM({
         metaData: ProjectionMetaData
     ) => {
         const tracking = resolveTracking(metaData);
-        const pretracking = resolvePretracking(metaData);
         return (outerScope: EvalScope) => (
             $tracked: Tracked,
             key: ProjectionResult,
@@ -175,8 +147,9 @@ export function buildVM({
             context: ProjectionResult,
             loop: ProjectionResult
         ) => {
-            const innerScope = pretracking({
+            const innerScope = {
                 ...outerScope,
+                conds: {},
                 runtimeState: {
                     ...outerScope.runtimeState,
                     $tracked
@@ -188,7 +161,7 @@ export function buildVM({
                     context,
                     loop
                 }
-            });
+            }
             const result = ev(innerScope);
             tracking(innerScope);
             return result;
@@ -376,32 +349,29 @@ export function buildVM({
         args: Evaluator[]
     ) => (scope: EvalScope) => func(...args.map(a => a(scope)));
 
-    const wrapCond = (test: Evaluator, id: Evaluator, index: number, tracked: boolean) =>
-        tracked ?
-        (scope: EvalScope) => (scope.conds[id(scope)] = index) && test(scope) :
+    const wrapCond = (test: Evaluator, id: number, index: number) =>
+        id >= 0 ?
+        (scope: EvalScope) => (scope.conds[id] = index) && test(scope) :
         test;
 
     const ternary = (
         name: "ternary",
-        [id, test, then, alt]: Evaluator[],
+        [evalID, test, then, alt]: Evaluator[],
         index: number,
         metaData: ProjectionMetaData
     ) => {
-        const tracked = getTracked(metaData);
-        const thenWrapped = wrapCond(then, id, 2, tracked);
-        const altWrapped = wrapCond(alt, id, 3, tracked);
+        const id = evalID({} as EvalScope)
+        const thenWrapped = wrapCond(then, id, 2);
+        const altWrapped = wrapCond(alt, id, 3);
         return (scope: EvalScope) =>
             test(scope) ? thenWrapped(scope) : altWrapped(scope);
     };
 
     const or = (
         name: "or",
-        [id, ...args]: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
-    ) => {
-        const tracked = getTracked(metaData);
-        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1, tracked));
+        [evalID, ...args]: Evaluator[]) => {
+        const id = evalID({} as EvalScope)
+        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1));
         return (scope: EvalScope) =>
             wrappedArgs.reduce(
                 (current: any, next: Evaluator) => current || next(scope),
@@ -411,12 +381,9 @@ export function buildVM({
 
     const and = (
         name: "and",
-        [id, ...args]: Evaluator[],
-        index: number,
-        metaData: ProjectionMetaData
-    ) => {
-        const tracked = getTracked(metaData);
-        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1, tracked));
+        [evalID, ...args]: Evaluator[]) => {
+        const id = evalID({} as EvalScope)
+        const wrappedArgs = args.map((e, i) => wrapCond(e, id, i + 1));
         return (scope: EvalScope) =>
             wrappedArgs.reduce(
                 (current: any, next: Evaluator) => current && next(scope),
@@ -474,7 +441,7 @@ export function buildVM({
     };
 
     const cond = (name: 'cond', [getNum]: Evaluator[]) => {
-        return (scope: EvalScope) => scope.conds[getNum(scope)];
+        return (scope: EvalScope) => scope.conds[getNum(scope)] || 0;
     }
 
     const trace = (name: "trace", args: Evaluator[]) => {
@@ -624,10 +591,9 @@ export function buildVM({
             const name = topLevelNames[i]
             const evaluator = evaluators[projectionIndex];
             const md = getMetaData(projectionIndex);
-            const pretracking = resolvePretracking(md);
             const tracking = resolveTracking(md);
-            return [name, (evalScope: EvalScope) => {
-                evalScope = pretracking(evalScope);
+            return [name, (outerScope: EvalScope) => {
+                const evalScope = {...outerScope, conds: {}}
                 const result = evaluator(evalScope);
                 tracking(evalScope);
                 return result;

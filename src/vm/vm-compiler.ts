@@ -12,9 +12,8 @@ import {
   SetterProjection
 } from "./vm-types";
 import { Token, Expression, SourceTag, SetterExpression } from "../lang";
-import { TrackedFlag, InvalidatesFlag } from './vm-rt'
 
-const { packPrimitiveIndex } = rt;
+const { packPrimitiveIndex, InvalidatesFlag } = rt;
 type IntermediateReferenceKey = "$$ref" | "$$primitive";
 
 interface IntermediateReference {
@@ -25,8 +24,6 @@ interface IntermediateReference {
 interface IntermediateMetaData {
   source: string;
   paths: Array<[IntermediateReference, IntermediateReference[]]>;
-  trackedExpr: number[];
-  tracked: boolean;
   invalidates: boolean;
 }
 
@@ -149,11 +146,6 @@ class VMCompiler extends OptimizingCompiler {
 
       const type = addPrimitive($type);
       const metaData = addMetaData({
-        ...(currentToken.$tracked
-          ? {
-              tracked: true
-            }
-          : {}),
         ...(currentToken.$invalidates
           ? {
               invalidates: true
@@ -163,15 +155,10 @@ class VMCompiler extends OptimizingCompiler {
           ? {
               paths
             }
-          : {}),
-        ...(currentToken.$trackedExpr
-          ? {
-              trackedExpr: Array.from(currentToken.$trackedExpr.values())
-            }
           : {})
       });
 
-      const prependID = (args: Token[]) => [currentToken.$id, ...args];
+      const prependID = (args: Token[]) => [currentToken.$tracked ? currentToken.$id : -1, ...args];
 
       const argsManipulators: { [key: string]: (args: Token[]) => any[] } = {
         get: ([prop, obj]: Token[]) => [
@@ -299,14 +286,13 @@ class VMCompiler extends OptimizingCompiler {
     const packMetaData = (
       md: Partial<IntermediateMetaData>
     ): ProjectionMetaData => [
-      (md.tracked ? TrackedFlag : 0) | (md.invalidates ? InvalidatesFlag : 0),
+      (md.invalidates ? InvalidatesFlag : 0),
       (md.paths || []).map(
         ([cond, path]: [IntermediateReference, IntermediateReference[]]) => [
           packRef(cond),
           path.map(packRef)
         ]
-      ) as Array<[number, number[]]>,
-      ...(md.trackedExpr || [])
+      ) as Array<[number, number[]]>
     ];
 
     const metaData = mdHashes.map((hash, index) =>
