@@ -1,5 +1,6 @@
 const OptimizingCompiler = require("../optimizing-compiler");
 import * as rt from "./vm-rt";
+import { packPrimitiveIndex, packProjectionHeader, packProjectionIndex } from './vm-rt'
 import * as _ from "lodash";
 import { exprHash } from "../expr-hash";
 import { pathMatches } from "../expr-tagging";
@@ -13,8 +14,6 @@ import {
   SetterProjection
 } from "./vm-types";
 import { Token, Expression, SourceTag, SetterExpression } from "../lang";
-
-const { packPrimitiveIndex, packProjectionHeader } = rt;
 
 interface IntermediateReference {
   ref: string | number
@@ -48,7 +47,7 @@ interface IntermediateSource {
 class VMCompiler extends OptimizingCompiler {
   buildRT() {
     return _.map(rt, (val: any, name: string) => 
-        _.isFunction(val) ? val.toString() : `exports.${name} = ${JSON.stringify(val)}`)
+        _.isFunction(val) ? val.toString() : `const ${name} = exports.${name} = ${JSON.stringify(val)};`)
       .join("\n");
   }
   topLevelOverrides() {
@@ -231,7 +230,7 @@ class VMCompiler extends OptimizingCompiler {
     const packRef = (r: IntermediateReference) =>
         r.table === 'numbers' ? +r.ref :
         r.table === "primitives" ? packPrimitiveIndex(primitiveHashes.indexOf(r.ref as string))
-        : rt.packProjectionIndex(projectionHashes.indexOf(r.ref as string));
+        : packProjectionIndex(projectionHashes.indexOf(r.ref as string));
 
     const packProjection = (
       p: Partial<IntermediateProjection>
