@@ -88,7 +88,8 @@ const siteConfig = {
   /* Open Graph and Twitter card images */
   // ogImage: 'img/docusaurus.png',
   // twitterImage: 'img/docusaurus.png'
-
+  scrollToTop: true,
+  docsSideNavCollapsible: true,
   repoName: 'wix-incubator/carmi'
 }
 
