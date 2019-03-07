@@ -1,6 +1,7 @@
 ---
-id: design
-title: Design
+id: overview
+title: Overview
+sidebar_label: Overview
 ---
 
 There are 4 classic methods of handling derivation of state
@@ -25,32 +26,13 @@ cool stuff that is nearly impossible to do automatically using other approaches
 - Hoisting shared sub expressions, so they are only calculated once
 - Not track dependencies if there are no setters that can cause the expression to invalidate
 - All computation is incremental
+There are 4 classic methods of handling derivation of state
 
-### CARMI is built from 3 parts:
+### Main parts
 
-1.  Frontend which exposes a lodash inspired API for defining the state derivations needed in your project letting you
+1.  [Frontend](design/frontend.md) which exposes a lodash inspired API for defining the state derivations needed in your project letting you
     map/filter, the frontend generates a S-EXPressions (lisp) inspired data structure which should remain opaque to the
     consumer of this library and is fed into the compiler
-2.  An optimizing pass which hoist shared sub-expressions, eliminates dead code, tag the SEXPs (The naive version of the
+2.  An optimizing pass([compile](design/compilers.md)) which hoist shared sub-expressions, eliminates dead code, tag the SEXPs (The naive version of the
     compiler skips this step)
-3.  Backend which takes the SEXPs and generates your state container function
-
-### Frontend
-
-A Domain Specific Language (DSL) for creating derivations of state created using es6 proxies
-
-### Backend
-
-A set of compilers that generate your function's code out of the model supplied
-
-### Compilers
-
-1.  Optimizing - This is the default compiler, hoists shared sub-expressions and all computation is incremental.
-2.  Simple - Hoists shared-subexpressions but all computation is done from scratch on each change in the state. Very
-    useful for Server Side Rendering.
-3.  Naive - Maintains a 1:1 mapping of your model to the code generated but has horrible performance
-4.  Flow - Based on the simple compiler and adds flow-type annotations only used for generating code for compilers that
-    are typed like the Rust compiler
-5.  Rust - Right now this compiler is just an experiment I used to verify that it is feasible in the future to generate
-    Rust code out of the same models, only created to put my mind at rest that if/when in the future we'll need to
-    switch to WASM it would be possible
+3.  [Backend](design/backend.md) which takes the SEXPs and generates your state container function

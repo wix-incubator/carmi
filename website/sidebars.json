@@ -1,10 +1,28 @@
 {
   "docs": {
-    "Docusaurus": ["doc1"],
-    "First Category": ["doc2"],
-    "Second Category": ["doc3"]
-  },
-  "docs-other": {
-    "First Category": ["doc4", "doc5"]
+  	"Introduction": [
+  		"introduction/getting-started",
+  		"introduction/derived-state",
+  		"introduction/reactions",
+  		"introduction/batching"
+  	],
+  	"Design": [
+  		"design/overview",
+  		"design/frontend",
+  		"design/backend",
+  		"design/compilers"
+  	],
+    "API": [
+    	"api/intro",
+    	"api/Graph",
+    	"api/Object",
+    	"api/Array",
+    	"api/String",
+    	"api/Number",
+    	"api/External"
+    ],
+    "Help": [
+    	"help"
+    ]
   }
 }
