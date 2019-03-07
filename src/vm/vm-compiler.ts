@@ -90,6 +90,10 @@ class VMCompiler extends OptimizingCompiler {
     const metaDataMap = createIndexedMap<ProjectionMetaData>()
     metaDataMap.add([])
     const primitiveMap = createIndexedMap<any>()
+    primitiveMap.add(false)
+    primitiveMap.add(true)
+    primitiveMap.add(null)
+    primitiveMap.add('')
     
     const astGetters = this.getRealGetters() as string[];
     const generateProjectionFromExpression = (
@@ -100,31 +104,30 @@ class VMCompiler extends OptimizingCompiler {
       
       const expressionArgs =
         expression instanceof Expression ? expression.slice(1) : [];
-      const type: string = currentToken.$type;
+
+      if (currentToken.$type === 'context') {
+        return generateProjectionFromExpression(new Expression(new Token('get'), 0, new Token('rawContext')))
+      }
+
+      const type: string = currentToken.$type === 'rawContext' ? 'context' : currentToken.$type;
 
       const pathsThatInvalidate = currentToken.$path || new Map();
       const paths: Reference[][] = [];
       pathsThatInvalidate.forEach(
         (cond: Expression, invalidatedPath: Expression[]) => {
-          const condProj = serializeProjection(cond);
           if (invalidatedPath[0].$type === "context") {
             paths.push([
-              condProj, ...[invalidatedPath[0], 0, ...invalidatedPath.slice(1)].map(
-                serializeProjection
-              )
+              cond, new Token('rawContext'), 0, ...invalidatedPath.slice(1)
             ]);
           } else if (
             invalidatedPath.length > 1 &&
             invalidatedPath[0].$type === "topLevel"
           ) {
             paths.push([
-              condProj,
-              ...[
-                invalidatedPath[0],
+              cond, invalidatedPath[0],
                 this.topLevelToIndex(invalidatedPath[1]),
                 ...invalidatedPath.slice(2)
-              ].map(serializeProjection)
-            ]);
+              ]);
           } else if (
             (invalidatedPath.length > 1 &&
               invalidatedPath[0] instanceof Expression &&
@@ -136,12 +139,12 @@ class VMCompiler extends OptimizingCompiler {
                 pathMatches(invalidatedPath, setter)
               ).length)
           ) {
-            paths.push([condProj, ...invalidatedPath.map(serializeProjection)]);
+            paths.push([cond, ...invalidatedPath]);
           }
         }
       );
 
-      const metaData = paths && paths.length ? metaDataMap.add(paths.map(p => pathMap.add(p))) : 0
+      const metaData = paths && paths.length ? metaDataMap.add(paths.map(p => pathMap.add(p.map(serializeProjection)))) : 0
 
       const prependID = (args: Token[]) => [currentToken.$tracked ? currentToken.$id : -1, ...args];
 

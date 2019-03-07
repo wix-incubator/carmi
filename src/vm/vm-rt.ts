@@ -67,7 +67,6 @@ interface PublicScope {
 interface RuntimeState {
     $invalidatedRoots: InvalidatedRoots;
     $tracked: Tracked;
-    trackingPhase ? : boolean;
 }
 
 interface EvalScope {
@@ -120,11 +119,6 @@ export function buildVM({
         scope: EvalScope
     ) => scope.publicScope[key as keyof PublicScope];
 
-    const context = (key: "context") => (scope: EvalScope) =>
-        scope.runtimeState.trackingPhase ?
-        scope.publicScope.context :
-        scope.publicScope.context[0];
-
     const getInvalidates = (n: number) => !!((getters[n][0] >> 8) & 1)
 
     const resolveTracking = (pathIndices: ProjectionMetaData | null) => {
@@ -140,18 +134,11 @@ export function buildVM({
             const precond: Evaluator = cond ? resolveArgRef(cond) : () => true;
             const pathToTrack: Evaluator[] = (path || []).map(resolveArgRef);
             return (scope: EvalScope) => {
-                const trackingScope = {
-                    ...scope,
-                    runtimeState: {
-                        ...scope.runtimeState,
-                        trackingPhase: true
-                    }
-                };
                 return (
-                    precond(trackingScope) &&
+                    precond(scope) &&
                     library.trackPath(
                         scope.runtimeState.$tracked,
-                        pathToTrack.map(p => p(trackingScope))
+                        pathToTrack.map(p => p(scope))
                     )
                 );
             };
@@ -351,7 +338,7 @@ export function buildVM({
             args: Evaluator[]
         ) => (evalScope: EvalScope) => {
           const name = args[0](evalScope) as string
-            ($res[name] || $funcLib[name]).apply($res, args.slice(1).map(a => a(evalScope)))
+          ($res[name] || $funcLib[name]).apply($res, args.slice(1).map(a => a(evalScope)))
         }
 
     const bind = (
@@ -395,9 +382,20 @@ export function buildVM({
         name: "or",
         [evalID, ...args]: Evaluator[]) => {
         const id = evalID({} as EvalScope)
-        return args.map((e, i) => wrapCond(e, id, i + 1))
-            .reduce((current: any, next: Evaluator) => 
-                (scope: EvalScope) => current(scope) || next(scope), () => false)
+        const wrappedArgs = args.map((part: Evaluator, index: number) => wrapCond(part, id, index + 1))
+
+        switch (args.length) {
+            case 1:
+                return wrappedArgs[0]
+            case 2:
+                return (evalScope: EvalScope) => wrappedArgs[0](evalScope) || wrappedArgs[1](evalScope)
+            case 3:
+                return (evalScope: EvalScope) => wrappedArgs[0](evalScope) || wrappedArgs[1](evalScope) || wrappedArgs[2](evalScope)
+            default:
+                return wrappedArgs
+                    .reduce((current: any, next: Evaluator) => 
+                        (scope: EvalScope) => current(scope) || next(scope), () => false)
+        }
     };
 
     const and = (
@@ -499,7 +497,7 @@ export function buildVM({
     } > = {
         val: scopeResolver,
         key: scopeResolver,
-        context,
+        context: scopeResolver,
         root: scopeResolver,
         topLevel: scopeResolver,
         loop: scopeResolver,
@@ -579,11 +577,12 @@ export function buildVM({
         arg9: argResolver
     };
 
+    const evaluatorMetaData = new WeakMap<Evaluator, any>()
+
     const buildEvaluator = (
         getter: GetterProjection,
         index: number
     ): Evaluator => {
-        debugger
         const [header, ...argRefs] = getter;
         const md = getMetaData(index)
         const type = getTypeFromHeader(header) as keyof typeof resolvers
@@ -591,6 +590,13 @@ export function buildVM({
         if (!resolvers[type]) {
             throw new Error(`${type} is not implemented`);
         }
+
+        const resolverArgs = [type,
+            args,
+            index,
+            md,
+            argRefs]
+
         const evaluator = (resolvers[type] as Resolver)(
             type,
             args,
@@ -598,6 +604,8 @@ export function buildVM({
             md,
             argRefs.map(arg => (isProjectionIndex(arg) ? getMetaData(unpackIndex(arg)) : [0] as ProjectionMetaData))
         );
+
+        evaluatorMetaData.set(evaluator, resolverArgs)
         return evaluator;
     };
     const evaluators: Evaluator[] = getters.map(buildEvaluator);
