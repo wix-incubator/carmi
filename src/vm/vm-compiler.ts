@@ -113,6 +113,7 @@ class VMCompiler extends OptimizingCompiler {
 
       const pathsThatInvalidate = currentToken.$path || new Map();
       const paths: Reference[][] = [];
+      
       pathsThatInvalidate.forEach(
         (cond: Expression, invalidatedPath: Expression[]) => {
           if (invalidatedPath[0].$type === "context") {
@@ -265,7 +266,7 @@ class VMCompiler extends OptimizingCompiler {
 
     const getters = projectionsMap.values()
 
-    return {
+    const projectionData = {
       getters,
       primitives: primitiveMap.values(),
       topLevels,
@@ -274,6 +275,9 @@ class VMCompiler extends OptimizingCompiler {
       setters,
       sources: this.options.debug ? getters.map(g => sources.get(g) || '') : []
     };
+
+    require('fs').writeFileSync('pd.json', JSON.stringify(projectionData), 'utf8')
+    return projectionData
   }
 
   compile() {

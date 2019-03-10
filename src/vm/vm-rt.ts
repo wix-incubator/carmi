@@ -17,7 +17,7 @@ import {TokenTypeData} from '../lang'
 
 export const tokenTypes = Object.keys(TokenTypeData)
 
-export const ProjectionBits = 16
+export const ProjectionBits = 15
 export const MetaDataBits = 10
 export const InvalidatesFlag = 1
 
