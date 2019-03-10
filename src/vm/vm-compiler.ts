@@ -197,6 +197,10 @@ class VMCompiler extends OptimizingCompiler {
     const sources = new WeakMap<GetterProjection, string>()
 
     const serializeProjection = (expression: any): Reference => {
+      if (expression instanceof SetterExpression) {
+        return 0
+      }
+
       if (_.isNumber(expression)) {
        return expression
       }
@@ -255,14 +259,6 @@ class VMCompiler extends OptimizingCompiler {
     const setters = _.map(this.setters, serializeSetter);
 
     const pathByHash: {[hash: string]: Reference[]} = {}
-
-    const addPath = (path: Reference[]) : string => {
-      const hash = exprHash(path)
-      if (!_.has(pathByHash, hash)) {
-        pathByHash[hash] = path
-      }
-      return hash
-    }
 
     const getters = projectionsMap.values()
 
