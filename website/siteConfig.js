@@ -38,11 +38,11 @@ const siteConfig = {
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-    { doc: 'getting-started', label: 'Getting started' },
-    { page: 'api', label: 'API' },
-//    { doc: 'api', label: 'API' },
-    { doc: 'design', label: 'Design' },
-    { doc: 'help', label: 'Help' }
+    { doc: 'introduction/getting-started', label: 'Getting started' },
+    { doc: 'introduction/design', label: 'Design' },
+    { doc: 'api/api', label: 'API Reference' },
+    { doc: 'help', label: 'Help' },
+    { href: 'https://github.com/wix-incubator/carmi', label: 'GitHub' }
     // {blog: true, label: 'Blog'},
   ],
 
@@ -81,7 +81,7 @@ const siteConfig = {
   },
 
   // Add custom scripts here that would be placed in <script> tags
-  scripts: ['https://buttons.github.io/buttons.js'],
+  scripts: ['https://buttons.github.io/buttons.js', '/runkit.js'],
 
   /* On page navigation for the current documentation page */
   onPageNav: 'separate',
@@ -89,7 +89,8 @@ const siteConfig = {
   /* Open Graph and Twitter card images */
   // ogImage: 'img/docusaurus.png',
   // twitterImage: 'img/docusaurus.png'
-
+  scrollToTop: true,
+  docsSideNavCollapsible: true,
   repoName: 'wix-incubator/carmi'
 }
 

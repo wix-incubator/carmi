@@ -1,6 +1,7 @@
 ---
 id: design
 title: Design
+sidebar_label: Design
 ---
 
 There are 4 classic methods of handling derivation of state
@@ -25,8 +26,9 @@ cool stuff that is nearly impossible to do automatically using other approaches
 - Hoisting shared sub expressions, so they are only calculated once
 - Not track dependencies if there are no setters that can cause the expression to invalidate
 - All computation is incremental
+There are 4 classic methods of handling derivation of state
 
-### CARMI is built from 3 parts:
+### Main parts
 
 1.  Frontend which exposes a lodash inspired API for defining the state derivations needed in your project letting you
     map/filter, the frontend generates a S-EXPressions (lisp) inspired data structure which should remain opaque to the
@@ -35,16 +37,10 @@ cool stuff that is nearly impossible to do automatically using other approaches
     compiler skips this step)
 3.  Backend which takes the SEXPs and generates your state container function
 
-### Frontend
+## Frontend
+A Domain Specific Language (DSL) for creating derivations of state created using es6 proxies [Api Reference]()
 
-A Domain Specific Language (DSL) for creating derivations of state created using es6 proxies
-
-### Backend
-
-A set of compilers that generate your function's code out of the model supplied
-
-### Compilers
-
+## Compilers
 1.  Optimizing - This is the default compiler, hoists shared sub-expressions and all computation is incremental.
 2.  Simple - Hoists shared-subexpressions but all computation is done from scratch on each change in the state. Very
     useful for Server Side Rendering.
@@ -54,3 +50,6 @@ A set of compilers that generate your function's code out of the model supplied
 5.  Rust - Right now this compiler is just an experiment I used to verify that it is feasible in the future to generate
     Rust code out of the same models, only created to put my mind at rest that if/when in the future we'll need to
     switch to WASM it would be possible
+
+## Backend
+A set of compilers that generate your function's code out of the model supplied
