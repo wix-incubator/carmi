@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Batching · CARMI</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;If you want to trigger multiple setters on your model at once you can use the batching APIs,&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Batching · CARMI"/><meta property="og:type" content="website"/><meta property="og:url" content="https://carmi.js.org/index.html"/><meta property="og:description" content="&lt;p&gt;If you want to trigger multiple setters on your model at once you can use the batching APIs,&lt;/p&gt;
+"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/img/favicon.ico"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="/runkit.js"></script><script src="https://unpkg.com/vanilla-back-to-top@7.1.14/dist/vanilla-back-to-top.min.js"></script><script>
+        document.addEventListener('DOMContentLoaded', function() {
+          addBackToTop(
+            {"zIndex":100}
+          )
+        });
+        </script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><img class="logo" src="/img/logo.png" alt="CARMI"/><h2 class="headerTitleWithLogo">CARMI</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/docs/introduction/getting-started.html" target="_self">Getting started</a></li><li class="siteNavGroupActive"><a href="/docs/introduction/design.html" target="_self">Design</a></li><li class="siteNavGroupActive"><a href="/docs/api/api.html" target="_self">API Reference</a></li><li class="siteNavGroupActive"><a href="/docs/help.html" target="_self">Help</a></li><li class=""><a href="https://github.com/wix-incubator/carmi" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Introduction</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Introduction<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/docs/introduction/getting-started.html">Getting Started</a></li><li class="navListItem"><a class="navItem" href="/docs/introduction/derived-state.html">Derived state</a></li><li class="navListItem"><a class="navItem" href="/docs/introduction/reactions.html">Reactions</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/docs/introduction/batching.html">Batching</a></li><li class="navListItem"><a class="navItem" href="/docs/introduction/design.html">Design</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Documentation<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/docs/api/intro.html">Intro</a></li><li class="navListItem"><a class="navItem" href="/docs/api/api.html">API Reference</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Help<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/docs/help.html">Help</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Batching</h1></header><article><div><span><p>If you want to trigger multiple setters on your model at once you can use the batching APIs,</p>
+<pre><code class="hljs css language-js"><span class="hljs-keyword">const</span> modelFunction = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./model-reactions.carmi'</span>);
+<span class="hljs-keyword">const</span> instance = modelFunction([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], {
+  <span class="hljs-attr">logItemChanged</span>: <span class="hljs-function">(<span class="hljs-params">value, idx</span>) =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'itemChanged'</span>, idx, value);
+    <span class="hljs-keyword">return</span> value;
+  },
+  <span class="hljs-attr">logArrayChanged</span>: <span class="hljs-function"><span class="hljs-params">arr</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'arrayChanged'</span>, arr);
+    <span class="hljs-keyword">return</span> arr;
+  }
+});
+<span class="hljs-comment">// prints itemChanged 0 2</span>
+<span class="hljs-comment">// prints itemChanged 1 4</span>
+<span class="hljs-comment">// prints itemChanged 2 6</span>
+<span class="hljs-comment">// prints itemChanged 3 8</span>
+<span class="hljs-comment">// prints arrayChanged [2,4,6,8]</span>
+instance.$startBatch();
+instance.setItem(<span class="hljs-number">0</span>, <span class="hljs-number">10</span>);
+instance.setItem(<span class="hljs-number">1</span>, <span class="hljs-number">20</span>);
+instance.$endBatch();
+<span class="hljs-comment">// prints itemChanged 0 20</span>
+<span class="hljs-comment">// prints itemChanged 10 40</span>
+<span class="hljs-comment">// prints arrayChanged [20,40,6,8]</span>
+<span class="hljs-comment">// the print only happens once because the setters were batched</span>
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/docs/introduction/reactions.html"><span class="arrow-prev">← </span><span>Reactions</span></a><a class="docs-next button" href="/docs/introduction/design.html"><span>Design</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/" class="nav-home"></a><div><h5>Docs</h5><a href="/docs/en/introduction/getting-started.html">Getting Started</a><a href="/docs/en/introduction/design.html">Design</a><a href="/docs/en/api/api.html">API Reference</a><a href="/docs/en/help.html">Help</a></div><div><h5>More</h5><a href="https://github.com/wix-incubator/carmi">GitHub</a><a class="github-button" href="https://github.com/wix-incubator/carmi" data-icon="octicon-star" data-count-href="/wix-incubator/carmi/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div></section><section class="copyright">Copyright © 2019 Wix</section></footer></div></body></html>
