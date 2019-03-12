@@ -39,9 +39,10 @@ const siteConfig = {
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     { doc: 'introduction/getting-started', label: 'Getting started' },
-    { doc: 'design/overview', label: 'Design' },
+    { doc: 'introduction/design', label: 'Design' },
     { doc: 'api/intro', label: 'API Reference' },
-    { doc: 'help', label: 'Help' }
+    { doc: 'help', label: 'Help' },
+    { href: 'https://github.com/wix-incubator/carmi', label: 'GitHub' }
     // {blog: true, label: 'Blog'},
   ],
 

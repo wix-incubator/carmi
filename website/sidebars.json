@@ -4,13 +4,8 @@
   		"introduction/getting-started",
   		"introduction/derived-state",
   		"introduction/reactions",
-  		"introduction/batching"
-  	],
-  	"Design": [
-  		"design/overview",
-  		"design/frontend",
-  		"design/backend",
-  		"design/compilers"
+  		"introduction/batching",
+      "introduction/design"
   	],
     "API": [
     	"api/intro",
