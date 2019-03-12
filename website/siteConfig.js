@@ -48,11 +48,7 @@ const siteConfig = {
 
   // If you have users set above, you add it here:
   // users,
-  algolia: {
-    apiKey: 'd52f3f387e935dbbef6650045885cbb9',
-    indexName: 'carmi',
-    algoliaOptions: {} // Optional, if provided by Algolia
-  },
+
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',
   // footerIcon: 'img/logo.png',
@@ -85,7 +81,7 @@ const siteConfig = {
   },
 
   // Add custom scripts here that would be placed in <script> tags
-  scripts: ['https://buttons.github.io/buttons.js'],
+  scripts: ['https://buttons.github.io/buttons.js', '/runkit.js'],
 
   /* On page navigation for the current documentation page */
   onPageNav: 'separate',
