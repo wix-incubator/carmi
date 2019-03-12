@@ -28,20 +28,43 @@ const generateApiDocs = (src) => _
       .partition('inheritedFrom')
       .value()
     //${inherited.map(({name, inheritedFrom: {name: parent, id}}) =>)}
-    return [path.resolve(__dirname, `../docs/api/${name}.md`),
-      `---
-      id: ${name}
-      title: ${name}
-      sidebar_label: ${name}
-      ---
-      ${methods.map(({id, name, kindString: type, signatures}) =>
-        `## \`${name}(${genSignature(signatures)})\` ${_.chain(signatures).get('0.comment.tags', []).some({ tag: 'sugar' }).value() ? '🍬' : ''}
+    return `## ${name}
+    ${methods.map(({id, name, kindString: type, signatures}) =>
+        `### \`${name}(${genSignature(signatures)})\` ${_.chain(signatures).get('0.comment.tags', []).some({ tag: 'sugar' }).value() ? '🍬' : ''}
         ${_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}
         ${genExample(_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value())}`
       ).join('\n')}
-    `.split('\n').map(l => l.trim()).join('\n')]
+    `
   })
-  .each((args) => fs.writeFileSync(...args))
+  // .map(({id, comment: {shortText: name}, kindString: type, children}) => {
+  //   const [inherited, methods] = _(children)
+  //     .filter(({kindString}) => kindString == 'Method')
+  //     .sortBy('name')
+  //     .partition('inheritedFrom')
+  //     .value()
+  //   //${inherited.map(({name, inheritedFrom: {name: parent, id}}) =>)}
+  //   return [path.resolve(__dirname, `../docs/api/${name}.md`),
+  //     `---
+  //     id: ${name}
+  //     title: ${name}
+  //     sidebar_label: ${name}
+  //     ---
+  //     ${methods.map(({id, name, kindString: type, signatures}) =>
+  //       `## \`${name}(${genSignature(signatures)})\` ${_.chain(signatures).get('0.comment.tags', []).some({ tag: 'sugar' }).value() ? '🍬' : ''}
+  //       ${_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}
+  //       ${genExample(_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value())}`
+  //     ).join('\n')}
+  //   `.split('\n').map(l => l.trim()).join('\n')]
+  // })
+  .thru((sections) => [path.resolve(__dirname, `../docs/api/api.md`),
+    `---
+    id: api
+    title: Api Reference
+    sidebar_label: Api Reference
+    ---
+    ${sections.join('\n')}`.split('\n').map(l => l.trim()).join('\n')
+  ])
+  .thru((args) => fs.writeFileSync(...args))
   .commit()
 
 

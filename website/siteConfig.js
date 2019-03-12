@@ -40,7 +40,7 @@ const siteConfig = {
   headerLinks: [
     { doc: 'introduction/getting-started', label: 'Getting started' },
     { doc: 'introduction/design', label: 'Design' },
-    { doc: 'api/intro', label: 'API Reference' },
+    { doc: 'api/api', label: 'API Reference' },
     { doc: 'help', label: 'Help' },
     { href: 'https://github.com/wix-incubator/carmi', label: 'GitHub' }
     // {blog: true, label: 'Blog'},
@@ -48,7 +48,11 @@ const siteConfig = {
 
   // If you have users set above, you add it here:
   // users,
-
+  algolia: {
+    apiKey: 'd52f3f387e935dbbef6650045885cbb9',
+    indexName: 'carmi',
+    algoliaOptions: {} // Optional, if provided by Algolia
+  },
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',
   // footerIcon: 'img/logo.png',

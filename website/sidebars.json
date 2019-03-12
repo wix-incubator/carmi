@@ -7,14 +7,9 @@
   		"introduction/batching",
       "introduction/design"
   	],
-    "API": [
-    	"api/intro",
-    	"api/Graph",
-    	"api/Object",
-    	"api/Array",
-    	"api/String",
-    	"api/Number",
-    	"api/External"
+    "Documentation": [
+      "api/intro",
+    	"api/api"
     ],
     "Help": [
     	"help"
