@@ -20,4 +20,4 @@ const getJSON = (src) =>
 	//.tap((v) => require('fs').writeFileSync('./tmp.json', JSON.stringify(v, false, 4)))
 	.value()
 
-module.exports = { getJSON }//: () => require('./tmp.json') }
+module.exports = {getJSON}//: () => require('./tmp.json') }
