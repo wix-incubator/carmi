@@ -57,7 +57,8 @@
     "prettier": "^1.16.4",
     "resolve": "^1.10.0",
     "tempy": "^0.2.1",
-    "toposort": "^1.0.6"
+    "toposort": "^1.0.6",
+    "typedoc": "^0.14.2"
   },
   "devDependencies": {
     "typedoc": "^0.14.2",
