@@ -562,7 +562,7 @@ module.exports = function () {
         $batchingStrategy = func;
       } });if ( /* DEBUG */false) {
       Object.assign($res, { $ast: () => {
-          return;
+          return { \\"todosList\\": [\\"*call*\\", \\"createElement\\", [\\"*get*\\", \\"$array_temp_4_19_1\\", \\"*topLevel*\\"]], \\"$array_temp_4_19_1\\": [\\"*array*\\", \\"div\\", \\"*null*\\", [\\"*get*\\", 0, \\"*root*\\"]] };
         }, $source: () => null });
     }recalculate();return $res;
   };
@@ -1130,7 +1130,7 @@ module.exports = function () {
         $batchingStrategy = func;
       } });if ( /* DEBUG */false) {
       Object.assign($res, { $ast: () => {
-          return;
+          return { \\"first\\": [\\"*get*\\", 0, \\"*root*\\"], \\"second\\": [\\"*get*\\", 1, \\"*root*\\"] };
         }, $source: () => null });
     }recalculate();return $res;
   };
@@ -1700,7 +1700,7 @@ const modelBuilder = (function () {
         $batchingStrategy = func;
       } });if ( /* DEBUG */false) {
       Object.assign($res, { $ast: () => {
-          return;
+          return { \\"all\\": [\\"*get*\\", \\"list\\", \\"*root*\\"], \\"first\\": [\\"*get*\\", 0, [\\"*get*\\", \\"all\\", \\"*topLevel*\\"]] };
         }, $source: () => null });
     }recalculate();return $res;
   };
