@@ -88,10 +88,10 @@ function library() {
       }
     };
 
-    function setOnObject($target, $key, $val, $invalidates) {
+    function setOnObject($target, $key, $val) {
       let $changed = false;
       let $hard = false;
-      if ($invalidates && !$first) {
+      if (!$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }
@@ -109,14 +109,12 @@ function library() {
       return $changed;
     }
 
-    function deleteOnObject($target, $key, $invalidates) {
+    function deleteOnObject($target, $key) {
       let $hard = false;
-      if ($invalidates) {
         if (typeof $target[$key] === 'object' && $target[$key]) {
           $hard = true;
         }
         triggerInvalidations($target, $key, $hard);
-      }
       const $invalidatedKeys = $invalidatedMap.get($target);
       if ($invalidatedKeys) {
         delete $invalidatedKeys.$subKeys[$key]
@@ -124,9 +122,9 @@ function library() {
       delete $target[$key];
     }
 
-    function setOnArray($target, $key, $val, $invalidates) {
+    function setOnArray($target, $key, $val) {
       let $hard = false;
-      if ($invalidates && !$first) {
+      if (!$first) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }
@@ -142,12 +140,10 @@ function library() {
       $target[$key] = $val;
     }
 
-    function truncateArray($target, newLen, $invalidates) {
-      if ($invalidates) {
+    function truncateArray($target, newLen) {
         for (let i = newLen; i <$target.length;i++) {
           triggerInvalidations($target, i, true);
         }
-      }
       $target.length = newLen;
     }
 
@@ -236,7 +232,7 @@ function library() {
     const emptyArr = () => [];
     const nullFunc = () => null;
 
-    function mapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
+    function mapValuesOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -244,11 +240,11 @@ function library() {
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
-            deleteOnObject($out, key, $invalidates);
+            deleteOnObject($out, key);
           }
         } else {
           const res = func([$invalidatedKeys, key], key, src[key], context);
-          setOnObject($out, key, res, $invalidates);
+          setOnObject($out, key, res);
         }
       });
       $invalidatedKeys.clear();
@@ -256,7 +252,7 @@ function library() {
     }
 
 
-    function filterByOpt($tracked, identifier, func, src, context, $invalidates) {
+    function filterByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -264,14 +260,14 @@ function library() {
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
-            deleteOnObject($out, key, $invalidates);
+            deleteOnObject($out, key);
           }
         } else {
           const res = func([$invalidatedKeys, key], key, src[key], context);
           if (res) {
-            setOnObject($out, key, src[key], $invalidates);
+            setOnObject($out, key, src[key]);
           } else if ($out.hasOwnProperty(key)) {
-            deleteOnObject($out, key, $invalidates);
+            deleteOnObject($out, key);
           }
         }
       });
@@ -279,7 +275,7 @@ function library() {
       return $out;
     }
 
-    function mapOpt($tracked, identifier, func, src, context, $invalidates) {
+    function mapOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -287,17 +283,17 @@ function library() {
       if ($new) {
         for (let key = 0; key < src.length; key++) {
           const res = func([$invalidatedKeys, key], key, src[key], context);
-          setOnArray($out, key, res, $invalidates);
+          setOnArray($out, key, res);
         }
       } else {
         $invalidatedKeys.forEach(key => {
           if (key < src.length) {
             const res = func([$invalidatedKeys, key], key, src[key], context);
-            setOnArray($out, key, res, $invalidates);
+            setOnArray($out, key, res);
           }
         })
         if ($out.length > src.length) {
-          truncateArray($out, src.length, $invalidates)
+          truncateArray($out, src.length)
         }
       }
       $invalidatedKeys.clear();
@@ -305,7 +301,7 @@ function library() {
     }
 
     function recursiveSteps(key, $tracked) {
-      const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context, $invalidates } = this;
+      const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context } = this;
       if ($currentStack.length > 0) {
         if (!$dependencyMap.has(key)) {
           $dependencyMap.set(key, []);
@@ -316,20 +312,20 @@ function library() {
         $currentStack.push(key);
         if (Array.isArray($out)) {
           if (key >= src.length) {
-            setOnArray($out, key, undefined, $invalidates);
+            setOnArray($out, key, undefined);
             $out.length = src.length;
           } else {
             const newVal = func([$invalidatedKeys, key], key, src[key], context, this);
-            setOnArray($out, key, newVal, $invalidates)
+            setOnArray($out, key, newVal)
           }
         } else {
           if (!src.hasOwnProperty(key)) {
             if ($out.hasOwnProperty(key)) {
-              deleteOnObject($out, key, $invalidates);
+              deleteOnObject($out, key);
             }
           } else {
             const newVal = func([$invalidatedKeys, key], key, src[key], context, this);
-            setOnObject($out, key, newVal, $invalidates)
+            setOnObject($out, key, newVal)
           }
         }
         $invalidatedKeys.delete(key);
@@ -356,7 +352,7 @@ function library() {
       recursiveSteps
     })
 
-    function recursiveMapOpt($tracked, identifier, func, src, context, $invalidates) {
+    function recursiveMapOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, recursiveCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -367,7 +363,6 @@ function library() {
       $loop.context = context;
       $loop.func = func;
       $loop.src = src;
-      $loop.$invalidates = $invalidates;
 
       if ($new) {
         for (let key = 0; key < src.length; key++) {
@@ -386,7 +381,7 @@ function library() {
       return $out;
     }
 
-    function recursiveMapValuesOpt($tracked, identifier, func, src, context, $invalidates) {
+    function recursiveMapValuesOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, recursiveCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -397,7 +392,6 @@ function library() {
       $loop.context = context;
       $loop.func = func;
       $loop.src = src;
-      $loop.$invalidates = $invalidates;
 
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
@@ -412,7 +406,7 @@ function library() {
       return $out;
     }
 
-    function keyByOpt($tracked, identifier, func, src, context, $invalidates) {
+    function keyByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyArr);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -422,7 +416,7 @@ function library() {
         for (let key = 0; key < src.length; key++) {
           const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);
           $idxToKey[key] = newKey;
-          setOnObject($out, newKey, src[key], $invalidates);
+          setOnObject($out, newKey, src[key]);
         }
       } else {
         const keysPendingDelete = new Set();
@@ -432,11 +426,11 @@ function library() {
             const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);
             keysPendingDelete.delete(newKey);
             $idxToKey[key] = newKey;
-            setOnObject($out, newKey, src[key], $invalidates);
+            setOnObject($out, newKey, src[key]);
           }
         });
         keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key, $invalidates)
+          deleteOnObject($out, key)
         });
       }
       $idxToKey.length = src.length;
@@ -444,7 +438,7 @@ function library() {
       return $out;
     }
 
-    function mapKeysOpt($tracked, identifier, func, src, context, $invalidates) {
+    function mapKeysOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyObj);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -453,7 +447,7 @@ function library() {
       if ($new) {
         Object.keys(src).forEach(key => {
           const newKey = func([$invalidatedKeys, key], key, src[key], context);
-          setOnObject($out, newKey, src[key], $invalidates);
+          setOnObject($out, newKey, src[key]);
           $keyToKey[key] = newKey;
         });
       } else {
@@ -467,13 +461,13 @@ function library() {
         $invalidatedKeys.forEach(key => {
           if (src.hasOwnProperty(key)) {
             const newKey = func([$invalidatedKeys, key], key, src[key], context);
-            setOnObject($out, newKey, src[key], $invalidates);
+            setOnObject($out, newKey, src[key]);
             $keyToKey[key] = newKey;
             keysPendingDelete.delete(newKey);
           }
         });
         keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key, $invalidates);
+          deleteOnObject($out, key);
         });
       }
       $invalidatedKeys.clear();
@@ -482,7 +476,7 @@ function library() {
 
     const filterCacheFunc = () => [0];
 
-    function filterOpt($tracked, identifier, func, src, context, $invalidates) {
+    function filterOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, filterCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -495,7 +489,7 @@ function library() {
           const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;
           $idxToIdx[key + 1] = nextItemIdx;
           if (nextItemIdx !== prevItemIdx) {
-            setOnArray($out, prevItemIdx, src[key], $invalidates);
+            setOnArray($out, prevItemIdx, src[key]);
           }
         }
       } else {
@@ -507,17 +501,17 @@ function library() {
           const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;
           $idxToIdx[key + 1] = nextItemIdx;
           if (nextItemIdx !== prevItemIdx) {
-            setOnArray($out, prevItemIdx, src[key], $invalidates);
+            setOnArray($out, prevItemIdx, src[key]);
           }
         }
         $idxToIdx.length = src.length + 1;
-        truncateArray($out, $idxToIdx[$idxToIdx.length - 1], $invalidates);
+        truncateArray($out, $idxToIdx[$idxToIdx.length - 1]);
       }
       $invalidatedKeys.clear();
       return $out;
     }
 
-    function anyOpt($tracked, identifier, func, src, context, $invalidates) {
+    function anyOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -553,7 +547,7 @@ function library() {
     }
 
 
-    function anyValuesOpt($tracked, identifier, func, src, context, $invalidates) {
+    function anyValuesOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -586,7 +580,7 @@ function library() {
       return false;
     }
 
-    function groupByOpt($tracked, identifier, func, src, context, $invalidates) {
+    function groupByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyObj);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -600,9 +594,9 @@ function library() {
           const res = '' + func([$invalidatedKeys, key], key, src[key], context);
           $keyToKey[key] = res;
           if (!$out[res]) {
-            setOnObject($out, res, {}, $invalidates);
+            setOnObject($out, res, {});
           }
-          setOnObject($out[res], key, src[key], $invalidates);
+          setOnObject($out[res], key, src[key]);
         });
       } else {
         const keysPendingDelete = {};
@@ -622,8 +616,8 @@ function library() {
           if (!$out[res]) {
             $out[res] = {};
           }
-          setOnObject($out[res], key, src[key], $invalidates);
-          setOnObject($out, res, $out[res], $invalidates);
+          setOnObject($out[res], key, src[key]);
+          setOnObject($out, res, $out[res]);
           if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
           }
@@ -631,12 +625,12 @@ function library() {
         Object.keys(keysPendingDelete).forEach(res => {
           if (keysPendingDelete[res].size > 0) {
             keysPendingDelete[res].forEach(key => {
-              deleteOnObject($out[res], key, $invalidates);
+              deleteOnObject($out[res], key);
             });
             if (Object.keys($out[res]).length == 0) {
-              deleteOnObject($out, res, $invalidates);
+              deleteOnObject($out, res);
             } else {
-              setOnObject($out, res, $out[res], $invalidates);
+              setOnObject($out, res, $out[res]);
             }
           }
         });
@@ -647,7 +641,7 @@ function library() {
 
     const valuesOrKeysCacheFunc = () => ({$keyToIdx: {}, $idxToKey: []});
 
-    function valuesOrKeysForObject($tracked, identifier, src, getValues, $invalidates) {
+    function valuesOrKeysForObject($tracked, identifier, src, getValues) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -670,7 +664,7 @@ function library() {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, $invalidates);
+              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key);
             }
           }
         });
@@ -686,7 +680,7 @@ function library() {
           delete $keyToIdx[$deletedKey];
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates)
+          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey)
         }
         // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
@@ -694,7 +688,7 @@ function library() {
           const $newIdx = $out.length;
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $invalidates)
+          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey)
         }
         // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
@@ -709,7 +703,7 @@ function library() {
             // need to move this key to one of the pending delete
             const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
             const $newIdx = $keyToIdx[$switchedWithDeletedKey];
-            setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, $invalidates);
+            setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey);
             $keyToIdx[$currentKey] = $newIdx;
             $idxToKey[$newIdx] = $currentKey;
             delete $keyToIdx[$switchedWithDeletedKey];
@@ -718,7 +712,7 @@ function library() {
             delete $keyToIdx[$currentKey];
           }
         }
-        truncateArray($out, $finalOutLength, $invalidates);
+        truncateArray($out, $finalOutLength);
         $idxToKey.length = $out.length;
         $invalidatedKeys.clear();
       }
@@ -743,26 +737,24 @@ function library() {
       return $cachePerTargetKey.get(token);
     }
 
-    function array($tracked, newVal, identifier, len, $invalidates) {
+    function array($tracked, newVal, identifier, len) {
       const res = getEmptyArray($tracked, identifier);
-      $invalidates = $invalidates && res.length === len;
       for (let i = 0; i < len; i++) {
-        setOnArray(res, i, newVal[i], $invalidates);
+        setOnArray(res, i, newVal[i]);
       }
       return res;
     }
 
-    function object($tracked, newVal, identifier, keysList, $invalidates) {
+    function object($tracked, newVal, identifier, keysList) {
       const res = getEmptyObject($tracked, identifier);
-      $invalidates = $invalidates && keysList.length && res.hasOwnProperty(keysList[0]);
       for (let i = 0; i < keysList.length; i++) {
         const name = keysList[i];
-        setOnObject(res, name, newVal[i], $invalidates);
+        setOnObject(res, name, newVal[i]);
       }
       return res;
     }
 
-    function call($tracked, newVal, identifier, len, $invalidates) {
+    function call($tracked, newVal, identifier, len) {
       const arr = getEmptyArray($tracked, identifier);
       if (arr.length === 0) {
         arr.push([]);
@@ -795,7 +787,7 @@ function library() {
       return arr[1]
     }
 
-    function assignOrDefaults($tracked, identifier, src, assign, $invalidates) {
+    function assignOrDefaults($tracked, identifier, src, assign) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -810,10 +802,10 @@ function library() {
         const res = Object.assign({}, ...src);
         Object.keys(res).forEach(key => {
           $keysPendingDelete.delete(key);
-          setOnObject($out, key, res[key], $invalidates);
+          setOnObject($out, key, res[key]);
         });
         $keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key, $invalidates)
+          deleteOnObject($out, key)
         });
         $invalidatedKeys.clear();
       }
@@ -907,7 +899,7 @@ function library() {
       return $out[0]
     }
 
-    function range($tracked, end, start, step, identifier, $invalidates) {
+    function range($tracked, end, start, step, identifier) {
       const $out = getEmptyArray($tracked, identifier);
       let $res;
       if ($out.length === 0) {
@@ -920,11 +912,11 @@ function library() {
         let len = 0;
         $res = $out[0];
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-          setOnArray($res, len, val, $invalidates);
+          setOnArray($res, len, val);
           len++;
         }
         if ($res.length > len) {
-          truncateArray($res, len, $invalidates);
+          truncateArray($res, len);
         }
       }
       return $res;

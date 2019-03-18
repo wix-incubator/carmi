@@ -27,7 +27,7 @@ const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunction
 const {tagToSimpleFilename} = require('./expr-names');
 const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash} = require('./expr-rewrite');
 const {or, and, not} = require('./expr-logic');
-let exprCounter = 0;
+let exprCounter = 1;
 
 const _ = require('lodash');
 const toposort = require('toposort');
