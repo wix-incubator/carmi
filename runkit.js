@@ -1,19 +1,17 @@
 window.addEventListener('load', function() {
-  const preamble = 'const fromSource = (model, input = [1, 2, 3], lib = {}) => eval(require("carmi").compile(model))(input, lib)'
+  const preamble = 'const createInstance = (model, input = [1, 2, 3], lib = {}) => eval(require("carmi").compile(model))(input, lib)'
   const script = document.createElement('script')
   script.addEventListener('load', () => Array.from(document.getElementsByClassName('hljs')).map(element => {
-
+    element.style.cursor = 'pointer'
     element.addEventListener('click', () => {
       const source = element.innerText
-      const container = document.createElement('div')
-      container.style.overflow = 'hidden'
-      element.parentNode.appendChild(container)
       element.style.display = 'none'
+      element.parentNode.style.background = 'url(/img/loading.gif) no-repeat center'
       RunKit.createNotebook({
-        element: container,
+        element: element.parentNode,
         preamble,
         source
-    })
+      })
     })
   }))
   script.src = 'https://embed.runkit.com'
