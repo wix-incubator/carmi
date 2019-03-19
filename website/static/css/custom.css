@@ -14,3 +14,5 @@
 
 @media only screen and (min-width: 1500px) {
 }
+
+pre > iframe { max-width: initial; }

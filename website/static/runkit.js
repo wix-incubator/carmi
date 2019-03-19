@@ -5,15 +5,10 @@ window.addEventListener('load', function() {
     element.style.cursor = 'pointer'
     element.addEventListener('click', () => {
       const source = element.innerText
-      const container = document.createElement('code')
-      //container.style.overflow = 'hidden'
       element.style.display = 'none'
-      //element.parentNode.style.position = 'static'
-      //container.style.position = 'absolute'
       element.parentNode.style.background = 'url(/img/loading.gif) no-repeat center'
-      element.parentNode.appendChild(container)
       RunKit.createNotebook({
-        element: container,
+        element: element.parentNode,
         preamble,
         source
       })

@@ -52,7 +52,15 @@ Joins an array of strings to a single strings, like NativeType.join(separator)
 
 ### `keyBy(functor, scope)` 
 Returns an object graph that resolves to an object containing keys returned by functor, pointing to their first found corresponding value.
-
+```js
+const { root, chain } = require('carmi');
+const instance = createInstance({
+  output: root
+    .keyBy(item => item.get('items').size())
+    .mapValues(item => item.get('items'))
+}, [{items: [1]}, {items: [1, 2]}, {items: [1, 2, 3]}, {items: [1, 2, 3, 4]}]);
+instance.output // {1: [1], 2: [1, 2], 3: [1, 2, 3], 4: [1, 2, 3, 4]}
+```
 ### `last()` 🍬
 Resolves to the last item in an array
 
@@ -90,7 +98,7 @@ does the object/array has any items
 
 ## External
 ### `abstract(name)` 
-??
+Defines a projection that would be implementated later in the code using the [`implement(iface, name)`](api.html#implementiface-name) method
 
 ### `and(a)` 
 logical operand and
@@ -115,10 +123,11 @@ const { root, chain } = require('carmi');
  instance.output //{books: ["a scanner darkly"], shelf: "scifi"}
 ```
 ### `effect(func, args)` 
-??
+Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
+**Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
 
 ### `implement(iface, name)` 
-??
+uses a previously declared abstract clause and assigns an actual value to the named abstract
 
 ### `or(a, b)` 
 logical operand or
@@ -133,7 +142,7 @@ declare actions which can be triggered on your state to change it (use arg0/arg1
 declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
 
 ### `withName(name, g)` 
-??
+this is a dubug feature which allows to name the actual projection functions on the carmi root
 
 ## Graph
 ### `bind(func)` 
