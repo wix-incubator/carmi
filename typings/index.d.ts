@@ -471,8 +471,16 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Resolves to the same array, with only truthy values
+     * 
     * @sugar */
     compact(): this
+
+    /**
+     * Converts an array of [key, value] pairs to an object
+     * 
+     * @sugar
+     */
+    fromPairs(): Value extends Array<[infer Key, infer Value]> ? ObjectGraph<{[key in keyof Key]: Value}, F> : never
 
     /**
     * Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
@@ -589,6 +597,13 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     * @param value
     * @sugar */
     setIn(path: string[]): ObjectGraph<NativeType, F>
+
+    /**
+     * Converts an object to an array of [key, value] pairs
+     * 
+     * @sugar
+     */
+    toPairs(): ArrayGraph<Array<ArrayGraph<[KeyGraph, ValueGraph], F>>, F>
 
     /**
      * Resolves to an object with keys identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
