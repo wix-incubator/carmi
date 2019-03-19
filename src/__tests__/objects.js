@@ -668,5 +668,15 @@ describe('testing objects', () => {
       const inst = optModel(initialData);
       expect(inst.asPairs).toEqual([['a', 1], ['b', {c: 1}]]);
     })
+    describe('fromPairs', () => {
+      const model = {
+        asPairs: root.get('data').fromPairs()
+      };
+      const optModel = eval(compile(model, {compiler}));
+      const initialData = {data: [['a', 1], ['b', {c: 2}]]};
+
+      const inst = optModel(initialData);
+      expect(inst.asPairs).toEqual({a: 1, b: {c: 2}});
+    })
   });
 });

@@ -122,6 +122,10 @@ function toPairs(object) {
   return object.mapValues((value, key) => [key, value]).values()
 }
 
+function fromPairs(array) {
+  return array.keyBy(value => value.get(0)).mapValues(value => value.get(1))
+}
+
 function switchCase(obj, caseTuples, defaultCase) {
   return (caseTuples || []).reduce(
     (result, caseTuple) => obj.eq(caseTuple[0]).ternary(
@@ -170,6 +174,7 @@ const sugarApi = {
   head,
   every,
   toPairs,
+  fromPairs,
   compact,
   switch: switchCase,
   conditionalTrace,
