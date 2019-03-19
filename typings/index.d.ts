@@ -590,6 +590,8 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     * @sugar */
     setIn(path: string[]): ObjectGraph<NativeType, F>
 
+    toPairs(): ArrayGraph<Array<ArrayGraph<[KeyGraph, ValueGraph], F>>, F>
+
     /**
      * Resolves to an object with keys identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
      * The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:

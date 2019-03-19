@@ -118,6 +118,10 @@ function compact(array) {
   return array.filter(value => value)
 }
 
+function toPairs(object) {
+  return object.mapValues((value, key) => [key, value]).values()
+}
+
 function switchCase(obj, caseTuples, defaultCase) {
   return (caseTuples || []).reduce(
     (result, caseTuple) => obj.eq(caseTuple[0]).ternary(
@@ -165,6 +169,7 @@ const sugarApi = {
   last,
   head,
   every,
+  toPairs,
   compact,
   switch: switchCase,
   conditionalTrace,

@@ -657,5 +657,16 @@ describe('testing objects', () => {
       expect(inst.defined.a).toEqual('women');
       expect(inst.notDefined.x).toEqual('men');
     });
+
+    describe('toPairs', () => {
+      const model = {
+        asPairs: root.get('data').toPairs()
+      };
+      const optModel = eval(compile(model, {compiler}));
+      const initialData = {data: {a: 1, b: {c: 1}}};
+
+      const inst = optModel(initialData);
+      expect(inst.asPairs).toEqual([['a', 1], ['b', {c: 1}]]);
+    })
   });
 });
