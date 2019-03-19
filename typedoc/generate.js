@@ -10,6 +10,8 @@ const genSignature = (signatures) => _(signatures)
   )
   .join(', ')
 
+const listInheritedMethods = (inherited) => inherited.map(({name, inheritedFrom: {name: parent, id}}) => [name, parent, id])
+const isSugar = (signatures) => _.chain(signatures).get('0.comment.tags', []).some({tag: 'sugar'}).value() ? '🍬' : ''
 const genExample = (src) => src ? `\`\`\`js\n${src.text.trim()}\n\`\`\`` : ''
 const generateApiDocs = (src) => _
   .chain(new typedoc.Application({
@@ -27,15 +29,13 @@ const generateApiDocs = (src) => _
       .sortBy('name')
       .partition('inheritedFrom')
       .value()
-    //${inherited.map(({name, inheritedFrom: {name: parent, id}}) =>)}
+
     return `## ${name}
-    ${methods.map(({id, name, kindString: type, signatures}) =>
-        `### \`${name}(${genSignature(signatures)})\` ${_.chain(signatures).get('0.comment.tags', []).some({tag: 'sugar'}).value() ? '🍬' : ''}
-        ${_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}
-        ${genExample(_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value())}`
-      ).join('\n')}
-    `
-  })
+${methods.map(({id, name, kindString: type, signatures}) =>
+`### \`${name}(${genSignature(signatures)})\` ${isSugar(signatures)}
+${_.get(signatures, '0.comment.shortText', 'MISSING DESCR')}
+${genExample(_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}).value())}`).join('\n')}`
+})
   // .map(({id, comment: {shortText: name}, kindString: type, children}) => {
   //   const [inherited, methods] = _(children)
   //     .filter(({kindString}) => kindString == 'Method')
@@ -57,12 +57,12 @@ const generateApiDocs = (src) => _
   //   `.split('\n').map(l => l.trim()).join('\n')]
   // })
   .thru((sections) => [path.resolve(__dirname, '../docs/api/api.md'),
-    `---
-    id: api
-    title: Api Reference
-    sidebar_label: Api Reference
-    ---
-    ${sections.join('\n')}`.split('\n').map(l => l.trim()).join('\n')
+`---
+id: api
+title: Api Reference
+sidebar_label: Api Reference
+---
+${sections.join('\n')}`
   ])
   .thru((args) => fs.writeFileSync(...args))
   .commit()

@@ -385,7 +385,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      * @param scope A variable to pass to the functor if inside another functor.
      * @example
      * const { root } = require('carmi');
-     * const instance = fromSource({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
+     * const instance = createInstance({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
      * instance.output //true
      */
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
@@ -632,6 +632,16 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
 
     /**
     * wraps a native JS object with the declarative APIs
+    * @example
+    *  const { root, chain } = require('carmi');
+    *  const instance = createInstance({
+    *    output: chain([{
+    *      shelf: root.get(0).get('shelf'),
+    *      books: [ root.get(1).get(root.get(0).get('shelf')).get(0) ]
+    *   }])
+    *   .assign()
+    *  }, [{shelf: 'scifi'}, {scifi: ['a scanner darkly']}]);
+    *  instance.output //{books: ["a scanner darkly"], shelf: "scifi"}
     */
     chain<T>(t: T): Graph<T, F>
 
