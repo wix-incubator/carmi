@@ -61,6 +61,7 @@ ${genExample(_.chain(signatures).get('0.comment.tags', []).find({tag: 'example'}
 id: api
 title: Api Reference
 sidebar_label: Api Reference
+custom_edit_url: https://github.com/wix-incubator/carmi/edit/master/typings/index.d.ts
 ---
 ${sections.join('\n')}`
   ])
