@@ -72,6 +72,11 @@ const siteConfig = {
       "system-ui"
     ]
   },*/
+  algolia: {
+    apiKey: '1dbbf069466ac915506a8f3859639c9f',
+    indexName: 'wix_carmi'
+  },
+
 
   // This copyright info is used in /core/Footer.js and blog rss/atom feeds.
   copyright: 'Copyright © ' + new Date().getFullYear() + ' Wix',
