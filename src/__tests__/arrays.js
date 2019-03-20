@@ -126,6 +126,19 @@ describe('testing array', () => {
       const inst = optModel([{idx: 1, text: 'a', foo: 'bar'}, {idx: 2, text: 'b'}, {idx: 1, text: 'c'}], funcLibrary);
       expect(inst.itemByIdx).toEqual({1: {idx: 1, text: 'c'}, 2: {idx: 2, text: 'b'}});
     });
+
+    it('double-valued keyBy', async () => {
+      const model = {
+        asObject: root.keyBy(val => val),
+        set: setter(arg0)
+      };
+      const optModel = eval(compile(model, {compiler}));
+      const inst = optModel(['a', 'a'], funcLibrary);
+      expect(inst.asObject).toEqual({a: 'a'})
+      inst.set(0, 'b')
+      expect(inst.asObject).toEqual({a: 'a', b: 'b'})
+    });
+    
     it('simple comparison operations', async () => {
       const arr = root.get('arr');
       const compareTo = root.get('compareTo');

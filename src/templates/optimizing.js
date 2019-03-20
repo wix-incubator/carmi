@@ -417,29 +417,45 @@ function library() {
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
-      const $idxToKey = $storage[4];
+      const $cache = $storage[4];
       if ($new) {
-        for (let key = 0; key < src.length; key++) {
-          const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);
-          $idxToKey[key] = newKey;
-          setOnObject($out, newKey, src[key], $invalidates);
+        $cache.indexToKey = []
+        $cache.keyToIndices = {}
+        for (let index = 0; index < src.length; index++) {
+          const key = '' + func([$invalidatedKeys, index], index, src[index], context);
+          $cache.indexToKey[index] = key
+          $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set()
+          $cache.keyToIndices[key].add(index)
+          setOnObject($out, key, src[index], $invalidates);
         }
       } else {
         const keysPendingDelete = new Set();
-        $invalidatedKeys.forEach(key => keysPendingDelete.add($idxToKey[key]));
-        $invalidatedKeys.forEach(key => {
-          if (key < src.length) {
-            const newKey = '' + func([$invalidatedKeys, key], key, src[key], context);
-            keysPendingDelete.delete(newKey);
-            $idxToKey[key] = newKey;
-            setOnObject($out, newKey, src[key], $invalidates);
+        $invalidatedKeys.forEach(index => {
+          if (index < $cache.indexToKey.length) {
+            const key = $cache.indexToKey[index];
+            $cache.keyToIndices[key].delete(index)
+            if ($cache.keyToIndices[key].size === 0) {
+              delete $cache.keyToIndices[key]
+              keysPendingDelete.add(key);
+            }  
           }
         });
+        $invalidatedKeys.forEach(index => {
+          if (index < src.length) {
+            const key = '' + func([$invalidatedKeys, index], index, src[index], context);
+            $cache.indexToKey[index] = key
+            keysPendingDelete.delete(key)
+            $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
+            $cache.keyToIndices[key].add(index)
+            setOnObject($out, key, src[index], $invalidates);
+          }
+        });
+
         keysPendingDelete.forEach(key => {
           deleteOnObject($out, key, $invalidates)
         });
       }
-      $idxToKey.length = src.length;
+      $cache.indexToKey.length = src.length;
       $invalidatedKeys.clear();
       return $out;
     }
