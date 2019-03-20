@@ -42,6 +42,9 @@ Resolved to the index of the first value for which the functor resolved to true,
 ### `flatten()` 
 Flattens inner arrays into an array
 
+### `fromPairs()` 🍬
+Converts an array of [key, value] pairs to an object
+
 ### `head()` 🍬
 Resolves to the first item in an array
 
@@ -285,6 +288,9 @@ Sets value for given key
 
 ### `size()` 
 Resolves to the number of keys in the object
+
+### `toPairs()` 🍬
+Converts an object to an array of [key, value] pairs
 
 ### `values()` 
 Resolves to an array representing the values of the object
