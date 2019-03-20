@@ -56,7 +56,7 @@
                 };
               }
             });
-        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Batching</h1></header><article><div><span><p>If you want to trigger multiple setters on your model at once you can use the batching APIs,</p>
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/wix-incubator/carmi/edit/master/docs/introduction/batching.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Batching</h1></header><article><div><span><p>If you want to trigger multiple setters on your model at once you can use the batching APIs,</p>
 <pre><code class="hljs css language-js"><span class="hljs-keyword">const</span> modelFunction = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./model-reactions.carmi'</span>);
 <span class="hljs-keyword">const</span> instance = modelFunction([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>], {
   <span class="hljs-attr">logItemChanged</span>: <span class="hljs-function">(<span class="hljs-params">value, idx</span>) =&gt;</span> {
