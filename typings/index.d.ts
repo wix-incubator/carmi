@@ -105,7 +105,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param caseTuples An array of pairs between a value and a consequent
      * @param defaultCase The graph to return in case no given case matches the boxed value
      * @sugar */
-    switchCase<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
+    switch<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
         Graph<DefaultCase, F> |
         Graph<TupleType extends [Argument<NativeType>, infer Result] ? Result : never, F>
 
