@@ -245,7 +245,7 @@ function cloneExpressions(getters) {
 
 function tagAllExpressions(getters) {
   exprCounter = 1;
-  _.forEach(getters, (getter, name) => tagExpressions(getter, name, 0, [1], getter[0].$type === 'func' ? 'helperFunc' : 'topLevel', name));
+  _.forEach(getters, (getter, name) => tagExpressions(getter, name + exprCounter++, 0, [1], getter[0].$type === 'func' ? 'helperFunc' : 'topLevel', name));
 }
 
 function tagUnconditionalExpressions(expr, cond) {
