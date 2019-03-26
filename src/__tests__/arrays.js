@@ -802,5 +802,20 @@ describe('testing array', () => {
         expect(inst.isArray).toEqual(false);
       });
     });
+    describe('test rewrite local functions', () => {
+      it('should hoist the reused function', () => {
+        const add10 = src => new Array(10).fill().reduce(v => v.plus(1), src)
+        const model = {
+          add30: root.map(val => add10(val).plus(add10(val)).plus(add10(val)))
+        };
+        const src = compile(model, {compiler, prettier: true})
+        expect(src.split(' + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1').length - 1).toEqual(1)
+        const optModel = eval(src);
+        const initialData = [1, 2, 3];
+
+        const inst = optModel(initialData);
+        expect(inst.add30).toEqual([33, 36, 39]);
+      })
+    })
   });
 });
