@@ -36,7 +36,8 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never):
         Graph<ReturnType<F[FunctionName]>, F>
     /**
-    * ??
+    * Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
+    * **Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
     */
     effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never): void
 
@@ -479,13 +480,13 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 
     /**
      * Resolves to the same array, with only truthy values
-     * 
+     *
     * @sugar */
     compact(): this
 
     /**
      * Converts an array of [key, value] pairs to an object
-     * 
+     *
      * @sugar
      */
     fromPairs(): Value extends Array<[infer Key, infer Value]> ? ObjectGraph<{[key in keyof Key]: Value}, F> : never
@@ -608,7 +609,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
 
     /**
      * Converts an object to an array of [key, value] pairs
-     * 
+     *
      * @sugar
      */
     toPairs(): ArrayGraph<Array<ArrayGraph<[KeyGraph, ValueGraph], F>>, F>
@@ -699,7 +700,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     /**
     * declare a setter that adds an element to the end of an array. The setter will create the array if it doesn't exist
     */
-   push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
+    push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
 
    /**
     * call a function called functionName from the function library passes the current value as the first argument, and extra arguments are well... extra
@@ -707,8 +708,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
 
     /**
-    * Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
-    * **Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
+    * See on doc for [`effect(func, args)`](api.html#effectfunc-args-1) in **Graph**
     */
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
 
