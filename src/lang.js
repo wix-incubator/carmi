@@ -41,8 +41,8 @@ function Clone(model) {
 const TokenTypeData = {
   and: new TokenTypes({nonChained: true, len: [2, Number.MAX_SAFE_INTEGER]}),
   or: new TokenTypes({nonChained: true, len: [2, Number.MAX_SAFE_INTEGER]}),
-  array: new TokenTypes({nonChained: true, private: true, tryToHoist: true}),
-  object: new TokenTypes({nonChained: true, private: true, tryToHoist: true}),
+  array: new TokenTypes({nonChained: true, private: true, tryToHoist: true, stable: true}),
+  object: new TokenTypes({nonChained: true, private: true, tryToHoist: true, stable: true}),
   not: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   ternary: new TokenTypes({nonChained: true, chainIndex: 1, len: [4, 4]}),
   trace: new TokenTypes({chainIndex: 2, len: [2, 4]}),
@@ -139,7 +139,7 @@ const TokenTypeData = {
   isNumber: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   isArray: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),
   abstract: new TokenTypes({nonChained: true, len: [3, 3], private: true}),
-  quote: new TokenTypes({nonChained: true, len: [2, 2], private: true, stable: true})
+  quote: new TokenTypes({nonChained: true, len: [2, 2], private: true})
 };
 
 const AllTokens = Object.keys(TokenTypeData).reduce((acc, k) => {

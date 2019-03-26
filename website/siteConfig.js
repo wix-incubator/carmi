@@ -24,6 +24,7 @@ const siteConfig = {
   title: 'CARMI' /* title for your website */,
   tagline: 'Compiler for Automatic Reactive Modelling of Inference',
   url: 'https://carmi.js.org' /* your website url */,
+  editUrl: 'https://github.com/wix-incubator/carmi/edit/master/docs/',
   baseUrl: '/' /* base url for your project */,
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
@@ -71,6 +72,11 @@ const siteConfig = {
       "system-ui"
     ]
   },*/
+  algolia: {
+    apiKey: '1dbbf069466ac915506a8f3859639c9f',
+    indexName: 'wix_carmi'
+  },
+
 
   // This copyright info is used in /core/Footer.js and blog rss/atom feeds.
   copyright: 'Copyright © ' + new Date().getFullYear() + ' Wix',

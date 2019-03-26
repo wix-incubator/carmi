@@ -105,7 +105,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
      * @param caseTuples An array of pairs between a value and a consequent
      * @param defaultCase The graph to return in case no given case matches the boxed value
      * @sugar */
-    switchCase<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
+    switch<DefaultCase, TupleType extends [Argument<NativeType>, any]>(caseTuples: Array<TupleType>, defaultCase: DefaultCase):
         Graph<DefaultCase, F> |
         Graph<TupleType extends [Argument<NativeType>, infer Result] ? Result : never, F>
 
@@ -385,7 +385,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      * @param scope A variable to pass to the functor if inside another functor.
      * @example
      * const { root } = require('carmi');
-     * const instance = fromSource({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
+     * const instance = createInstance({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
      * instance.output //true
      */
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
@@ -403,7 +403,15 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array, returning a string as a new key
      * @param scope A variable to pass to the functor if inside another functor.
-     */
+     * @example
+     * const { root, chain } = require('carmi');
+     * const instance = createInstance({
+     *   output: root
+     *     .keyBy(item => item.get('items').size())
+     *     .mapValues(item => item.get('items'))
+     * }, [{items: [1]}, {items: [1, 2]}, {items: [1, 2, 3]}, {items: [1, 2, 3, 4]}]);
+     * instance.output // {1: [1], 2: [1, 2], 3: [1, 2, 3], 4: [1, 2, 3, 4]}
+     **/
     keyBy<Scope, Ret extends Argument<string>>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) :
         ObjectGraph<Ret extends string ? {[name in Ret]: Value} : {[name: string]: Value}, F>
 
@@ -632,6 +640,16 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
 
     /**
     * wraps a native JS object with the declarative APIs
+    * @example
+    *  const { root, chain } = require('carmi');
+    *  const instance = createInstance({
+    *    output: chain([{
+    *      shelf: root.get(0).get('shelf'),
+    *      books: [ root.get(1).get(root.get(0).get('shelf')).get(0) ]
+    *   }])
+    *   .assign()
+    *  }, [{shelf: 'scifi'}, {scifi: ['a scanner darkly']}]);
+    *  instance.output //{books: ["a scanner darkly"], shelf: "scifi"}
     */
     chain<T>(t: T): Graph<T, F>
 
@@ -674,7 +692,8 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
 
     /**
-    * ??
+    * Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
+    * **Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
     */
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
 
@@ -689,17 +708,18 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     bind<FunctionName extends keyof F, A, B, C, D, E>(func: FunctionName, a: A, b: B, c: C, d: D, e: E): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D, E>, F>
 
     /**
-    * ??
+    * Defines a projection that would be implementated later in the code using the [`implement(iface, name)`](api.html#implementiface-name) method
+    * @param name used for debug only
     */
     abstract(name: string): Graph<unknown, F>
 
     /**
-    * ??
+    * uses a previously declared abstract clause and assigns an actual value to the named abstract
     */
     implement(iface: Graph<unknown, F>, name: string): void
 
     /**
-    * ??
+    * this is a dubug feature which allows to name the actual projection functions on the carmi root
     */
     withName<T>(name: string, g: T): T
 
