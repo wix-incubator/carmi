@@ -175,7 +175,7 @@ function recursiveMap() {
 }
 
 function helperFunc() {
-  function $FUNCNAME($FN_ARGS) {
+  function $ROOTNAME($FN_ARGS) {
     return $EXPR1;
   }
 }

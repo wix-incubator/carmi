@@ -1004,7 +1004,7 @@ function recursiveFunc() {
 }
 
 function helperFunc() {
-  function $FUNCNAME($tracked$FN_ARGS) {
+  function $ROOTNAME($tracked$FN_ARGS) {
     /* PRETRACKING */
     const res = $EXPR1;
     /* TRACKING */
