@@ -88,10 +88,10 @@ function library() {
       }
     };
 
-    function setOnObject($target, $key, $val) {
+    function setOnObject($target, $key, $val, $new) {
       let $changed = false;
       let $hard = false;
-      if (!$first) {
+      if (!$new) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }
@@ -106,25 +106,26 @@ function library() {
         }
       }
       $target[$key] = $val;
-      return $changed;
     }
 
-    function deleteOnObject($target, $key) {
-      let $hard = false;
-        if (typeof $target[$key] === 'object' && $target[$key]) {
-          $hard = true;
-        }
-        triggerInvalidations($target, $key, $hard);
+  function deleteOnObject($target, $key, $new) {
+    let $hard = false;
+    if (!$new) {
+      if (typeof $target[$key] === 'object' && $target[$key]) {
+        $hard = true;
+      }
+      triggerInvalidations($target, $key, $hard);
       const $invalidatedKeys = $invalidatedMap.get($target);
       if ($invalidatedKeys) {
         delete $invalidatedKeys.$subKeys[$key]
       }
-      delete $target[$key];
+    }
+    delete $target[$key];
     }
 
-    function setOnArray($target, $key, $val) {
+    function setOnArray($target, $key, $val, $new) {
       let $hard = false;
-      if (!$first) {
+      if (!$new) {
         if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
           $hard = true;
         }
@@ -141,9 +142,9 @@ function library() {
     }
 
     function truncateArray($target, newLen) {
-        for (let i = newLen; i <$target.length;i++) {
-          triggerInvalidations($target, i, true);
-        }
+      for (let i = newLen; i <$target.length;i++) {
+        triggerInvalidations($target, i, true);
+      }
       $target.length = newLen;
     }
 
@@ -240,11 +241,11 @@ function library() {
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
-            deleteOnObject($out, key);
+            deleteOnObject($out, key, $new);
           }
         } else {
           const res = func([$invalidatedKeys, key], key, src[key], context);
-          setOnObject($out, key, res);
+          setOnObject($out, key, res, $new);
         }
       });
       $invalidatedKeys.clear();
@@ -260,14 +261,14 @@ function library() {
       (($new && Object.keys(src)) || $invalidatedKeys).forEach(key => {
         if (!src.hasOwnProperty(key)) {
           if ($out.hasOwnProperty(key)) {
-            deleteOnObject($out, key);
+            deleteOnObject($out, key, $new);
           }
         } else {
           const res = func([$invalidatedKeys, key], key, src[key], context);
           if (res) {
-            setOnObject($out, key, src[key]);
+            setOnObject($out, key, src[key], $new);
           } else if ($out.hasOwnProperty(key)) {
-            deleteOnObject($out, key);
+            deleteOnObject($out, key, $new);
           }
         }
       });
@@ -283,13 +284,13 @@ function library() {
       if ($new) {
         for (let key = 0; key < src.length; key++) {
           const res = func([$invalidatedKeys, key], key, src[key], context);
-          setOnArray($out, key, res);
+          setOnArray($out, key, res, $new);
         }
       } else {
         $invalidatedKeys.forEach(key => {
           if (key < src.length) {
             const res = func([$invalidatedKeys, key], key, src[key], context);
-            setOnArray($out, key, res);
+            setOnArray($out, key, res, $new);
           }
         })
         if ($out.length > src.length) {
@@ -301,7 +302,7 @@ function library() {
     }
 
     function recursiveSteps(key, $tracked) {
-      const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context } = this;
+      const { $dependencyMap, $currentStack, $invalidatedKeys, $out, func, src, context, $new } = this;
       if ($currentStack.length > 0) {
         if (!$dependencyMap.has(key)) {
           $dependencyMap.set(key, []);
@@ -312,20 +313,20 @@ function library() {
         $currentStack.push(key);
         if (Array.isArray($out)) {
           if (key >= src.length) {
-            setOnArray($out, key, undefined);
+            setOnArray($out, key, undefined, $new);
             $out.length = src.length;
           } else {
             const newVal = func([$invalidatedKeys, key], key, src[key], context, this);
-            setOnArray($out, key, newVal)
+            setOnArray($out, key, newVal, $new)
           }
         } else {
           if (!src.hasOwnProperty(key)) {
             if ($out.hasOwnProperty(key)) {
-              deleteOnObject($out, key);
+              deleteOnObject($out, key, $new);
             }
           } else {
             const newVal = func([$invalidatedKeys, key], key, src[key], context, this);
-            setOnObject($out, key, newVal)
+            setOnObject($out, key, newVal, $new)
           }
         }
         $invalidatedKeys.delete(key);
@@ -363,6 +364,7 @@ function library() {
       $loop.context = context;
       $loop.func = func;
       $loop.src = src;
+      $loop.$new = $new;
 
       if ($new) {
         for (let key = 0; key < src.length; key++) {
@@ -392,6 +394,7 @@ function library() {
       $loop.context = context;
       $loop.func = func;
       $loop.src = src;
+      $loop.$new = $new;
 
       if ($new) {
         Object.keys(src).forEach(key => $invalidatedKeys.add(key));
@@ -420,7 +423,7 @@ function library() {
           $cache.indexToKey[index] = key
           $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set()
           $cache.keyToIndices[key].add(index)
-          setOnObject($out, key, src[index]);
+          setOnObject($out, key, src[index], $new);
         }
       } else {
         const keysPendingDelete = new Set();
@@ -441,12 +444,12 @@ function library() {
             keysPendingDelete.delete(key)
             $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
             $cache.keyToIndices[key].add(index)
-            setOnObject($out, key, src[index]);
+            setOnObject($out, key, src[index], $new);
           }
         });
 
         keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key)
+          deleteOnObject($out, key, $new)
         });
       }
       $cache.indexToKey.length = src.length;
@@ -463,7 +466,7 @@ function library() {
       if ($new) {
         Object.keys(src).forEach(key => {
           const newKey = func([$invalidatedKeys, key], key, src[key], context);
-          setOnObject($out, newKey, src[key]);
+          setOnObject($out, newKey, src[key], $new);
           $keyToKey[key] = newKey;
         });
       } else {
@@ -477,13 +480,13 @@ function library() {
         $invalidatedKeys.forEach(key => {
           if (src.hasOwnProperty(key)) {
             const newKey = func([$invalidatedKeys, key], key, src[key], context);
-            setOnObject($out, newKey, src[key]);
+            setOnObject($out, newKey, src[key], $new);
             $keyToKey[key] = newKey;
             keysPendingDelete.delete(newKey);
           }
         });
         keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key);
+          deleteOnObject($out, key, $new);
         });
       }
       $invalidatedKeys.clear();
@@ -505,7 +508,7 @@ function library() {
           const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;
           $idxToIdx[key + 1] = nextItemIdx;
           if (nextItemIdx !== prevItemIdx) {
-            setOnArray($out, prevItemIdx, src[key]);
+            setOnArray($out, prevItemIdx, src[key], $new);
           }
         }
       } else {
@@ -517,7 +520,7 @@ function library() {
           const nextItemIdx = passed ? prevItemIdx + 1 : prevItemIdx;
           $idxToIdx[key + 1] = nextItemIdx;
           if (nextItemIdx !== prevItemIdx) {
-            setOnArray($out, prevItemIdx, src[key]);
+            setOnArray($out, prevItemIdx, src[key], $new);
           }
         }
         $idxToIdx.length = src.length + 1;
@@ -610,9 +613,9 @@ function library() {
           const res = '' + func([$invalidatedKeys, key], key, src[key], context);
           $keyToKey[key] = res;
           if (!$out[res]) {
-            setOnObject($out, res, {});
+            setOnObject($out, res, {}, $new);
           }
-          setOnObject($out[res], key, src[key]);
+          setOnObject($out[res], key, src[key], $new);
         });
       } else {
         const keysPendingDelete = {};
@@ -632,8 +635,8 @@ function library() {
           if (!$out[res]) {
             $out[res] = {};
           }
-          setOnObject($out[res], key, src[key]);
-          setOnObject($out, res, $out[res]);
+          setOnObject($out[res], key, src[key], $new);
+          setOnObject($out, res, $out[res], $new);
           if (keysPendingDelete.hasOwnProperty(res)) {
             keysPendingDelete[res].delete(key);
           }
@@ -641,12 +644,12 @@ function library() {
         Object.keys(keysPendingDelete).forEach(res => {
           if (keysPendingDelete[res].size > 0) {
             keysPendingDelete[res].forEach(key => {
-              deleteOnObject($out[res], key);
+              deleteOnObject($out[res], key, $new);
             });
             if (Object.keys($out[res]).length == 0) {
-              deleteOnObject($out, res);
+              deleteOnObject($out, res, $new);
             } else {
-              setOnObject($out, res, $out[res]);
+              setOnObject($out, res, $out[res], $new);
             }
           }
         });
@@ -680,7 +683,7 @@ function library() {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key);
+              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, $new);
             }
           }
         });
@@ -696,7 +699,7 @@ function library() {
           delete $keyToIdx[$deletedKey];
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey)
+          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $new)
         }
         // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
@@ -704,7 +707,7 @@ function library() {
           const $newIdx = $out.length;
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey)
+          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $new)
         }
         // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
@@ -719,7 +722,7 @@ function library() {
             // need to move this key to one of the pending delete
             const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
             const $newIdx = $keyToIdx[$switchedWithDeletedKey];
-            setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey);
+            setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, $new);
             $keyToIdx[$currentKey] = $newIdx;
             $idxToKey[$newIdx] = $currentKey;
             delete $keyToIdx[$switchedWithDeletedKey];
@@ -755,29 +758,32 @@ function library() {
 
     function array($tracked, newVal, identifier, len) {
       const res = getEmptyArray($tracked, identifier);
+      const $new = res.length === 0;
       for (let i = 0; i < len; i++) {
-        setOnArray(res, i, newVal[i]);
+        setOnArray(res, i, newVal[i], $new);
       }
       return res;
     }
 
     function object($tracked, newVal, identifier, keysList) {
       const res = getEmptyObject($tracked, identifier);
+      const $new = keysList.length && !res.hasOwnProperty(keysList[0]);
       for (let i = 0; i < keysList.length; i++) {
         const name = keysList[i];
-        setOnObject(res, name, newVal[i]);
+        setOnObject(res, name, newVal[i], $new);
       }
       return res;
     }
 
     function call($tracked, newVal, identifier, len) {
       const arr = getEmptyArray($tracked, identifier);
-      if (arr.length === 0) {
+      const $new = arr.length === 0;
+      if ($new) {
         arr.push([]);
       }
       const args = arr[0];
       for (let i = 0; i < len; i++) {
-        setOnArray(args, i, newVal[i], true);
+        setOnArray(args, i, newVal[i], $new);
       }
       if (arr.length === 1 || $tainted.has(args)) {
         arr[1] = $funcLib[args[0]].apply($res, args.slice(1));
@@ -818,10 +824,10 @@ function library() {
         const res = Object.assign({}, ...src);
         Object.keys(res).forEach(key => {
           $keysPendingDelete.delete(key);
-          setOnObject($out, key, res[key]);
+          setOnObject($out, key, res[key], $new);
         });
         $keysPendingDelete.forEach(key => {
-          deleteOnObject($out, key)
+          deleteOnObject($out, key, $new)
         });
         $invalidatedKeys.clear();
       }
@@ -850,12 +856,12 @@ function library() {
           let partLen = src[key].length
           if($invalidatedKeys.has(key)) {
             if($cache[key] && $cache[key] == partLen) {
-              src[key].forEach((value, index) => setOnArray($out, pos+index, value, true))
+              src[key].forEach((value, index) => setOnArray($out, pos+index, value, $new))
               pos += $cache[key]
             } else {
               for(;key<length;key+=1) {
                 partLen = src[key].length
-                src[key].forEach((value, index) => setOnArray($out, pos+index, value, true))
+                src[key].forEach((value, index) => setOnArray($out, pos+index, value, $new))
                 $cache[key] = partLen
                 pos += partLen
               }
@@ -866,7 +872,7 @@ function library() {
         }
         $invalidatedKeys.clear()
 
-        initialLength !== pos && truncateArray($out, pos, true)
+        initialLength !== pos && truncateArray($out, pos)
       }
 
       return $out
@@ -928,7 +934,7 @@ function library() {
         let len = 0;
         $res = $out[0];
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-          setOnArray($res, len, val);
+          setOnArray($res, len, val, false);
           len++;
         }
         if ($res.length > len) {
@@ -1021,7 +1027,7 @@ function updateDerived() {
     for (let i = 0; i < $COUNT_GETTERS; i++) {
       if ($first || $invalidatedRoots.has(i)) {
         const newValue = builderFunctions[i]([$invalidatedRoots, i]);
-        setOnArray($topLevel, i, newValue, true);
+        setOnArray($topLevel, i, newValue, $first);
         if (!$first) {
           $invalidatedRoots.delete(i);
         }
