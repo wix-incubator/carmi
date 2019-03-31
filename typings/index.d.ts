@@ -36,7 +36,8 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never):
         Graph<ReturnType<F[FunctionName]>, F>
     /**
-    * ??
+    * Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
+    * **Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
     */
     effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never): void
 
@@ -146,8 +147,6 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     * returns true if the context is of type string
     */
     isString(): BoolGraph<F>
-
-
 }
 
 /**
@@ -478,7 +477,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     includes(value: Argument<Value>): BoolGraph<F>
 
     /**
-     * Resolves to the same array, with only truthy values
+    * Resolves to the same array, with only truthy values
     * @sugar */
     compact(): this
 
@@ -508,16 +507,6 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
      * Resolves to the number of keys in the object
      */
     size(): NumberGraph<number, F>
-
-    /**
-     * Resolves to an array representing the keys of the object
-     */
-    keys(): ArrayGraph<Key[], F>
-
-    /**
-     * Resolves to an array representing the values of the object
-     */
-    values(): ArrayGraph<Value[], F>
 
     /**
      * Resolves to true if NativeType has the given key as a key
@@ -608,6 +597,16 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     recursiveMapValues<Scope, Ret>(functor: (loop: Looper<Ret>, value?: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope): ObjectGraph<{
         Key: Ret
     }, F>
+
+    /**
+    * Resolves to an array representing the keys of the object
+    */
+    keys(): ArrayGraph<Key[], F>
+
+    /**
+    * Resolves to an array representing the values of the object
+    */
+    values(): ArrayGraph<Value[], F>
 }
 
 interface Expression { }
@@ -684,7 +683,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     /**
     * declare a setter that adds an element to the end of an array. The setter will create the array if it doesn't exist
     */
-   push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
+    push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
 
    /**
     * call a function called functionName from the function library passes the current value as the first argument, and extra arguments are well... extra
@@ -692,8 +691,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
 
     /**
-    * Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
-    * **Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
+    * See on doc for [`effect(func, args)`](api.html#effectfunc-args-1) in **Graph**
     */
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
 

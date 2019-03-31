@@ -251,7 +251,7 @@ function library() {
   }
 
   function values(src) {
-    return Array.from(Object.values(src));
+    return Array.isArray(src) ? src : Array.from(Object.values(src));
   }
 
   function assign(src) {

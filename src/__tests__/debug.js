@@ -23,6 +23,7 @@ describe('Tests for usability and debugging carmi', () => {
       // expect(sources.indexOf('makeSureThisCanBeFound')).toBeGreaterThan(-1)
       expect(ast.indexOf('80')).toBeGreaterThan(-1)
     });
+
     it('withName', async () => {
       const negated = withName('negated', root.map(val => val.not()));
       const model = {doubleNegated: negated.map(val => val.not().call('tap')), set: setter(arg0)};
@@ -106,7 +107,7 @@ describe('Tests for usability and debugging carmi', () => {
 
       expect(e.message).toContain('}.ceil')
     })
-    
+
     it('throw more readable error when trying to chain an object with underfined', () => {
       let error
       try {
@@ -185,6 +186,24 @@ describe('Tests for usability and debugging carmi', () => {
 
       expect(e.message).toContain('[0].mapValues')
     })
+
+    it('values should only work woth object', () => {
+      const model = {
+        original: root.get('list'),
+        valued: root.get('list').values()
+      }
+
+      const src = compile(model, {compiler, debug: true})
+      const optModel = eval(src)
+      const initialData = {list: [1, 2, 3, 4]}
+
+      try {
+        optModel(initialData)
+      } catch (err) {
+        expect(err.message).toContain('values expects object. valued at')
+      }
+    })
+
     it('when using objects with array functions, throw an error', () => {
       const model = {bad: root.get('data').filter(a => a)}
       const src = compile(model, {compiler, debug: true});
