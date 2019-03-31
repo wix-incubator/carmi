@@ -437,7 +437,7 @@ function library() {
             if ($cache.keyToIndices[key].size === 0) {
               delete $cache.keyToIndices[key]
               keysPendingDelete.add(key);
-            }  
+            }
           }
         });
         $invalidatedKeys.forEach(index => {
@@ -664,11 +664,13 @@ function library() {
     const valuesOrKeysCacheFunc = () => ({$keyToIdx: {}, $idxToKey: []});
 
     function valuesOrKeysForObject($tracked, identifier, src, getValues, $invalidates) {
+
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
       const { $keyToIdx, $idxToKey } = $storage[4];
+
       if ($new) {
         Object.keys(src).forEach((key, idx) => {
           $out[idx] = getValues ? src[key] : key;

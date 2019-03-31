@@ -67,22 +67,22 @@ class NaiveCompiler {
       }
       case 'and':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map(e => this.generateExpr(e))
             .map(part => `(${part})`)
-            .join('&&') 
+            .join('&&')
           })`
         );
       case 'or':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map(e => this.generateExpr(e))
             .map(part => `(${part})`)
-            .join('||') 
+            .join('||')
           })`
         );
       case 'not':
@@ -264,8 +264,7 @@ class NaiveCompiler {
         const source = this.shortSource(currentToken[SourceTag])
         return `checkTypes(${input}, '${name}', ${JSON.stringify(typeData.expectedTypes)}, '${tokenType}', '${source}')`
       },
-
-    ID: () => expr[0].$id,
+      ID: () => expr[0].$id,
       FN_ARGS: () => ` ${expr[0].$type === 'func' ? expr.slice(2).map(t => t.$type).join(',') : ''}`
     };
   }

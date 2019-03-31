@@ -147,8 +147,6 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     * returns true if the context is of type string
     */
     isString(): BoolGraph<F>
-
-
 }
 
 /**
@@ -519,16 +517,6 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     size(): NumberGraph<number, F>
 
     /**
-     * Resolves to an array representing the keys of the object
-     */
-    keys(): ArrayGraph<Key[], F>
-
-    /**
-     * Resolves to an array representing the values of the object
-     */
-    values(): ArrayGraph<Value[], F>
-
-    /**
      * Resolves to true if NativeType has the given key as a key
      * @param key A potential key of NativeType
      */
@@ -609,9 +597,7 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
 
     /**
      * Converts an object to an array of [key, value] pairs
-     *
-     * @sugar
-     */
+     * @sugar */
     toPairs(): ArrayGraph<Array<ArrayGraph<[KeyGraph, ValueGraph], F>>, F>
 
     /**
@@ -624,6 +610,16 @@ interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
     recursiveMapValues<Scope, Ret>(functor: (loop: Looper<Ret>, value?: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope): ObjectGraph<{
         Key: Ret
     }, F>
+
+    /**
+    * Resolves to an array representing the keys of the object
+    */
+    keys(): ArrayGraph<Key[], F>
+
+    /**
+    * Resolves to an array representing the values of the object
+    */
+    values(): ArrayGraph<Value[], F>
 }
 
 interface Expression { }

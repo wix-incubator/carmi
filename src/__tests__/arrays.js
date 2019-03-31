@@ -10,49 +10,52 @@ const _ = require('lodash');
 
 describe('testing array', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
-    it('simple map', async () => {
-      const model = {negated: root.map(val => val.not().call('tap')), set: setter(arg0)};
-      const optCode = eval(compile(model, {compiler}));
-      const inst = optCode([true, true, false, false, false], funcLibrary);
-      expect(inst.negated).toEqual([false, false, true, true, true]);
-      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
-      inst.set(1, false);
-      expect(inst.negated).toEqual([false, true, true, true, true]);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
+    describe('map', () => {
+      it('simple map', async () => {
+        const model = {negated: root.map(val => val.not().call('tap')), set: setter(arg0)};
+        const optCode = eval(compile(model, {compiler}));
+        const inst = optCode([true, true, false, false, false], funcLibrary);
+        expect(inst.negated).toEqual([false, false, true, true, true]);
+        expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+        inst.set(1, false);
+        expect(inst.negated).toEqual([false, true, true, true, true]);
+        expectTapFunctionToHaveBeenCalled(1, compiler);
+      });
+      it('simple map with effect', async () => {
+        const model = {effect: root.map(val => or(val.ternary(chain(true).effect('tap'), null), val)), set: setter(arg0)};
+        const optCode = eval(compile(model, {compiler}));
+        const inst = optCode([true, true, false, false, false], funcLibrary);
+        expect(inst.effect).toEqual([true, true, false, false, false]);
+        expectTapFunctionToHaveBeenCalled(inst.$model.filter(k => k).length, {compiler: 'optimizing'});
+        inst.set(1, false);
+        expect(inst.effect).toEqual([true, false, false, false, false]);
+        expectTapFunctionToHaveBeenCalled(0, {compiler: 'optimizing'});
+        inst.set(2, true);
+        expect(inst.effect).toEqual([true, false, true, false, false]);
+        expectTapFunctionToHaveBeenCalled(1, {compiler: 'optimizing'});
+      });
+      it('map return empty object if falsy', async () => {
+        const model = {orEmpty: root.map(val => or(val, {}).call('tap')), set: setter(arg0)};
+        const optCode = eval(compile(model, {compiler}));
+        const inst = optCode([{x: 1}, false, {x: 2}], funcLibrary);
+        expect(inst.orEmpty).toEqual([{x: 1}, {}, {x: 2}]);
+        expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+        inst.set(2, false);
+        expect(inst.orEmpty).toEqual([{x: 1}, {}, {}]);
+        expectTapFunctionToHaveBeenCalled(1, compiler);
+      });
+      it('map return empty object if falsy', async () => {
+        const model = {orEmpty: root.map(val => or(val, []).call('tap')), set: setter(arg0)};
+        const optCode = eval(compile(model, {compiler}));
+        const inst = optCode([[1], false, [2]], funcLibrary);
+        expect(inst.orEmpty).toEqual([[1], [], [2]]);
+        expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
+        inst.set(2, false);
+        expect(inst.orEmpty).toEqual([[1], [], []]);
+        expectTapFunctionToHaveBeenCalled(1, compiler);
+      });
     });
-    it('simple map with effect', async () => {
-      const model = {effect: root.map(val => or(val.ternary(chain(true).effect('tap'), null), val)), set: setter(arg0)};
-      const optCode = eval(compile(model, {compiler}));
-      const inst = optCode([true, true, false, false, false], funcLibrary);
-      expect(inst.effect).toEqual([true, true, false, false, false]);
-      expectTapFunctionToHaveBeenCalled(inst.$model.filter(k => k).length, {compiler: 'optimizing'});
-      inst.set(1, false);
-      expect(inst.effect).toEqual([true, false, false, false, false]);
-      expectTapFunctionToHaveBeenCalled(0, {compiler: 'optimizing'});
-      inst.set(2, true);
-      expect(inst.effect).toEqual([true, false, true, false, false]);
-      expectTapFunctionToHaveBeenCalled(1, {compiler: 'optimizing'});
-    });
-    it('map return empty object if falsy', async () => {
-      const model = {orEmpty: root.map(val => or(val, {}).call('tap')), set: setter(arg0)};
-      const optCode = eval(compile(model, {compiler}));
-      const inst = optCode([{x: 1}, false, {x: 2}], funcLibrary);
-      expect(inst.orEmpty).toEqual([{x: 1}, {}, {x: 2}]);
-      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
-      inst.set(2, false);
-      expect(inst.orEmpty).toEqual([{x: 1}, {}, {}]);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
-    });
-    it('map return empty object if falsy', async () => {
-      const model = {orEmpty: root.map(val => or(val, []).call('tap')), set: setter(arg0)};
-      const optCode = eval(compile(model, {compiler}));
-      const inst = optCode([[1], false, [2]], funcLibrary);
-      expect(inst.orEmpty).toEqual([[1], [], [2]]);
-      expectTapFunctionToHaveBeenCalled(inst.$model.length, compiler);
-      inst.set(2, false);
-      expect(inst.orEmpty).toEqual([[1], [], []]);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
-    });
+
     describe('any', () => {
       it('simple any', async () => {
         const model = {
@@ -138,7 +141,7 @@ describe('testing array', () => {
       inst.set(0, 'b')
       expect(inst.asObject).toEqual({a: 'a', b: 'b'})
     });
-    
+
     it('simple comparison operations', async () => {
       const arr = root.get('arr');
       const compareTo = root.get('compareTo');
