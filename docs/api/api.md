@@ -127,8 +127,7 @@ const { root, chain } = require('carmi');
  instance.output //{books: ["a scanner darkly"], shelf: "scifi"}
 ```
 ### `effect(func, args)` 
-Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
-**Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
+See on doc for [`effect(func, args)`](api.html#effectfunc-args-1) in **Graph**
 
 ### `implement(iface, name)` 
 uses a previously declared abstract clause and assigns an actual value to the named abstract
@@ -165,7 +164,8 @@ Triggers a breakpoint if the condition resolves to true.
 Generates a console statement, continuing the chain if condition resolves to true.
 
 ### `effect(func, args)` 
-??
+Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
+**Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
 
 ### `eq(other)` 
 Returns a boolean graph that resolves to the value of (NativeType === other)
@@ -192,7 +192,7 @@ Resolves to !NativeType
 When run on a key inside a recursiveMap/recursiveMapValues functor,
 will return the resolved value for a given key. NativeType allows returning values for indicies of a map based on other values.
 
-### `switchCase(caseTuples, defaultCase)` 🍬
+### `switch(caseTuples, defaultCase)` 🍬
 Resolves to the case that matches equals to the boxed value
 
 ### `tapTrace(tapFn)` 🍬
