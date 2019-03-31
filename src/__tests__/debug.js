@@ -202,7 +202,6 @@ describe('Tests for usability and debugging carmi', () => {
       } catch (err) {
         expect(err.message).toContain('values expects object. valued at')
       }
-
     })
 
     it('when using objects with array functions, throw an error', () => {

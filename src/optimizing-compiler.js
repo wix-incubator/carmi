@@ -96,7 +96,7 @@ $tainted = new WeakSet();
   }
 
   uniqueId(expr, extra = '') {
-    return `'${expr[0].$id}${extra}'`;
+    return `${extra ? '-' : ''}${expr[0].$id}`;
   }
 
   topLevelToIndex(str) {
@@ -142,15 +142,15 @@ $tainted = new WeakSet();
           _.range(2, expr.length, 2).map(idx => this.generateExpr(expr[idx])).join(',')
         }], ${this.uniqueId(expr)}, object$${
           expr[0].$duplicate ? expr[0].$duplicate : expr[0].$id
-        }Args, ${this.invalidates(expr)})`;
+        }Args)`;
       case 'array':
         return `array($tracked,${super.generateExpr(expr)}, ${this.uniqueId(expr)}, ${expr.length -
-          1}, ${this.invalidates(expr)})`;
+          1})`;
       case 'call':
         return `call($tracked,[${expr
           .slice(1)
           .map(subExpr => this.generateExpr(subExpr))
-          .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1}, ${this.invalidates(expr)})`;
+          .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`;
       case 'bind':
         return `bind($tracked,[${expr
           .slice(1)
@@ -160,7 +160,7 @@ $tainted = new WeakSet();
       case 'values':
         return `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'values' ? 'true' : 'false'
-        }, ${this.invalidates(expr)})`;
+        })`;
       case 'sum':
       case 'flatten':
       case 'size':
@@ -169,11 +169,11 @@ $tainted = new WeakSet();
       case 'defaults':
         return `assignOrDefaults($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
           tokenType === 'assign' ? 'true' : 'false'
-        }, ${this.invalidates(expr)})`;
+        })`;
       case 'range':
         return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
-        }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)}, ${this.invalidates(expr)})`;
+        }, ${expr.length > 3 ? this.generateExpr(expr[3]) : '1'}, ${this.uniqueId(expr)})`;
       case 'filterBy':
       case 'mapValues':
       case 'groupBy':
@@ -190,8 +190,8 @@ $tainted = new WeakSet();
       )}, ${
         typeof expr[3] === 'undefined' || expr[3] instanceof Token && expr[3].$type === 'null' ?
           null :
-          `array($tracked,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1,true)`
-      }, ${this.invalidates(expr)})`;
+          `array($tracked,[${this.generateExpr(expr[3])}],${this.uniqueId(expr, 'arr')},1)`
+      })`;
       case 'context':
         return 'context[0]';
       case 'recur':
