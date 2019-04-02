@@ -83,65 +83,33 @@ describe('Tests for usability and debugging carmi', () => {
       expectTapFunctionToHaveBeenCalled(1, compiler);
     })
     it('passing item between functions should throw nicer error message', () => {
-      let e = null
-      try {
-        root.mapValues(item =>
+      expect(() => root.mapValues(item =>
           root.filterBy(innerItem => innerItem.eq(item))
-        )
-      } catch (err) {
-        e = err
-      }
-      expect(e.message).toContain('eq')
-      expect(e.message).toContain('filterBy')
+      )).toThrow(/eq(.|\n)+filterBy/gm)
+      //expect(e.message).toContain('eq')
+      //expect(e.message).toContain('filterBy')
     })
 
     it('when using non-numbers with number functions, throw a nicer error', () => {
       const model = {three: chain({a: 1}).ceil()}
       const optCode = eval(compile(model, {compiler, debug: true}));
-      let e
-      try {
-        optCode([], funcLibrary);
-      } catch (err) {
-        e = err
-      }
-
-      expect(e.message).toContain('}.ceil')
+      expect(() => optCode([], funcLibrary)).toThrow('}.ceil')
     })
 
     it('throw more readable error when trying to chain an object with underfined', () => {
-      let error
-      try {
-        chain({a: {b: [1, undefined]}})
-      } catch (e) {
-        error = e
-      }
-
-      expect(error.message).toContain('a.b[1]')
+      expect(() => chain({a: {b: [1, undefined]}})).toThrow('a.b[1]')
     })
 
     it('when calling a non-existent function, throw a readable error', () => {
       const model = {three: chain({a: 1}).call('nonExistentFunction')}
       const optCode = eval(compile(model, {compiler, debug: true}));
-      let e
-      try {
-        optCode([], funcLibrary);
-      } catch (err) {
-        e = err
-      }
 
-      expect(e.message).toContain('nonExistentFunction')
+      expect(() => optCode([], funcLibrary)).toThrow('nonExistentFunction')
     })
 
     it('when calling a function with undefined args, throw a readable error', () => {
       const model = {three: chain({a: () => 123}).call('func')}
-      let e
-      try {
-        compile(model, {compiler, debug: true});
-      } catch (err) {
-        e = err
-      }
-
-      expect(e.message).toContain('() => 123')
+      expect(() => compile(model, {compiler, debug: true})).toThrow('() => 123')
     })
 
     it('allow primitives on the model', async () => {
@@ -163,28 +131,15 @@ describe('Tests for usability and debugging carmi', () => {
       const model = {three: chain(3).mapValues(a => a)}
       const src = compile(model, {compiler, debug: true, cwd: path.resolve(__dirname, '../..')});
       const optCode = eval(src)
-      let e
-      try {
-        optCode([], funcLibrary);
-      } catch (err) {
-        e = err
-      }
-
-      expect(e.message).toContain('3.mapValues')
+      expect(() => optCode([], funcLibrary)).toThrow('3.mapValues')
     })
 
     it('when using arrays with object functions, throw an error', () => {
       const model = {bad: root.get('data').mapValues(a => a)}
       const src = compile(model, {compiler, debug: true});
       const optCode = eval(src)
-      let e
-      try {
-        optCode({data: [0]}, funcLibrary);
-      } catch (err) {
-        e = err
-      }
 
-      expect(e.message).toContain('[0].mapValues')
+      expect(() => optCode({data: [0]}, funcLibrary)).toThrow('[0].mapValues')
     })
 
     it('values should only work woth object', () => {
@@ -197,25 +152,15 @@ describe('Tests for usability and debugging carmi', () => {
       const optModel = eval(src)
       const initialData = {list: [1, 2, 3, 4]}
 
-      try {
-        optModel(initialData)
-      } catch (err) {
-        expect(err.message).toContain('values expects object. valued at')
-      }
+      expect(() => optModel(initialData)).toThrow('values expects object. valued at')
     })
 
     it('when using objects with array functions, throw an error', () => {
       const model = {bad: root.get('data').filter(a => a)}
       const src = compile(model, {compiler, debug: true});
       const optCode = eval(src)
-      let e
-      try {
-        optCode({data: {a: 0}}, funcLibrary);
-      } catch (err) {
-        e = err
-      }
 
-      expect(e.message).toContain('0}.filter')
+      expect(() => optCode({data: {a: 0}}, funcLibrary)).toThrow('0}.filter')
     })
   })
 });
