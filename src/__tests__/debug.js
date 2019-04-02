@@ -86,8 +86,6 @@ describe('Tests for usability and debugging carmi', () => {
       expect(() => root.mapValues(item =>
           root.filterBy(innerItem => innerItem.eq(item))
       )).toThrow(/eq(.|\n)+filterBy/gm)
-      //expect(e.message).toContain('eq')
-      //expect(e.message).toContain('filterBy')
     })
 
     it('when using non-numbers with number functions, throw a nicer error', () => {
