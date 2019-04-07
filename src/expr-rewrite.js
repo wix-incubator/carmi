@@ -1,10 +1,9 @@
 const _ = require('lodash');
 const {flattenExpression, searchExpressions, searchExpressionsWithoutInnerFunctions, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {memoizeExprFunc, memoize} = require('./memoize');
-const {exprHash, hashString} = require('./expr-hash');
+const {exprHash, exprHash_ignoreLiterals} = require('./expr-hash');
 const {TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func} = require('./lang');
 const {generateName, generateNameFromTag} = require('./expr-names');
-const objectHash = require('object-hash');
 
 const countTokens = memoizeExprFunc(expr => _.sum(expr.map(countTokens)), () => 1)
 
@@ -108,7 +107,7 @@ function rewriteLocalsToFunctions(getters) {
         loop: true
     }
 
-    function rewriteExpr(e) { 
+    function rewriteExpr(e) {
         if (e instanceof Expression) {
             const hash = exprHash(e);
             const found = countIdenticals[hash];
@@ -127,7 +126,7 @@ function rewriteLocalsToFunctions(getters) {
                     newGetters[name] = Expr(Func, Expr(...e.map(rewriteExpr)), ...found.tokens);
                 }
                 return Expr(Invoke, name, ...found.tokens.map(t => new Token(t.$type)));
-            } 
+            }
                 return Expr(...e.map(rewriteExpr));
         }
         return e;
@@ -160,7 +159,41 @@ function rewriteUniqueByHash(getters) {
     return newGetters;
 }
 
+function rewriteSharedExpressions(getters) {
+  const exprs = flattenExpression(Object.values(getters));
+  const allHashes = {};
+  exprs.forEach(e => {
+    const hash = exprHash_ignoreLiterals(e);
+    allHashes[hash] = allHashes[hash] || [];
+    allHashes[hash].push(e)
+  })
+
+  const getLeaves = (arg, path) => {
+    if (_.isArray(arg)) {
+      return _.flatMap(arg, (x, i) => getLeaves(x, path.concat(i)))
+    } else {
+      return [{leaf: arg, path}]
+    }
+  }
+
+
+  const diffs = _.mapValues(allHashes, exprsArray => {
+    const tokens = _.map(exprsArray, x => {
+      const leaves = getLeaves(x, []);
+      return leaves.filter(({leaf}) => _.isNumber(leaf) || _.isString(leaf))
+    })
+
+    return {
+      exprsArray,
+      numberOfIdenticalTrees: exprsArray.length
+    }
+  })
+
+  return getters
+}
+
 module.exports = {
+    rewriteSharedExpressions,
     rewriteLocalsToFunctions,
     rewriteStaticsToTopLevels,
     rewriteUniqueByHash

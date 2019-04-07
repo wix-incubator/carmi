@@ -25,7 +25,7 @@ const {memoizeExprFunc, memoize} = require('./memoize');
 const {exprHash} = require('./expr-hash');
 const {flattenExpression, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {tagToSimpleFilename} = require('./expr-names');
-const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash} = require('./expr-rewrite');
+const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash, rewriteSharedExpressions} = require('./expr-rewrite');
 const {or, and, not} = require('./expr-logic');
 let exprCounter = 1;
 
@@ -503,6 +503,7 @@ function normalizeAndTagAllGetters(getters, setters) {
   getters = rewriteUniqueByHash(getters);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
   getters = rewriteStaticsToTopLevels(getters);
+  getters = rewriteSharedExpressions(getters);
   getters = rewriteUniqueByHash(getters);
    getters = rewriteLocalsToFunctions(getters);
    getters = cloneExpressions(getters);
