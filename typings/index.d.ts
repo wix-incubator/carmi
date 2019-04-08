@@ -744,3 +744,5 @@ export default carmiDefaultAPI
 
 export function withSchema<Schema extends object, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
 export function compile(transformations: object, options ?: object): string
+
+export function template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: string[]): CarmiAPI<Schema, F>
