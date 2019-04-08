@@ -186,6 +186,12 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
    /**
      * Resolves to (NativeType * other)
      * @param other
+     * @example
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.mult(2)
+     * }, 2)
+     * instance.output //4
      */
     mult(value: Argument<number>): NumberGraph<number, F>
 
@@ -374,6 +380,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array
      * @param scope A variable to pass to the functor if inside another functor.
+     * @example
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.map( item => item.mult(2))
+     * }, [3, 2, 1])
+     * instance.output //[6, 4, 2]
      */
     map<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) : ArrayGraph<Ret[], F>
 
@@ -419,6 +431,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
+     * @example
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.filter( item => item.mod(2))
+     * }, [3, 2, 1])
+     * instance.output //[3, 1]
      */
     filter<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => any, scope?: Scope) : ArrayGraph<Value[], F>
 

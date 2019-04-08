@@ -32,7 +32,13 @@ Returns a boolean graph that resolves to true if running the functor on all of t
 
 ### `filter(functor, scope)` 
 Returns an array graph containing only the values for which the functor resolved to true
-
+```js
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.filter( item => item.mod(2))
+}, [3, 2, 1])
+instance.output //[3, 1]
+```
 ### `find(functor, scope)` 🍬
 Resolved to the first value for which the functor resolved to true
 
@@ -67,7 +73,13 @@ Resolves to the last item in an array
 
 ### `map(functor, scope)` 
 Runs the functor for every item in an array. Returns a graph that resolves to an array with the returned values.
-
+```js
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.map( item => item.mult(2))
+}, [3, 2, 1])
+instance.output //[6, 4, 2]
+```
 ### `recursiveMap(functor, scope)` 
 Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
 The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
@@ -241,7 +253,13 @@ Resolves to (NativeType % other)
 
 ### `mult(value)` 
 Resolves to (NativeType * other)
-
+```js
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.mult(2)
+}, 2)
+instance.output //4
+```
 ### `plus(num)` 
 Resolves to (NativeType + other)
 
