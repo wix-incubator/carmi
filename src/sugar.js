@@ -165,6 +165,7 @@ const sugarApi = {
   last,
   head,
   every,
+  simpleSet,
   compact,
   switch: switchCase,
   conditionalTrace,

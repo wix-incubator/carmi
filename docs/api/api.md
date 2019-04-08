@@ -32,7 +32,13 @@ Returns a boolean graph that resolves to true if running the functor on all of t
 
 ### `filter(functor, scope)` 
 Returns an array graph containing only the values for which the functor resolved to true
-
+```js
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.filter( item => item.mod(2))
+}, [3, 2, 1])
+instance.output //[3, 1]
+```
 ### `find(functor, scope)` 🍬
 Resolved to the first value for which the functor resolved to true
 
@@ -41,9 +47,6 @@ Resolved to the index of the first value for which the functor resolved to true,
 
 ### `flatten()` 
 Flattens inner arrays into an array
-
-### `fromPairs()` 🍬
-Converts an array of [key, value] pairs to an object
 
 ### `head()` 🍬
 Resolves to the first item in an array
@@ -70,7 +73,13 @@ Resolves to the last item in an array
 
 ### `map(functor, scope)` 
 Runs the functor for every item in an array. Returns a graph that resolves to an array with the returned values.
-
+```js
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.map( item => item.mult(2))
+}, [3, 2, 1])
+instance.output //[6, 4, 2]
+```
 ### `recursiveMap(functor, scope)` 
 Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
 The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
@@ -144,6 +153,15 @@ declare actions which can be triggered on your state to change it (use arg0/arg1
 ### `splice(path)` 
 declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
 
+### `template(template, placeholders)` 
+this api creates a string using carmi models using the template string method
+```js
+const { root, template } = require('carmi');
+const instance = createInstance({
+  output: template`Second array item is:${root.get(1)}.`
+}, [3, 2, 1]);
+instance.output //Second array item is:2.
+```
 ### `withName(name, g)` 
 this is a dubug feature which allows to name the actual projection functions on the carmi root
 
@@ -235,7 +253,13 @@ Resolves to (NativeType % other)
 
 ### `mult(value)` 
 Resolves to (NativeType * other)
-
+```js
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.mult(2)
+}, 2)
+instance.output //4
+```
 ### `plus(num)` 
 Resolves to (NativeType + other)
 
@@ -288,9 +312,6 @@ Sets value for given key
 
 ### `size()` 
 Resolves to the number of keys in the object
-
-### `toPairs()` 🍬
-Converts an object to an array of [key, value] pairs
 
 ### `values()` 
 Resolves to an array representing the values of the object

@@ -186,6 +186,12 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
    /**
      * Resolves to (NativeType * other)
      * @param other
+     * @example
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.mult(2)
+     * }, 2)
+     * instance.output //4
      */
     mult(value: Argument<number>): NumberGraph<number, F>
 
@@ -374,6 +380,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array
      * @param scope A variable to pass to the functor if inside another functor.
+     * @example
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.map( item => item.mult(2))
+     * }, [3, 2, 1])
+     * instance.output //[6, 4, 2]
      */
     map<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) : ArrayGraph<Ret[], F>
 
@@ -419,6 +431,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
+     * @example
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.filter( item => item.mod(2))
+     * }, [3, 2, 1])
+     * instance.output //[3, 1]
      */
     filter<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => any, scope?: Scope) : ArrayGraph<Value[], F>
 
@@ -678,14 +696,14 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     /**
     * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
     */
-   splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
+    splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
 
     /**
     * declare a setter that adds an element to the end of an array. The setter will create the array if it doesn't exist
     */
     push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
 
-   /**
+    /**
     * call a function called functionName from the function library passes the current value as the first argument, and extra arguments are well... extra
     */
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
@@ -721,6 +739,17 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     */
     withName<T>(name: string, g: T): T
 
+    /**
+    * this api creates a string using carmi models using the template string method
+    * @example
+    * const { root, template } = require('carmi');
+    * const instance = createInstance({
+    *   output: template`Second array item is:${root.get(1)}.`
+    * }, [3, 2, 1]);
+    * instance.output //Second array item is:2.
+    */
+    template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: string[]): CarmiAPI<Schema, F>
+
     arg0: Token
     arg1: Token
     arg2: Token
@@ -744,3 +773,5 @@ export default carmiDefaultAPI
 
 export function withSchema<Schema extends object, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
 export function compile(transformations: object, options ?: object): string
+
+export function template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: string[]): CarmiAPI<Schema, F>
