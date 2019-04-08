@@ -678,14 +678,14 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     /**
     * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
     */
-   splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
+    splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
 
     /**
     * declare a setter that adds an element to the end of an array. The setter will create the array if it doesn't exist
     */
     push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
 
-   /**
+    /**
     * call a function called functionName from the function library passes the current value as the first argument, and extra arguments are well... extra
     */
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
@@ -720,6 +720,17 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     * this is a dubug feature which allows to name the actual projection functions on the carmi root
     */
     withName<T>(name: string, g: T): T
+
+    /**
+    * this api creates a string using carmi models using the template string method
+    * @example
+    * const { root, template } = require('carmi');
+    * const instance = createInstance({
+    *   output: template`Second array item is:${root.get(1)}.`
+    * }, [3, 2, 1]);
+    * instance.output //Second array item is:2.
+    */
+    template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: string[]): CarmiAPI<Schema, F>
 
     arg0: Token
     arg1: Token
