@@ -690,6 +690,12 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     and<A, B, C, D, E, FF>(a: A, b: B, c: C, d: D, e: E, f: FF): Graph<FF, F>
     /**
     * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
+    * @example
+    * const { root, setter, arg0 } = require('carmi');
+    * const instance = createInstance({setItem: setter(arg0), output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
+    * console.log(instance.output) //true
+    * instance.setItem(1, 3)
+    * instance.output //false
     */
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
 
