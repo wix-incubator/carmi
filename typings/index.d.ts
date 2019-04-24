@@ -691,8 +691,11 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     /**
     * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
     * @example
-    * const { root, setter, arg0 } = require('carmi');
-    * const instance = createInstance({setItem: setter(arg0), output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
+    * const { root, setter, arg0 } = require('carmi')
+    * const instance = createInstance({
+    *     setItem: setter(arg0),
+    *     output: root.any((value, index) => value.eq(2))
+    * }, [3, 2, 1]);
     * console.log(instance.output) //true
     * instance.setItem(1, 3)
     * instance.output //false
