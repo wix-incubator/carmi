@@ -395,8 +395,10 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
      * @param functor A function to run for every item of the array, returning boolean
      * @param scope A variable to pass to the functor if inside another functor.
      * @example
-     * const { root } = require('carmi');
-     * const instance = createInstance({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
+     * const { root } = require('carmi')
+     * const instance = createInstance({
+     *     output: root.any((value, index) => value.eq(2))
+     * }, [3, 2, 1])
      * instance.output //true
      */
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>

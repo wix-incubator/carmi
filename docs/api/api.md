@@ -8,8 +8,10 @@ custom_edit_url: https://github.com/wix-incubator/carmi/edit/master/typings/inde
 ### `any(functor, scope)` 
 Returns a boolean graph that resolves to true if running the functor on any of the array's item resolved to true
 ```js
-const { root } = require('carmi');
-const instance = createInstance({output: root.any((value, index) => value.eq(2))}, [3, 2, 1]);
+const { root } = require('carmi')
+const instance = createInstance({
+    output: root.any((value, index) => value.eq(2))
+}, [3, 2, 1])
 instance.output //true
 ```
 ### `append(value)` 🍬
