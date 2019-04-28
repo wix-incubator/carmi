@@ -16,3 +16,15 @@
 }
 
 pre > iframe { max-width: initial; }
+pre {position: relative;}
+.hljs { padding: .8rem; position: relative; }
+
+.interactive-action {
+	position: absolute;
+	top: 0;
+	right: 0;
+	cursor: pointer;
+	display: block;
+	margin: .8rem;
+	background-color: #f0f0f0;
+}
