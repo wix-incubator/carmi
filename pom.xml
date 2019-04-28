@@ -31,5 +31,12 @@
                 <role>owner</role>
             </roles>
         </developer>
+        <developer>
+            <name>Leon Fedotov</name>
+            <email>leonf@wix.com</email>
+            <roles>
+                <role>owner</role>
+            </roles>
+        </developer>
     </developers>
 </project>
