@@ -10,6 +10,7 @@ const compilerTypes = {};
 compilerTypes.naive = require('./naive-compiler');
 compilerTypes.simple = require('./simple-compiler');
 compilerTypes.optimizing = require('./optimizing-compiler');
+compilerTypes.bytecode = require('./bytecode-compiler');
 try {
   compilerTypes.flow = require('./flow-compiler');
   compilerTypes.rust = require('./rust-compiler');
@@ -45,14 +46,14 @@ module.exports = (model, options) => {
   }
   const rawSource = compiler.compile();
   let source = rawSource;
-  if (options.prettier) {
+  if (options.prettier && typeof source === 'string') {
     try {
       source = prettier.format(rawSource, {parser: 'babel'});
     } catch (e) { } //eslint-disable-line no-empty
   }
   let result;
 
-  if (compiler.lang === 'js') {
+  if (compiler.lang === 'js' && typeof source === 'string') {
     switch (options.format) {
       case 'iife':
         result = `var ${options.name} = (function () {

@@ -99,10 +99,6 @@ $tainted = new WeakSet();
     return `${extra ? '-' : ''}${expr[0].$id}`;
   }
 
-  topLevelToIndex(str) {
-    return this.getters[str][0].$topLevelIndex;
-  }
-
   generateExpr(expr) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const tokenType = currentToken.$type;

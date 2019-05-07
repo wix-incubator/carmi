@@ -499,13 +499,15 @@ function findFuncExpr(getters, funcId) {
     .find(e => e[0].$funcId === funcId);
 }
 
-function normalizeAndTagAllGetters(getters, setters) {
+function normalizeAndTagAllGetters(getters, setters, options) {
   getters = rewriteUniqueByHash(getters);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
   getters = rewriteStaticsToTopLevels(getters);
   getters = rewriteUniqueByHash(getters);
-   getters = rewriteLocalsToFunctions(getters);
-   getters = cloneExpressions(getters);
+  if (!options.disableHelperFunctions) {
+    getters = rewriteLocalsToFunctions(getters);
+  }
+  getters = cloneExpressions(getters);
   tagAllExpressions(getters);
   _.forEach(getters, getter => tagUnconditionalExpressions(getter, false));
   _.forEach(getters, getter => tagExpressionFunctionsWithPathsThatCanBeInvalidated(getter));

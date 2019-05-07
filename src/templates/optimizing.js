@@ -11,60 +11,7 @@ function library() {
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
-    const collectAllItems = (res, obj, prefix) => {
-      if (typeof obj !== 'object') {
-        return;
-      }
-      res.set(obj, prefix);
-      const keys = Array.isArray(obj) ? new Array(obj.length).fill().map((_, idx) => idx) : Object.keys(obj);
-      keys.forEach(idx => {
-        const child = obj[idx];
-        if (typeof child === 'object') {
-          collectAllItems(res, child, `${prefix}.${idx}`);
-        }
-      });
-    };
-
-    const serialize = (all, obj) => {
-      if (all.has(obj)) {
-        return all.get(obj);
-      } else if (obj instanceof WeakMap) {
-        return Array.from(all.keys()).reduce((acc, item) => {
-          if (obj.has(item)) {
-            acc[all.get(item)] = serialize(all, obj.get(item));
-          }
-          return acc;
-        }, {});
-      } else if (obj instanceof Map) {
-        return Array.from(obj.keys()).reduce((acc, item) => {
-          if (all.has(item)) {
-            acc[all.get(item)] = serialize(all, obj.get(item));
-          } else {
-            acc[item] = serialize(all, obj.get(item));
-          }
-          return acc;
-        }, {});
-      } else if (obj instanceof Set || obj instanceof Array) {
-        return Array.from(obj).map(x => (all.has(x) ? all.get(x) : serialize(all, x)));
-      } else if (typeof obj === 'object') {
-        return Object.keys(obj).reduce((acc, key) => {
-          acc[key] = serialize(all, obj[key]);
-          return acc;
-        }, {});
-      } else {
-        return obj;
-      }
-    };
-
-    const debug = () => {
-      const all = new Map();
-      collectAllItems(all, $model, '$model');
-      collectAllItems(all, $res, '$res');
-      console.log(`Found ${all.size} records`);
-      console.log(JSON.stringify(serialize(all, { $trackingMap, $invalidatedMap }), null, 2));
-    };
-
-    const untrack = ($targetKeySet, $targetKey) => {
+    function untrack($targetKeySet, $targetKey){
       const $tracked = $targetKeySet.$tracked;
       if (!$tracked || !$tracked[$targetKey]) {
         return;
@@ -75,9 +22,9 @@ function library() {
         $trackingSource[$trackedByKey[i+1]].delete($trackedByKey[i+2]);
       }
       delete $tracked[$targetKey];
-    };
+    }
 
-    const invalidate = ($targetKeySet, $targetKey) => {
+    function invalidate($targetKeySet, $targetKey){
       if ($targetKeySet.has($targetKey)) {
         return;
       }
@@ -86,7 +33,7 @@ function library() {
       if ($targetKeySet.$parent) {
         invalidate($targetKeySet.$parent, $targetKeySet.$parentKey);
       }
-    };
+    }
 
     function setOnObject($target, $key, $val, $new) {
       let $changed = false;
@@ -546,23 +493,23 @@ function library() {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
           const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);
-          if (passedTest) {
-            return true;
-          } else {
+          if (!passedTest) {
             $out.length = 0;
           }
-        } else {
-          return true;
+        }
+      } else {
+        $out.length = 0;
+      }
+      if ($out.length === 0) {
+        for (let key of $invalidatedKeys) {
+          $invalidatedKeys.delete(key);
+          if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
+            $out[0] = key;
+            break;
+          }
         }
       }
-      for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);
-        if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
-          $out[0] = key;
-          return true;
-        }
-      }
-      return false;
+      return $out.length === 1;
     }
 
 
@@ -580,23 +527,23 @@ function library() {
         if ($invalidatedKeys.has($prevStop)) {
           $invalidatedKeys.delete($prevStop);
           const passedTest = func([$invalidatedKeys, $prevStop], $prevStop, src[$prevStop], context);
-          if (passedTest) {
-            return true;
-          } else {
+          if (!passedTest) {
             $out.length = 0;
           }
-        } else {
-          return true;
+        }
+      } else {
+        $out.length = 0;
+      }
+      if ($out.length === 0) {
+        for (let key of $invalidatedKeys) {
+          $invalidatedKeys.delete(key);
+          if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
+            $out[0] = key;
+            break;
+          }
         }
       }
-      for (let key of $invalidatedKeys) {
-        $invalidatedKeys.delete(key);
-        if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
-          $out[0] = key;
-          return true;
-        }
-      }
-      return false;
+      return $out.length === 1;
     }
 
     function groupByOpt($tracked, identifier, func, src, context) {
@@ -646,7 +593,7 @@ function library() {
             keysPendingDelete[res].forEach(key => {
               deleteOnObject($out[res], key, $new);
             });
-            if (Object.keys($out[res]).length == 0) {
+            if (Object.keys($out[res]).length === 0) {
               deleteOnObject($out, res, $new);
             } else {
               setOnObject($out, res, $out[res], $new);
@@ -766,12 +713,12 @@ function library() {
       return res;
     }
 
-    function object($tracked, newVal, identifier, keysList) {
+    function object($tracked, valsList, identifier, keysList) {
       const res = getEmptyObject($tracked, identifier);
       const $new = keysList.length && !res.hasOwnProperty(keysList[0]);
       for (let i = 0; i < keysList.length; i++) {
         const name = keysList[i];
-        setOnObject(res, name, newVal[i], $new);
+        setOnObject(res, name, valsList[i], $new);
       }
       return res;
     }
@@ -856,7 +803,7 @@ function library() {
         for(let key=0;key<length;key+=1) {
           let partLen = src[key].length
           if($invalidatedKeys.has(key)) {
-            if($cache[key] && $cache[key] == partLen) {
+            if($cache[key] && $cache[key] === partLen) {
               src[key].forEach((value, index) => setOnArray($out, pos+index, value, $new))
               pos += $cache[key]
             } else {
@@ -924,25 +871,25 @@ function library() {
 
     function range($tracked, end, start, step, identifier) {
       const $out = getEmptyArray($tracked, identifier);
-      let $res;
+      let res;
       if ($out.length === 0) {
-        $res = [];
-        $out.push($res);
+        res = [];
+        $out.push(res);
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-          $res.push(val);
+          res.push(val);
         }
       } else {
         let len = 0;
-        $res = $out[0];
+        res = $out[0];
         for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-          setOnArray($res, len, val, false);
+          setOnArray(res, len, val, false);
           len++;
         }
-        if ($res.length > len) {
-          truncateArray($res, len);
+        if (res.length > len) {
+          truncateArray(res, len);
         }
       }
-      return $res;
+      return res;
     }
 
     function invalidatePath(path) {

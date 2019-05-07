@@ -9,11 +9,15 @@ const {
 class SimpleCompiler extends NaiveCompiler {
   constructor(model, options) {
     const {getters, setters} = splitSettersGetters(model);
-    super({...model, ...normalizeAndTagAllGetters(getters, setters)}, options);
+    super({...model, ...normalizeAndTagAllGetters(getters, setters, options)}, options);
   }
 
   buildDerived(name) {
     return `$res.${name} = ${this.generateExpr(this.getters[name])};`;
+  }
+
+  topLevelToIndex(str) {
+    return this.getters[str][0].$topLevelIndex;
   }
 
   get template() {
