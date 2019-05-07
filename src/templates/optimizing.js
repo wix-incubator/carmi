@@ -607,7 +607,7 @@ function library() {
 
     const valuesOrKeysCacheFunc = () => ({$keyToIdx: {}, $idxToKey: []});
 
-    function valuesOrKeysForObject($tracked, identifier, src, getValues) {
+    function valuesOpt($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
@@ -616,7 +616,7 @@ function library() {
 
       if ($new) {
         Object.keys(src).forEach((key, idx) => {
-          $out[idx] = getValues ? src[key] : key;
+          $out[idx] = src[key];
           $idxToKey[idx] = key;
           $keyToIdx[key] = idx;
         });
@@ -631,7 +631,7 @@ function library() {
             $deletedKeys.push(key);
           } else {
             if ($keyToIdx.hasOwnProperty(key)) {
-              setOnObject($out, $keyToIdx[key], getValues ? src[key] : key, $new);
+              setOnObject($out, $keyToIdx[key], src[key], $new);
             }
           }
         });
@@ -647,7 +647,7 @@ function library() {
           delete $keyToIdx[$deletedKey];
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $new)
+          setOnArray($out, $newIdx, src[$addedKey], $new)
         }
         // more keys added - append to end
         for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
@@ -655,7 +655,7 @@ function library() {
           const $newIdx = $out.length;
           $keyToIdx[$addedKey] = $newIdx;
           $idxToKey[$newIdx] = $addedKey;
-          setOnArray($out, $newIdx, getValues ? src[$addedKey] : $addedKey, $new)
+          setOnArray($out, $newIdx, src[$addedKey], $new)
         }
         // more keys deleted - move non deleted items at the tail to the location of deleted
         const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
@@ -670,7 +670,86 @@ function library() {
             // need to move this key to one of the pending delete
             const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
             const $newIdx = $keyToIdx[$switchedWithDeletedKey];
-            setOnArray($out, $newIdx, getValues ? src[$currentKey] : $currentKey, $new);
+            setOnArray($out, $newIdx, src[$currentKey], $new);
+            $keyToIdx[$currentKey] = $newIdx;
+            $idxToKey[$newIdx] = $currentKey;
+            delete $keyToIdx[$switchedWithDeletedKey];
+            $savedCount++;
+          } else {
+            delete $keyToIdx[$currentKey];
+          }
+        }
+        truncateArray($out, $finalOutLength);
+        $idxToKey.length = $out.length;
+        $invalidatedKeys.clear();
+      }
+      return $out;
+    }
+
+    function keysOpt($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyArr, valuesOrKeysCacheFunc);
+      const $out = $storage[1]
+      const $invalidatedKeys = $storage[2];
+      const $new = $storage[3];
+      const { $keyToIdx, $idxToKey } = $storage[4];
+
+      if ($new) {
+        Object.keys(src).forEach((key, idx) => {
+          $out[idx] = key;
+          $idxToKey[idx] = key;
+          $keyToIdx[key] = idx;
+        });
+      } else {
+        const $deletedKeys = [];
+        const $addedKeys = [];
+        const $touchedKeys = [];
+        $invalidatedKeys.forEach(key => {
+          if (src.hasOwnProperty(key) && !$keyToIdx.hasOwnProperty(key)) {
+            $addedKeys.push(key);
+          } else if (!src.hasOwnProperty(key) && $keyToIdx.hasOwnProperty(key)) {
+            $deletedKeys.push(key);
+          } else {
+            if ($keyToIdx.hasOwnProperty(key)) {
+              setOnObject($out, $keyToIdx[key], key, $new);
+            }
+          }
+        });
+        if ($addedKeys.length < $deletedKeys.length) {
+          $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
+        }
+        const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length;
+        // keys both deleted and added fill created holes first
+        for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
+          const $addedKey = $addedKeys[i];
+          const $deletedKey = $deletedKeys[i];
+          const $newIdx = $keyToIdx[$deletedKey];
+          delete $keyToIdx[$deletedKey];
+          $keyToIdx[$addedKey] = $newIdx;
+          $idxToKey[$newIdx] = $addedKey;
+          setOnArray($out, $newIdx, $addedKey, $new)
+        }
+        // more keys added - append to end
+        for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
+          const $addedKey = $addedKeys[i];
+          const $newIdx = $out.length;
+          $keyToIdx[$addedKey] = $newIdx;
+          $idxToKey[$newIdx] = $addedKey;
+          setOnArray($out, $newIdx, $addedKey, $new)
+        }
+        // more keys deleted - move non deleted items at the tail to the location of deleted
+        const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
+        const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));
+        const $keysToMoveInside = new Set(
+          $idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key))
+        );
+        let $savedCount = 0;
+        for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
+          const $currentKey = $idxToKey[$tailIdx];
+          if ($keysToMoveInside.has($currentKey)) {
+            // need to move this key to one of the pending delete
+            const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
+            const $newIdx = $keyToIdx[$switchedWithDeletedKey];
+            setOnArray($out, $newIdx, $currentKey, $new);
             $keyToIdx[$currentKey] = $newIdx;
             $idxToKey[$newIdx] = $currentKey;
             delete $keyToIdx[$switchedWithDeletedKey];
@@ -757,14 +836,11 @@ function library() {
       return arr[1]
     }
 
-    function assignOrDefaults($tracked, identifier, src, assign) {
+    function assignOpt($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2];
       const $new = $storage[3];
-      if (!assign) {
-        src = [...src].reverse();
-      }
       if ($new) {
         Object.assign($out, ...src);
       } else {
@@ -782,7 +858,30 @@ function library() {
       return $out;
     }
 
-    function flatten($tracked, src, identifier) {
+    function defaultsOpt($tracked, src, identifier) {
+      const $storage = initOutput($tracked, src, identifier, emptyObj, nullFunc);
+      const $out = $storage[1]
+      const $invalidatedKeys = $storage[2];
+      const $new = $storage[3];
+      src = [...src].reverse();
+      if ($new) {
+        Object.assign($out, ...src);
+      } else {
+        const res = Object.assign({}, ...src);
+        Object.keys(res).forEach(key => {
+          setOnObject($out, key, res[key], $new);
+        });
+        Object.keys($out).forEach(key => {
+          if (!res.hasOwnProperty(key)) {
+            deleteOnObject($out, key, $new);
+          }
+        });
+        $invalidatedKeys.clear();
+      }
+      return $out;
+    }
+
+    function flattenOpt($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2]
@@ -826,7 +925,7 @@ function library() {
       return $out
     }
 
-    function size($tracked, src, identifier) {
+    function sizeOpt($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc)
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2]
@@ -841,7 +940,7 @@ function library() {
       return $out[0]
     }
 
-    function sum($tracked, src, identifier) {
+    function sumOpt($tracked, src, identifier) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, emptyArr)
       const $out = $storage[1]
       const $invalidatedKeys = $storage[2]

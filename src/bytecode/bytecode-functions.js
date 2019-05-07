@@ -5,7 +5,7 @@
 module.exports.$not = function $not($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push(!(arg0));
+    this.$stack.push(!arg0);
 }
 // trace skipped
 
@@ -45,7 +45,7 @@ module.exports.$eq = function $eq($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) === (arg1));
+    this.$stack.push(arg0 === arg1);
 }
 
 module.exports.$gt = function $gt($offset, $len) {
@@ -53,7 +53,7 @@ module.exports.$gt = function $gt($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) > (arg1));
+    this.$stack.push(arg0 > arg1);
 }
 
 module.exports.$lt = function $lt($offset, $len) {
@@ -61,7 +61,7 @@ module.exports.$lt = function $lt($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) < (arg1));
+    this.$stack.push(arg0 < arg1);
 }
 
 module.exports.$gte = function $gte($offset, $len) {
@@ -69,7 +69,7 @@ module.exports.$gte = function $gte($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) >= (arg1));
+    this.$stack.push(arg0 >= arg1);
 }
 
 module.exports.$lte = function $lte($offset, $len) {
@@ -77,7 +77,7 @@ module.exports.$lte = function $lte($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) <= (arg1));
+    this.$stack.push(arg0 <= arg1);
 }
 
 module.exports.$plus = function $plus($offset, $len) {
@@ -85,7 +85,7 @@ module.exports.$plus = function $plus($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) + (arg1));
+    this.$stack.push(arg0 + arg1);
 }
 
 module.exports.$minus = function $minus($offset, $len) {
@@ -93,7 +93,7 @@ module.exports.$minus = function $minus($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) - (arg1));
+    this.$stack.push(arg0 - arg1);
 }
 
 module.exports.$mult = function $mult($offset, $len) {
@@ -101,7 +101,7 @@ module.exports.$mult = function $mult($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) * (arg1));
+    this.$stack.push(arg0 * arg1);
 }
 
 module.exports.$div = function $div($offset, $len) {
@@ -109,7 +109,7 @@ module.exports.$div = function $div($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) / (arg1));
+    this.$stack.push(arg0 / arg1);
 }
 
 module.exports.$mod = function $mod($offset, $len) {
@@ -117,13 +117,13 @@ module.exports.$mod = function $mod($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((arg0) % (arg1));
+    this.$stack.push(arg0 % arg1);
 }
 
 module.exports.$breakpoint = function $breakpoint($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push(((() => {debugger; return arg0}) ()));
+    this.$stack.push((() => {debugger; return arg0})());
 }
 // call skipped
 // bind skipped
@@ -134,7 +134,7 @@ module.exports.$startsWith = function $startsWith($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((String.prototype.startsWith).call(arg0, arg1));
+    this.$stack.push(String.prototype.startsWith.call(arg0, arg1));
 }
 
 module.exports.$endsWith = function $endsWith($offset, $len) {
@@ -142,43 +142,43 @@ module.exports.$endsWith = function $endsWith($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((String.prototype.endsWith).call(arg0, arg1));
+    this.$stack.push(String.prototype.endsWith.call(arg0, arg1));
 }
 
 module.exports.$toUpperCase = function $toUpperCase($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((String.prototype.toUpperCase).call(arg0));
+    this.$stack.push(String.prototype.toUpperCase.call(arg0));
 }
 
 module.exports.$toLowerCase = function $toLowerCase($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((String.prototype.toLowerCase).call(arg0));
+    this.$stack.push(String.prototype.toLowerCase.call(arg0));
 }
 
 module.exports.$stringLength = function $stringLength($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((arg0).length);
+    this.$stack.push(arg0.length);
 }
 
 module.exports.$floor = function $floor($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((Math.floor)(arg0));
+    this.$stack.push(Math.floor(arg0));
 }
 
 module.exports.$ceil = function $ceil($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((Math.ceil)(arg0));
+    this.$stack.push(Math.ceil(arg0));
 }
 
 module.exports.$round = function $round($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((Math.round)(arg0));
+    this.$stack.push(Math.round(arg0));
 }
 // parseInt skipped
 
@@ -189,7 +189,7 @@ module.exports.$substring = function $substring($offset, $len) {
   const arg1 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg2 = this.$stack.pop();
-    this.$stack.push((String.prototype.substring).call(arg0, arg1, arg2));
+    this.$stack.push(String.prototype.substring.call(arg0, arg1, arg2));
 }
 
 module.exports.$split = function $split($offset, $len) {
@@ -197,31 +197,31 @@ module.exports.$split = function $split($offset, $len) {
   const arg0 = this.$stack.pop();
  this.processValue(this.$expressions[++$offset])
   const arg1 = this.$stack.pop();
-    this.$stack.push((String.prototype.split).call(arg0, arg1));
+    this.$stack.push(String.prototype.split.call(arg0, arg1));
 }
 
 module.exports.$isUndefined = function $isUndefined($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((typeof (arg0) === 'undefined'));
+    this.$stack.push(typeof arg0 === 'undefined');
 }
 
 module.exports.$isBoolean = function $isBoolean($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((typeof (arg0) === 'boolean'));
+    this.$stack.push(typeof arg0 === 'boolean');
 }
 
 module.exports.$isString = function $isString($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((typeof (arg0) === 'string'));
+    this.$stack.push(typeof arg0 === 'string');
 }
 
 module.exports.$isNumber = function $isNumber($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();
-    this.$stack.push((typeof (arg0) === 'number'));
+    this.$stack.push(typeof arg0 === 'number');
 }
 
 module.exports.$isArray = function $isArray($offset, $len) {
@@ -392,7 +392,7 @@ module.exports.$keyBy = function keyBy($offset, $length) {
     for (let index = 0; index < src.length; index++) {
       this.$keys.push(index);
       this.collectionFunction();
-      const key = '' + this.$stack.pop();
+      const key = `${this.$stack.pop()}`;
       $cache.indexToKey[index] = key;
       $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
       $cache.keyToIndices[key].add(index);
@@ -415,7 +415,7 @@ module.exports.$keyBy = function keyBy($offset, $length) {
       if (index < src.length) {
         this.$keys.push(index);
         this.collectionFunction();
-        const key = '' + this.$stack.pop();
+        const key = `${this.$stack.pop()}`;
         $cache.indexToKey[index] = key;
         keysPendingDelete.delete(key);
         $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
@@ -592,7 +592,7 @@ module.exports.$any = function any($offset, $length) {
   }
 
   if ($out.length === 0) {
-    for (let key of $invalidatedKeys) {
+    for (const key of $invalidatedKeys) {
       $invalidatedKeys.delete(key);
       this.$keys.push(key);
       this.collectionFunction();
@@ -649,7 +649,7 @@ module.exports.$anyValues = function anyValues($offset, $length) {
   }
 
   if ($out.length === 0) {
-    for (let key of $invalidatedKeys) {
+    for (const key of $invalidatedKeys) {
       $invalidatedKeys.delete(key);
       this.$keys.push(key);
       this.collectionFunction();
@@ -693,7 +693,7 @@ module.exports.$groupBy = function groupBy($offset, $length) {
     Object.keys(src).forEach(key => {
       this.$keys.push(key);
       this.collectionFunction();
-      const res = '' + this.$stack.pop();
+      const res = `${this.$stack.pop()}`;
       $keyToKey[key] = res;
 
       if (!$out[res]) {
@@ -718,7 +718,7 @@ module.exports.$groupBy = function groupBy($offset, $length) {
 
       this.$keys.push(key);
       this.collectionFunction();
-      const res = '' + this.$stack.pop();
+      const res = `${this.$stack.pop()}`;
       $keyToKey[key] = res;
 
       if (!$out[res]) {
@@ -752,6 +752,184 @@ module.exports.$groupBy = function groupBy($offset, $length) {
   this.$functions.pop();
   this.$collections.pop();
   this.$contexts.pop();
+};
+module.exports.$values = function values($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+  const $storage = this.initOutput($offset, emptyArr, valuesOrKeysCacheFunc);
+  const $out = $storage[1];
+  const $invalidatedKeys = $storage[2];
+  const $new = $storage[3];
+  const {
+    $keyToIdx,
+    $idxToKey
+  } = $storage[4];
+
+  if ($new) {
+    Object.keys(src).forEach((key, idx) => {
+      $out[idx] = src[key];
+      $idxToKey[idx] = key;
+      $keyToIdx[key] = idx;
+    });
+  } else {
+    const $deletedKeys = [];
+    const $addedKeys = [];
+    const $touchedKeys = [];
+    $invalidatedKeys.forEach(key => {
+      if (src.hasOwnProperty(key) && !$keyToIdx.hasOwnProperty(key)) {
+        $addedKeys.push(key);
+      } else if (!src.hasOwnProperty(key) && $keyToIdx.hasOwnProperty(key)) {
+        $deletedKeys.push(key);
+      } else if ($keyToIdx.hasOwnProperty(key)) {
+          this.setOnObject($out, $keyToIdx[key], src[key], $new);
+        }
+    });
+
+    if ($addedKeys.length < $deletedKeys.length) {
+      $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
+    }
+
+    const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length; // keys both deleted and added fill created holes first
+
+    for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
+      const $addedKey = $addedKeys[i];
+      const $deletedKey = $deletedKeys[i];
+      const $newIdx = $keyToIdx[$deletedKey];
+      delete $keyToIdx[$deletedKey];
+      $keyToIdx[$addedKey] = $newIdx;
+      $idxToKey[$newIdx] = $addedKey;
+      this.setOnArray($out, $newIdx, src[$addedKey], $new);
+    } // more keys added - append to end
+
+
+    for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
+      const $addedKey = $addedKeys[i];
+      const $newIdx = $out.length;
+      $keyToIdx[$addedKey] = $newIdx;
+      $idxToKey[$newIdx] = $addedKey;
+      this.setOnArray($out, $newIdx, src[$addedKey], $new);
+    } // more keys deleted - move non deleted items at the tail to the location of deleted
+
+
+    const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
+    const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));
+    const $keysToMoveInside = new Set($idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key)));
+    let $savedCount = 0;
+
+    for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
+      const $currentKey = $idxToKey[$tailIdx];
+
+      if ($keysToMoveInside.has($currentKey)) {
+        // need to move this key to one of the pending delete
+        const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
+        const $newIdx = $keyToIdx[$switchedWithDeletedKey];
+        this.setOnArray($out, $newIdx, src[$currentKey], $new);
+        $keyToIdx[$currentKey] = $newIdx;
+        $idxToKey[$newIdx] = $currentKey;
+        delete $keyToIdx[$switchedWithDeletedKey];
+        $savedCount++;
+      } else {
+        delete $keyToIdx[$currentKey];
+      }
+    }
+
+    this.truncateArray($out, $finalOutLength);
+    $idxToKey.length = $out.length;
+    $invalidatedKeys.clear();
+  }
+
+  this.$stack.push($out)
+  this.$collections.pop();
+};
+module.exports.$keys = function keys($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+  const $storage = this.initOutput($offset, emptyArr, valuesOrKeysCacheFunc);
+  const $out = $storage[1];
+  const $invalidatedKeys = $storage[2];
+  const $new = $storage[3];
+  const {
+    $keyToIdx,
+    $idxToKey
+  } = $storage[4];
+
+  if ($new) {
+    Object.keys(src).forEach((key, idx) => {
+      $out[idx] = key;
+      $idxToKey[idx] = key;
+      $keyToIdx[key] = idx;
+    });
+  } else {
+    const $deletedKeys = [];
+    const $addedKeys = [];
+    const $touchedKeys = [];
+    $invalidatedKeys.forEach(key => {
+      if (src.hasOwnProperty(key) && !$keyToIdx.hasOwnProperty(key)) {
+        $addedKeys.push(key);
+      } else if (!src.hasOwnProperty(key) && $keyToIdx.hasOwnProperty(key)) {
+        $deletedKeys.push(key);
+      } else if ($keyToIdx.hasOwnProperty(key)) {
+          this.setOnObject($out, $keyToIdx[key], key, $new);
+        }
+    });
+
+    if ($addedKeys.length < $deletedKeys.length) {
+      $deletedKeys.sort((a, b) => $keyToIdx[a] - $keyToIdx[b]);
+    }
+
+    const $finalOutLength = $out.length - $deletedKeys.length + $addedKeys.length; // keys both deleted and added fill created holes first
+
+    for (let i = 0; i < $addedKeys.length && i < $deletedKeys.length; i++) {
+      const $addedKey = $addedKeys[i];
+      const $deletedKey = $deletedKeys[i];
+      const $newIdx = $keyToIdx[$deletedKey];
+      delete $keyToIdx[$deletedKey];
+      $keyToIdx[$addedKey] = $newIdx;
+      $idxToKey[$newIdx] = $addedKey;
+      this.setOnArray($out, $newIdx, $addedKey, $new);
+    } // more keys added - append to end
+
+
+    for (let i = $deletedKeys.length; i < $addedKeys.length; i++) {
+      const $addedKey = $addedKeys[i];
+      const $newIdx = $out.length;
+      $keyToIdx[$addedKey] = $newIdx;
+      $idxToKey[$newIdx] = $addedKey;
+      this.setOnArray($out, $newIdx, $addedKey, $new);
+    } // more keys deleted - move non deleted items at the tail to the location of deleted
+
+
+    const $deletedNotMoved = $deletedKeys.slice($addedKeys.length);
+    const $deletedNotMovedSet = new Set($deletedKeys.slice($addedKeys.length));
+    const $keysToMoveInside = new Set($idxToKey.slice($finalOutLength).filter(key => !$deletedNotMovedSet.has(key)));
+    let $savedCount = 0;
+
+    for (let $tailIdx = $finalOutLength; $tailIdx < $out.length; $tailIdx++) {
+      const $currentKey = $idxToKey[$tailIdx];
+
+      if ($keysToMoveInside.has($currentKey)) {
+        // need to move this key to one of the pending delete
+        const $switchedWithDeletedKey = $deletedNotMoved[$savedCount];
+        const $newIdx = $keyToIdx[$switchedWithDeletedKey];
+        this.setOnArray($out, $newIdx, $currentKey, $new);
+        $keyToIdx[$currentKey] = $newIdx;
+        $idxToKey[$newIdx] = $currentKey;
+        delete $keyToIdx[$switchedWithDeletedKey];
+        $savedCount++;
+      } else {
+        delete $keyToIdx[$currentKey];
+      }
+    }
+
+    this.truncateArray($out, $finalOutLength);
+    $idxToKey.length = $out.length;
+    $invalidatedKeys.clear();
+  }
+
+  this.$stack.push($out)
+  this.$collections.pop();
 };
 module.exports.$array = function array($offset, $length) {
   const newVal = [];
@@ -848,6 +1026,61 @@ module.exports.$bind = function bind($offset, $length) {
   }
 
   this.$stack.push(arr[1])
+};
+module.exports.$assign = function assign($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+  const $storage = this.initOutput($offset, emptyObj, nullFunc);
+  const $out = $storage[1];
+  const $invalidatedKeys = $storage[2];
+  const $new = $storage[3];
+
+  if ($new) {
+    Object.assign($out, ...src);
+  } else {
+    const res = Object.assign({}, ...src);
+    Object.keys(res).forEach(key => {
+      this.setOnObject($out, key, res[key], $new);
+    });
+    Object.keys($out).forEach(key => {
+      if (!res.hasOwnProperty(key)) {
+        this.deleteOnObject($out, key, $new);
+      }
+    });
+    $invalidatedKeys.clear();
+  }
+
+  this.$stack.push($out)
+  this.$collections.pop();
+};
+module.exports.$defaults = function defaults($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  const $storage = this.initOutput($offset, emptyObj, nullFunc);
+  const $out = $storage[1];
+  const $invalidatedKeys = $storage[2];
+  const $new = $storage[3];
+  src = [...src].reverse();
+
+  if ($new) {
+    Object.assign($out, ...src);
+  } else {
+    const res = Object.assign({}, ...src);
+    Object.keys(res).forEach(key => {
+      this.setOnObject($out, key, res[key], $new);
+    });
+    Object.keys($out).forEach(key => {
+      if (!res.hasOwnProperty(key)) {
+        this.deleteOnObject($out, key, $new);
+      }
+    });
+    $invalidatedKeys.clear();
+  }
+
+  this.$stack.push($out)
+  this.$collections.pop();
 };
 module.exports.$flatten = function flatten($offset, $length) {
   this.processValue(this.$expressions[++$offset]);

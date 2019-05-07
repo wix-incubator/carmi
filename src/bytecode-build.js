@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 const {TokenTypeData, Token, Expr} = require('./lang');
 const NaiveCompiler = require('./naive-compiler');
 const _ = require('lodash');
@@ -298,7 +299,7 @@ const snippets = _.mapValues(
   {
     src: ($offset, $length) => {
       this.processValue(this.$expressions[++$offset]);
-      const src = this.$stack.pop();
+      let src = this.$stack.pop();
       this.$collections.push(src);
     },
     srcEnd: ($offset, $length) => {

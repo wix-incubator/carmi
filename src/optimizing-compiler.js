@@ -154,18 +154,12 @@ $tainted = new WeakSet();
           .join(',')}], ${this.uniqueId(expr)}, ${expr.length - 1})`;
       case 'keys':
       case 'values':
-        return `valuesOrKeysForObject($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
-          tokenType === 'values' ? 'true' : 'false'
-        })`;
       case 'sum':
       case 'flatten':
       case 'size':
-        return `${tokenType}($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'assign':
       case 'defaults':
-        return `assignOrDefaults($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${
-          tokenType === 'assign' ? 'true' : 'false'
-        })`;
+        return `${tokenType}Opt($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'range':
         return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
