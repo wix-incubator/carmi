@@ -31,7 +31,47 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+    }const $res = { $model };const $listeners = new Set();let isSetIteratorExist;try {
+      isSetIteratorExist = typeof new Set()[Symbol.iterator] === 'function';
+    } catch (error) {
+      isSetIteratorExist = false;
+    }class KeysSet {
+      constructor(parentKey = null, parent = null) {
+        this.$subKeys = {};this.$parentKey = parentKey;this.$parent = parent;this.$tracked = {};this.set = isSetIteratorExist ? new Set() : {};this.additionalKeys = null;
+      }add(value) {
+        if (isSetIteratorExist) {
+          return this.set.add(value);
+        }this.set[value] = value;if (!this.additionalKeys) {
+          this.additionalKeys = {};
+        }this.additionalKeys[value] = value;
+      }has(value) {
+        if (isSetIteratorExist) {
+          return this.set.has(value);
+        }return this.set.hasOwnProperty(value);
+      }delete(value) {
+        if (isSetIteratorExist) {
+          return this.set.delete(value);
+        }delete this.set[value];
+      }clear() {
+        if (isSetIteratorExist) {
+          return this.set.clear();
+        }this.set = {};
+      }forEach(callback, keys) {
+        if (isSetIteratorExist) {
+          for (const key of this.set) {
+            if (callback(key) === false) {
+              break;
+            }
+          }return;
+        }this.additionalKeys = null;for (const key in keys || this.set) {
+          if (this.has(key) && callback(this.set[key]) === false) {
+            this.additionalKeys = null;return;
+          }
+        }if (this.additionalKeys) {
+          this.forEach(callback, this.additionalKeys);
+        }
+      }
+    }const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new KeysSet();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
         return;
       }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
@@ -93,7 +133,7 @@ module.exports = function () {
       }
     }function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();let $cachedByFunc = $cachePerTargetKey.get(func);if (!$cachedByFunc) {
-        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = {};$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
+        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new KeysSet($tracked[1], $tracked[0]);$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
       } else {
         $cachedByFunc[3] = false;
       }const $invalidatedKeys = $cachedByFunc[2];const $prevSrc = $cachedByFunc[0];if ($prevSrc !== src) {
@@ -267,11 +307,11 @@ module.exports = function () {
       } else {
         $out.length = 0;
       }if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;break;
+            $out[0] = key;return false;
           }
-        }
+        });
       }return $out.length === 1;
     }function anyValuesOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -286,11 +326,11 @@ module.exports = function () {
       } else {
         $out.length = 0;
       }if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;break;
+            $out[0] = key;return false;
           }
-        }
+        });
       }return $out.length === 1;
     }function groupByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyObj);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $keyToKey = $storage[4];if (Array.isArray(src)) {
@@ -613,7 +653,47 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+    }const $res = { $model };const $listeners = new Set();let isSetIteratorExist;try {
+      isSetIteratorExist = typeof new Set()[Symbol.iterator] === 'function';
+    } catch (error) {
+      isSetIteratorExist = false;
+    }class KeysSet {
+      constructor(parentKey = null, parent = null) {
+        this.$subKeys = {};this.$parentKey = parentKey;this.$parent = parent;this.$tracked = {};this.set = isSetIteratorExist ? new Set() : {};this.additionalKeys = null;
+      }add(value) {
+        if (isSetIteratorExist) {
+          return this.set.add(value);
+        }this.set[value] = value;if (!this.additionalKeys) {
+          this.additionalKeys = {};
+        }this.additionalKeys[value] = value;
+      }has(value) {
+        if (isSetIteratorExist) {
+          return this.set.has(value);
+        }return this.set.hasOwnProperty(value);
+      }delete(value) {
+        if (isSetIteratorExist) {
+          return this.set.delete(value);
+        }delete this.set[value];
+      }clear() {
+        if (isSetIteratorExist) {
+          return this.set.clear();
+        }this.set = {};
+      }forEach(callback, keys) {
+        if (isSetIteratorExist) {
+          for (const key of this.set) {
+            if (callback(key) === false) {
+              break;
+            }
+          }return;
+        }this.additionalKeys = null;for (const key in keys || this.set) {
+          if (this.has(key) && callback(this.set[key]) === false) {
+            this.additionalKeys = null;return;
+          }
+        }if (this.additionalKeys) {
+          this.forEach(callback, this.additionalKeys);
+        }
+      }
+    }const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new KeysSet();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
         return;
       }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
@@ -675,7 +755,7 @@ module.exports = function () {
       }
     }function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();let $cachedByFunc = $cachePerTargetKey.get(func);if (!$cachedByFunc) {
-        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = {};$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
+        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new KeysSet($tracked[1], $tracked[0]);$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
       } else {
         $cachedByFunc[3] = false;
       }const $invalidatedKeys = $cachedByFunc[2];const $prevSrc = $cachedByFunc[0];if ($prevSrc !== src) {
@@ -849,11 +929,11 @@ module.exports = function () {
       } else {
         $out.length = 0;
       }if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;break;
+            $out[0] = key;return false;
           }
-        }
+        });
       }return $out.length === 1;
     }function anyValuesOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -868,11 +948,11 @@ module.exports = function () {
       } else {
         $out.length = 0;
       }if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;break;
+            $out[0] = key;return false;
           }
-        }
+        });
       }return $out.length === 1;
     }function groupByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyObj);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $keyToKey = $storage[4];if (Array.isArray(src)) {
@@ -1197,7 +1277,47 @@ const modelBuilder = (function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+    }const $res = { $model };const $listeners = new Set();let isSetIteratorExist;try {
+      isSetIteratorExist = typeof new Set()[Symbol.iterator] === 'function';
+    } catch (error) {
+      isSetIteratorExist = false;
+    }class KeysSet {
+      constructor(parentKey = null, parent = null) {
+        this.$subKeys = {};this.$parentKey = parentKey;this.$parent = parent;this.$tracked = {};this.set = isSetIteratorExist ? new Set() : {};this.additionalKeys = null;
+      }add(value) {
+        if (isSetIteratorExist) {
+          return this.set.add(value);
+        }this.set[value] = value;if (!this.additionalKeys) {
+          this.additionalKeys = {};
+        }this.additionalKeys[value] = value;
+      }has(value) {
+        if (isSetIteratorExist) {
+          return this.set.has(value);
+        }return this.set.hasOwnProperty(value);
+      }delete(value) {
+        if (isSetIteratorExist) {
+          return this.set.delete(value);
+        }delete this.set[value];
+      }clear() {
+        if (isSetIteratorExist) {
+          return this.set.clear();
+        }this.set = {};
+      }forEach(callback, keys) {
+        if (isSetIteratorExist) {
+          for (const key of this.set) {
+            if (callback(key) === false) {
+              break;
+            }
+          }return;
+        }this.additionalKeys = null;for (const key in keys || this.set) {
+          if (this.has(key) && callback(this.set[key]) === false) {
+            this.additionalKeys = null;return;
+          }
+        }if (this.additionalKeys) {
+          this.forEach(callback, this.additionalKeys);
+        }
+      }
+    }const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new KeysSet();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
         return;
       }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
@@ -1259,7 +1379,7 @@ const modelBuilder = (function () {
       }
     }function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();let $cachedByFunc = $cachePerTargetKey.get(func);if (!$cachedByFunc) {
-        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = {};$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
+        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new KeysSet($tracked[1], $tracked[0]);$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
       } else {
         $cachedByFunc[3] = false;
       }const $invalidatedKeys = $cachedByFunc[2];const $prevSrc = $cachedByFunc[0];if ($prevSrc !== src) {
@@ -1433,11 +1553,11 @@ const modelBuilder = (function () {
       } else {
         $out.length = 0;
       }if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;break;
+            $out[0] = key;return false;
           }
-        }
+        });
       }return $out.length === 1;
     }function anyValuesOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -1452,11 +1572,11 @@ const modelBuilder = (function () {
       } else {
         $out.length = 0;
       }if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;break;
+            $out[0] = key;return false;
           }
-        }
+        });
       }return $out.length === 1;
     }function groupByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyObj);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $keyToKey = $storage[4];if (Array.isArray(src)) {

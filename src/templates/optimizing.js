@@ -1,12 +1,80 @@
 function library() {
+    let isSetIteratorExist;
+    try {
+      isSetIteratorExist = typeof new Set()[Symbol.iterator] === 'function';
+    } catch (error) {
+      isSetIteratorExist = false;
+    }
+
+    class KeysSet {
+      constructor(parentKey = null, parent = null) {
+        this.$subKeys = {};
+        this.$parentKey = parentKey;
+        this.$parent = parent;
+        this.$tracked = {};
+        this.set = isSetIteratorExist ? new Set() : {};
+        this.additionalKeys = null;
+      }
+
+      add(value) {
+        if (isSetIteratorExist) {
+          return this.set.add(value);
+        }
+        this.set[value] = value;
+        if (!this.additionalKeys) {
+          this.additionalKeys = {};
+        }
+        this.additionalKeys[value] = value;
+      }
+
+      has(value) {
+        if (isSetIteratorExist) {
+          return this.set.has(value);
+        }
+        return this.set.hasOwnProperty(value);
+      }
+
+      delete(value) {
+        if (isSetIteratorExist) {
+          return this.set.delete(value);
+        }
+        delete this.set[value];
+      }
+
+      clear() {
+        if (isSetIteratorExist) {
+          return this.set.clear();
+        }
+        this.set = {};
+      }
+
+      forEach(callback, keys) {
+        if (isSetIteratorExist) {
+          for (const key of this.set) {
+            if (callback(key) === false) {
+              break;
+            }
+          }
+          return;
+        }
+
+        this.additionalKeys = null;
+        for (const key in (keys || this.set)) {
+          if (this.has(key) && callback(this.set[key]) === false) {
+            this.additionalKeys = null;
+            return;
+          }
+        }
+        if (this.additionalKeys) {
+          this.forEach(callback, this.additionalKeys);
+        }
+      }
+    }
+
     const $trackingMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
     const $invalidatedMap = new WeakMap();
-    const $invalidatedRoots = new Set();
-    $invalidatedRoots.$subKeys = {};
-    $invalidatedRoots.$parentKey = null;
-    $invalidatedRoots.$parent = null;
-    $invalidatedRoots.$tracked = {};
+    const $invalidatedRoots = new KeysSet();
     let $first = true;
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
@@ -140,11 +208,7 @@ function library() {
       if (!$cachedByFunc) {
         const $resultObj = createDefaultValue();
         const $cacheValue = createCacheValue();
-        const $invalidatedKeys = new Set();
-        $invalidatedKeys.$subKeys = {};
-        $invalidatedKeys.$parentKey = $tracked[1];
-        $invalidatedKeys.$parent = $tracked[0];
-        $invalidatedKeys.$tracked = {};
+        const $invalidatedKeys = new KeysSet($tracked[1], $tracked[0]);
         $invalidatedMap.set($resultObj, $invalidatedKeys);
         $cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];
         $cachePerTargetKey.set(func, $cachedByFunc);
@@ -501,13 +565,13 @@ function library() {
         $out.length = 0;
       }
       if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);
           if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
             $out[0] = key;
-            break;
+            return false
           }
-        }
+        })
       }
       return $out.length === 1;
     }
@@ -535,13 +599,13 @@ function library() {
         $out.length = 0;
       }
       if ($out.length === 0) {
-        for (let key of $invalidatedKeys) {
+        $invalidatedKeys.forEach(key => {
           $invalidatedKeys.delete(key);
           if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
             $out[0] = key;
-            break;
+            return false;
           }
-        }
+        })
       }
       return $out.length === 1;
     }
