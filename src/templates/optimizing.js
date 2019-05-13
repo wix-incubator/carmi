@@ -7,7 +7,7 @@ function library() {
     $invalidatedRoots.$parentKey = null;
     $invalidatedRoots.$parent = null;
     $invalidatedRoots.$tracked = {};
-    let $first = true;
+    let $first = true; 
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
@@ -1024,9 +1024,11 @@ const base = require('./naive').base;
 function updateDerived() {
   const builderFunctions = [/*BUILDER_FUNCS*/];
   const builderNames = [/*BUILDER_NAMES*/];
+  const builderTags = [/*BUILDER_TAGS*/];
+
   function updateDerived() {
     for (let i = 0; i < $COUNT_GETTERS; i++) {
-      if ($first || $invalidatedRoots.has(i)) {
+      if ($first || $invalidatedRoots.has(i) && (!$tags || builderTags[i] && builderTags[i].includes($tags))) {
         const newValue = builderFunctions[i]([$invalidatedRoots, i]);
         setOnArray($topLevel, i, newValue, $first);
         if (!$first) {

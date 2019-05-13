@@ -499,7 +499,39 @@ function findFuncExpr(getters, funcId) {
     .find(e => e[0].$funcId === funcId);
 }
 
+function markTagsAndApplyTransitiveTags(getters, sortedGetterNames, gettersTags) {
+  const reversedSortedGetterNames = [...sortedGetterNames].reverse()
+  reversedSortedGetterNames.forEach(name => {
+    const getterTags = gettersTags[name]
+    if(getterTags) {
+      const expr = getters[name]
+      expr[0].$tags = getterTags
+
+      const usedTopLevels = collectAllTopLevelInExpr(expr);
+      return Object.keys(usedTopLevels)
+        .forEach(topName => {
+            gettersTags[topName] = Array.from(new Set([...(gettersTags[topName] || []), ...getterTags]))
+        })
+    }
+  })
+
+  return getters
+}
+
+function getGettersTags(getters) {
+  return Object.keys(getters).reduce((gettersTags, name) => {
+    const expr = getters[name][0]
+    if (expr.$tags) {
+      gettersTags[name] = expr.$tags
+    }
+
+    return gettersTags
+  }, {})
+}
+
 function normalizeAndTagAllGetters(getters, setters) {
+  const gettersTags = getGettersTags(getters)
+
   getters = rewriteUniqueByHash(getters);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
   getters = rewriteStaticsToTopLevels(getters);
@@ -520,12 +552,15 @@ function normalizeAndTagAllGetters(getters, setters) {
   // })
   dedupFunctionsObjects(getters);
   let index = 0;
-  topologicalSortGetters(getters).forEach(name => {
+  const sortedGettersNames = topologicalSortGetters(getters)
+  sortedGettersNames.forEach(name => {
     if (getters[name][0].$type !== 'func') {// not a helper function
       getters[name][0].$topLevelIndex = index;
       index++
     }
   })
+  markTagsAndApplyTransitiveTags(getters, sortedGettersNames, gettersTags)
+  
   return getters;
 }
 

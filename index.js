@@ -9,6 +9,7 @@ const {
   isSpliceExpression,
   isPushExpression,
   isExpression,
+  withTags,
   withName
 } = require('./src/lang');
 const currentLine = require('./src/currentLine');
@@ -37,6 +38,7 @@ const API = {
   isSpliceExpression,
   isPushExpression,
   isExpression,
+  withTags,
   withName,
   inferFromModel: _.identity,
   withSchema,

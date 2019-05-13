@@ -41,6 +41,8 @@ function base() {
 
   const $res = { $model };
     const $listeners = new Set();
+    let $tags = null
+
     /* LIBRARY */
     /* ALL_EXPRESSIONS */
     let $inBatch = false;
@@ -132,6 +134,12 @@ function base() {
           $res.$startBatch();
           func();
           $res.$endBatch();
+        },
+        $recalculateWithTags: (func, tag) => {
+          $tags = tag
+          func()
+          $tags = null
+          recalculate()
         },
         $addListener: func => {
           $listeners.add(func);

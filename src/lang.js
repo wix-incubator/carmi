@@ -221,6 +221,14 @@ AllTokens.withName = (name, val) => {
   }
 }
 
+AllTokens.withTags = (tags, val) => {
+  debugger
+  if (val instanceof Expression) {
+    val[0].$tags = tags
+    return val;
+  }
+}
+
 AllTokens.Expression = Expression;
 AllTokens.TokenTypeData = TokenTypeData; //AllTokensList;
 AllTokens.SetterExpression = SetterExpression;

@@ -19,8 +19,10 @@ class OptimizingCompiler extends SimpleCompiler {
 
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
-      RESET: `$first = false;
-$tainted = new WeakSet();
+      RESET: `if ($first || !$tags) {
+  $tainted = new WeakSet();
+}
+$first = false;
 `,
       DERIVED: 'updateDerived()'
     });
@@ -35,13 +37,15 @@ $tainted = new WeakSet();
       }
     });
     const countTopLevels = realGetters.length;
-    
+
     return `
     const $topLevel = new Array(${countTopLevels}).fill(null);
+
     ${super.allExpressions()}
     ${
       this.mergeTemplate(this.template.updateDerived, {
         COUNT_GETTERS: () => countTopLevels,
+        BUILDER_TAGS: () => realGetters.map(name => this.getters[name][0].$tags ? JSON.stringify(this.getters[name][0].$tags) : 'null').join(','),
         BUILDER_FUNCS: () => realGetters.map(name => `$${name}Build`).join(','),
         BUILDER_NAMES: () => realGetters.map(name => this.options.debug || name.indexOf('$') !== 0 ? JSON.stringify(name) : '""').join(',')
       })
