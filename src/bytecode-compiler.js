@@ -80,10 +80,6 @@ function concatBuffers(...buffers) {
   return out;
 }
 
-function roundUpToEven(n) {
-  return n % 2 ? n + 1 : n;
-}
-
 class BytecodeCompiler extends SimpleCompiler {
   constructor(model, options) {
     options = {...options, disableHelperFunctions: true};
@@ -140,6 +136,26 @@ class BytecodeCompiler extends SimpleCompiler {
     const numbersMap = setToMap(numbersSet);
     const expressionsHashToIndex = {};
     Object.keys(exprsFromHash).forEach((hash, index) => expressionsHashToIndex[hash] = index);
+    const taggedIdToIndex = {};
+    const tracking = [];
+    const trackingOffsetByExprIndex = {};
+
+    searchExpressions(e => {
+      if (e instanceof Expression) {
+        taggedIdToIndex[e[0].$id] = exprsHashToIndex.get(exprHash(e));
+      }
+    }, Object.values(this.getters));
+    // console.log(taggedIdToIndex);
+    // searchExpressions(e => {
+    //   const hash = exprHash(e);
+    //   const index = exprsHashToIndex.get(hash);
+    //   if (!e[0].$path || trackingOffsetByExprIndex.hasOwnProperty(index)) {
+    //     return;
+    //   }
+    //   e[0].$path.forEach((val, key) => console.log(JSON.stringify(val), JSON.stringify(key)));
+    //   console.log('----')
+    // }, Object.values(this.getters));
+
     const stringsAndNumbers = JSON.stringify({$strings: Array.from(stringsSet), $numbers: Array.from(numbersSet)});
     const constsBuffer = str2ab_array(stringsAndNumbers);
     const countOfTopLevels = Object.keys(this.getters).length;
@@ -205,6 +221,8 @@ class BytecodeCompiler extends SimpleCompiler {
         settersBuffer[settersOffset++] = val
       });
     });
+
+
     // console.log({
     //   header,
     //   topLevelExpressions,

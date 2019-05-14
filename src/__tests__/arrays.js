@@ -343,30 +343,6 @@ describe('testing array', () => {
       expect(inst.result).toEqual([2]);
       expectTapFunctionToHaveBeenCalled(1, compiler);
     });
-    it('reduce', () => {
-      const model = {
-        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
-        set: setter(arg0)
-      };
-      const optModel = evalOrLoad(compile(model, {compiler}));
-      const initialData = [1, 3, 5];
-      const inst = optModel(initialData, funcLibrary);
-      expect(inst.result).toEqual(9);
-      expectTapFunctionToHaveBeenCalled(3, compiler);
-      inst.set(2, 1);
-      expect(inst.result).toEqual(5);
-      expectTapFunctionToHaveBeenCalled(1, compiler);
-    });
-    it('reduce with empty array', () => {
-      const model = {
-        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
-        set: setter(arg0)
-      };
-      const optModel = evalOrLoad(compile(model, {compiler}));
-      const initialData = [];
-      const inst = optModel(initialData, funcLibrary);
-      expect(inst.result).toEqual(0);
-    });
     it('flatten thats not deep', () => {
       const model = {
         result: root.flatten().map((v) => v),
@@ -553,25 +529,6 @@ describe('testing array', () => {
       const initialData = {a: [1, 3, 5], b: []};
       const inst = optModel(initialData, funcLibrary);
       expect(inst.result).toEqual([1, 3, 5]);
-    });
-
-    it('join', () => {
-      const initialData = ['a', 'b', 'c'];
-      const model = {
-        result: root.join('~')
-      };
-      const optModel = evalOrLoad(compile(model, {compiler}));
-      const inst = optModel(initialData);
-      expect(inst.result).toEqual('a~b~c');
-    });
-    it('join with empty array', () => {
-      const initialData = [];
-      const model = {
-        result: root.join('~')
-      };
-      const optModel = evalOrLoad(compile(model, {compiler}));
-      const inst = optModel(initialData);
-      expect(inst.result).toEqual('');
     });
     it('append with primitive', () => {
       const initialData = ['a', 'b', 'c'];
@@ -813,7 +770,9 @@ describe('testing array', () => {
           add30: root.map(val => add10(val).plus(add10(val)).plus(add10(val)))
         };
         const src = compile(model, {compiler, prettier: true})
-        expect(src.split(' + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1').length - 1).toEqual(1)
+        if (typeof src === 'string') {
+          expect(src.split(' + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1').length - 1).toEqual(1)
+        }
         const optModel = evalOrLoad(src);
         const initialData = [1, 2, 3];
 

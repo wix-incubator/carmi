@@ -9,7 +9,7 @@ const {
 } = require('../test-utils');
 const _ = require('lodash');
 
-describe('testing array', () => {
+describe('testing recursion', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
     it('simple sum', () => {
       const model = {
@@ -76,6 +76,48 @@ describe('testing array', () => {
       expect(inst.allDone).toEqual({a: true, b: false, c: true, d: true, e: false});
       inst.setDone('d', false);
       expect(inst.allDone).toEqual({a: true, b: false, c: false, d: false, e: false});
+    });
+    it('join', () => {
+      const initialData = ['a', 'b', 'c'];
+      const model = {
+        result: root.join('~')
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual('a~b~c');
+    });
+    it('join with empty array', () => {
+      const initialData = [];
+      const model = {
+        result: root.join('~')
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const inst = optModel(initialData);
+      expect(inst.result).toEqual('');
+    });
+    it('reduce', () => {
+      const model = {
+        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
+        set: setter(arg0)
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const initialData = [1, 3, 5];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(9);
+      expectTapFunctionToHaveBeenCalled(3, compiler);
+      inst.set(2, 1);
+      expect(inst.result).toEqual(5);
+      expectTapFunctionToHaveBeenCalled(1, compiler);
+    });
+    it('reduce with empty array', () => {
+      const model = {
+        result: root.reduce((agg, value) => agg.plus(value).call('tap'), 0),
+        set: setter(arg0)
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const initialData = [];
+      const inst = optModel(initialData, funcLibrary);
+      expect(inst.result).toEqual(0);
     });
   });
 });

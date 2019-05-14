@@ -32,6 +32,7 @@ const {
 const bytecodeFunctions = require('./bytecode-functions');
 
 const LengthMask = (1 << 16) - 1;
+const BUFFERS_COUNT = 6;
 
 const unimplementedVerb = () => {};
 const verbFuncs = new Array(VerbsCount).fill(unimplementedVerb);
@@ -49,7 +50,7 @@ verbFuncs[Verbs.$parseInt] = function $parseInt($offset, $length) {
     radix = this.$stack.pop();
   }
   this.$stack.push(parseInt(this.$stack.pop(), radix));
-}
+};
 
 verbFuncs[Verbs.$and] = function $ternary($offset, $length) {
   for (let i = 1; i < $length; i++) {
@@ -61,7 +62,6 @@ verbFuncs[Verbs.$and] = function $ternary($offset, $length) {
     }
   }
 };
-
 
 verbFuncs[Verbs.$or] = function $ternary($offset, $length) {
   for (let i = 1; i < $length; i++) {
@@ -144,7 +144,18 @@ settersFuncs[$splice] = function $splice(path, start, len, ...newItems) {
   }
 };
 
-const BUFFERS_COUNT = 6;
+function wrapSetter(func, ...args) {
+  if (this.$inBatch || this.$inRecalculate || this.$batchingStrategy) {
+    this.$batchPending.push({func, args});
+    if (!this.$inBatch && !this.$inRecalculate && this.$batchingStrategy) {
+      this.$inBatch = true;
+      this.$batchingStrategy.call(this.$res);
+    }
+  } else {
+    func.apply(this.$res, args);
+    this.recalculate();
+  }
+}
 
 class VirtualMachineInstance {
   static getTypedArrayByIndex($bytecode, index, bytesPerItem) {
@@ -170,6 +181,7 @@ class VirtualMachineInstance {
         );
     }
   }
+
   constructor($constants, $globals, $bytecode, $model, $funcLib, $batchingStrategy) {
     this.$strings = $constants.$strings;
     this.$numbers = $constants.$numbers;
@@ -184,6 +196,10 @@ class VirtualMachineInstance {
     this.$funcLib = $funcLib;
     this.$funcLibRaw = $funcLib;
     this.$batchingStrategy = $batchingStrategy;
+    this.$listeners = [];
+    this.$inBatch = false;
+    this.$inRecalculate = false;
+    this.$batchPending = [];
     this.$topLevels = [];
     this.$keys = [];
     this.$collections = [];
@@ -191,7 +207,36 @@ class VirtualMachineInstance {
     this.$functions = [];
     this.$stack = [];
     this.$currentSets = [];
-    this.$res = {$model};
+    this.$res = {
+      $model,
+      $startBatch: () => {
+        this.$inBatch = true;
+      },
+      $endBatch: () => {
+        this.$inBatch = false;
+        if (this.$batchPending.length) {
+          this.$batchPending.forEach(({func, args}) => {
+            func.apply(this, args);
+          });
+          this.$batchPending = [];
+          this.recalculate();
+        }
+      },
+      $runInBatch: func => {
+        this.$res.$startBatch();
+        func();
+        this.$res.$endBatch();
+      },
+      $addListener: func => {
+        this.$listeners.add(func);
+      },
+      $removeListener: func => {
+        this.$listeners.delete(func);
+      },
+      $setBatchingStrategy: func => {
+        $batchingStrategy = func;
+      }
+    };
     // this.$verbs = verbFuncs.map(f => f.bind(this));
     this.$trackingMap = new WeakMap();
     this.$trackingWildcards = new WeakMap();
@@ -275,6 +320,19 @@ class VirtualMachineInstance {
     this.$tainted = new Set();
   }
 
+  recalculate() {
+    if (this.$inBatch) {
+      return;
+    }
+    this.$inRecalculate = true;
+    this.updateDerived();
+    this.$listeners.forEach(callback => callback());
+    this.$inRecalculate = false;
+    if (this.$batchPending.length) {
+      this.$res.$endBatch();
+    }
+  }
+
   collectionFunction() {
     this.processExpression(this.$functions[this.$functions.length - 1] >> 5);
   }
@@ -319,14 +377,13 @@ class VirtualMachineInstance {
       }
       args = args.slice(maxArgs);
       settersFuncs[$setterType].apply(this, [path].concat(args));
-      this.updateDerived();
     };
   }
 
   buildSetters($setters) {
     let $offset = 0;
     while ($offset < $setters.length) {
-      this.$res[this.$strings[$setters[$offset + 1]]] = this.generateSetter($setters, $offset);
+      this.$res[this.$strings[$setters[$offset + 1]]] = wrapSetter.bind(this, this.generateSetter($setters, $offset));
       $offset += ($setters[$offset] & LengthMask) + 2;
     }
   }
@@ -359,7 +416,7 @@ class VirtualMachineInstance {
       this.invalidate($targetKeySet.$parent, $targetKeySet.$parentKey);
     }
   }
-  
+
   setOnObject($target, $key, $val, $new) {
     let $changed = false;
     let $hard = false;
@@ -370,8 +427,8 @@ class VirtualMachineInstance {
       if (
         $hard ||
         $target[$key] !== $val ||
-        $val && typeof $val === 'object' && this.$tainted.has($val) ||
-        !$target.hasOwnProperty($key) && $target[$key] === undefined
+        ($val && typeof $val === 'object' && this.$tainted.has($val)) ||
+        (!$target.hasOwnProperty($key) && $target[$key] === undefined)
       ) {
         $changed = true;
         this.triggerInvalidations($target, $key, $hard);
@@ -405,7 +462,7 @@ class VirtualMachineInstance {
         $hard ||
         $key >= $target.length ||
         $target[$key] !== $val ||
-        $val && typeof $target[$key] === 'object' && this.$tainted.has($val)
+        ($val && typeof $target[$key] === 'object' && this.$tainted.has($val))
       ) {
         this.triggerInvalidations($target, $key, $hard);
       }
@@ -465,7 +522,7 @@ class VirtualMachineInstance {
     const $currentKey = this.$keys[this.$keys.length - 1];
     const src = this.$collections[this.$collections.length - 1];
     const subKeys = $parent.$subKeys;
-    const $cachePerTargetKey = subKeys[$currentKey] = subKeys[$currentKey] || new Map();
+    const $cachePerTargetKey = (subKeys[$currentKey] = subKeys[$currentKey] || new Map());
     let $cachedByFunc = null; //$cachePerTargetKey.get(func);
     if (!$cachedByFunc) {
       const $resultObj = createDefaultValue();
@@ -482,7 +539,7 @@ class VirtualMachineInstance {
       $cachedByFunc[3] = false;
     }
     const $invalidatedKeys = $cachedByFunc[2];
-    this.$currentSets.push($invalidatedKeys)
+    this.$currentSets.push($invalidatedKeys);
     const $prevSrc = $cachedByFunc[0];
     if ($prevSrc !== src) {
       if ($prevSrc) {
@@ -511,7 +568,7 @@ class VirtualMachineInstance {
   getEmptyArray(token) {
     const subKeys = this.$currentSets[this.$currentSets.length - 1].$subKeys;
     const currentKey = this.$keys[this.$keys.length - 1];
-    const $cachePerTargetKey = subKeys[currentKey] = subKeys[currentKey] || new Map();
+    const $cachePerTargetKey = (subKeys[currentKey] = subKeys[currentKey] || new Map());
 
     // if (!$cachePerTargetKey.has(token)) {
     //   $cachePerTargetKey.set(token, []);
@@ -523,7 +580,7 @@ class VirtualMachineInstance {
   getEmptyObject(token) {
     const subKeys = this.$currentSets[this.$currentSets.length - 1].$subKeys;
     const currentKey = this.$keys[this.$keys.length - 1];
-    const $cachePerTargetKey = subKeys[currentKey] = subKeys[currentKey] || new Map();
+    const $cachePerTargetKey = (subKeys[currentKey] = subKeys[currentKey] || new Map());
     // if (!$cachePerTargetKey.has(token)) {
     //   $cachePerTargetKey.set(token, {});
     // }
