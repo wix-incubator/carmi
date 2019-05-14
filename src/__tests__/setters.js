@@ -15,18 +15,19 @@ const {
 const {
   expectTapFunctionToHaveBeenCalled,
   describeCompilers,
+  evalOrLoad,
   funcLibrary
 } = require('../test-utils');
 const _ = require('lodash');
 
 describe('setters', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'bytecode'], compiler => {
     it('push', () => {
       const model = {
         data: root.get('data').map(v => v.call('tap')),
         pushIt: push('data')
       }
-      const optCode = eval(compile(model, {
+      const optCode = evalOrLoad(compile(model, {
         compiler
       }));
       const inst = optCode({
@@ -42,7 +43,7 @@ describe('setters', () => {
         data: root.get('a'),
         setInner: setter('a', arg0, 'c')
       }
-      const optCode = eval(compile(model, {
+      const optCode = evalOrLoad(compile(model, {
         compiler
       }));
       const inst = optCode({
@@ -60,7 +61,7 @@ describe('setters', () => {
         outer: root.get('a').mapValues(a => a),
         setInner: setter('a', 'b', 'c')
       }
-      const optCode = eval(compile(model, {
+      const optCode = evalOrLoad(compile(model, {
         compiler
       }));
       const inst = optCode({
@@ -78,7 +79,7 @@ describe('setters', () => {
         outer: root.get('a').mapValues(a => a),
         setInner: setter('a', 'b', 0, 'c')
       }
-      const optCode = eval(compile(model, {
+      const optCode = evalOrLoad(compile(model, {
         compiler
       }));
       const inst = optCode({
@@ -97,7 +98,7 @@ describe('setters', () => {
         outer: root.get('a').mapValues(a => a),
         spliceInner: splice('a', 'b')
       }
-      const optCode = eval(compile(model, {
+      const optCode = evalOrLoad(compile(model, {
         compiler
       }));
       const inst = optCode({
@@ -113,7 +114,7 @@ describe('setters', () => {
         outer: root.get('a').mapValues(a => a),
         pushInner: push('a', 'b')
       }
-      const optCode = eval(compile(model, {
+      const optCode = evalOrLoad(compile(model, {
         compiler
       }));
       const inst = optCode({

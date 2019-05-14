@@ -1,5 +1,5 @@
 const {compile, and, or, root, arg0, setter} = require('../../index');
-const {currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand} = require('../test-utils');
+const {currentValues, funcLibrary, expectTapFunctionToHaveBeenCalled, rand, evalOrLoad} = require('../test-utils');
 
 const _ = require('lodash');
 
@@ -72,9 +72,9 @@ describe('simple todo', () => {
     return res;
   }
 
-  it('compare naive and optimized', async () => {
-    const naiveFunc = eval(compile(TodosModel(), true));
-    const optFunc = eval(compile(TodosModel()));
+  it('compare naive and optimized', () => {
+    const naiveFunc = evalOrLoad(compile(TodosModel(), true));
+    const optFunc = evalOrLoad(compile(TodosModel()));
     const initialState = {
       todos: generateTestTodoItems(countItems),
       currentTask: '1',

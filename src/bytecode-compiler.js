@@ -53,21 +53,31 @@ function str2ab_array(str) {
 
 function concatBuffers(...buffers) {
   // buffers = [buffers[0]]
-  const totalSize = _.sum(buffers.map(buf => buf.byteLength));
+  const offsetsSize = 4 * (buffers.length + 1);
+  const totalSize = _.sum(buffers.map(buf => buf.byteLength)) + offsetsSize;
+
   const out = new Buffer(totalSize);
-  let offset = 0;
+
+  let offset = 4;
+  let totalLength = offsetsSize;
+  out.writeUInt32LE(offsetsSize, 0);
+  for (let i = 0; i < buffers.length; i++) {
+    totalLength += buffers[i].byteLength;
+    out.writeUInt32LE(totalLength, offset);
+    offset += 4;
+  }
   buffers.forEach(buf => {
     for (let i = 0; i < buf.length; i++) {
       if (buf instanceof Uint32Array) {
-        out.writeUInt32LE(buf[i], offset)
+        out.writeUInt32LE(buf[i], offset);
         offset += 4;
       } else {
-        out.writeUInt16LE(buf[i], offset)
+        out.writeUInt16LE(buf[i], offset);
         offset += 2;
       }
     }
   });
-  return out
+  return out;
 }
 
 function roundUpToEven(n) {
@@ -114,6 +124,7 @@ class BytecodeCompiler extends SimpleCompiler {
       }
     });
     Object.keys(this.setters).forEach(t => stringsSet.add(t));
+    Object.values(this.setters).forEach(setter => setter.forEach(addConst));
     searchExpressions(e => {
       if (e[0].$type === 'get' && e[2] instanceof Token && e[2].$type === 'topLevel') {
         e[1] = this.topLevelToIndex(e[1]);
@@ -124,7 +135,7 @@ class BytecodeCompiler extends SimpleCompiler {
     Object.keys(exprsFromHash).forEach(hash => {
       exprsHashToIndex.set(hash, exprsHashToIndex.size);
     });
-    console.log(exprsHashToIndex.size, stringsSet.size, numbersSet.size, Object.keys(this.getters).length);
+    // console.log(exprsHashToIndex.size, stringsSet.size, numbersSet.size, Object.keys(this.getters).length);
     const stringsMap = setToMap(stringsSet);
     const numbersMap = setToMap(numbersSet);
     const expressionsHashToIndex = {};
@@ -153,32 +164,46 @@ class BytecodeCompiler extends SimpleCompiler {
     const expressionsOffsets = new Uint32Array(countOfExpressions);
     const expressions = new Uint32Array(lengthOfAllExpressions);
 
+    function convertToEmbeddedValue(val) {
+      if (typeof val === 'string') {
+        return embeddedVal(enums.$stringRef, stringsMap.get(val));
+      } else if (typeof val === 'number') {
+        return canInlineNumber(val) ?
+          embeddedVal(enums.$numberInline, val) :
+          embeddedVal(enums.$numberRef, numbersMap.get(val));
+      } else if (typeof val === 'boolean') {
+        return embeddedVal(enums.$booleanInline, val ? 1 : 0);
+      } else if (val instanceof Token) {
+        return embeddedVal(enums[`$${val.$type}`], 0);
+      } else if (val instanceof Expression) {
+        return embeddedVal(enums.$expressionRef, expressionsHashToIndex[exprHash(val)]);
+      }
+    }
+
     Object.keys(exprsFromHash).forEach((hash, index) => {
       const e = exprsFromHash[hash];
       const verb = enums[`$${e[0].$type}`] << 16;
       expressions[exprOffset] = verb + e.length;
       // console.log(e[0].$type, expressions[exprOffset], JSON.stringify(e));
       e.slice(1)
-        .map(val => {
-          if (typeof val === 'string') {
-            return embeddedVal(enums.$stringRef, stringsMap.get(val));
-          } else if (typeof val === 'number') {
-            return canInlineNumber(val) ?
-              embeddedVal(enums.$numberInline, val) :
-              embeddedVal(enums.$numberRef, numbersMap.get(val));
-          } else if (typeof val === 'boolean') {
-            return embeddedVal(enums.$booleanInline, val ? 1 : 0);
-          } else if (val instanceof Token) {
-            return embeddedVal(enums[`$${val.$type}`], 0);
-          } else if (val instanceof Expression) {
-            return embeddedVal(enums.$expressionRef, expressionsHashToIndex[exprHash(val)]);
-          }
-        })
+        .map(convertToEmbeddedValue)
         .forEach((val, indexInExpr) => {
           expressions[exprOffset + 1 + indexInExpr] = val;
         });
       expressionsOffsets[index] = exprOffset;
       exprOffset += e.length;
+    });
+    const settersSize = _.sum(Object.keys(this.setters).map(key => this.setters[key].length + 2));
+    const settersBuffer = new Uint32Array(settersSize);
+    let settersOffset = 0;
+    Object.keys(this.setters).forEach(key => {
+      const setter = this.setters[key];
+      const type = enums[`$${setter.setterType()}`] << 16;
+      settersBuffer[settersOffset++] = type + setter.length;
+      settersBuffer[settersOffset++] = stringsMap.get(key);
+      setter.map(convertToEmbeddedValue).forEach(val => {
+        settersBuffer[settersOffset++] = val
+      });
     });
     // console.log({
     //   header,
@@ -195,6 +220,7 @@ class BytecodeCompiler extends SimpleCompiler {
       topLevelNames,
       expressionsOffsets,
       expressions,
+      settersBuffer,
       constsBuffer
     );
     return outputArray;

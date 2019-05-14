@@ -1,12 +1,13 @@
 const {compile, root, setter, bind} = require('../../index')
+const {evalOrLoad} = require('../test-utils');
 
 describe('empty batching strategy', () => {
   const emptyBatchingStrategy = function () { // eslint-disable-line func-style
     this.$endBatch()
   }
 
-  it('should behave as if there is no batching at all', async () => {
-    const carmiModelFactory = eval(compile({
+  it('should behave as if there is no batching at all', () => {
+    const carmiModelFactory = evalOrLoad(compile({
       counter: root.get('model').get('counter'),
       setCounter: setter('model', 'counter'),
       incrementCounter: bind('incrementCounter', bind('setCounter'), root.get('model').get('counter'))

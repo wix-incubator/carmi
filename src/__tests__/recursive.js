@@ -1,6 +1,7 @@
 const {compile, and, or, root, arg0, setter, splice} = require('../../index');
 const {
   describeCompilers,
+  evalOrLoad,
   currentValues,
   funcLibrary,
   expectTapFunctionToHaveBeenCalled,
@@ -10,7 +11,7 @@ const _ = require('lodash');
 
 describe('testing array', () => {
   describeCompilers(['simple', 'optimizing'], compiler => {
-    it('simple sum', async () => {
+    it('simple sum', () => {
       const model = {
         sum: root.recursiveMap((loop, val, key) =>
           key
@@ -20,7 +21,7 @@ describe('testing array', () => {
         ),
         set: setter(arg0)
       };
-      const optModel = eval(compile(model, {compiler}));
+      const optModel = evalOrLoad(compile(model, {compiler}));
       const inst = optModel([1, 2, 3, 4, 5], funcLibrary);
       expectTapFunctionToHaveBeenCalled(5, compiler);
       expect(inst.sum).toEqual([1, 3, 6, 10, 15]);
@@ -28,7 +29,7 @@ describe('testing array', () => {
       expectTapFunctionToHaveBeenCalled(3, compiler);
       expect(inst.sum).toEqual([1, 3, 16, 20, 25]);
     });
-    it('chains', async () => {
+    it('chains', () => {
       const model = {
         chain: root.recursiveMap((loop, val, key) =>
           val
@@ -38,7 +39,7 @@ describe('testing array', () => {
         ),
         set: setter(arg0)
       };
-      const optModel = eval(compile(model, {compiler}));
+      const optModel = evalOrLoad(compile(model, {compiler}));
       const initialData = [1, 2, 3, -1, -2, 4];
       const inst = optModel(initialData, funcLibrary);
       expect(inst.chain).toEqual([-1, -1, -1, -1, -2, -2]);
@@ -47,7 +48,7 @@ describe('testing array', () => {
       expectTapFunctionToHaveBeenCalled(3, compiler);
       expect(inst.chain).toEqual([-2, -2, -2, -1, -2, -2]);
     });
-    it('recursiveMapValues', async () => {
+    it('recursiveMapValues', () => {
       const model = {
         allDone: root.recursiveMapValues((loop, todo, idx) =>
           and(
@@ -61,7 +62,7 @@ describe('testing array', () => {
         setDone: setter(arg0, 'done'),
         spliceBlockedBy: splice(arg0, 'subTasks')
       };
-      const optModel = eval(compile(model, {compiler}));
+      const optModel = evalOrLoad(compile(model, {compiler}));
       const initialData = {
         a: {done: true, subTasks: []},
         b: {done: false, subTasks: ['c']},

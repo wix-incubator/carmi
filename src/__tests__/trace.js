@@ -1,5 +1,5 @@
 const {root, compile} = require('../../index');
-const {describeCompilers} = require('../test-utils');
+const {describeCompilers, evalOrLoad} = require('../test-utils');
 
 describe('trace', () => { //eslint-disable-line padded-blocks
 
@@ -14,7 +14,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
         result: root.trace('a')
       }
 
-      const optModel = eval(compile(model))
+      const optModel = evalOrLoad(compile(model))
       const initialData = {a: 1}
 
       const result = optModel(initialData)
@@ -34,7 +34,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
         withLabel: root.get('a').plus(1).trace('a:')
       }
 
-      const optModel = eval(compile(model))
+      const optModel = evalOrLoad(compile(model))
       const initialData = {a: 1}
 
       const result = optModel(initialData)
@@ -57,7 +57,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
           result: root.get('a').conditionalTrace(root.get('a'))
         };
 
-        const optModel = eval(compile(model, {compiler}));
+        const optModel = evalOrLoad(compile(model, {compiler}));
         const initialData = {
           a: true
         };
@@ -74,7 +74,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
           result: root.get('a').conditionalTrace(root.get('a'))
         };
 
-        const optModel = eval(compile(model, {compiler}));
+        const optModel = evalOrLoad(compile(model, {compiler}));
         const initialData = {
           a: false
         };
@@ -95,7 +95,7 @@ describe('trace', () => { //eslint-disable-line padded-blocks
           result: root.get('a').tapTrace(x => x.plus(2))
         };
 
-        const optModel = eval(compile(model, {compiler}));
+        const optModel = evalOrLoad(compile(model, {compiler}));
         const initialData = {
           a: 1
         };

@@ -1,8 +1,8 @@
 const {root, compile} = require('../../index');
-const {describeCompilers} = require('../test-utils');
+const {describeCompilers, evalOrLoad} = require('../test-utils');
 
 describe('switch', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'bytecode'], compiler => {
     it('should return the result of the matching case tuple', () => {
       const model = {
         result: root.get('a').switch([
@@ -12,7 +12,7 @@ describe('switch', () => {
         ])
       };
 
-      const optModel = eval(compile(model, {compiler}));
+      const optModel = evalOrLoad(compile(model, {compiler}));
       const initialData = {
         a: 2
       };
@@ -30,7 +30,7 @@ describe('switch', () => {
         ], 'Oops')
       };
 
-      const optModel = eval(compile(model, {compiler}));
+      const optModel = evalOrLoad(compile(model, {compiler}));
       const initialData = {
         a: 4
       };

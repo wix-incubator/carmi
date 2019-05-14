@@ -180,6 +180,18 @@ module.exports.nonVerbs = {
 
 
 
+module.exports.$setter = 0;
+module.exports.$splice = 1;
+module.exports.$push = 2;
+module.exports.setterTypesCount = 3;
+module.exports.setterTypes = {
+  $setter: 0,
+  $splice: 1,
+  $push: 2
+};
+
+
+
 // Values are uint32
 // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVTTT
 // TTT - signifies type

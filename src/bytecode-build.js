@@ -21,6 +21,8 @@ const nonVerbs = Object.keys(TokenTypeData).filter(token => TokenTypeData[token]
 
 const valueTypes = ['numberInline', 'booleanInline', 'stringRef', 'numberRef', 'expressionRef'];
 
+const setterTypes = ['setter', 'splice', 'push'];
+
 const defineEnum = (name, values) => `
 ${values.map((key, index) => `module.exports.$${key} = ${index};`).join('\n')}
 module.exports.${name}Count = ${values.length};
@@ -33,6 +35,7 @@ ${values.map((key, index) => `  $${key}: ${index}`).join(',\n')}
 const enums = `
 ${defineEnum('Verbs', verbsLazyFirst)}
 ${defineEnum('nonVerbs', valueTypes.concat(nonVerbs))}
+${defineEnum('setterTypes', setterTypes)}
 
 // Values are uint32
 // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVTTT
@@ -128,6 +131,9 @@ function rewriteAncestorBlockStatement(ancestors, deleteCount, ...newItems) {
 
 const visitorFuncDeclStatements = {
   ReturnStatement(node, state, ancestors) {
+    if (ancestors.length > 3) {
+      return;
+    }
     Object.assign(node, {
       arguments: [node.argument],
       type: 'CallExpression',
@@ -304,6 +310,7 @@ const snippets = _.mapValues(
     },
     srcEnd: ($offset, $length) => {
       this.$collections.pop();
+      this.$currentSets.pop();
     },
     context: ($offset, $length) => {
       if ($length === 3) {
@@ -327,7 +334,7 @@ const snippets = _.mapValues(
       const end = this.$stack.pop();
     },
     start: ($offset, $length) => {
-      let start = 1;
+      let start = 0;
       if ($length > 2) {
         this.processValue(this.$expressions[++$offset]);
         start = this.$stack.pop();
@@ -351,13 +358,20 @@ const snippets = _.mapValues(
       }
     },
     keysList: ($offset, $length) => {
-      this.processValue(this.$expressions[++$offset]);
-      const keysList = this.$stack.pop();
+      let keysList = this.$globals.get($offset);
+      if (!keysList) {
+        keysList = [];
+        for (let i = 1; i < $length; i += 2) {
+          this.processValue(this.$expressions[$offset + i]);
+          keysList.push(this.$stack.pop());
+        }
+        this.$globals.set($offset, keysList);
+      }
     },
     valsList: ($offset, $length) => {
       const valsList = [];
-      for (let i = 2; i < $length; i++) {
-        this.processValue(this.$expressions[++$offset]);
+      for (let i = 2; i < $length; i += 2) {
+        this.processValue(this.$expressions[$offset + i]);
         valsList.push(this.$stack.pop());
       }
     }

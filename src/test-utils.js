@@ -1,5 +1,6 @@
 const rand = require('random-seed').create();
 const defaultSeed = 'CARMI';
+const loadBytecode = require('./bytecode/carmi-instance');
 
 function currentValues(inst) {
   if (typeof inst !== 'object' || inst === null) {
@@ -38,9 +39,18 @@ afterEach(() => {
 });
 
 function describeCompilers(compilers, tests) {
+  // compilers = compilers.filter(t => t !== 'bytecode')
   compilers.forEach(compiler => {
     describe(`compiler:${compiler}`, () => tests(compiler));
   });
 }
 
-module.exports = {currentValues, expectTapFunctionToHaveBeenCalled, funcLibrary, describeCompilers, rand};
+function evalOrLoad(src) {
+  if (typeof src === 'string') {
+    // eslint-disable-next-line no-eval
+    return eval(src);
+  } 
+  return loadBytecode(src.buffer);
+}
+
+module.exports = {currentValues, expectTapFunctionToHaveBeenCalled, funcLibrary, describeCompilers, rand, evalOrLoad};
