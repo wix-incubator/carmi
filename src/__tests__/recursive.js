@@ -10,7 +10,7 @@ const {
 const _ = require('lodash');
 
 describe('testing recursion', () => {
-  describeCompilers(['simple', 'optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'bytecode'], compiler => {
     it('simple sum', () => {
       const model = {
         sum: root.recursiveMap((loop, val, key) =>

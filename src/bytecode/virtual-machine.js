@@ -88,6 +88,131 @@ verbFuncs[Verbs.$func] = function $func($offset, $length) {
   this.$keys.pop();
 };
 
+const recursiveCacheFunc = () => new Map();
+
+const emptyObj = () => ({});
+const emptyArr = () => [];
+
+function cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap) {
+  $invalidatedKeys.forEach(key => {
+    if ($dependencyMap.has(key)) {
+      $dependencyMap.get(key).forEach($tracked => {
+        this.invalidate($tracked[0], $tracked[1]);
+      });
+      $dependencyMap.delete(key);
+    }
+  });
+}
+
+verbFuncs[Verbs.$recursiveMapValues] = function $recursiveMapValues($offset, $length) {
+  this.$functions.push(this.$expressions[++$offset]);
+  this.processValue(this.$expressions[++$offset]);
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+
+  if ($length === 3) {
+    this.$contexts.push(null);
+  } else {
+    this.processValue(this.$expressions[++$offset]);
+    this.$contexts.push(this.$stack.pop());
+  }
+
+  const $storage = this.initOutput($offset, emptyObj, recursiveCacheFunc);
+  const $out = $storage[1];
+  const $invalidatedKeys = $storage[2];
+  const $new = $storage[3];
+  const $dependencyMap = $storage[4];
+  if ($new) {
+    Object.keys(src).forEach(key => $invalidatedKeys.add(key));
+    Object.keys(src).forEach(key => {
+      this.$keys.push(key);
+      this.collectionRecursiveFunction();
+      this.$stack.pop();
+    });
+  } else {
+    cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap);
+    $invalidatedKeys.forEach(key => {
+      this.$keys.push(key);
+      this.collectionRecursiveFunction();
+      this.$stack.pop();
+    });
+  }
+  $invalidatedKeys.clear();
+  this.$stack.push($out);
+  this.$functions.pop();
+  this.$collections.pop();
+  this.$currentSets.pop();
+  this.$contexts.pop();
+};
+
+verbFuncs[Verbs.$recursiveMap] = function $recursiveMap($offset, $length) {
+  this.$functions.push(this.$expressions[++$offset]);
+  this.processValue(this.$expressions[++$offset]);
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+
+  if ($length === 3) {
+    this.$contexts.push(null);
+  } else {
+    this.processValue(this.$expressions[++$offset]);
+    this.$contexts.push(this.$stack.pop());
+  }
+
+  const $storage = this.initOutput($offset, emptyArr, recursiveCacheFunc);
+  const $out = $storage[1];
+  const $invalidatedKeys = $storage[2];
+  const $new = $storage[3];
+  const $dependencyMap = $storage[4];
+  if ($new) {
+    for (let key = 0; key < src.length; key++) {
+      $invalidatedKeys.add(key);
+    }
+    for (let key = 0; key < src.length; key++) {
+      this.$keys.push(key);
+      this.collectionRecursiveFunction();
+      this.$stack.pop();
+    }
+  } else {
+    cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap);
+    $invalidatedKeys.forEach(key => {
+      this.$keys.push(key);
+      this.collectionRecursiveFunction();
+      this.$stack.pop();
+    });
+  }
+  $invalidatedKeys.clear();
+  this.$stack.push($out);
+  this.$functions.pop();
+  this.$collections.pop();
+  this.$currentSets.pop();
+  this.$contexts.pop();
+};
+
+verbFuncs[Verbs.$recur] = function $recur($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  const stackDepth = this.$stack.pop();
+  this.processValue(this.$expressions[++$offset]);
+  const nextKey = this.$stack.pop();
+  const prevKey = this.$keys[stackDepth];
+  const $invalidatedKeys = this.$currentSets[stackDepth];
+  const $dependencyMap = $invalidatedKeys.$cache[4];
+  if (!$dependencyMap.has(nextKey)) {
+    $dependencyMap.set(nextKey, []);
+  }
+  $dependencyMap.get(nextKey).push([$invalidatedKeys, prevKey]);
+
+  this.$functions.push(this.$functions[stackDepth - 1]);
+  this.$collections.push(this.$collections[stackDepth - 1]);
+  this.$contexts.push(this.$contexts[stackDepth - 1]);
+  this.$currentSets.push($invalidatedKeys);
+  this.$keys.push(nextKey);
+  this.collectionRecursiveFunction();
+  this.$functions.pop();
+  this.$collections.pop();
+  this.$currentSets.pop();
+  this.$contexts.pop();
+};
+
 const settersFuncs = new Array(setterTypesCount).fill();
 settersFuncs[$setter] = function $setter(path, value) {
   let $target = this.$model;
@@ -246,6 +371,7 @@ class VirtualMachineInstance {
     this.$invalidatedRoots.$parentKey = null;
     this.$invalidatedRoots.$parent = null;
     this.$invalidatedRoots.$tracked = {};
+    this.$invalidatedRoots.$cache = [null, this.$topLevels, this.$invalidatedRoots, true, null];
     this.$first = true;
     this.$tainted = new Set();
     this.buildSetters(VirtualMachineInstance.getTypedArrayByIndex($bytecode, 5, 4));
@@ -278,7 +404,7 @@ class VirtualMachineInstance {
         this.$stack.push(this.$topLevels);
         break;
       case $loop:
-        this.$stack.push(this.$functions.length);
+        this.$stack.push(this.$currentSets.length - 1);
         break;
       case $context:
         this.$stack.push(this.$contexts[this.$contexts.length - 1]);
@@ -335,6 +461,40 @@ class VirtualMachineInstance {
 
   collectionFunction() {
     this.processExpression(this.$functions[this.$functions.length - 1] >> 5);
+    this.$keys.pop();
+  }
+
+  collectionRecursiveFunction() {
+    const $invalidatedKeys = this.$currentSets[this.$currentSets.length - 1];
+    const key = this.$keys[this.$keys.length - 1];
+    const $cache = $invalidatedKeys.$cache;
+    const $out = $cache[1];
+    const $new = $cache[3];
+    const src = this.$collections[this.$collections.length - 1];
+    if ($invalidatedKeys.has(key)) {
+      $invalidatedKeys.delete(key);
+      if (Array.isArray($out)) {
+        if (key >= src.length) {
+          this.truncateArray($out, src.length);
+          $out.length = src.length;
+          this.$keys.pop();
+        } else {
+          this.processExpression(this.$functions[this.$functions.length - 1] >> 5);
+          this.setOnArray($out, key, this.$stack.pop(), $new);
+        }
+      } else if (!src.hasOwnProperty(key)) {
+        if ($out.hasOwnProperty(key)) {
+          this.deleteOnObject($out, key, $new);
+        }
+        this.$keys.pop();
+      } else {
+        this.processExpression(this.$functions[this.$functions.length - 1] >> 5);
+        this.setOnObject($out, key, this.$stack.pop(), $new);
+      }
+    } else {
+      this.$keys.pop();
+    }
+    this.$stack.push($out[key]);
   }
 
   generateSetter($setters, $offset) {
@@ -427,8 +587,8 @@ class VirtualMachineInstance {
       if (
         $hard ||
         $target[$key] !== $val ||
-        ($val && typeof $val === 'object' && this.$tainted.has($val)) ||
-        (!$target.hasOwnProperty($key) && $target[$key] === undefined)
+        $val && typeof $val === 'object' && this.$tainted.has($val) ||
+        !$target.hasOwnProperty($key) && $target[$key] === undefined
       ) {
         $changed = true;
         this.triggerInvalidations($target, $key, $hard);
@@ -462,7 +622,7 @@ class VirtualMachineInstance {
         $hard ||
         $key >= $target.length ||
         $target[$key] !== $val ||
-        ($val && typeof $target[$key] === 'object' && this.$tainted.has($val))
+        $val && typeof $target[$key] === 'object' && this.$tainted.has($val)
       ) {
         this.triggerInvalidations($target, $key, $hard);
       }
@@ -522,7 +682,7 @@ class VirtualMachineInstance {
     const $currentKey = this.$keys[this.$keys.length - 1];
     const src = this.$collections[this.$collections.length - 1];
     const subKeys = $parent.$subKeys;
-    const $cachePerTargetKey = (subKeys[$currentKey] = subKeys[$currentKey] || new Map());
+    const $cachePerTargetKey = subKeys[$currentKey] = subKeys[$currentKey] || new Map();
     let $cachedByFunc = null; //$cachePerTargetKey.get(func);
     if (!$cachedByFunc) {
       const $resultObj = createDefaultValue();
@@ -534,6 +694,7 @@ class VirtualMachineInstance {
       $invalidatedKeys.$tracked = {};
       this.$invalidatedMap.set($resultObj, $invalidatedKeys);
       $cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];
+      $invalidatedKeys.$cache = $cachedByFunc;
       $cachePerTargetKey.set(func, $cachedByFunc);
     } else {
       $cachedByFunc[3] = false;
@@ -568,7 +729,7 @@ class VirtualMachineInstance {
   getEmptyArray(token) {
     const subKeys = this.$currentSets[this.$currentSets.length - 1].$subKeys;
     const currentKey = this.$keys[this.$keys.length - 1];
-    const $cachePerTargetKey = (subKeys[currentKey] = subKeys[currentKey] || new Map());
+    const $cachePerTargetKey = subKeys[currentKey] = subKeys[currentKey] || new Map();
 
     // if (!$cachePerTargetKey.has(token)) {
     //   $cachePerTargetKey.set(token, []);
@@ -580,7 +741,7 @@ class VirtualMachineInstance {
   getEmptyObject(token) {
     const subKeys = this.$currentSets[this.$currentSets.length - 1].$subKeys;
     const currentKey = this.$keys[this.$keys.length - 1];
-    const $cachePerTargetKey = (subKeys[currentKey] = subKeys[currentKey] || new Map());
+    const $cachePerTargetKey = subKeys[currentKey] = subKeys[currentKey] || new Map();
     // if (!$cachePerTargetKey.has(token)) {
     //   $cachePerTargetKey.set(token, {});
     // }
