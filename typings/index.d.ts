@@ -7,7 +7,7 @@ interface AbstractGraph {$isCarmiGraph: true}
 export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType}
 
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
-export type Argument<T> = AsNative<T> | GraphBase<T>
+export type Argument<T> = AsNative<T> | GraphBase<T> | T
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> =
         AsNative<T> extends any[] ? AsNative<T> :
