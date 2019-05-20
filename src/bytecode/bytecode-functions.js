@@ -38,7 +38,6 @@ module.exports.$get = function $get($offset, $len) {
 // recur skipped
 // func skipped
 // invoke skipped
-// cond skipped
 
 module.exports.$eq = function $eq($offset, $len) {
  this.processValue(this.$expressions[++$offset])
@@ -235,6 +234,7 @@ module.exports.$quote = function $quote($offset, $len) {
   const arg0 = this.$stack.pop();
     this.$stack.push(arg0);
 }
+// trackPath skipped
 const emptyObj = () => ({});
 const emptyArr = () => [];
 const nullFunc = () => null;
@@ -243,6 +243,15 @@ const valuesOrKeysCacheFunc = () => ({
   $keyToIdx: {},
   $idxToKey: []
 });
+module.exports.$trackPath = function trackPath($offset, $length) {
+  const $end = $path.length - 2;
+  let $current = $path[0];
+
+  for (let i = 0; i <= $end; i++) {
+    this.track($target, $current, $path[i + 1], i !== $end);
+    $current = $current[$path[i + 1]];
+  }
+};
 module.exports.$mapValues = function mapValues($offset, $length) {
   this.$functions.push(this.$expressions[++$offset]);
   this.processValue(this.$expressions[++$offset]);
@@ -1369,7 +1378,7 @@ track($target, $sourceObj, $sourceKey, $soft) {
   $tracked[$target[1]] = $tracked[$target[1]] || [];
   $tracked[$target[1]].push($sourceObj, $sourceKey, $target);
 }
-trackPath($target, $path) {
+trackPath($offset, $length) {
   const $end = $path.length - 2;
   let $current = $path[0];
 

@@ -1,12 +1,9 @@
 const {
   Expr,
   Token,
-  Setter,
-  Expression,
-  SetterExpression,
-  SpliceSetterExpression,
-  TokenTypeData,
-  Clone
+  TrackPath,
+  Get,
+  Expression
 } = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
@@ -84,26 +81,12 @@ class BytecodeCompiler extends SimpleCompiler {
   constructor(model, options) {
     options = {...options, disableHelperFunctions: true};
     super(model, options);
+    this.realGetters = [];
+    this.exprsFromHash = {};
+    this.tagToHash = {};
+    this.exprsHashToIndex = new Map();
   }
-  compile() {
-    const realGetters = [];
-    Object.keys(this.getters).forEach(name => {
-      const index = this.topLevelToIndex(name);
-      if (typeof index === 'number') {
-        realGetters[index] = name;
-      }
-    });
-    const countTopLevels = realGetters.length;
-    const exprsFromHash = {};
-    searchExpressions(e => {
-      if (!(e instanceof Expression)) {
-        return;
-      }
-      const hash = exprHash(e);
-      e[0].$hash = hash;
-      exprsFromHash[hash] = exprsFromHash[hash] || e;
-    }, Object.values(this.getters));
-    const exprsHashToIndex = new Map();
+  extractConsts() {
     const stringsSet = new Set();
     stringsSet.add(''); // the zero constant string is the empty string
     const numbersSet = new Set();
@@ -128,87 +111,134 @@ class BytecodeCompiler extends SimpleCompiler {
       e.forEach(addConst);
     }, Object.values(this.getters));
     Object.values(this.setters).forEach(s => s.forEach(addConst));
-    Object.keys(exprsFromHash).forEach(hash => {
-      exprsHashToIndex.set(hash, exprsHashToIndex.size);
+    this.stringsMap = setToMap(stringsSet);
+    this.numbersMap = setToMap(numbersSet);
+    this.stringsSet = stringsSet;
+    this.numbersSet = numbersSet;
+  }
+  convertToEmbeddedValue(val) {
+    if (typeof val === 'string') {
+      return embeddedVal(enums.$stringRef, this.stringsMap.get(val));
+    } else if (typeof val === 'number') {
+      return canInlineNumber(val) ?
+        embeddedVal(enums.$numberInline, val) :
+        embeddedVal(enums.$numberRef, this.numbersMap.get(val));
+    } else if (typeof val === 'boolean') {
+      return embeddedVal(enums.$booleanInline, val ? 1 : 0);
+    } else if (val instanceof Token) {
+      return embeddedVal(enums[`$${val.$type}`], 0);
+    } else if (val instanceof Expression) {
+      if (val[0].$type === 'cond') {
+        return embeddedVal(enums.$condRef, this.expressionsHashToIndex[val[1]]);
+      }
+      return embeddedVal(enums.$expressionRef, this.expressionsHashToIndex[exprHash(val)]);
+    }
+  }
+  rewriteCondsToHash(expr) {
+    if (!(expr instanceof Expression)) {
+      return expr;
+    }
+    if (expr[0].$type === 'cond') {
+      expr[1] = this.tagToHash.hasOwnProperty(expr[1]) ? this.tagToHash[expr[1]] : expr[1];
+      return expr;
+    } 
+    return Expr(...expr.map(t => this.rewriteCondsToHash(t)))
+  }
+  addExpressionsToHashes(exprs) {
+    searchExpressions(e => {
+      if (!(e instanceof Expression) || e[0].$type === 'cond') {
+        return;
+      }
+      const hash = exprHash(e);
+      e[0].$hash = hash;
+      this.exprsFromHash[hash] = this.exprsFromHash[hash] || e;
+      if (e[0].hasOwnProperty('$id')) {
+        this.tagToHash[e[0].$id] = hash;
+      }
+    }, exprs);
+  }
+  compile() {
+    Object.keys(this.getters).forEach(name => {
+      const index = this.topLevelToIndex(name);
+      if (typeof index === 'number') {
+        this.realGetters[index] = name;
+      }
     });
-    // console.log(exprsHashToIndex.size, stringsSet.size, numbersSet.size, Object.keys(this.getters).length);
-    const stringsMap = setToMap(stringsSet);
-    const numbersMap = setToMap(numbersSet);
-    const expressionsHashToIndex = {};
-    Object.keys(exprsFromHash).forEach((hash, index) => expressionsHashToIndex[hash] = index);
-    const taggedIdToIndex = {};
-    const tracking = [];
-    const trackingOffsetByExprIndex = {};
+    const countTopLevels = this.realGetters.length;
+
+    this.addExpressionsToHashes(Object.values(this.getters))
+
+    this.extractConsts();
+
+    Object.keys(this.exprsFromHash).forEach(hash => {
+      this.exprsHashToIndex.set(hash, this.exprsHashToIndex.size);
+    });
 
     searchExpressions(e => {
-      if (e instanceof Expression) {
-        taggedIdToIndex[e[0].$id] = exprsHashToIndex.get(exprHash(e));
+      if (!(e instanceof Expression)) {
+        return;
+      }
+      if (!e[0].$path) {
+        return;
+      }
+      const trackParts = Array.from(e[0].$path.entries()).map(([path, cond]) => {
+        const pathAsExpr = path.slice(1).reduce((acc, t) => Expr(Get, t, acc), path[0]);
+        const pathHash = exprHash(pathAsExpr);
+        // console.log('path', pathHash, this.exprsFromHash.hasOwnProperty(pathHash), pathAsExpr);
+        // console.log('cond', cond);
+        return [this.rewriteCondsToHash(cond), pathAsExpr]
+      })
+      e[0].$path = Expr(TrackPath, ...[].concat(...trackParts));
+      this.addExpressionsToHashes([e[0].$path]);
+      if (e[0].$type === 'func') {
+        e.push(e[0].$path);
       }
     }, Object.values(this.getters));
-    // console.log(taggedIdToIndex);
-    // searchExpressions(e => {
-    //   const hash = exprHash(e);
-    //   const index = exprsHashToIndex.get(hash);
-    //   if (!e[0].$path || trackingOffsetByExprIndex.hasOwnProperty(index)) {
-    //     return;
-    //   }
-    //   e[0].$path.forEach((val, key) => console.log(JSON.stringify(val), JSON.stringify(key)));
-    //   console.log('----')
-    // }, Object.values(this.getters));
 
-    const stringsAndNumbers = JSON.stringify({$strings: Array.from(stringsSet), $numbers: Array.from(numbersSet)});
+    // console.log(this.exprsHashToIndex.size, stringsSet.size, numbersSet.size, Object.keys(this.getters).length);
+    this.expressionsHashToIndex = {};
+    Object.keys(this.exprsFromHash).forEach((hash, index) => this.expressionsHashToIndex[hash] = index);
+    
+    const stringsAndNumbers = JSON.stringify({$strings: Array.from(this.stringsSet), $numbers: Array.from(this.numbersSet)});
     const constsBuffer = str2ab_array(stringsAndNumbers);
     const countOfTopLevels = Object.keys(this.getters).length;
-    const countOfExpressions = Object.keys(exprsFromHash).length;
-    const lengthOfAllExpressions = _.sum(Object.values(exprsFromHash).map(e => e.length));
-    const header = new Uint32Array(3);
+    const countOfExpressions = Object.keys(this.exprsFromHash).length;
+    const lengthOfAllExpressions = _.sum(Object.values(this.exprsFromHash).map(e => e.length));
+    const header = new Uint32Array(1);
     header[0] = countOfTopLevels;
-    header[1] = countOfExpressions;
-    header[2] = lengthOfAllExpressions;
     const topLevelNames = new Uint32Array(countOfTopLevels);
     const topLevelExpressions = new Uint32Array(countOfTopLevels);
+    const topLevelTracking = new Uint32Array(countOfTopLevels);
     _.range(countTopLevels).forEach(i => {
       let name = '';
-      if (this.options.debug || realGetters[i][0] !== '$') {
-        name = realGetters[i];
+      if (this.options.debug || this.realGetters[i][0] !== '$') {
+        name = this.realGetters[i];
       }
-      topLevelNames[i] = stringsMap.get(name);
-      topLevelExpressions[i] = exprsHashToIndex.get(exprHash(this.getters[realGetters[i]]));
+      topLevelNames[i] = this.stringsMap.get(name);
+      const expr = this.getters[this.realGetters[i]];
+      topLevelExpressions[i] = this.exprsHashToIndex.get(exprHash(expr));
+      topLevelTracking[i] = this.exprsHashToIndex.get(expr[0].$path);
     });
-    // console.log(exprsHashToIndex);
+    // console.log(this.exprsHashToIndex);
     let exprOffset = 0;
     const expressionsOffsets = new Uint32Array(countOfExpressions);
     const expressions = new Uint32Array(lengthOfAllExpressions);
 
-    function convertToEmbeddedValue(val) {
-      if (typeof val === 'string') {
-        return embeddedVal(enums.$stringRef, stringsMap.get(val));
-      } else if (typeof val === 'number') {
-        return canInlineNumber(val) ?
-          embeddedVal(enums.$numberInline, val) :
-          embeddedVal(enums.$numberRef, numbersMap.get(val));
-      } else if (typeof val === 'boolean') {
-        return embeddedVal(enums.$booleanInline, val ? 1 : 0);
-      } else if (val instanceof Token) {
-        return embeddedVal(enums[`$${val.$type}`], 0);
-      } else if (val instanceof Expression) {
-        return embeddedVal(enums.$expressionRef, expressionsHashToIndex[exprHash(val)]);
-      }
-    }
-
-    Object.keys(exprsFromHash).forEach((hash, index) => {
-      const e = exprsFromHash[hash];
+    Object.keys(this.exprsFromHash).forEach((hash, index) => {
+      const e = this.exprsFromHash[hash];
       const verb = enums[`$${e[0].$type}`] << 16;
       expressions[exprOffset] = verb + e.length;
       // console.log(e[0].$type, expressions[exprOffset], JSON.stringify(e));
       e.slice(1)
-        .map(convertToEmbeddedValue)
+        .map(t => this.convertToEmbeddedValue(t))
         .forEach((val, indexInExpr) => {
           expressions[exprOffset + 1 + indexInExpr] = val;
         });
       expressionsOffsets[index] = exprOffset;
       exprOffset += e.length;
     });
+
+
     const settersSize = _.sum(Object.keys(this.setters).map(key => this.setters[key].length + 2));
     const settersBuffer = new Uint32Array(settersSize);
     let settersOffset = 0;
@@ -216,8 +246,8 @@ class BytecodeCompiler extends SimpleCompiler {
       const setter = this.setters[key];
       const type = enums[`$${setter.setterType()}`] << 16;
       settersBuffer[settersOffset++] = type + setter.length;
-      settersBuffer[settersOffset++] = stringsMap.get(key);
-      setter.map(convertToEmbeddedValue).forEach(val => {
+      settersBuffer[settersOffset++] = this.stringsMap.get(key);
+      setter.map(v => this.convertToEmbeddedValue(v)).forEach(val => {
         settersBuffer[settersOffset++] = val
       });
     });
@@ -236,6 +266,7 @@ class BytecodeCompiler extends SimpleCompiler {
       header,
       topLevelExpressions,
       topLevelNames,
+      topLevelTracking,
       expressionsOffsets,
       expressions,
       settersBuffer,

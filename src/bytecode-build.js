@@ -12,14 +12,15 @@ const optLibrary = require('./templates/optimizing').library.toString();
 
 const verbs = Object.keys(TokenTypeData)
   .filter(token => !TokenTypeData[token].nonVerb)
-  .filter(token => token !== 'abstract');
+  .filter(token => token !== 'abstract')
+  .filter(token => token !== 'cond');
 const lazyVerbs = new Set(['and', 'or', 'ternary']);
 const eagerVerbs = verbs.filter(token => !lazyVerbs.has(token));
 const verbsLazyFirst = Array.from(lazyVerbs).concat(eagerVerbs);
 const verbsSet = new Set(verbsLazyFirst);
 const nonVerbs = Object.keys(TokenTypeData).filter(token => TokenTypeData[token].nonVerb);
 
-const valueTypes = ['numberInline', 'booleanInline', 'stringRef', 'numberRef', 'expressionRef'];
+const valueTypes = ['numberInline', 'booleanInline', 'stringRef', 'numberRef', 'expressionRef', 'condRef'];
 
 const setterTypes = ['setter', 'splice', 'push'];
 

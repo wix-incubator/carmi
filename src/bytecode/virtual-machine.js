@@ -32,7 +32,7 @@ const {
 const bytecodeFunctions = require('./bytecode-functions');
 
 const LengthMask = (1 << 16) - 1;
-const BUFFERS_COUNT = 6;
+const BUFFERS_COUNT = 7;
 
 const unimplementedVerb = () => {};
 const verbFuncs = new Array(VerbsCount).fill(unimplementedVerb);
@@ -314,8 +314,9 @@ class VirtualMachineInstance {
     const header = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 0, 4);
     this.$topLevelsExpressions = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 1, 4);
     this.$topLevelsNames = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 2, 4);
-    this.$expressionOffsets = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 3, 4);
-    this.$expressions = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 4, 4);
+    this.$topLevelsTracking = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 3, 4);
+    this.$expressionOffsets = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 4, 4);
+    this.$expressions = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 5, 4);
     this.$topLevelsCount = header[0];
     this.$model = $model;
     this.$funcLib = $funcLib;
@@ -374,7 +375,7 @@ class VirtualMachineInstance {
     this.$invalidatedRoots.$cache = [null, this.$topLevels, this.$invalidatedRoots, true, null];
     this.$first = true;
     this.$tainted = new Set();
-    this.buildSetters(VirtualMachineInstance.getTypedArrayByIndex($bytecode, 5, 4));
+    this.buildSetters(VirtualMachineInstance.getTypedArrayByIndex($bytecode, 6, 4));
     this.updateDerived();
   }
 
