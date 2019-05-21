@@ -503,9 +503,12 @@ function library() {
       if ($out.length === 0) {
         for (let key of $invalidatedKeys) {
           $invalidatedKeys.delete(key);
-          if (key >= 0 && key < src.length && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;
-            break;
+          if (key >= 0 && key < src.length) {
+            const match = func([$invalidatedKeys, key], key, src[key], context);
+            if (match) {
+              $out[0] = key;
+              break;
+            }
           }
         }
       }
@@ -537,9 +540,12 @@ function library() {
       if ($out.length === 0) {
         for (let key of $invalidatedKeys) {
           $invalidatedKeys.delete(key);
-          if (src.hasOwnProperty(key) && func([$invalidatedKeys, key], key, src[key], context)) {
-            $out[0] = key;
-            break;
+          if (src.hasOwnProperty(key)) {
+            const match = func([$invalidatedKeys, key], key, src[key], context);
+            if (match) {
+              $out[0] = key;
+              break;
+            }
           }
         }
       }

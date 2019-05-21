@@ -262,7 +262,15 @@ module.exports.$mapValues = function mapValues($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyObj, nullFunc);
@@ -298,7 +306,15 @@ module.exports.$filterBy = function filterBy($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyObj, nullFunc);
@@ -339,7 +355,15 @@ module.exports.$map = function map($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyArr, nullFunc);
@@ -388,7 +412,15 @@ module.exports.$keyBy = function keyBy($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyObj, emptyArr);
@@ -458,7 +490,15 @@ module.exports.$mapKeys = function mapKeys($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyObj, emptyObj);
@@ -515,7 +555,15 @@ module.exports.$filter = function filter($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyArr, filterCacheFunc);
@@ -575,7 +623,15 @@ module.exports.$any = function any($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyArr, nullFunc);
@@ -609,12 +665,16 @@ module.exports.$any = function any($offset, $length) {
   if ($out.length === 0) {
     for (let key of $invalidatedKeys) {
       $invalidatedKeys.delete(key);
-      this.$keys.push(key);
-      this.collectionFunction();
 
-      if (key >= 0 && key < src.length && this.$stack.pop()) {
-        $out[0] = key;
-        break;
+      if (key >= 0 && key < src.length) {
+        this.$keys.push(key);
+        this.collectionFunction();
+        const match = this.$stack.pop();
+
+        if (match) {
+          $out[0] = key;
+          break;
+        }
       }
     }
   }
@@ -635,7 +695,15 @@ module.exports.$anyValues = function anyValues($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyArr, nullFunc);
@@ -667,12 +735,16 @@ module.exports.$anyValues = function anyValues($offset, $length) {
   if ($out.length === 0) {
     for (let key of $invalidatedKeys) {
       $invalidatedKeys.delete(key);
-      this.$keys.push(key);
-      this.collectionFunction();
 
-      if (src.hasOwnProperty(key) && this.$stack.pop()) {
-        $out[0] = key;
-        break;
+      if (src.hasOwnProperty(key)) {
+        this.$keys.push(key);
+        this.collectionFunction();
+        const match = this.$stack.pop();
+
+        if (match) {
+          $out[0] = key;
+          break;
+        }
       }
     }
   }
@@ -693,7 +765,15 @@ module.exports.$groupBy = function groupBy($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyObj, emptyObj);

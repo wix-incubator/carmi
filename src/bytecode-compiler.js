@@ -1,10 +1,4 @@
-const {
-  Expr,
-  Token,
-  TrackPath,
-  Get,
-  Expression
-} = require('./lang');
+const {Expr, Token, TrackPath, Get, Expression} = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
 const {searchExpressions} = require('./expr-search');
@@ -52,7 +46,7 @@ function concatBuffers(...buffers) {
   // buffers = [buffers[0]]
   const offsetsSize = 4 * (buffers.length + 1);
   const totalSize = _.sum(buffers.map(buf => buf.byteLength)) + offsetsSize;
-
+  // console.log('bufferSizes', buffers.map(buf => buf.byteLength));
   const out = new Buffer(totalSize);
 
   let offset = 4;
@@ -129,7 +123,7 @@ class BytecodeCompiler extends SimpleCompiler {
       return embeddedVal(enums[`$${val.$type}`], 0);
     } else if (val instanceof Expression) {
       if (val[0].$type === 'cond') {
-        return embeddedVal(enums.$condRef, this.expressionsHashToIndex[val[1]]);
+        return embeddedVal(enums.$condRef, this.expressionsOffsets[this.expressionsHashToIndex[val[1]]]);
       }
       return embeddedVal(enums.$expressionRef, this.expressionsHashToIndex[exprHash(val)]);
     }
@@ -141,8 +135,8 @@ class BytecodeCompiler extends SimpleCompiler {
     if (expr[0].$type === 'cond') {
       expr[1] = this.tagToHash.hasOwnProperty(expr[1]) ? this.tagToHash[expr[1]] : expr[1];
       return expr;
-    } 
-    return Expr(...expr.map(t => this.rewriteCondsToHash(t)))
+    }
+    return Expr(...expr.map(t => this.rewriteCondsToHash(t)));
   }
   addExpressionsToHashes(exprs) {
     searchExpressions(e => {
@@ -155,6 +149,7 @@ class BytecodeCompiler extends SimpleCompiler {
       if (e[0].hasOwnProperty('$id')) {
         this.tagToHash[e[0].$id] = hash;
       }
+      // console.log(hash, JSON.stringify(e));
     }, exprs);
   }
   compile() {
@@ -166,13 +161,9 @@ class BytecodeCompiler extends SimpleCompiler {
     });
     const countTopLevels = this.realGetters.length;
 
-    this.addExpressionsToHashes(Object.values(this.getters))
+    this.addExpressionsToHashes(Object.values(this.getters));
 
     this.extractConsts();
-
-    Object.keys(this.exprsFromHash).forEach(hash => {
-      this.exprsHashToIndex.set(hash, this.exprsHashToIndex.size);
-    });
 
     searchExpressions(e => {
       if (!(e instanceof Expression)) {
@@ -181,25 +172,35 @@ class BytecodeCompiler extends SimpleCompiler {
       if (!e[0].$path) {
         return;
       }
-      const trackParts = Array.from(e[0].$path.entries()).map(([path, cond]) => {
-        const pathAsExpr = path.slice(1).reduce((acc, t) => Expr(Get, t, acc), path[0]);
-        const pathHash = exprHash(pathAsExpr);
-        // console.log('path', pathHash, this.exprsFromHash.hasOwnProperty(pathHash), pathAsExpr);
-        // console.log('cond', cond);
-        return [this.rewriteCondsToHash(cond), pathAsExpr]
-      })
+      const trackParts = Array.from(e[0].$path.entries())
+        .filter(([path, cond]) => path[0].$type !== 'val')
+        .map(([path, cond]) => {
+          const pathAsExpr = path.slice(1).reduce((acc, t) => Expr(Get, t, acc), path[0]);
+          const pathHash = exprHash(pathAsExpr);
+          // console.log('path', pathHash, this.exprsFromHash.hasOwnProperty(pathHash), pathAsExpr);
+          // console.log('cond', cond);
+          return [this.rewriteCondsToHash(cond), pathAsExpr];
+        });
       e[0].$path = Expr(TrackPath, ...[].concat(...trackParts));
+      // console.log(JSON.stringify(e[0].$path))
       this.addExpressionsToHashes([e[0].$path]);
       if (e[0].$type === 'func') {
         e.push(e[0].$path);
       }
     }, Object.values(this.getters));
 
+    Object.keys(this.exprsFromHash).forEach(hash => {
+      this.exprsHashToIndex.set(hash, this.exprsHashToIndex.size);
+    });
+
     // console.log(this.exprsHashToIndex.size, stringsSet.size, numbersSet.size, Object.keys(this.getters).length);
     this.expressionsHashToIndex = {};
     Object.keys(this.exprsFromHash).forEach((hash, index) => this.expressionsHashToIndex[hash] = index);
-    
-    const stringsAndNumbers = JSON.stringify({$strings: Array.from(this.stringsSet), $numbers: Array.from(this.numbersSet)});
+
+    const stringsAndNumbers = JSON.stringify({
+      $strings: Array.from(this.stringsSet),
+      $numbers: Array.from(this.numbersSet)
+    });
     const constsBuffer = str2ab_array(stringsAndNumbers);
     const countOfTopLevels = Object.keys(this.getters).length;
     const countOfExpressions = Object.keys(this.exprsFromHash).length;
@@ -217,14 +218,22 @@ class BytecodeCompiler extends SimpleCompiler {
       topLevelNames[i] = this.stringsMap.get(name);
       const expr = this.getters[this.realGetters[i]];
       topLevelExpressions[i] = this.exprsHashToIndex.get(exprHash(expr));
-      topLevelTracking[i] = this.exprsHashToIndex.get(expr[0].$path);
+      // console.log(expr[0].$path, exprHash(expr[0].$path), this.exprsHashToIndex.get(exprHash(expr[0].$path)));
+      topLevelTracking[i] = this.exprsHashToIndex.get(exprHash(expr[0].$path));
     });
     // console.log(this.exprsHashToIndex);
     let exprOffset = 0;
-    const expressionsOffsets = new Uint32Array(countOfExpressions);
+    this.expressionsOffsets = new Uint32Array(countOfExpressions);
+    Object.keys(this.exprsFromHash).forEach((hash, index) => {
+      const e = this.exprsFromHash[hash];
+      this.expressionsOffsets[index] = exprOffset;
+      exprOffset += e.length;
+    });
     const expressions = new Uint32Array(lengthOfAllExpressions);
+    // console.log({countOfExpressions, lengthOfAllExpressions, countTopLevels})
 
     Object.keys(this.exprsFromHash).forEach((hash, index) => {
+      exprOffset = this.expressionsOffsets[index];
       const e = this.exprsFromHash[hash];
       const verb = enums[`$${e[0].$type}`] << 16;
       expressions[exprOffset] = verb + e.length;
@@ -234,10 +243,7 @@ class BytecodeCompiler extends SimpleCompiler {
         .forEach((val, indexInExpr) => {
           expressions[exprOffset + 1 + indexInExpr] = val;
         });
-      expressionsOffsets[index] = exprOffset;
-      exprOffset += e.length;
     });
-
 
     const settersSize = _.sum(Object.keys(this.setters).map(key => this.setters[key].length + 2));
     const settersBuffer = new Uint32Array(settersSize);
@@ -247,11 +253,12 @@ class BytecodeCompiler extends SimpleCompiler {
       const type = enums[`$${setter.setterType()}`] << 16;
       settersBuffer[settersOffset++] = type + setter.length;
       settersBuffer[settersOffset++] = this.stringsMap.get(key);
-      setter.map(v => this.convertToEmbeddedValue(v)).forEach(val => {
-        settersBuffer[settersOffset++] = val
-      });
+      setter
+        .map(v => this.convertToEmbeddedValue(v))
+        .forEach(val => {
+          settersBuffer[settersOffset++] = val;
+        });
     });
-
 
     // console.log({
     //   header,
@@ -267,7 +274,7 @@ class BytecodeCompiler extends SimpleCompiler {
       topLevelExpressions,
       topLevelNames,
       topLevelTracking,
-      expressionsOffsets,
+      this.expressionsOffsets,
       expressions,
       settersBuffer,
       constsBuffer

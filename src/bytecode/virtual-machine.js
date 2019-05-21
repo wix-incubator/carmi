@@ -4,6 +4,7 @@ const {
   $stringRef,
   $numberRef,
   $expressionRef,
+  $condRef,
   $root,
   $topLevel,
   $loop,
@@ -52,10 +53,11 @@ verbFuncs[Verbs.$parseInt] = function $parseInt($offset, $length) {
   this.$stack.push(parseInt(this.$stack.pop(), radix));
 };
 
-verbFuncs[Verbs.$and] = function $ternary($offset, $length) {
+verbFuncs[Verbs.$and] = function $and($offset, $length) {
   for (let i = 1; i < $length; i++) {
     this.processValue(this.$expressions[$offset + i]);
     if (i === $length - 1 || !this.$stack[this.$stack.length - 1]) {
+      this.$conds[this.$conds.length - 1].set($offset, i);
       break;
     } else {
       this.$stack.pop();
@@ -63,10 +65,11 @@ verbFuncs[Verbs.$and] = function $ternary($offset, $length) {
   }
 };
 
-verbFuncs[Verbs.$or] = function $ternary($offset, $length) {
+verbFuncs[Verbs.$or] = function $or($offset, $length) {
   for (let i = 1; i < $length; i++) {
     this.processValue(this.$expressions[$offset + i]);
     if (i === $length - 1 || this.$stack[this.$stack.length - 1]) {
+      this.$conds[this.$conds.length - 1].set($offset, i);
       break;
     } else {
       this.$stack.pop();
@@ -77,14 +80,19 @@ verbFuncs[Verbs.$or] = function $ternary($offset, $length) {
 verbFuncs[Verbs.$ternary] = function $ternary($offset, $length) {
   this.processValue(this.$expressions[$offset + 1]);
   if (this.$stack.pop()) {
+    this.$conds[this.$conds.length - 1].set($offset, 2);
     this.processValue(this.$expressions[$offset + 2]);
   } else {
+    this.$conds[this.$conds.length - 1].set($offset, 3);
     this.processValue(this.$expressions[$offset + 3]);
   }
 };
 
 verbFuncs[Verbs.$func] = function $func($offset, $length) {
+  this.$conds.push(new Map());
   this.processValue(this.$expressions[$offset + 1]);
+  this.processValue(this.$expressions[$offset + 2]);
+  this.$conds.pop();
   this.$keys.pop();
 };
 
@@ -92,17 +100,6 @@ const recursiveCacheFunc = () => new Map();
 
 const emptyObj = () => ({});
 const emptyArr = () => [];
-
-function cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap) {
-  $invalidatedKeys.forEach(key => {
-    if ($dependencyMap.has(key)) {
-      $dependencyMap.get(key).forEach($tracked => {
-        this.invalidate($tracked[0], $tracked[1]);
-      });
-      $dependencyMap.delete(key);
-    }
-  });
-}
 
 verbFuncs[Verbs.$recursiveMapValues] = function $recursiveMapValues($offset, $length) {
   this.$functions.push(this.$expressions[++$offset]);
@@ -114,7 +111,13 @@ verbFuncs[Verbs.$recursiveMapValues] = function $recursiveMapValues($offset, $le
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyObj, recursiveCacheFunc);
@@ -130,7 +133,7 @@ verbFuncs[Verbs.$recursiveMapValues] = function $recursiveMapValues($offset, $le
       this.$stack.pop();
     });
   } else {
-    cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap);
+    this.cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap);
     $invalidatedKeys.forEach(key => {
       this.$keys.push(key);
       this.collectionRecursiveFunction();
@@ -155,7 +158,13 @@ verbFuncs[Verbs.$recursiveMap] = function $recursiveMap($offset, $length) {
     this.$contexts.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    this.$contexts.push(this.$stack.pop());
+    const contextArray = this.getEmptyArray($offset - $length);
+    if (contextArray.length) {
+      this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+    } else {
+      contextArray[0] = this.$stack.pop();
+    }
+    this.$contexts.push(contextArray);
   }
 
   const $storage = this.initOutput($offset, emptyArr, recursiveCacheFunc);
@@ -173,7 +182,7 @@ verbFuncs[Verbs.$recursiveMap] = function $recursiveMap($offset, $length) {
       this.$stack.pop();
     }
   } else {
-    cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap);
+    this.cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap);
     $invalidatedKeys.forEach(key => {
       this.$keys.push(key);
       this.collectionRecursiveFunction();
@@ -199,7 +208,7 @@ verbFuncs[Verbs.$recur] = function $recur($offset, $length) {
   if (!$dependencyMap.has(nextKey)) {
     $dependencyMap.set(nextKey, []);
   }
-  $dependencyMap.get(nextKey).push([$invalidatedKeys, prevKey]);
+  $dependencyMap.get(nextKey).push([this.$currentSets[this.$currentSets.length - 1], this.$keys[this.$keys.length - 1]]);
 
   this.$functions.push(this.$functions[stackDepth - 1]);
   this.$collections.push(this.$collections[stackDepth - 1]);
@@ -213,6 +222,42 @@ verbFuncs[Verbs.$recur] = function $recur($offset, $length) {
   this.$contexts.pop();
 };
 
+verbFuncs[Verbs.$trackPath] = function $trackPath($offset, $length) {
+  let $tracked = null;
+  for (let i = 1; i < $length; i += 2) {
+    if (!$tracked) {
+      $tracked = [this.$currentSets[this.$currentSets.length - 1], this.$keys[this.$keys.length - 1]];
+    }
+    this.processValue(this.$expressions[$offset + i]);
+    const $cond = this.$stack.pop();
+    if ($cond) {
+      let valueAndType = this.$expressions[$offset + i + 1];
+      const path = [];
+      let cnt = 1;
+      while ((valueAndType & 31) === $expressionRef) {
+        cnt++;
+        const getterIndex = valueAndType >> 5;
+        const getterOffset = this.$expressionOffsets[getterIndex];
+        this.processValue(this.$expressions[getterOffset + 1]);
+        valueAndType = this.$expressions[getterOffset + 2]
+      }
+      if ((valueAndType & 31) === $context) { /// PATHS to context have 0 prefix
+        cnt++;
+        this.$stack.push(0);
+        this.$stack.push(this.$contexts[this.$contexts.length - 1])
+      } else {
+        this.processValue(valueAndType);
+      }
+      for (let i = 0; i < cnt; i++) {
+        path.push(this.$stack.pop());
+      }
+
+      // console.log(valueAndType & 31, path);
+      this.trackPath($tracked, path);
+    }
+  }
+}
+
 const settersFuncs = new Array(setterTypesCount).fill();
 settersFuncs[$setter] = function $setter(path, value) {
   let $target = this.$model;
@@ -221,6 +266,7 @@ settersFuncs[$setter] = function $setter(path, value) {
     if (typeof $target[pathPart] !== 'object') {
       $target[pathPart] = typeof path[i + 1] === 'number' ? [] : {};
     }
+    this.triggerInvalidations($target, pathPart, false);
     $target = $target[pathPart];
   }
   if (Array.isArray($target)) {
@@ -241,6 +287,7 @@ settersFuncs[$push] = function $push(path, value) {
       $target[pathPart] = typeof path[i + 1] === 'number' ? [] : {};
     }
     if (i !== path.length - 1) {
+      this.triggerInvalidations($target, pathPart, false);
       $target = $target[pathPart];
     }
   }
@@ -256,16 +303,17 @@ settersFuncs[$splice] = function $splice(path, start, len, ...newItems) {
       $target[pathPart] = typeof path[i + 1] === 'number' ? [] : {};
     }
     if (i !== path.length - 1) {
+      this.triggerInvalidations($target, pathPart, false);
       $target = $target[pathPart];
     }
   }
   const copy = $target.slice(start);
   copy.splice(0, len, ...newItems);
-  for (let i = 0; i < copy.length; i++) {
-    this.setOnArray($target, i + start, copy[i], false);
-  }
   if (copy.length < $target.length - start) {
     this.truncateArray($target, copy.length + start);
+  }
+  for (let i = 0; i < copy.length; i++) {
+    this.setOnArray($target, i + start, copy[i], false);
   }
 };
 
@@ -333,6 +381,7 @@ class VirtualMachineInstance {
     this.$functions = [];
     this.$stack = [];
     this.$currentSets = [];
+    this.$conds = [];
     this.$res = {
       $model,
       $startBatch: () => {
@@ -398,6 +447,9 @@ class VirtualMachineInstance {
       case $expressionRef:
         this.processExpression(value);
         break;
+      case $condRef:
+        this.$stack.push(this.$conds[this.$conds.length - 1].get(value) || 0);
+        break;
       case $root:
         this.$stack.push(this.$model);
         break;
@@ -408,7 +460,7 @@ class VirtualMachineInstance {
         this.$stack.push(this.$currentSets.length - 1);
         break;
       case $context:
-        this.$stack.push(this.$contexts[this.$contexts.length - 1]);
+        this.$stack.push(this.$contexts[this.$contexts.length - 1][0]);
         break;
       case $val:
         this.$stack.push(this.$collections[this.$collections.length - 1][this.$keys[this.$keys.length - 1]]);
@@ -434,12 +486,20 @@ class VirtualMachineInstance {
   updateDerived() {
     this.$currentSets.push(this.$invalidatedRoots);
     for (let i = 0; i < this.$topLevelsCount; i++) {
-      this.$keys.push(i);
-      this.processExpression(this.$topLevelsExpressions[i]);
-      this.$keys.pop();
-      this.setOnArray(this.$topLevels, i, this.$stack.pop(), this.$first);
-      if (this.$topLevelsNames[i]) {
-        this.$res[this.$strings[this.$topLevelsNames[i]]] = this.$topLevels[i];
+      if (this.$first || this.$invalidatedRoots.has(i)) {
+        this.$keys.push(i);
+        this.$conds.push(new Map());
+        this.processExpression(this.$topLevelsExpressions[i]);
+        this.processExpression(this.$topLevelsTracking[i]);
+        this.$keys.pop();
+        this.$conds.pop();
+        this.setOnArray(this.$topLevels, i, this.$stack.pop(), this.$first);
+        if (!this.$first) {
+          this.$invalidatedRoots.delete(i);
+        }
+        if (this.$topLevelsNames[i]) {
+          this.$res[this.$strings[this.$topLevelsNames[i]]] = this.$topLevels[i];
+        }
       }
     }
     this.$currentSets.pop(this.$invalidatedRoots);
@@ -462,7 +522,6 @@ class VirtualMachineInstance {
 
   collectionFunction() {
     this.processExpression(this.$functions[this.$functions.length - 1] >> 5);
-    this.$keys.pop();
   }
 
   collectionRecursiveFunction() {
@@ -496,6 +555,17 @@ class VirtualMachineInstance {
       this.$keys.pop();
     }
     this.$stack.push($out[key]);
+  }
+
+  cascadeRecursiveInvalidations($invalidatedKeys, $dependencyMap) {
+    $invalidatedKeys.forEach(key => {
+      if ($dependencyMap.has(key)) {
+        $dependencyMap.get(key).forEach($tracked => {
+          this.invalidate($tracked[0], $tracked[1]);
+        });
+        $dependencyMap.delete(key);
+      }
+    });
   }
 
   generateSetter($setters, $offset) {
@@ -684,7 +754,7 @@ class VirtualMachineInstance {
     const src = this.$collections[this.$collections.length - 1];
     const subKeys = $parent.$subKeys;
     const $cachePerTargetKey = subKeys[$currentKey] = subKeys[$currentKey] || new Map();
-    let $cachedByFunc = null; //$cachePerTargetKey.get(func);
+    let $cachedByFunc = $cachePerTargetKey.get(func); //null; //$cachePerTargetKey.get(func);
     if (!$cachedByFunc) {
       const $resultObj = createDefaultValue();
       const $cacheValue = createCacheValue();
@@ -732,22 +802,22 @@ class VirtualMachineInstance {
     const currentKey = this.$keys[this.$keys.length - 1];
     const $cachePerTargetKey = subKeys[currentKey] = subKeys[currentKey] || new Map();
 
-    // if (!$cachePerTargetKey.has(token)) {
-    //   $cachePerTargetKey.set(token, []);
-    // }
-    // return $cachePerTargetKey.get(token);
-    return [];
+    if (!$cachePerTargetKey.has(token)) {
+      $cachePerTargetKey.set(token, []);
+    }
+    return $cachePerTargetKey.get(token);
+    // return [];
   }
 
   getEmptyObject(token) {
     const subKeys = this.$currentSets[this.$currentSets.length - 1].$subKeys;
     const currentKey = this.$keys[this.$keys.length - 1];
     const $cachePerTargetKey = subKeys[currentKey] = subKeys[currentKey] || new Map();
-    // if (!$cachePerTargetKey.has(token)) {
-    //   $cachePerTargetKey.set(token, {});
-    // }
-    // return $cachePerTargetKey.get(token);
-    return {};
+    if (!$cachePerTargetKey.has(token)) {
+      $cachePerTargetKey.set(token, {});
+    }
+    return $cachePerTargetKey.get(token);
+    // return {};
   }
 }
 

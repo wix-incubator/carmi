@@ -318,7 +318,13 @@ const snippets = _.mapValues(
         this.$contexts.push(null);
       } else {
         this.processValue(this.$expressions[++$offset]);
-        this.$contexts.push(this.$stack.pop());
+        const contextArray = this.getEmptyArray($offset - $length);
+        if (contextArray.length) {
+          this.setOnArray(contextArray, 0, this.$stack.pop(), false);
+        } else {
+          contextArray[0] = this.$stack.pop();
+        }
+        this.$contexts.push(contextArray);
       }
     },
     contextEnd: ($offset, $length) => {

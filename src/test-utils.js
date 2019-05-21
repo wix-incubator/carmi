@@ -23,7 +23,7 @@ const funcLibrary = {
 };
 
 function expectTapFunctionToHaveBeenCalled(n, compiler) {
-  if (typeof compiler === 'string' && compiler === 'optimizing') {
+  if (typeof compiler === 'string' && (compiler === 'optimizing' || compiler === 'bytecode')) {
     expect(funcLibrary.tap.mock.calls.length).toEqual(n);
   }
   funcLibrary.tap.mockClear();
