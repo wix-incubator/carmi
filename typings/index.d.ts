@@ -7,7 +7,7 @@ interface AbstractGraph {$isCarmiGraph: true}
 export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType}
 
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
-export type Argument<T> = AsNative<T> | GraphBase<T>
+export type Argument<T> = AsNative<T> | GraphBase<T> | T
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> =
         AsNative<T> extends any[] ? AsNative<T> :
@@ -517,7 +517,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
 /**
 * Object
 */
-interface ObjectGraphImpl<NativeType extends object, F extends FunctionLibrary,
+interface ObjectGraphImpl<NativeType extends {[key: string]: any}, F extends FunctionLibrary,
     Key = keyof NativeType,
     Value = AsNative<NativeType[keyof NativeType]>,
     ValueGraph = Graph<Value, F>,
@@ -759,7 +759,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     * }, [3, 2, 1]);
     * instance.output //Second array item is:2.
     */
-    template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: string[]): CarmiAPI<Schema, F>
+    template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: any[]): StringGraph<string, F>
 
     arg0: Token
     arg1: Token
@@ -778,11 +778,10 @@ export const effect: CarmiAPI['effect']
 export const call: CarmiAPI['call']
 export const chain: CarmiAPI['chain']
 export const root: CarmiAPI['root']
+export const template: CarmiAPI['template']
 
 declare const carmiDefaultAPI : CarmiAPI
 export default carmiDefaultAPI
 
 export function withSchema<Schema extends object, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
 export function compile(transformations: object, options ?: object): string
-
-export function template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: string[]): CarmiAPI<Schema, F>
