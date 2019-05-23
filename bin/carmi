@@ -8,27 +8,29 @@ const path = require('path');
 const fs = require('fs-extra');
 const {isUpToDate, analyzeDependencies} = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
+const wrapModule = require('../src/wrap-module');
+const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
 
 const optionDefinitions = [
-  { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
-  { name: 'output', type: String, defaultValue: '', description: 'output filename' },
-  { name: 'cwd', type: String, defaultValue: process.cwd(), description: 'root directory for carmi files. Needed for babel config' },
+  {name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model'},
+  {name: 'output', type: String, defaultValue: '', description: 'output filename'},
+  {name: 'cwd', type: String, defaultValue: process.cwd(), description: 'root directory for carmi files. Needed for babel config'},
   {
     name: 'compiler',
     type: String,
     defaultValue: 'optimizing',
-    description: 'compiler version to use naive/simple/optimizing'
+    description: 'compiler version to use naive/simple/optimizing/bytecode'
   },
-  { name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code' },
-  { name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code' },
-  { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs...' },
-  { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
-  { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
-  { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
-  { name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage' },
-  { name: 'stats', type: String, defaultValue: '', description: 'generate stats file' },
-  { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
-  { name: 'ast', type: Boolean, defaultValue: false }
+  {name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code'},
+  {name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code'},
+  {name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs... or binary'},
+  {name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function'},
+  {name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output'},
+  {name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache'},
+  {name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage'},
+  {name: 'stats', type: String, defaultValue: '', description: 'generate stats file'},
+  {name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits'},
+  {name: 'ast', type: Boolean, defaultValue: false}
 ];
 
 const HELP = `carmi [<options>] <src>
@@ -56,6 +58,7 @@ async function run() {
 
   const statsFilePath = path.resolve(options.stats);
   const dependencies = analyzeDependencies(absPath, statsFilePath);
+  const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
 
   if (options.stats) {
     await fs.outputJSON(statsFilePath, dependencies);
@@ -65,7 +68,7 @@ async function run() {
 
   // return from cache
   if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
-    code = await fs.readFile(cacheFilePath, 'utf-8');
+    code = await fs.readFile(cacheFilePath, encoding);
   } else {
     // run carmi and generate cache
     let model;
@@ -80,15 +83,21 @@ async function run() {
     code = carmi.compile(model, options);
   }
 
-  if (options['no-coverage']) {
+  if (options['no-coverage'] && typeof code === 'string') {
     code = `/* istanbul ignore file */
   ${code}`
   }
 
   if (!options['no-cache']) {
-    await fs.outputFile(cacheFilePath, code, 'utf-8')
+    await fs.outputFile(cacheFilePath, code, encoding)
   }
-
+  if (typeof code !== 'string' && options.format !== 'binary') {
+    code = wrapModule(options.format, `require('carmi/bytecode/carmi-instance')('${base64ArrayBuffer.encode(code)}')`, options.name);
+  }
+  if (options['no-coverage'] && typeof code === 'string') {
+    code = `/* istanbul ignore file */
+  ${code}`
+  }
   if (options.output) {
     await fs.outputFile(options.output, code);
   } else {
@@ -97,6 +106,6 @@ async function run() {
 }
 
 run().catch(e => {
-  console.log('error ' + e)
+  console.log(`error ${e}`)
   process.exit(1)
 });

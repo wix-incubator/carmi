@@ -15,6 +15,7 @@
   },
   "files": [
     "bin",
+    "bytecode",
     "src",
     "typings",
     "babel.js",
