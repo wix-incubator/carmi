@@ -125,7 +125,7 @@ class BytecodeCompiler extends SimpleCompiler {
       if (val[0].$type === 'cond') {
         return embeddedVal(enums.$condRef, this.expressionsOffsets[this.expressionsHashToIndex[val[1]]]);
       }
-      return embeddedVal(enums.$expressionRef, this.expressionsHashToIndex[exprHash(val)]);
+      return embeddedVal(enums.$expressionRef, this.expressionsOffsets[this.expressionsHashToIndex[exprHash(val)]]);
     }
   }
   rewriteCondsToHash(expr) {
@@ -215,17 +215,6 @@ class BytecodeCompiler extends SimpleCompiler {
     const topLevelNames = new Uint32Array(countOfTopLevels);
     const topLevelExpressions = new Uint32Array(countOfTopLevels);
     const topLevelTracking = new Uint32Array(countOfTopLevels);
-    _.range(countTopLevels).forEach(i => {
-      let name = '';
-      if (this.options.debug || this.realGetters[i][0] !== '$') {
-        name = this.realGetters[i];
-      }
-      topLevelNames[i] = this.stringsMap.get(name);
-      const expr = this.getters[this.realGetters[i]];
-      topLevelExpressions[i] = this.exprsHashToIndex.get(exprHash(expr));
-      // console.log(expr[0].$path, exprHash(expr[0].$path), this.exprsHashToIndex.get(exprHash(expr[0].$path)));
-      topLevelTracking[i] = this.exprsHashToIndex.get(exprHash(expr[0].$path));
-    });
     // console.log(this.exprsHashToIndex);
     let exprOffset = 0;
     this.expressionsOffsets = new Uint32Array(countOfExpressions);
@@ -233,6 +222,17 @@ class BytecodeCompiler extends SimpleCompiler {
       const e = this.exprsFromHash[hash];
       this.expressionsOffsets[index] = exprOffset;
       exprOffset += e.length;
+    });
+    _.range(countTopLevels).forEach(i => {
+      let name = '';
+      if (this.options.debug || this.realGetters[i][0] !== '$') {
+        name = this.realGetters[i];
+      }
+      topLevelNames[i] = this.stringsMap.get(name);
+      const expr = this.getters[this.realGetters[i]];
+      topLevelExpressions[i] = this.expressionsOffsets[this.exprsHashToIndex.get(exprHash(expr))];
+      // console.log(expr[0].$path, exprHash(expr[0].$path), this.exprsHashToIndex.get(exprHash(expr[0].$path)));
+      topLevelTracking[i] = this.expressionsOffsets[this.exprsHashToIndex.get(exprHash(expr[0].$path))];
     });
     const expressions = new Uint32Array(lengthOfAllExpressions);
     // console.log({countOfExpressions, lengthOfAllExpressions, countTopLevels})
@@ -279,7 +279,6 @@ class BytecodeCompiler extends SimpleCompiler {
       topLevelExpressions,
       topLevelNames,
       topLevelTracking,
-      this.expressionsOffsets,
       expressions,
       settersBuffer,
       constsBuffer

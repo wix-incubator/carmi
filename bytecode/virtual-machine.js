@@ -33,7 +33,7 @@ const {
 const bytecodeFunctions = require('./bytecode-functions');
 
 const LengthMask = (1 << 16) - 1;
-const BUFFERS_COUNT = 7;
+const BUFFERS_COUNT = 6;
 
 const unimplementedVerb = () => {};
 const verbFuncs = new Array(VerbsCount).fill(unimplementedVerb).map((_, id) => () => {throw new Error(`missing impl${id}`)});
@@ -264,8 +264,7 @@ verbFuncs[Verbs.$trackPath] = function $trackPath($offset, $length) {
       let cnt = 1;
       while ((valueAndType & 31) === $expressionRef) {
         cnt++;
-        const getterIndex = valueAndType >> 5;
-        const getterOffset = this.$expressionOffsets[getterIndex];
+        const getterOffset = valueAndType >> 5;
         this.processValue(this.$expressions[getterOffset + 1]);
         valueAndType = this.$expressions[getterOffset + 2]
       }
@@ -391,8 +390,7 @@ class VirtualMachineInstance {
     this.$topLevelsExpressions = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 1, 4);
     this.$topLevelsNames = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 2, 4);
     this.$topLevelsTracking = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 3, 4);
-    this.$expressionOffsets = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 4, 4);
-    this.$expressions = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 5, 4);
+    this.$expressions = VirtualMachineInstance.getTypedArrayByIndex($bytecode, 4, 4);
     this.$topLevelsCount = header[0];
     this.$model = $model;
     this.$funcLib = $funcLib;
@@ -452,7 +450,7 @@ class VirtualMachineInstance {
     this.$invalidatedRoots.$cache = [null, this.$topLevels, this.$invalidatedRoots, true, null];
     this.$first = true;
     this.$tainted = new Set();
-    this.buildSetters(VirtualMachineInstance.getTypedArrayByIndex($bytecode, 6, 4));
+    this.buildSetters(VirtualMachineInstance.getTypedArrayByIndex($bytecode, 5, 4));
     this.recalculate();
   }
 
@@ -502,8 +500,7 @@ class VirtualMachineInstance {
     }
   }
 
-  processExpression(exprIndex) {
-    const offset = this.$expressionOffsets[exprIndex];
+  processExpression(offset) {
     const verbAndLength = this.$expressions[offset];
     const length = verbAndLength & LengthMask;
     const verb = verbAndLength >> 16;
