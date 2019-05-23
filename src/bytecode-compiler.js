@@ -4,7 +4,7 @@ const SimpleCompiler = require('./simple-compiler');
 const {searchExpressions} = require('./expr-search');
 const {exprHash} = require('./expr-hash');
 
-const enums = require('./bytecode/bytecode-enums');
+const enums = require('../bytecode/bytecode-enums');
 
 // const {flatbuffers} = require('flatbuffers');
 // const {CarmiBytecode} = require('../flatbuffers/bytecode_generated');

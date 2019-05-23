@@ -1,6 +1,6 @@
 const rand = require('random-seed').create();
 const defaultSeed = 'CARMI';
-const loadBytecode = require('./bytecode/carmi-instance');
+const loadBytecode = require('../bytecode/carmi-instance');
 
 function currentValues(inst) {
   if (typeof inst !== 'object' || inst === null) {
