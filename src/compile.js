@@ -5,6 +5,7 @@ const fs = require('fs');
 const {exprHash, clearHashStrings} = require('./expr-hash');
 const prettier = require('prettier');
 const {unwrap} = require('./unwrapable-proxy');
+const wrapModule = require('./wrap-module');
 
 const compilerTypes = {};
 compilerTypes.naive = require('./naive-compiler');
@@ -54,43 +55,7 @@ module.exports = (model, options) => {
   let result;
 
   if (compiler.lang === 'js' && typeof source === 'string') {
-    switch (options.format) {
-      case 'iife':
-        result = `var ${options.name} = (function () {
-          return ${source}
-        }())`;
-        break;
-      case 'cjs':
-        result = `module.exports = ${source}`;
-        break;
-      case 'esm':
-        result = `export default ${source}`;
-        break;
-      case 'umd':
-        result = `
-          (function (global, factory) {
-            typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-            typeof define === 'function' && define.amd ? define(factory) :
-            (global.${options.name} = factory());
-          }(this, (function () {
-            return ${source}
-          })))
-        `;
-        break;
-      case 'amd':
-        result = `
-          define(function () {
-            return ${source}
-          });
-        `;
-        break;
-      default:
-        result = `(function () {
-          'use strict';
-          return ${source}
-        })()`;
-        break;
-    }
+    result = wrapModule(options.format, source, options.name);
   } else {
     result = source;
   }

@@ -253,16 +253,19 @@ module.exports.$trackPath = function trackPath($offset, $length) {
   }
 };
 module.exports.$mapValues = function mapValues($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -273,7 +276,11 @@ module.exports.$mapValues = function mapValues($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyObj, nullFunc);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyObj, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -297,16 +304,19 @@ module.exports.$mapValues = function mapValues($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$filterBy = function filterBy($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -317,7 +327,11 @@ module.exports.$filterBy = function filterBy($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyObj, nullFunc);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyObj, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -346,16 +360,19 @@ module.exports.$filterBy = function filterBy($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$map = function map($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -366,7 +383,11 @@ module.exports.$map = function map($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyArr, nullFunc);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyArr, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -403,16 +424,19 @@ module.exports.$map = function map($offset, $length) {
 // recursiveMap skipped from optimizing
 // recursiveMapValues skipped from optimizing
 module.exports.$keyBy = function keyBy($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -423,7 +447,11 @@ module.exports.$keyBy = function keyBy($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyObj, emptyArr);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyObj, emptyArr);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -481,16 +509,19 @@ module.exports.$keyBy = function keyBy($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$mapKeys = function mapKeys($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -501,7 +532,11 @@ module.exports.$mapKeys = function mapKeys($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyObj, emptyObj);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyObj, emptyObj);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -546,16 +581,19 @@ module.exports.$mapKeys = function mapKeys($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$filter = function filter($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -566,7 +604,11 @@ module.exports.$filter = function filter($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyArr, filterCacheFunc);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyArr, filterCacheFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -614,16 +656,19 @@ module.exports.$filter = function filter($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$any = function any($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -634,7 +679,11 @@ module.exports.$any = function any($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyArr, nullFunc);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyArr, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -686,16 +735,19 @@ module.exports.$any = function any($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$anyValues = function anyValues($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -706,7 +758,11 @@ module.exports.$anyValues = function anyValues($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyArr, nullFunc);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyArr, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3]; // $out has at most 1 key - the one that stopped the previous run because it was truthy
@@ -756,16 +812,19 @@ module.exports.$anyValues = function anyValues($offset, $length) {
   this.$contexts.pop();
 };
 module.exports.$groupBy = function groupBy($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  let src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(~$offset);
 
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
@@ -776,7 +835,11 @@ module.exports.$groupBy = function groupBy($offset, $length) {
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyObj, emptyObj);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+  const $storage = this.initOutput($offset - $length, emptyObj, emptyObj);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -855,7 +918,7 @@ module.exports.$values = function values($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyArr, valuesOrKeysCacheFunc);
+  const $storage = this.initOutput($offset - $length, emptyArr, valuesOrKeysCacheFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -947,7 +1010,7 @@ module.exports.$keys = function keys($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyArr, valuesOrKeysCacheFunc);
+  const $storage = this.initOutput($offset - $length, emptyArr, valuesOrKeysCacheFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -1044,7 +1107,7 @@ module.exports.$array = function array($offset, $length) {
   }
 
   const len = $length - 1;
-  const res = this.getEmptyArray($offset);
+  const res = this.getEmptyArray(-$offset);
   const $new = res.length === 0;
 
   for (let i = 0; i < len; i++) {
@@ -1074,7 +1137,7 @@ module.exports.$object = function object($offset, $length) {
     this.$globals.set($offset, keysList);
   }
 
-  const res = this.getEmptyObject($offset);
+  const res = this.getEmptyObject(-$offset);
   const $new = keysList.length && !res.hasOwnProperty(keysList[0]);
 
   for (let i = 0; i < keysList.length; i++) {
@@ -1093,7 +1156,7 @@ module.exports.$call = function call($offset, $length) {
   }
 
   const len = $length - 1;
-  const arr = this.getEmptyArray($offset);
+  const arr = this.getEmptyArray(-$offset);
   const $new = arr.length === 0;
 
   if ($new) {
@@ -1121,7 +1184,7 @@ module.exports.$bind = function bind($offset, $length) {
   }
 
   const len = $length - 1;
-  const arr = this.getEmptyArray($offset);
+  const arr = this.getEmptyArray(-$offset);
 
   if (arr.length === 0) {
     arr.push([]);
@@ -1146,7 +1209,7 @@ module.exports.$assign = function assign($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyObj, nullFunc);
+  const $storage = this.initOutput($offset - $length, emptyObj, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -1174,7 +1237,7 @@ module.exports.$defaults = function defaults($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyObj, nullFunc);
+  const $storage = this.initOutput($offset - $length, emptyObj, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -1203,7 +1266,7 @@ module.exports.$flatten = function flatten($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyArr, emptyArr);
+  const $storage = this.initOutput($offset - $length, emptyArr, emptyArr);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -1256,7 +1319,7 @@ module.exports.$size = function size($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyArr, nullFunc);
+  const $storage = this.initOutput($offset - $length, emptyArr, nullFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -1278,7 +1341,7 @@ module.exports.$sum = function sum($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset, emptyArr, emptyArr);
+  const $storage = this.initOutput($offset - $length, emptyArr, emptyArr);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -1311,22 +1374,23 @@ module.exports.$sum = function sum($offset, $length) {
 };
 module.exports.$range = function range($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
-  const end = this.$stack.pop();
-  let start = 0;
 
   if ($length > 2) {
     this.processValue(this.$expressions[++$offset]);
-    start = this.$stack.pop();
+  } else {
+    this.$stack.push(0);
   }
-
-  let step = 1;
 
   if ($length > 3) {
     this.processValue(this.$expressions[++$offset]);
-    step = this.$stack.pop();
+  } else {
+    this.$stack.push(1);
   }
 
-  const $out = this.getEmptyArray($offset);
+  const step = this.$stack.pop();
+  const start = this.$stack.pop();
+  const end = this.$stack.pop();
+  const $out = this.getEmptyArray(-$offset);
   let res;
 
   if ($out.length === 0) {

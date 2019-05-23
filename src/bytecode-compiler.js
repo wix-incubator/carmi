@@ -165,6 +165,8 @@ class BytecodeCompiler extends SimpleCompiler {
 
     this.extractConsts();
 
+    const trackedPaths = {root: true, context: true, topLevel: true};
+
     searchExpressions(e => {
       if (!(e instanceof Expression)) {
         return;
@@ -173,7 +175,10 @@ class BytecodeCompiler extends SimpleCompiler {
         return;
       }
       const trackParts = Array.from(e[0].$path.entries())
-        .filter(([path, cond]) => path[0].$type !== 'val')
+        .filter(([path, cond]) => 
+          // console.log(trackedPaths[path[0].$type], path[0].$type, JSON.stringify(path))
+           trackedPaths[path[0].$type] || path.length > 1 && path[0] instanceof Expression && path[0][0].$type === 'get' && path[0][2].$type === 'topLevel'
+        )
         .map(([path, cond]) => {
           const pathAsExpr = path.slice(1).reduce((acc, t) => Expr(Get, t, acc), path[0]);
           const pathHash = exprHash(pathAsExpr);

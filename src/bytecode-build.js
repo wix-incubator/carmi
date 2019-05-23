@@ -164,14 +164,30 @@ const visitorFuncDeclStatements = {
     if (node.callee.name === 'getEmptyArray' || node.callee.name === 'getEmptyObject') {
       node.arguments = [
         {
-          type: 'Identifier',
-          name: '$offset'
+          type: 'UnaryExpression',
+          operator: '-',
+          prefix: true,
+          argument: {
+            type: 'Identifier',
+            name: '$offset'
+          }
         }
       ];
     } else if (node.callee.name === 'initOutput') {
       const hasCache = node.arguments[4].name !== 'nullFunc';
       node.arguments.splice(0, 2);
-      node.arguments[0].name = '$offset';
+      node.arguments[0] = {
+        type: 'BinaryExpression',
+        left: {
+          type: 'Identifier',
+          name: '$offset'
+        },
+        operator: '-',
+        right: {
+          type: 'Identifier',
+          name: '$length'
+        }
+      };
     } else if (node.callee.name === 'func') {
       const arg = node.arguments[1];
       node.callee = {
@@ -304,8 +320,10 @@ const verbsIgnoredInOptimizing = new Set(['recur', 'func', 'recursiveMapValues',
 
 const snippets = _.mapValues(
   {
-    src: ($offset, $length) => {
+    srcPre: ($offset, $length) => {
       this.processValue(this.$expressions[++$offset]);
+    },
+    src: ($offset, $length) => {
       let src = this.$stack.pop();
       this.$collections.push(src);
     },
@@ -313,12 +331,18 @@ const snippets = _.mapValues(
       this.$collections.pop();
       this.$currentSets.pop();
     },
-    context: ($offset, $length) => {
+    contextPre: ($offset, $length) => {
       if ($length === 3) {
-        this.$contexts.push(null);
+        this.$stack.push(null);
       } else {
         this.processValue(this.$expressions[++$offset]);
-        const contextArray = this.getEmptyArray($offset - $length);
+      }
+    },
+    context: ($offset, $length) => {
+      if ($length === 3) {
+        this.$contexts.push(this.$stack.pop());
+      } else {
+        const contextArray = this.getEmptyArray(~$offset);
         if (contextArray.length) {
           this.setOnArray(contextArray, 0, this.$stack.pop(), false);
         } else {
@@ -331,40 +355,52 @@ const snippets = _.mapValues(
       this.$contexts.pop();
     },
     func: ($offset, $length) => {
-      this.$functions.push(this.$expressions[++$offset]);
+      // eslint-disable-next-line no-undef
+      this.$functions.push(func);
+    },
+    funcPre: ($offset, $length) => {
+      const func = this.$expressions[++$offset];
     },
     funcEnd: ($offset, $length) => {
       this.$functions.pop();
     },
-    end: ($offset, $length) => {
+    endPre: ($offset, $length) => {
       this.processValue(this.$expressions[++$offset]);
+    },
+    end: ($offset, $length) => {
       const end = this.$stack.pop();
     },
-    start: ($offset, $length) => {
-      let start = 0;
+    startPre: ($offset, $length) => {
       if ($length > 2) {
         this.processValue(this.$expressions[++$offset]);
-        start = this.$stack.pop();
+      } else {
+        this.$stack.push(0);
+      }
+    }, 
+    start: ($offset, $length) => {
+      const start = this.$stack.pop();
+    },
+    stepPre: ($offset, $length) => {
+      if ($length > 3) {
+        this.processValue(this.$expressions[++$offset]);
+      } else {
+        this.$stack.push(1);
       }
     },
     step: ($offset, $length) => {
-      let step = 1;
-      if ($length > 3) {
-        this.processValue(this.$expressions[++$offset]);
-        step = this.$stack.pop();
-      }
+      const step = this.$stack.pop();
     },
     len: ($offset, $length) => {
       const len = $length - 1;
     },
-    newVal: ($offset, $length) => {
+    newValPre: ($offset, $length) => {
       const newVal = [];
       for (let i = 1; i < $length; i++) {
         this.processValue(this.$expressions[++$offset]);
         newVal.push(this.$stack.pop());
       }
     },
-    keysList: ($offset, $length) => {
+    keysListPre: ($offset, $length) => {
       let keysList = this.$globals.get($offset);
       if (!keysList) {
         keysList = [];
@@ -375,7 +411,7 @@ const snippets = _.mapValues(
         this.$globals.set($offset, keysList);
       }
     },
-    valsList: ($offset, $length) => {
+    valsListPre: ($offset, $length) => {
       const valsList = [];
       for (let i = 2; i < $length; i += 2) {
         this.processValue(this.$expressions[$offset + i]);
@@ -395,11 +431,18 @@ const extractedFuncs = Object.entries(verbFunctions)
       return `// ${name} skipped from optimizing`;
     }
     f.id.name = name;
-    const params = _.flatten(
+    const paramsPre = _.flatten(
       f.params
+        .map(t => `${t.name}Pre`)
+        .map(t => snippets[t])
+        .filter(Boolean)
+    );
+    const params = _.flatten(
+      _.reverse(f.params
         .map(t => t.name)
         .map(t => snippets[t])
         .filter(Boolean)
+        )
     );
     const paramEnds = _.flatten(
       f.params
@@ -409,7 +452,7 @@ const extractedFuncs = Object.entries(verbFunctions)
     );
     walk.ancestor(f, visitorFuncDeclStatements, []);
     walk.ancestor(f, visitorsPointFunctionsToThis, []);
-    f.body.body.splice(0, 0, ...params);
+    f.body.body.splice(0, 0, ...paramsPre, ...params);
     f.body.body.push(...paramEnds);
 
     // console.log('func', name, JSON.stringify(f, null, 2));

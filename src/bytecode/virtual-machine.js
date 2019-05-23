@@ -36,7 +36,7 @@ const LengthMask = (1 << 16) - 1;
 const BUFFERS_COUNT = 7;
 
 const unimplementedVerb = () => {};
-const verbFuncs = new Array(VerbsCount).fill(unimplementedVerb);
+const verbFuncs = new Array(VerbsCount).fill(unimplementedVerb).map((_, id) => () => {throw new Error(`missing impl${id}`)});
 Object.keys(Verbs).forEach(v => {
   if (bytecodeFunctions[v]) {
     verbFuncs[Verbs[v]] = bytecodeFunctions[v];
@@ -96,31 +96,51 @@ verbFuncs[Verbs.$func] = function $func($offset, $length) {
   this.$keys.pop();
 };
 
+verbFuncs[Verbs.$effect] = function $effect($offset, $length) {
+  const newVal = [];
+  for (let i = 1; i < $length; i++) {
+    this.processValue(this.$expressions[++$offset]);
+    newVal.push(this.$stack.pop());
+  }
+  this.$funcLib[newVal[0]].apply(this.$res, newVal.slice(1));
+  this.$stack.push(void 0);
+};
+
 const recursiveCacheFunc = () => new Map();
 
 const emptyObj = () => ({});
 const emptyArr = () => [];
 
 verbFuncs[Verbs.$recursiveMapValues] = function $recursiveMapValues($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  const src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(-$offset);
+
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
     } else {
       contextArray[0] = this.$stack.pop();
     }
+
     this.$contexts.push(contextArray);
   }
 
-  const $storage = this.initOutput($offset, emptyObj, recursiveCacheFunc);
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
+
+  const $storage = this.initOutput($offset - $length, emptyObj, recursiveCacheFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
   const $new = $storage[3];
@@ -149,24 +169,33 @@ verbFuncs[Verbs.$recursiveMapValues] = function $recursiveMapValues($offset, $le
 };
 
 verbFuncs[Verbs.$recursiveMap] = function $recursiveMap($offset, $length) {
-  this.$functions.push(this.$expressions[++$offset]);
+  const func = this.$expressions[++$offset];
   this.processValue(this.$expressions[++$offset]);
-  const src = this.$stack.pop();
-  this.$collections.push(src);
 
   if ($length === 3) {
-    this.$contexts.push(null);
+    this.$stack.push(null);
   } else {
     this.processValue(this.$expressions[++$offset]);
-    const contextArray = this.getEmptyArray($offset - $length);
+  }
+
+  if ($length === 3) {
+    this.$contexts.push(this.$stack.pop());
+  } else {
+    const contextArray = this.getEmptyArray(-$offset);
+
     if (contextArray.length) {
       this.setOnArray(contextArray, 0, this.$stack.pop(), false);
     } else {
       contextArray[0] = this.$stack.pop();
     }
+
     this.$contexts.push(contextArray);
   }
 
+  const src = this.$stack.pop();
+  this.$collections.push(src);
+  // eslint-disable-next-line no-undef
+  this.$functions.push(func);
   const $storage = this.initOutput($offset, emptyArr, recursiveCacheFunc);
   const $out = $storage[1];
   const $invalidatedKeys = $storage[2];
@@ -199,10 +228,9 @@ verbFuncs[Verbs.$recursiveMap] = function $recursiveMap($offset, $length) {
 
 verbFuncs[Verbs.$recur] = function $recur($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
-  const stackDepth = this.$stack.pop();
   this.processValue(this.$expressions[++$offset]);
   const nextKey = this.$stack.pop();
-  const prevKey = this.$keys[stackDepth];
+  const stackDepth = this.$stack.pop();
   const $invalidatedKeys = this.$currentSets[stackDepth];
   const $dependencyMap = $invalidatedKeys.$cache[4];
   if (!$dependencyMap.has(nextKey)) {
@@ -370,7 +398,7 @@ class VirtualMachineInstance {
     this.$funcLib = $funcLib;
     this.$funcLibRaw = $funcLib;
     this.$batchingStrategy = $batchingStrategy;
-    this.$listeners = [];
+    this.$listeners = new Set();
     this.$inBatch = false;
     this.$inRecalculate = false;
     this.$batchPending = [];
@@ -425,7 +453,7 @@ class VirtualMachineInstance {
     this.$first = true;
     this.$tainted = new Set();
     this.buildSetters(VirtualMachineInstance.getTypedArrayByIndex($bytecode, 6, 4));
-    this.updateDerived();
+    this.recalculate();
   }
 
   processValue(valueAndType) {
@@ -484,6 +512,7 @@ class VirtualMachineInstance {
   }
 
   updateDerived() {
+    this.$inRecalculate = true;
     this.$currentSets.push(this.$invalidatedRoots);
     for (let i = 0; i < this.$topLevelsCount; i++) {
       if (this.$first || this.$invalidatedRoots.has(i)) {
@@ -511,7 +540,6 @@ class VirtualMachineInstance {
     if (this.$inBatch) {
       return;
     }
-    this.$inRecalculate = true;
     this.updateDerived();
     this.$listeners.forEach(callback => callback());
     this.$inRecalculate = false;
@@ -532,7 +560,6 @@ class VirtualMachineInstance {
     const $new = $cache[3];
     const src = this.$collections[this.$collections.length - 1];
     if ($invalidatedKeys.has(key)) {
-      $invalidatedKeys.delete(key);
       if (Array.isArray($out)) {
         if (key >= src.length) {
           this.truncateArray($out, src.length);
@@ -551,6 +578,7 @@ class VirtualMachineInstance {
         this.processExpression(this.$functions[this.$functions.length - 1] >> 5);
         this.setOnObject($out, key, this.$stack.pop(), $new);
       }
+      $invalidatedKeys.delete(key);
     } else {
       this.$keys.pop();
     }
