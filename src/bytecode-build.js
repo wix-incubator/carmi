@@ -16,7 +16,7 @@ const verbs = Object.keys(TokenTypeData)
   .filter(token => token !== 'cond');
 const lazyVerbs = new Set(['and', 'or', 'ternary']);
 const eagerVerbs = verbs.filter(token => !lazyVerbs.has(token));
-const verbsLazyFirst = Array.from(lazyVerbs).concat(eagerVerbs);
+const verbsLazyFirst = Array.from(lazyVerbs).concat(Array.from(lazyVerbs).map(t => `${t}Tracked`), eagerVerbs);
 const verbsSet = new Set(verbsLazyFirst);
 const nonVerbs = Object.keys(TokenTypeData).filter(token => TokenTypeData[token].nonVerb);
 

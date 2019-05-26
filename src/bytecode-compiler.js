@@ -1,4 +1,4 @@
-const {Expr, Token, TrackPath, Get, Expression} = require('./lang');
+const {Expr, Token, TrackPath, Get, Cond, Expression} = require('./lang');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
 const {searchExpressions} = require('./expr-search');
@@ -79,6 +79,7 @@ class BytecodeCompiler extends SimpleCompiler {
     this.exprsFromHash = {};
     this.tagToHash = {};
     this.exprsHashToIndex = new Map();
+    this.isTracked = {};
   }
   extractConsts() {
     const stringsSet = new Set();
@@ -133,8 +134,12 @@ class BytecodeCompiler extends SimpleCompiler {
       return expr;
     }
     if (expr[0].$type === 'cond') {
-      expr[1] = this.tagToHash.hasOwnProperty(expr[1]) ? this.tagToHash[expr[1]] : expr[1];
-      return expr;
+      if (this.tagToHash.hasOwnProperty(expr[1])) {
+        const hash = this.tagToHash[expr[1]];
+        this.isTracked[hash] = true;
+        return Expr(Cond, hash);
+      }
+      throw new Error(`unknown tag in cond: ${expr[1]}`);
     }
     return Expr(...expr.map(t => this.rewriteCondsToHash(t)));
   }
@@ -236,11 +241,10 @@ class BytecodeCompiler extends SimpleCompiler {
     });
     const expressions = new Uint32Array(lengthOfAllExpressions);
     // console.log({countOfExpressions, lengthOfAllExpressions, countTopLevels})
-
     Object.keys(this.exprsFromHash).forEach((hash, index) => {
       exprOffset = this.expressionsOffsets[index];
       const e = this.exprsFromHash[hash];
-      const verb = enums[`$${e[0].$type}`] << 16;
+      const verb = enums[`$${e[0].$type}${this.isTracked[hash] ? 'Tracked' : ''}`] << 16;
       expressions[exprOffset] = verb + e.length;
       // console.log(e[0].$type, expressions[exprOffset], JSON.stringify(e));
       e.slice(1)

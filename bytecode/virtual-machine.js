@@ -53,7 +53,7 @@ verbFuncs[Verbs.$parseInt] = function $parseInt($offset, $length) {
   this.$stack.push(parseInt(this.$stack.pop(), radix));
 };
 
-verbFuncs[Verbs.$and] = function $and($offset, $length) {
+verbFuncs[Verbs.$andTracked] = function $andTracked($offset, $length) {
   for (let i = 1; i < $length; i++) {
     this.processValue(this.$expressions[$offset + i]);
     if (i === $length - 1 || !this.$stack[this.$stack.length - 1]) {
@@ -65,7 +65,7 @@ verbFuncs[Verbs.$and] = function $and($offset, $length) {
   }
 };
 
-verbFuncs[Verbs.$or] = function $or($offset, $length) {
+verbFuncs[Verbs.$orTracked] = function $orTracked($offset, $length) {
   for (let i = 1; i < $length; i++) {
     this.processValue(this.$expressions[$offset + i]);
     if (i === $length - 1 || this.$stack[this.$stack.length - 1]) {
@@ -77,13 +77,45 @@ verbFuncs[Verbs.$or] = function $or($offset, $length) {
   }
 };
 
-verbFuncs[Verbs.$ternary] = function $ternary($offset, $length) {
+verbFuncs[Verbs.$ternaryTracked] = function $ternaryTracked($offset, $length) {
   this.processValue(this.$expressions[$offset + 1]);
   if (this.$stack.pop()) {
     this.$conds[this.$conds.length - 1].set($offset, 2);
     this.processValue(this.$expressions[$offset + 2]);
   } else {
     this.$conds[this.$conds.length - 1].set($offset, 3);
+    this.processValue(this.$expressions[$offset + 3]);
+  }
+};
+
+
+verbFuncs[Verbs.$and] = function $and($offset, $length) {
+  for (let i = 1; i < $length; i++) {
+    this.processValue(this.$expressions[$offset + i]);
+    if (i === $length - 1 || !this.$stack[this.$stack.length - 1]) {
+      break;
+    } else {
+      this.$stack.pop();
+    }
+  }
+};
+
+verbFuncs[Verbs.$or] = function $or($offset, $length) {
+  for (let i = 1; i < $length; i++) {
+    this.processValue(this.$expressions[$offset + i]);
+    if (i === $length - 1 || this.$stack[this.$stack.length - 1]) {
+      break;
+    } else {
+      this.$stack.pop();
+    }
+  }
+};
+
+verbFuncs[Verbs.$ternary] = function $ternary($offset, $length) {
+  this.processValue(this.$expressions[$offset + 1]);
+  if (this.$stack.pop()) {
+    this.processValue(this.$expressions[$offset + 2]);
+  } else {
     this.processValue(this.$expressions[$offset + 3]);
   }
 };
