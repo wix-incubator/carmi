@@ -28,6 +28,7 @@ const {tagToSimpleFilename} = require('./expr-names');
 const {rewriteStaticsToTopLevels, rewriteLocalsToFunctions, rewriteUniqueByHash} = require('./expr-rewrite');
 const {or, and, not} = require('./expr-logic');
 let exprCounter = 1;
+let taggedExprs = {};
 
 const _ = require('lodash');
 const toposort = require('toposort');
@@ -194,10 +195,14 @@ function tagExpressionFunctionsWithPathsThatCanBeInvalidated(sourceExpr) {
 }
 
 function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName) {
-  if (expr[0].$id) {
+  if (expr[0].hasOwnProperty('$id')) {
     return; //Already tagged
   }
-  expr[0].$id = exprCounter++;
+  const hash = exprHash(expr);
+  if (!taggedExprs[hash]) {
+    taggedExprs[hash] = exprCounter++;
+  }
+  expr[0].$id = taggedExprs[hash];
   expr[0].$funcId = name;
   expr[0].$rootName = rootName;
   expr[0].$depth = currentDepth;
@@ -245,6 +250,7 @@ function cloneExpressions(getters) {
 
 function tagAllExpressions(getters) {
   exprCounter = 1;
+  taggedExprs = {};
   _.forEach(getters, (getter, name) => tagExpressions(getter, name + exprCounter++, 0, [1], getter[0].$type === 'func' ? 'helperFunc' : 'topLevel', name));
 }
 
