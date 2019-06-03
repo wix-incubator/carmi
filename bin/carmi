@@ -53,8 +53,9 @@ async function run() {
   require('@babel/register')({
     rootMode: 'upward',
     extensions: ['.ts', '.js'],
-    ignore: [/node_modules/]
-  });
+    ignore: [/node_modules/],
+    envName: 'carmi'
+  })
 
   const statsFilePath = path.resolve(options.stats);
   const dependencies = analyzeDependencies(absPath, statsFilePath);
