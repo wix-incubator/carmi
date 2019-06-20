@@ -1,4 +1,13 @@
 function base() {
+  function toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  };
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     var $funcLib = $funcLibRaw;
 
@@ -16,7 +25,7 @@ function base() {
 
     function mathFunction(name, source) {
       return function (arg) {
-        var type = babelHelpers.typeof(arg);
+        var type = typeof arg;
 
         if (type !== 'number') {
           throw new TypeError("Trying to call ".concat(JSON.stringify(arg), ".").concat(name, ". Expects number, received ").concat(type, " at ").concat(source));
@@ -29,14 +38,14 @@ function base() {
     function checkTypes(input, name, types, functionName, source) {
       function checkType(type) {
         var isArray = Array.isArray(input);
-        return type == 'array' && isArray || type === babelHelpers.typeof(input) && !isArray;
+        return type == 'array' && isArray || type === typeof input && !isArray;
       }
 
       if (types.some(checkType)) {
         return;
       }
 
-      var asString = babelHelpers.typeof(input) === 'object' ? JSON.stringify(input) : input;
+      var asString = typeof input === 'object' ? JSON.stringify(input) : input;
       throw new TypeError("".concat(functionName, " expects ").concat(types.join('/'), ". ").concat(name, " at ").concat(source, ": ").concat(asString, ".").concat(functionName));
     }
 
@@ -88,7 +97,7 @@ function base() {
         return;
       }
 
-      var lastType = babelHelpers.typeof(path[path.length - 1]);
+      var lastType = typeof path[path.length - 1];
       assignable[lastObjectKey] = lastType === 'number' ? [] : {};
     }
 
@@ -99,9 +108,9 @@ function base() {
     }
 
     function push(path, value) {
-      ensurePath([].concat(babelHelpers.toConsumableArray(path), [0]));
+      ensurePath([].concat(toConsumableArray(path), [0]));
       var arr = getAssignableObject(path, path.length);
-      splice([].concat(babelHelpers.toConsumableArray(path), [arr.length]), 0, value);
+      splice([].concat(toConsumableArray(path), [arr.length]), 0, value);
     }
 
     function applySetter(object, key, value) {
@@ -293,7 +302,16 @@ function library() {
   }
 
   function assign(src) {
-    return Object.assign.apply(Object, [{}].concat(babelHelpers.toConsumableArray(src)));
+    function toConsumableArray(arr) {
+      if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+        return arr2;
+      } else {
+        return Array.from(arr);
+      }
+    };
+    return Object.assign.apply(Object, [{}].concat(toConsumableArray(src)));
   }
 
   function size(src) {
@@ -313,7 +331,16 @@ function library() {
   }
 
   function defaults(src) {
-    return Object.assign.apply(Object, [{}].concat(babelHelpers.toConsumableArray(babelHelpers.toConsumableArray(src).reverse())));
+    function toConsumableArray(arr) {
+      if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+        return arr2;
+      } else {
+        return Array.from(arr);
+      }
+    };
+    return Object.assign.apply(Object, [{}].concat(toConsumableArray(toConsumableArray(src).reverse())));
   }
 
   function loopFunction(resolved, res, func, src, context, key) {
@@ -332,9 +359,18 @@ function library() {
   }
 
   function flatten(src) {
+    function toConsumableArray(arr) {
+      if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+        return arr2;
+      } else {
+        return Array.from(arr);
+      }
+    };
     var _ref2;
 
-    return (_ref2 = []).concat.apply(_ref2, babelHelpers.toConsumableArray(src));
+    return (_ref2 = []).concat.apply(_ref2, toConsumableArray(src));
   }
 
   function recursiveMap(func, src, context) {

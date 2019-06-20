@@ -1,4 +1,13 @@
 function library() {
+  function toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  };
   var $trackingMap = new WeakMap();
   var $trackingWildcards = new WeakMap();
   var $invalidatedMap = new WeakMap();
@@ -46,11 +55,11 @@ function library() {
     var $hard = false;
 
     if (!$new) {
-      if (babelHelpers.typeof($target[$key]) === 'object' && $target[$key] && $target[$key] !== $val) {
+      if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
         $hard = true;
       }
 
-      if ($hard || $target[$key] !== $val || $val && babelHelpers.typeof($val) === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
+      if ($hard || $target[$key] !== $val || $val && typeof $val === 'object' && $tainted.has($val) || !$target.hasOwnProperty($key) && $target[$key] === undefined) {
         $changed = true;
         triggerInvalidations($target, $key, $hard);
       }
@@ -63,7 +72,7 @@ function library() {
     var $hard = false;
 
     if (!$new) {
-      if (babelHelpers.typeof($target[$key]) === 'object' && $target[$key]) {
+      if (typeof $target[$key] === 'object' && $target[$key]) {
         $hard = true;
       }
 
@@ -82,11 +91,11 @@ function library() {
     var $hard = false;
 
     if (!$new) {
-      if (babelHelpers.typeof($target[$key]) === 'object' && $target[$key] && $target[$key] !== $val) {
+      if (typeof $target[$key] === 'object' && $target[$key] && $target[$key] !== $val) {
         $hard = true;
       }
 
-      if ($hard || $key >= $target.length || $target[$key] !== $val || $val && babelHelpers.typeof($target[$key]) === 'object' && $tainted.has($val)) {
+      if ($hard || $key >= $target.length || $target[$key] !== $val || $val && typeof $target[$key] === 'object' && $tainted.has($val)) {
         triggerInvalidations($target, $key, $hard);
       }
     }
@@ -1054,9 +1063,9 @@ function library() {
     var $new = $storage[3];
 
     if ($new) {
-      Object.assign.apply(Object, [$out].concat(babelHelpers.toConsumableArray(src)));
+      Object.assign.apply(Object, [$out].concat(toConsumableArray(src)));
     } else {
-      var res = Object.assign.apply(Object, [{}].concat(babelHelpers.toConsumableArray(src)));
+      var res = Object.assign.apply(Object, [{}].concat(toConsumableArray(src)));
       Object.keys(res).forEach(function (key) {
         setOnObject($out, key, res[key], $new);
       });
@@ -1076,12 +1085,12 @@ function library() {
     var $out = $storage[1];
     var $invalidatedKeys = $storage[2];
     var $new = $storage[3];
-    src = babelHelpers.toConsumableArray(src).reverse();
+    src = toConsumableArray(src).reverse();
 
     if ($new) {
-      Object.assign.apply(Object, [$out].concat(babelHelpers.toConsumableArray(src)));
+      Object.assign.apply(Object, [$out].concat(toConsumableArray(src)));
     } else {
-      var res = Object.assign.apply(Object, [{}].concat(babelHelpers.toConsumableArray(src)));
+      var res = Object.assign.apply(Object, [{}].concat(toConsumableArray(src)));
       Object.keys(res).forEach(function (key) {
         setOnObject($out, key, res[key], $new);
       });
