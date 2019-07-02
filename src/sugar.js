@@ -36,6 +36,22 @@ function concat(a, b) {
   return chain([a, b]).flatten()
 }
 
+function uniq(arr) {
+  return arr
+    .keyBy(x => x)
+    .keys()
+}
+
+function intersection(a, b) {
+  const array = a.uniq().concat(b.uniq())
+
+  return array
+    .keyBy((_, idx) => idx)
+    .groupBy(val => val)
+    .filterBy(val => val.keys().size().gt(1))
+    .keys()
+}
+
 function find(collection, predicate, givenCtx) {
   return collection.values().filter((val, key, ctx) => predicate(val, key, ctx), givenCtx || null).get(0)
 }
@@ -152,6 +168,8 @@ const sugarApi = {
   isEmpty,
   assignIn,
   reduce,
+  uniq,
+  intersection,
   concat,
   find,
   join,
