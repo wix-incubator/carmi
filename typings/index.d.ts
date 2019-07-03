@@ -465,6 +465,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
+     * Resolves to an array of unique values that are included in given arrays
+     * @param arrays
+     * @sugar */
+    intersection<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
+
+    /**
      * Resolved to the first value for which the functor resolved to true
      *
      * @param functor A function to run for every item of the array, returning a boolean
@@ -500,6 +506,11 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     * Resolves to the same array, with only truthy values
     * @sugar */
     compact(): this
+
+    /**
+     * Resolves to a duplicate-free version of an array
+     * @sugar */
+    uniq(): this
 
     /**
     * Resolves to an array with size identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
