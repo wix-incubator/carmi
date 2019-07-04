@@ -56,6 +56,9 @@ Resolves to the first item in an array
 ### `includes(value)` 🍬
 Resolves to true if the array contains an argument equal to value
 
+### `intersection(arrays)` 🍬
+Resolves to an array of unique values that are included in given arrays
+
 ### `join(separator)` 🍬
 Joins an array of strings to a single strings, like NativeType.join(separator)
 
@@ -97,6 +100,9 @@ Resolves to NativeType.length
 
 ### `sum()` 
 Resolves to the sum of numbers in a number array
+
+### `uniq()` 🍬
+Resolves to a duplicate-free version of an array
 
 ## Array or Object
 ### `get(key)` 
