@@ -9,7 +9,6 @@
     <name>carmi</name>
     <description>CARMI - Compiler for Automatic Reactive Modelling of Inference</description>
     <packaging>pom</packaging>
- 
     <parent>
         <groupId>com.wixpress.common</groupId>
         <artifactId>wix-master-parent</artifactId>
