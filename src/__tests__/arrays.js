@@ -687,6 +687,30 @@ describe('testing array', () => {
       });
     })
 
+    describe('intersection', () => {
+      it('should return an array of unique values that are included in given arrays', () => {
+        const initialData = {a: ['a', 'b', 'c', 'd'], b: ['b', 'd']}
+        const model = {
+          result: root.get('a').intersection(root.get('b'))
+        };
+        const optModel = evalOrLoad(compile(model, {compiler}));
+        const inst = optModel(initialData, funcLibrary);
+        expect(inst.result).toEqual(['b', 'd']);
+      })
+    })
+
+    describe('uniq', () => {
+      it('should return a duplicate-free version of an array', () => {
+        const initialData = {a: ['a', 'a', 'b', 'c', 'c', 'c']}
+        const model = {
+          result: root.get('a').uniq()
+        };
+        const optModel = evalOrLoad(compile(model, {compiler}));
+        const inst = optModel(initialData, funcLibrary);
+        expect(inst.result).toEqual(['a', 'b', 'c']);
+      })
+    })
+
     it('test head', () => {
       const model = {
         first: root.head()
