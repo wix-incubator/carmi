@@ -114,7 +114,7 @@ Resolves to the deep value provided by the path.
 Returns true if key/index exists on object/array.
 
 ### `isEmpty()` 🍬
-Resolves true if object/array has any items.
+Resolves true if object/array hasn't any items.
 
 ## External
 ### `abstract(name)`
