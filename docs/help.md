@@ -5,8 +5,9 @@ title: Help
 
 > This project is still in it's infancy. So if you encounter a bug, please submit an [issue](https://github.com/wix-incubator/carmi/issues/new).
 
-A very convenient way to inspect your derivations is to add a tap method that calls a debugger/console.log method to your function library, and value.call('tap') in the part that is tricky.
-
+A very convenient way to inspect your derivations is to add a `tap` method
+that creates a scope where you can either call the `debugger` or use `console.log()`
+to inspect the value in the part that it is interesting:
 ```js
 const initialState = { a: 1 }
 const { root } = require('carmi')
