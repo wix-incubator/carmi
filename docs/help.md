@@ -3,7 +3,7 @@ id: help
 title: Help
 ---
 
-> This project is still in it's infancy. So if you encounter a bug, please submit an issue.
+> This project is still in it's infancy. So if you encounter a bug, please submit an [issue](https://github.com/wix-incubator/carmi/issues/new).
 
 A very convenient way to inspect your derivations is to add a tap method that calls a debugger/console.log method to your function library, and value.call('tap') in the part that is tricky.
 
