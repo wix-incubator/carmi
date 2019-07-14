@@ -8,14 +8,26 @@ title: Help
 A very convenient way to inspect your derivations is to add a tap method that calls a debugger/console.log method to your function library, and value.call('tap') in the part that is tricky.
 
 ```js
-const instance = modelFunction(initialState, {
-  tap: val => {
-    debugger;
-    return val;
-  }
-});
+const initialState = { a: 1 }
+const { root } = require('carmi')
+
+const instance = createInstance({
+    output: root.call('tap').get('a')
+}, initialState, {
+    tap: val => {
+        console.log(val); //or debugger;
+        return val;
+    }
+})
+
+instance.output //1
 ```
 
-If you derived state is incorrect and everything is working when using the Simple compiler, it is either a bug in CARMI or your state/derivations were mutated not by the setters in the model. Always treat your derivations as readonly including anything passed to **call**. (A good way to enforce this is to use es6 proxies to make the model readonly in debug mode)
+If your derived state is incorrect but when using the [SimpleCompiler](/docs/simple-compiler.html) everything is working.
+It might be the case that your state or derivations are being mutated directly and not trough Carmi's [setters](/docs/api/api.html#setterpath).
+Always treat your derivations as **readonly** including anything passed to **[call()](/docs/api/api.html#callfunc-args)**.
 
-To ease debugging the names of the non exported top level values are based on the filename and line number where they are defined.
+> Note: A good way to enforce readonly access this is to use [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+> to make the model readonly in debug mode
+
+> To ease debugging: The names of the non exported top level values are based on the filename and line number where they are defined.

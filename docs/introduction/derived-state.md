@@ -4,7 +4,7 @@ title: Derived state
 sidebar_label: Derived state
 ---
 
-Computed state is derived using a Lodash inspired DSL - checkout the [API section](https://carmi.js.org/docs/api/api.html) for a complete listing
+Computed state is derived using a Lodash inspired DSL - checkout the [API section](/docs/api/api.html) for a complete listing
 
 A few key concepts
 
