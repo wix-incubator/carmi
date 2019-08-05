@@ -28,7 +28,7 @@ export interface FunctionGraph<N, F extends FunctionLibrary> extends GraphImpl<N
 */
 interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<NativeType> {
     /**
-     * Returns a graph that resolves to the return type of a named function from the function library
+     * Returns a graph that resolves to the return type of a named function from the function library.
      *
      * @param func A function name from the function library
      * @param args Args to pass, in addition to the value resolved from ""
@@ -36,7 +36,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     call<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never):
         Graph<ReturnType<F[FunctionName]>, F>
     /**
-    * Like call but will exectue even if the parameters mutation resulted in the same values.<br/>
+    * Like call but will exectue even if the parameters mutation resulted in the same values.
     * **Please note**: `effect(func, args)` is a leaf and ends the chain, and its return value cannot be used.
     */
     effect<FunctionName extends keyof F, Arguments extends (F[FunctionName] extends (firstArg: NativeType, ...args: infer Args) => any ? Args : never)>(func: FunctionName, ...args: Arguments extends (infer A)[] ? Argument<A>[] : never): void
@@ -51,7 +51,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     bind<FunctionName extends keyof F, A, B, C, D>(func: FunctionName, a: A, b: B, c: C, d: D): FunctionGraph<BoundFunction<F[FunctionName], NativeType, A, B, C, D>, F>
 
     /**
-     * Generates a breakpoint (debugger clause), continuing the graph
+     * Generates a breakpoint (debugger clause), continuing the graph.
      */
     breakpoint(): this
 
@@ -74,14 +74,14 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     conditionalBreakpoint<FunctionName extends keyof F>(condition: FunctionName): this
 
     /**
-     * lets you tap into the value and traces the result of tapFn
+     * Lets you tap into the value and traces the result of tapFn.
      * @param tapFn
      * @sugar */
     tapTrace<FunctionName extends keyof F>(tapFn: FunctionName): this
 
 
     /**
-     * Resolves to !NativeType
+     * Resolves to `!NativeType`.
      */
     not(): BoolGraph<F>
 
@@ -101,7 +101,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
                     Alternate | Consequence, F>
 
     /**
-     * Resolves to the case that matches equals to the boxed value
+     * Resolves to the case that matches equals to the boxed value.
      *
      * @param caseTuples An array of pairs between a value and a consequent
      * @param defaultCase The graph to return in case no given case matches the boxed value
@@ -111,7 +111,7 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
         Graph<TupleType extends [Argument<NativeType>, infer Result] ? Result : never, F>
 
     /**
-     * Returns a boolean graph that resolves to the value of (NativeType === other)
+     * Returns a boolean graph that resolves to the value of (NativeType === other).
      * @param other
      */
     eq(other: Argument<unknown>): BoolGraph<F>
@@ -124,27 +124,27 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
     recur<ValueType>(loop: Looper<ValueType>): ValueType
 
     /**
-    * returns true if the context is of type Array
+    * Returns true if the context is of type `Array`.
     */
     isArray(): BoolGraph<F>
 
     /**
-    * returns true if the context is undefined
+    * Returns true if the context is `undefined`.
     */
     isUndefined(): BoolGraph<F>
 
     /**
-    * returns true if the context is of type boolean
+    * Returns true if the context is of type `boolean`.
     */
     isBoolean(): BoolGraph<F>
 
     /**
-    * returns true if the context is of type number
+    * Returns true if the context is of type `number`.
     */
     isNumber(): BoolGraph<F>
 
     /**
-    * returns true if the context is of type string
+    * Returns true if the context is of type `string`.
     */
     isString(): BoolGraph<F>
 }
@@ -154,37 +154,37 @@ interface GraphImpl<NativeType, F extends FunctionLibrary> extends GraphBase<Nat
 */
 export interface NumberGraph<NativeType extends number, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
-     * Resolves to (NativeType > other)
+     * Resolves to (NativeType > other).
      * @param other
      */
     gt(other: Argument<number>): BoolGraph<F>
 
     /**
-     * Resolves to (NativeType >= other)
+     * Resolves to (NativeType >= other).
      * @param other
      */
     gte(other: Argument<number>): BoolGraph<F>
 
    /**
-     * Resolves to (NativeType < other)
+     * Resolves to (NativeType < other).
      * @param other
      */
     lt(other: Argument<number>): BoolGraph<F>
 
    /**
-     * Resolves to (NativeType <= other)
+     * Resolves to (NativeType <= other).
      * @param other
      */
     lte(other: Argument<number>): BoolGraph<F>
 
    /**
-     * Resolves to (NativeType - other)
+     * Resolves to (NativeType - other).
      * @param other
      */
     minus(value: Argument<number>): NumberGraph<number, F>
 
    /**
-     * Resolves to (NativeType * other)
+     * Resolves to (NativeType * other).
      * @param other
      * @example
      * const { root } = require('carmi')
@@ -196,26 +196,27 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
     mult(value: Argument<number>): NumberGraph<number, F>
 
    /**
-     * Resolves to (NativeType + other)
+     * Resolves to (NativeType + other).
      * @param other
      */
     plus(num: Argument<number>): NumberGraph<number, F>
     plus(str: Argument<string>): StringGraph<string, F>
 
    /**
-     * Resolves to (NativeType / other)
+     * Resolves to (NativeType / other).
      * @param other
      */
     div(value: Argument<number>): NumberGraph<number, F>
 
    /**
-     * Resolves to (NativeType % other)
+     * Resolves to (NativeType % other).
      * @param other
      */
     mod(value: Argument<number>): NumberGraph<number, F>
 
     /**
-     * creates a number array graph
+     * Creates a number array graph.
+     *
      * @param start number to start from
      * @param skip number to skip between values
      * @returns a number array graph, with size equal to resolved "NativeType"
@@ -223,17 +224,17 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
     range(start?: Argument<number>, skip?: Argument<number>): NumberGraph<number, F>[]
 
     /**
-     * Resolves to Math.floor(NativeType)
+     * Resolves to Math.floor(NativeType).
      */
     floor(): NumberGraph<number, F>
 
     /**
-     * Resolves to Math.ceil(NativeType)
+     * Resolves to Math.ceil(NativeType).
      */
     ceil(): NumberGraph<number, F>
 
     /**
-     * Resolves to Math.round(NativeType)
+     * Resolves to Math.round(NativeType).
      */
     round(): NumberGraph<number, F>
 }
@@ -243,46 +244,46 @@ export interface NumberGraph<NativeType extends number, F extends FunctionLibrar
 */
 interface StringGraph<NativeType extends string, F extends FunctionLibrary> extends GraphImpl<NativeType, F> {
     /**
-     * Resolves to (NativeType.startsWith(s))
+     * Resolves to (NativeType.startsWith(s)).
      * @param s other string
      */
     startsWith(s: Argument<string>): BoolGraph<F>
 
     /**
-     * Resolves to (NativeType.endsWith(s))
+     * Resolves to (NativeType.endsWith(s)).
      * @param s other string
      */
     endsWith(s: Argument<string>): BoolGraph<F>
 
     /**
-     * Resolves to (NativeType + s)
+     * Resolves to (NativeType + s).
      * @param other other string
      */
     plus(other: Argument<string|number>): StringGraph<string, F>
 
     /**
-     * Resolves to an array graph, like NativeType.split(separator)
+     * Resolves to an array graph, like NativeType.split(separator).
      * @param separator
      */
     split(separator: Argument<string>): ArrayGraph<string[], F>
 
     /**
-     * Resolves to NativeType.toUpperCase()
+     * Resolves to NativeType.toUpperCase().
      */
     toUpperCase(): StringGraph<string, F>
 
     /**
-     * Resolves to NativeType.toLowerCase()
+     * Resolves to NativeType.toLowerCase().
      */
     toLowerCase(): StringGraph<string, F>
 
     /**
-     * returns the string length
+     * Returns the string length.
      */
     stringLength(): NumberGraph<number, F>
 
     /**
-     * Resolves String.substring
+     * Resolves `String.substring`.
      * @param start
      * @param end
      *
@@ -293,7 +294,7 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
 
 
     /**
-     * Resolves to parseInt(NativeType, radix)
+     * Resolves to parseInt(NativeType, radix).
      * @param radix base (10, 16 etc)
      */
     parseInt(radix?: number): NumberGraph<number, F>
@@ -305,17 +306,17 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
 interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends FunctionLibrary, Key = keyof NativeType>
     extends GraphImpl<NativeType, F> {
     /**
-    * returns the specific key/index from the object/array
+    * Returns the specific key/index from the object/array.
     */
     get<K extends keyof NativeType>(key: K|AbstractGraph): K extends AbstractGraph ? Graph<NativeType[keyof NativeType], F> : Graph<NativeType[K], F>
 
     /**
-     * does the object/array has any items
+     * Checks if the object or array graph is empty.
      @sugar */
     isEmpty(): BoolGraph<F>
 
     /**
-     * Resolves to the deep value provided by path.
+     * Resolves to the deep value provided by the path.
      * @param path
      * @sugar */
     getIn<K extends keyof NativeType>(path: [Argument<K>]): Graph<NativeType[K], F>
@@ -326,7 +327,7 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends Func
     getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1], K3 extends keyof NativeType[K0][K1][K2], K4 extends keyof NativeType[K0][K1][K2][K3]>(path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>]):
         Graph<NativeType[K0][K1][K2][K3][K4], F>
     /**
-    * returns true if the key/index exists on the object/array
+    * Returns true if the key/index exists on the object/array.
     */
     has(key: Argument<string> | Argument<number>): BoolGraph<F>
 }
@@ -346,32 +347,33 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     size(): NumberGraph<NativeType['length'], F>
 
     /**
-     * Combines all array values of the object. Like: _.reduce(NativeType, _.assign, {})
+     * Combines all array values of the object. Like: `_.reduce(NativeType, _.assign, {})`
      */
     assign<T = NativeType extends object ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
-     * Combines all array values of the object, in reverse order. Like: _.reduce(NativeType, _.defaults, {})
+     * Combines all array values of the object, in reverse order. Like: `_.reduce(NativeType, _.defaults, {})`
      */
     defaults<T = NativeType extends object ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
-     * Resolves to the first item in an array
+     * Resolves to the first item in an array.
      * @sugar */
     head(): ValueGraph
 
     /**
-     * Resolves to the last item in an array
+     * Resolves to the last item in an array.
      * @sugar */
     last(): ValueGraph
 
     /**
-     * Resolves to the sum of numbers in a number array
+     * Resolves to the sum of numbers in a number array.
+     *
      */
     sum(): Value extends number ? NumberGraph<number, F> : never
 
     /**
-     * reverses the order of a given array
+     * Reverses the order of a given array.
      * @sugar */
     reverse(): ArrayGraph<Value[], F>
 
@@ -390,7 +392,8 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     map<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) : ArrayGraph<Ret[], F>
 
     /**
-     * Returns a boolean graph that resolves to true if running the functor on any of the array's item resolved to true
+     * Returns a boolean graph that resolves to *true* if at least one element in the array
+     * passes the test implemented by the provided functor.
      *
      * @param functor A function to run for every item of the array, returning boolean
      * @param scope A variable to pass to the functor if inside another functor.
@@ -404,7 +407,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     any<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
     /**
-     * Returns a boolean graph that resolves to true if running the functor on all of the array's items resolved to true
+     * Returns a boolean graph that resolves to true if running the functor on all of the array's items resolved to true.
      *
      * @param functor A function to run for every item of the array, returning boolean
      * @param scope A variable to pass to the functor if inside another functor.
@@ -429,7 +432,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
         ObjectGraph<Ret extends string ? {[name in Ret]: Value} : {[name: string]: Value}, F>
 
     /**
-     * Returns an array graph containing only the values for which the functor resolved to true
+     * Returns an array graph containing only the values for which the functor resolved to `true`.
      *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
@@ -459,19 +462,19 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     reduce<Ret>(functor: (aggregate: Argument<Ret>, value?: ValueGraph, key?: KeyGraph) => Argument<Ret>, initialValue?: Ret): NativeType extends any[] ? Ret : never
 
     /**
-     * Resolves to an array which is a concatenated results of NativeType and one or more additional arrays
+     * Resolves to an array which is a concatenated results of NativeType and one or more additional arrays.
      * @param arrays
      * @sugar */
     concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
-     * Resolves to an array of unique values that are included in given arrays
+     * Resolves to an array of unique values that are included in given arrays.
      * @param arrays
      * @sugar */
     intersection<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
-     * Resolved to the first value for which the functor resolved to true
+     * Resolves to the first value for which the functor resolves to `true`.
      *
      * @param functor A function to run for every item of the array, returning a boolean
      * @param scope A variable to pass to the functor if inside another functor.
@@ -479,31 +482,31 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     find<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : ValueGraph
 
     /**
-     * Joins an array of strings to a single strings, like NativeType.join(separator)
+     * Joins an array of strings to a single string, like `NativeType.join(separator)`.
      * @param separator
      * @sugar */
     join(separator: Argument<string>): Value extends string ? StringGraph<string, F> : never
 
     /**
-     * Returns an array with an additional element (value) at its end
+     * Returns an array graph with an additional element (value) at the end.
      *
      * @param value A value to add to the array, or a graph resolving to that value
      * @sugar */
     append<T>(value: Argument<T>) : ArrayGraph<(Value|T)[], F>
 
     /**
-     * Flattens inner arrays into an array
+     * Flattens inner arrays into an array.
      */
     flatten<T = Value extends any[] ? true : never>() : ValueGraph
 
     /**
-     * Resolves to true if the array contains an argument equal to value
+     * Resolves to true if the array contains an argument equal to value.
      * @param value
      * @sugar */
     includes(value: Argument<Value>): BoolGraph<F>
 
     /**
-    * Resolves to the same array, with only truthy values
+    * Resolves to the same array, with only `true` values
     * @sugar */
     compact(): this
 
@@ -546,13 +549,14 @@ interface ObjectGraphImpl<NativeType extends {[key: string]: any}, F extends Fun
     has(key: Argument<string>): BoolGraph<F>
 
     /**
-     * Resolve to true if NativeType object has a value equal to the value argument
+     * Resolves to true if NativeType object has a value equal to the value argument.
+     *
      * @param value
      * @sugar */
     includesValue(value: Argument<Value>): BoolGraph<F>
 
     /**
-     * Resolves to a new object with the entries for which the functor has resolved to true
+     * Resolves to a new object with the entries for which the functor has resolved to true.
      *
      * @param functor
      * @param scope
@@ -594,25 +598,28 @@ interface ObjectGraphImpl<NativeType extends {[key: string]: any}, F extends Fun
     anyValues<Scope>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<boolean>, scope?: Scope) : BoolGraph<F>
 
     /**
-     * Returns a new object with the keys returned by the functor, and the values resolves to arrays with all the elements which returned that key
+     * Returns a new object with the keys returned by the functor, and the values resolves to arrays with all the elements which returned that key.
      */
     groupBy<Scope, Ret>(functor: (value: ValueGraph, key?: KeyGraph, scope?: Scope) => Argument<Ret>, scope?: Scope) : ObjectGraph<{[key: string]: NativeType}, F>
 
     /**
-     * Returns a new object which resolves to _.assign(NativeType, value)
+     * Returns a new object which resolves to `_.assign(NativeType, value)`.
+     *
      * @param value
      * @sugar */
     assignIn<V extends object>(value: Argument<V>[]): ObjectGraph<NativeType & AsNative<V>, F>
 
     /**
-    * Sets value for given key
+    * Sets value for given key.
+    *
     * @param key string
     * @param value
     * @sugar */
     simpleSet(path: string): ObjectGraph<NativeType, F>
 
     /**
-    * Sets value for given path
+    * Sets value for given path.
+    *
     * @param path[] Array
     * @param value
     * @sugar */
@@ -630,12 +637,14 @@ interface ObjectGraphImpl<NativeType extends {[key: string]: any}, F extends Fun
     }, F>
 
     /**
-    * Resolves to an array representing the keys of the object
+    * Resolves to an array representing the keys of the object.
+    *
     */
     keys(): ArrayGraph<Key[], F>
 
     /**
-    * Resolves to an array representing the values of the object
+    * Resolves to an array representing the values of the object.
+    *
     */
     values(): ArrayGraph<Value[], F>
 }
@@ -669,7 +678,8 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     root: ObjectGraphImpl<Schema, F>
 
     /**
-    * wraps a native JS object with the declarative APIs
+    * Wraps a native JS object with the declarative APIs.
+    *
     * @example
     *  const { root, chain } = require('carmi');
     *  const instance = createInstance({
@@ -684,7 +694,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     chain<T>(t: T): Graph<T, F>
 
     /**
-    * logical operand or
+    * Logical operand or.
     */
     or<A, B>(a: A, b: B): Graph<A, F> | Graph<B, F>
     or<A, B, C>(a: A, b: B, c: C): Graph<A, F> | Graph<B, F> | Graph<C, F>
@@ -693,7 +703,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     or<A, B, C, D, E, FF>(a: A, b: B, c: C, d: D, e: E, f: FF): Graph<A, F> | Graph<B, F> | Graph<C, F> | Graph<D, F> | Graph<E, F> | Graph<FF, F>
 
     /**
-    * logical operand and
+    * Logical operand and.
     */
     and<A>(a: A): Graph<A, F>
     and<A, B>(a: A, b: B): Graph<B, F>
@@ -702,7 +712,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     and<A, B, C, D, E>(a: A, b: B, c: C, d: D, e: E): Graph<E, F>
     and<A, B, C, D, E, FF>(a: A, b: B, c: C, d: D, e: E, f: FF): Graph<FF, F>
     /**
-    * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
+    * Declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path).
     * @example
     * const { root, setter, arg0 } = require('carmi')
     * const instance = createInstance({
@@ -716,27 +726,27 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     setter<Path extends PathSegment[]>(...path: Path): SetterExpression<Schema, Path, F>
 
     /**
-    * declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path)
+    * Declare actions which can be triggered on your state to change it (use arg0/arg1/arg2 - to define placeholders in the path).
     */
     splice<Path extends PathSegment[]>(...path: Path): SpliceExpression<Schema, Path, F>
 
     /**
-    * declare a setter that adds an element to the end of an array. The setter will create the array if it doesn't exist
+    * Declare a setter that adds an element to the end of an array. The setter will create the array if one doesn't exist.
     */
     push<Path extends PathSegment[]>(...path: Path): PushExpression<Schema, Path, F>
 
     /**
-    * call a function called functionName from the function library passes the current value as the first argument, and extra arguments are well... extra
+    * Calls the function name passed from the function library while passing current value as the first argument, and then the provided args.
     */
     call<FunctionName extends keyof F, Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any ? Args : never>(func: FunctionName, ...args: Arguments[]): Graph<ReturnType<F[FunctionName]>, F>
 
     /**
-    * See on doc for [`effect(func, args)`](api.html#effectfunc-args-1) in **Graph**
+    * See the docs for [`effect(func, args)`](api.html#effectfunc-args-1) in the **Graph** section of this API reference.
     */
     effect<FunctionName extends keyof F, Args>(func: FunctionName, ...args: Args[]): Graph<ReturnType<F[FunctionName]>, F>
 
     /**
-    * Creates a function that invokes functionName from the function library with args prepended to the arguments it receives.
+    * Creates a function that invokes `functionName` from the function library with args prepended to the arguments it receives.
     */
     bind<FunctionName extends keyof F>(func: FunctionName): FunctionGraph<BoundFunction<F[FunctionName]>, F>
     bind<FunctionName extends keyof F, A>(func: FunctionName, a: A): FunctionGraph<BoundFunction<F[FunctionName], A>, F>
@@ -746,23 +756,23 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
     bind<FunctionName extends keyof F, A, B, C, D, E>(func: FunctionName, a: A, b: B, c: C, d: D, e: E): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D, E>, F>
 
     /**
-    * Defines a projection that would be implementated later in the code using the [`implement(iface, name)`](api.html#implementiface-name) method
+    * Defines a projection to be implemented later in the code using the [`implement(iface, name)`](api.html#implementiface-name) method.
     * @param name used for debug only
     */
     abstract(name: string): Graph<unknown, F>
 
     /**
-    * uses a previously declared abstract clause and assigns an actual value to the named abstract
+    * Uses a previously declared abstract clause and assigns an actual value to the named abstract.
     */
     implement(iface: Graph<unknown, F>, name: string): void
 
     /**
-    * this is a dubug feature which allows to name the actual projection functions on the carmi root
+    * A debug feature that allows to name the actual projection functions on the carmi root.
     */
     withName<T>(name: string, g: T): T
 
     /**
-    * this api creates a string using carmi models using the template string method
+    * This api creates a string using carmi models and the template string method.
     * @example
     * const { root, template } = require('carmi');
     * const instance = createInstance({

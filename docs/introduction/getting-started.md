@@ -11,8 +11,8 @@ model only using the setters you defined.
 > Phil Karlton - "There are only two hard things in Computer Science: cache invalidation and naming things"
 >
 > I can't help you much with naming stuff (although you tend to name significantly fewer things in CARMI as you just let
-> the data flow from one derivation to the next) - but I sure you hope we never have to think of cache invalidation
-> again
+> the data flow from one derivation to the next) - but I sure hope you'll never have to think of cache invalidation
+> again.
 
 Install Carmi using [`yarn`](https://yarnpkg.com/en/package/carmi):
 
@@ -20,7 +20,7 @@ Install Carmi using [`yarn`](https://yarnpkg.com/en/package/carmi):
 yarn add --dev carmi
 ```
 
-Or [`npm`](https://www.npmjs.com/):
+or [`npm`](https://www.npmjs.com/):
 
 ```bash
 npm install --save-dev carmi
@@ -47,7 +47,7 @@ npx carmi --source ./model.carmi.js --output ./model.js --format cjs
 
 Configure webpack
 
-Within your webpack configuration object, you'll need to add the Carmi loader to the list of modules:
+Add the Carmi loader to the list of modules within your webpack configuration object:
 
 ```javascript
 module: {
@@ -64,7 +64,8 @@ module: {
 ```
 
 ```js
-/// you can load your generated code either using a babel loader / a webpack plugin or just add a build step to generate the source
+/// you can load your generated code either via using a babel loader / a webpack plugin,
+/// or by simply adding a build step to generate the source
 const modelFunction = require('./model.carmi');
 const instance = modelFunction([1, 2, 3, 4]);
 // each property defined on the model object generates either a derived value or a setter

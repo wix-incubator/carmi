@@ -3,24 +3,32 @@ id: help
 title: Help
 ---
 
-This project is still in it's infancy if you encounter a bug, please submit an issue.
+> This project is still in it's infancy. So if you encounter a bug, please submit an [issue](https://github.com/wix-incubator/carmi/issues/new).
 
-A very convenient way to inspect your derivations is to add a tap method that calls debugger/console.log method to your
-function library, and <value>.call('tap') in the part that is tricky.
-
+A very convenient way to inspect your derivations is to add a `tap` method
+that creates a scope where you can either call the `debugger` or use `console.log()`
+to inspect the value in the part that it is interesting:
 ```js
-const instance = modelFunction(initialState, {
-  tap: val => {
-    debugger;
-    return val;
-  }
-});
+const initialState = { a: 1 }
+const { root } = require('carmi')
+
+const instance = createInstance({
+    output: root.call('tap').get('a')
+}, initialState, {
+    tap: val => {
+        console.log(val); //or debugger;
+        return val;
+    }
+})
+
+instance.output //1
 ```
 
-If you derived state is incorrect and everything is working when using the Simple compiler it is either a bug in CARMI
-or your state/derivations were mutated not by using the setters in the model, always treat your derivations as
-readonly including anything passed to **call**. (A good way to enforce this is to use es6 proxies to make the model
-readonly in debug mode)
+If your derived state is incorrect but when using the simple compiler everything is working.
+It might be the case that your state or derivations are being mutated directly and not trough Carmi's [setters](/docs/api/api.html#setterpath).
+Always treat your derivations as **readonly** including anything passed to **[call()](/docs/api/api.html#callfunc-args)**.
 
-To ease debugging the names of the non exported top level values are based on the filename and line number where they
-are defined
+> Note: A good way to enforce readonly access this is to use [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+> to make the model readonly in debug mode
+
+> To ease debugging: The names of the non exported top level values are based on the filename and line number where they are defined.

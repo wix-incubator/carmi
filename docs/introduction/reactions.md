@@ -4,9 +4,9 @@ title: Reactions
 sidebar_label: Reactions
 ---
 
-While the derived state is always synchronized with the state, sometimes you want reactions triggered to connect the
-derived state to the external world, the current method to implement these is using the **call** api to trigger the
-reaction on your values.
+While the derived state is always synchronized with the state, sometimes you want reactions triggered to
+connect the derived state to the external world. Currently the method to implement these is using the
+**[call()](/docs/api/api.html#callfunc-args)** API to trigger the reaction on your values.
 
 ```js
 /// model-reactions.carmi.js
