@@ -12,8 +12,7 @@
     	"api/api"
     ],
     "Help": [
-    	"help",
-      "simple-compiler"
+      "help"
     ]
   }
 }

@@ -6,10 +6,10 @@ sidebar_label: Design
 
 Traditionally, we can distinct 4 classic methods of handling derivation of state:
 
-- Natively - compute from scratch every time the state is changed.
-- Handle cache invalidation manually (with all the pain this process entails).
-- Using Immutable data and caching computation based on the identity of inputs.
-- Using Functional Reactive Programming to box fragments of your state with getters & setters; running derivations in a way that would log which fragments were read during the computation, and invalidate when one of their setters is invoked.
+- Native - compute from scratch every time the state is changed.
+- Manual - Handle cache invalidation manually (with all the pain this process entails).
+- Persistent - Using Immutable data and caching computation based on the identity of inputs.
+- Reactive - Using Functional Reactive Programming to box fragments of your state with getters & setters; running derivations in a way that would log which fragments were read during the computation, and invalidate when one of their setters is invoked.
 
 This project is an attempt at a new approach, a DSL + Compiler which are fed two types of inputs:
 
