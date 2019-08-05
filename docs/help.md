@@ -24,7 +24,7 @@ const instance = createInstance({
 instance.output //1
 ```
 
-If your derived state is incorrect but when using the [SimpleCompiler](/docs/simple-compiler.html) everything is working.
+If your derived state is incorrect but when using the simple compiler everything is working.
 It might be the case that your state or derivations are being mutated directly and not trough Carmi's [setters](/docs/api/api.html#setterpath).
 Always treat your derivations as **readonly** including anything passed to **[call()](/docs/api/api.html#callfunc-args)**.
 
