@@ -62,13 +62,13 @@ model only using the setters you defined.</p>
 <blockquote>
 <p>Phil Karlton - &quot;There are only two hard things in Computer Science: cache invalidation and naming things&quot;</p>
 <p>I can't help you much with naming stuff (although you tend to name significantly fewer things in CARMI as you just let
-the data flow from one derivation to the next) - but I sure you hope we never have to think of cache invalidation
-again</p>
+the data flow from one derivation to the next) - but I sure hope you'll never have to think of cache invalidation
+again.</p>
 </blockquote>
 <p>Install Carmi using <a href="https://yarnpkg.com/en/package/carmi"><code>yarn</code></a>:</p>
 <pre><code class="hljs css language-bash">yarn add --dev carmi
 </code></pre>
-<p>Or <a href="https://www.npmjs.com/"><code>npm</code></a>:</p>
+<p>or <a href="https://www.npmjs.com/"><code>npm</code></a>:</p>
 <pre><code class="hljs css language-bash">npm install --save-dev carmi
 </code></pre>
 <p>Create your first model</p>
@@ -84,7 +84,7 @@ again</p>
 <pre><code class="hljs css language-bash">npx carmi --<span class="hljs-built_in">source</span> ./model.carmi.js --output ./model.js --format cjs
 </code></pre>
 <p>Configure webpack</p>
-<p>Within your webpack configuration object, you'll need to add the Carmi loader to the list of modules:</p>
+<p>Add the Carmi loader to the list of modules within your webpack configuration object:</p>
 <pre><code class="hljs css language-javascript"><span class="hljs-built_in">module</span>: {
   <span class="hljs-attr">rules</span>: [
     {
@@ -97,7 +97,8 @@ again</p>
   ];
 }
 </code></pre>
-<pre><code class="hljs css language-js"><span class="hljs-comment">/// you can load your generated code either using a babel loader / a webpack plugin or just add a build step to generate the source</span>
+<pre><code class="hljs css language-js"><span class="hljs-comment">/// you can load your generated code either via using a babel loader / a webpack plugin,</span>
+<span class="hljs-comment">/// or by simply adding a build step to generate the source</span>
 <span class="hljs-keyword">const</span> modelFunction = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./model.carmi'</span>);
 <span class="hljs-keyword">const</span> instance = modelFunction([<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>]);
 <span class="hljs-comment">// each property defined on the model object generates either a derived value or a setter</span>
