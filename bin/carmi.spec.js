@@ -1,10 +1,15 @@
 const pify = require('pify');
-const {exec} = pify(require('child_process'));
+const childProcess = require('child_process');
+const {exec} = pify(childProcess);
 const path = require('path');
 const tempy = require('tempy');
 const invert = require('invert-promise');
+const carmi = require('../index');
+
+jest.mock('../index');
 
 const BINARY_PATH = path.resolve(__dirname, 'carmi');
+const MOCKED_BINARY_PATH = path.resolve(__dirname, '__mocks__/carmi');
 const CARMI_MODEL = path.resolve(
   __dirname,
   '..',
@@ -14,6 +19,16 @@ const CARMI_MODEL = path.resolve(
 );
 
 const runBinary = args => exec(`${BINARY_PATH} ${args}`);
+const getCompileCalls = (args, cacheDir) =>
+  new Promise((resolve, reject) => {
+    const child = childProcess.fork(MOCKED_BINARY_PATH, args.split(' '), {
+      env: {CACHE_DIR: cacheDir}
+    });
+    let compileCalls = 0;
+    child.on('message', name => name === 'carmi:compile' && compileCalls++);
+    child.on('error', error => reject(error));
+    child.on('exit', () => resolve(compileCalls));
+  });
 
 describe('carmi binary', () => {
   it('has a help menu', async () => {
@@ -43,5 +58,36 @@ describe('carmi binary', () => {
     ));
 
     expect(error.code).toBe(1);
+  });
+
+  describe('caching', () => {
+    let carmiCompileCalls;
+    let cacheDir;
+    beforeEach(() => {
+      carmiCompileCalls = 0;
+      cacheDir = tempy.directory();
+    })
+
+    it('gets result from cache for same options', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, cacheDir);
+
+      expect(carmiCompileCalls).toBe(1);
+    });
+
+    it('doesn\'t get result from cache if debug argument was changed', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --debug`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL}`, cacheDir);
+
+      expect(carmiCompileCalls).toBe(2);
+    });
+
+    it('doesn\'t override cache for different options', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format iife`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs`, cacheDir);
+
+      expect(carmiCompileCalls).toBe(2);
+    });
   });
 });
