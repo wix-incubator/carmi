@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const mock = require('mock-require')
+const carmi = require('../../')
+
+// Mock cache directory to allow tests working with own one.
+if (process.env.CACHE_DIR) {
+  mock('find-cache-dir', () => process.env.CACHE_DIR)
+}
+
+// Mock carmi to send compilation call message to the parrent process.
+mock('../..', {
+  ...carmi,
+  compile() {
+    process.send('carmi:compile')
+    return ''
+  }
+})
+
+// Require ogiginal carmi binary after all mocks installed
+require('../carmi')

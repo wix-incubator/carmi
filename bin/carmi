@@ -48,7 +48,13 @@ async function run() {
   }
 
   const absPath = path.resolve(process.cwd(), options.source);
-  const cacheFilePath = getCacheFilePath(absPath);
+  const cacheFilePath = getCacheFilePath({
+    path: absPath,
+    debug: options.debug,
+    format: options.format,
+    prettier: options.prettier,
+    name: options.name,
+  });
 
   require('@babel/register')({
     rootMode: 'upward',
