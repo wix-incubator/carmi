@@ -105,7 +105,8 @@ $tainted = new WeakSet();
     switch (tokenType) {
       case 'get':
         if (expr[2] instanceof Token && expr[2].$type === 'topLevel') {
-          return `${this.generateExpr(expr[2])}[${this.topLevelToIndex(expr[1])} /*${this.generateExpr(expr[1])}*/]`;
+          const commentStr = this.options.debug ? ` /*${this.generateExpr(expr[1])}*/` : '';
+          return `${this.generateExpr(expr[2])}[${this.topLevelToIndex(expr[1])}${commentStr}]`;
         }
         return super.generateExpr(expr)
       case 'topLevel':
