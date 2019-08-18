@@ -414,6 +414,9 @@ class VirtualMachineInstance {
         this.$inBatch = true;
       },
       $endBatch: () => {
+        if (this.$inRecalculate) {
+          throw new Error('Can not end batch in the middle of a batch');
+        }
         this.$inBatch = false;
         if (this.$batchPending.length) {
           this.$batchPending.forEach(({func, args}) => {

@@ -119,6 +119,9 @@ function base() {
           $inBatch = true;
         },
         $endBatch: () => {
+          if ($inRecalculate) {
+            throw new Error('Can not end batch in the middle of a batch');
+          }
           $inBatch = false;
           if ($batchPending.length) {
             $batchPending.forEach(({ func, args }) => {
