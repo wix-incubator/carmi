@@ -565,7 +565,9 @@ module.exports = function () {
     }Object.assign($res, {}, { $startBatch: () => {
         $inBatch = true;
       }, $endBatch: () => {
-        $inBatch = false;if ($batchPending.length) {
+        if ($inRecalculate) {
+          throw new Error('Can not end batch in the middle of a batch');
+        }$inBatch = false;if ($batchPending.length) {
           $batchPending.forEach(({ func, args }) => {
             func.apply($res, args);
           });$batchPending = [];recalculate();
@@ -1151,7 +1153,9 @@ module.exports = function () {
     }Object.assign($res, {}, { $startBatch: () => {
         $inBatch = true;
       }, $endBatch: () => {
-        $inBatch = false;if ($batchPending.length) {
+        if ($inRecalculate) {
+          throw new Error('Can not end batch in the middle of a batch');
+        }$inBatch = false;if ($batchPending.length) {
           $batchPending.forEach(({ func, args }) => {
             func.apply($res, args);
           });$batchPending = [];recalculate();
@@ -1739,7 +1743,9 @@ const modelBuilder = (function () {
     }Object.assign($res, {}, { $startBatch: () => {
         $inBatch = true;
       }, $endBatch: () => {
-        $inBatch = false;if ($batchPending.length) {
+        if ($inRecalculate) {
+          throw new Error('Can not end batch in the middle of a batch');
+        }$inBatch = false;if ($batchPending.length) {
           $batchPending.forEach(({ func, args }) => {
             func.apply($res, args);
           });$batchPending = [];recalculate();
