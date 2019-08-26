@@ -349,11 +349,13 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     /**
      * Combines all array values of the object. Like: `_.reduce(NativeType, _.assign, {})`
      */
+    // @ts-ignore
     assign<T = NativeType extends object ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
      * Combines all array values of the object, in reverse order. Like: `_.reduce(NativeType, _.defaults, {})`
      */
+    // @ts-ignore
     defaults<T = NativeType extends object ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
