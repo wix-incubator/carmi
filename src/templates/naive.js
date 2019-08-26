@@ -54,8 +54,8 @@ function base() {
       $inRecalculate = true;
       /* DERIVED */
       /* RESET */
-      $listeners.forEach(callback => callback());
       $inRecalculate = false;
+      $listeners.forEach(callback => callback());
       if ($batchPending.length) {
         $res.$endBatch();
       }
@@ -132,9 +132,13 @@ function base() {
           }
         },
         $runInBatch: func => {
-          $res.$startBatch();
-          func();
-          $res.$endBatch();
+          if ($inRecalculate) {
+            func();
+          } else {
+            $res.$startBatch();
+            func();
+            $res.$endBatch();
+          }
         },
         $addListener: func => {
           $listeners.add(func);

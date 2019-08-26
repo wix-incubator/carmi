@@ -533,7 +533,7 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
     }function ensurePath(path) {
@@ -573,7 +573,11 @@ module.exports = function () {
           });$batchPending = [];recalculate();
         }
       }, $runInBatch: func => {
-        $res.$startBatch();func();$res.$endBatch();
+        if ($inRecalculate) {
+          func();
+        } else {
+          $res.$startBatch();func();$res.$endBatch();
+        }
       }, $addListener: func => {
         $listeners.add(func);
       }, $removeListener: func => {
@@ -1121,7 +1125,7 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
     }function ensurePath(path) {
@@ -1161,7 +1165,11 @@ module.exports = function () {
           });$batchPending = [];recalculate();
         }
       }, $runInBatch: func => {
-        $res.$startBatch();func();$res.$endBatch();
+        if ($inRecalculate) {
+          func();
+        } else {
+          $res.$startBatch();func();$res.$endBatch();
+        }
       }, $addListener: func => {
         $listeners.add(func);
       }, $removeListener: func => {
@@ -1711,7 +1719,7 @@ const modelBuilder = (function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$listeners.forEach(callback => callback());$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
         $res.$endBatch();
       }
     }function ensurePath(path) {
@@ -1751,7 +1759,11 @@ const modelBuilder = (function () {
           });$batchPending = [];recalculate();
         }
       }, $runInBatch: func => {
-        $res.$startBatch();func();$res.$endBatch();
+        if ($inRecalculate) {
+          func();
+        } else {
+          $res.$startBatch();func();$res.$endBatch();
+        }
       }, $addListener: func => {
         $listeners.add(func);
       }, $removeListener: func => {
