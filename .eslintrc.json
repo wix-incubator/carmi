@@ -24,11 +24,14 @@
     "new-cap": 0,
     "consistent-return": 0,
     "arrow-parens": 0,
+    "require-atomic-updates": 0,
     "no-console": 0,
     "indent": [0, 2],
+    "no-prototype-builtins": 0,
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single", {"avoidEscape": true}],
-    "semi": [0, "never"]
+    "semi": [0, "never"],
+    "no-evalOrLoad": 0
   },
   "overrides": [
     {
@@ -39,3 +42,4 @@
     }
   ]
 }
+
