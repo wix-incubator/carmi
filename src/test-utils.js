@@ -19,7 +19,8 @@ function currentValues(inst) {
 }
 
 const funcLibrary = {
-  tap: x => x
+  tap: x => x,
+  invoke: (fn, ...args) => fn && fn(...args)
 };
 
 function expectTapFunctionToHaveBeenCalled(n, compiler) {
@@ -47,8 +48,12 @@ function describeCompilers(compilers, tests) {
 
 function evalOrLoad(src) {
   if (typeof src === 'string') {
-    // eslint-disable-next-line no-eval
-    return eval(src);
+    try { // eslint-disable-next-line no-eval
+      return eval(src);
+    } catch (e) {
+      require('fs').writeFileSync('./tmp.js', src);
+      throw e;
+    }
   } 
   return loadBytecode(src.buffer);
 }

@@ -9,6 +9,7 @@ function tagToSimpleFilename(tag) {
   const simpleName = fileName
     .split('.js:')[0]
     .replace(/\.carmi$/, '')
+    .replace(/-/g, '_')
     .split('.')
     .find(x => x);
   return simpleName;
