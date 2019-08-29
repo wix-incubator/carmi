@@ -9,10 +9,11 @@ const formatCarmiResult = carmiResult =>
     .trim() // Remove redundant spaces
     .replace(/;$/, ''); // Remove the last comma. It causes errors in babylon
 
-const compileFile = carmiModelFilePath => {
+const compileFile = (carmiModelFilePath, {isDebug} = {}) => {
   const moduleSupport = path.extname(carmiModelFilePath) === '.mjs' ? '--experimental-modules' : '';
+  const debugMode = isDebug ? '--debug' : '';
   const compiled = execSync(
-    `node ${moduleSupport} ${carmiPath} --compiler optimizing --format iife --source ${carmiModelFilePath}`
+    `node ${moduleSupport} ${carmiPath} --compiler optimizing --format iife --source ${carmiModelFilePath} ${debugMode}`
   ).toString('utf8');
   return formatCarmiResult(compiled);
 };

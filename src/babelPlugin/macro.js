@@ -7,7 +7,7 @@ const babylonJsx = require('babylon-jsx').default;
 const generate = require('babel-generator');
 const compileFile = require('./compileFile');
 
-module.exports = createMacro(macro);
+module.exports = createMacro(macro, {configName: 'carmi'});
 
 const extractNodeFromCarmiCode = code => babylon.parse(code).program.body[0].expression;
 
@@ -26,22 +26,23 @@ const wrapWithModuleExports = node => ({
     }
   });
 
-const compile = (code, filename, isMJS = false) => {
+const compile = ({code, filename, isMJS = false, isDebug = false}) => {
   const newFilename = path.resolve(
     filename,
     '..',
     `.${path.basename(filename)}.${uuid()}.carmi${isMJS ? '.mjs' : '.js'}`
   );
   fs.writeFileSync(newFilename, code, 'utf-8');
-  const transformed = compileFile(newFilename);
+  const transformed = compileFile(newFilename, {isDebug});
   fs.unlink(newFilename, () => {});
   return transformed;
 };
 
 const CARMI_COMMENT_RE = /\s*@carmi\s*/;
 
-function macro({babel, state, references, source, config}) {
+function macro({babel, state, references, source, config = {}}) {
   const commentTag = state.file.ast.comments.some(comment => CARMI_COMMENT_RE.test(comment.value));
+  const isDebug = config && config.debug;
   references = references.default || [];
   if (commentTag && references.length === 0) {
     const filename = state.file.opts.filename;
@@ -51,7 +52,7 @@ function macro({babel, state, references, source, config}) {
     const isMJS = body.some(node => node.type === 'ExportDefaultDeclaration');
     const carmiReact = babylonJsx(state.file.ast, 'createElement');
     const code = generate.default(carmiReact).code;
-    const transformed = compile(code, filename, isMJS);
+    const transformed = compile({code, filename, isMJS, isDebug});
     const node = extractNodeFromCarmiCode(transformed);
     body.splice(0, body.length, wrapWithModuleExports(node));
     return {keepImports: true};
@@ -60,7 +61,7 @@ function macro({babel, state, references, source, config}) {
       if (referencePath.parentPath.type === 'TaggedTemplateExpression') {
         const filename = referencePath.context.scope.hub.file.opts.filename;
         const code = referencePath.parentPath.get('quasi').evaluate().value;
-        const transformed = compile(code, filename);
+        const transformed = compile({code, filename, isDebug});
         const node = extractNodeFromCarmiCode(transformed);
         node.callee = babel.types.sequenceExpression([node.callee]);
         referencePath.parentPath.replaceWith(node);

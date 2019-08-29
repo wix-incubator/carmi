@@ -13,7 +13,7 @@ module.exports = {todosList};
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */true) {
       $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
@@ -517,10 +517,10 @@ module.exports = function () {
         triggerInvalidations(arr, i, true);
       }invalidatePath(pathWithKey);arr.splice(key, len, ...newItems);
     }const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
-      const newValue = call($tracked, [\\"createElement\\", $topLevel[0]], 2, 2);return newValue;
+      const newValue = call($tracked, [\\"createElement\\", $topLevel[0 /*\\"$array_temp_4_19_1\\"*/]], 2, 2);return newValue;
     }function $array_temp_4_19_1Build($tracked) {
       const newValue = array($tracked, [\\"div\\", null, $model[0]], 5, 3);return newValue;
-    }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
+    }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"$array_temp_4_19_1\\", \\"todosList\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
           const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, $first);if (!$first) {
@@ -584,7 +584,7 @@ module.exports = function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
-      } });if ( /* DEBUG */false) {
+      } });if ( /* DEBUG */true) {
       Object.assign($res, { $ast: () => {
           return { \\"todosList\\": [\\"*call*\\", \\"createElement\\", [\\"*get*\\", \\"$array_temp_4_19_1\\", \\"*topLevel*\\"]], \\"$array_temp_4_19_1\\": [\\"*array*\\", \\"div\\", \\"*null*\\", [\\"*get*\\", 0, \\"*root*\\"]] };
         }, $source: () => null });
@@ -605,7 +605,7 @@ module.exports = { first: root.get(0), second: root.get(1) };
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */true) {
       $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
@@ -1176,7 +1176,7 @@ module.exports = function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
-      } });if ( /* DEBUG */false) {
+      } });if ( /* DEBUG */true) {
       Object.assign($res, { $ast: () => {
           return { \\"first\\": [\\"*get*\\", 0, \\"*root*\\"], \\"second\\": [\\"*get*\\", 1, \\"*root*\\"] };
         }, $source: () => null });
@@ -1199,7 +1199,7 @@ const modelBuilder = carmi\`
 
 const modelBuilder = (function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+    let $funcLib = $funcLibRaw;if ( /* DEBUG */true) {
       $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
@@ -1705,7 +1705,7 @@ const modelBuilder = (function () {
     }const $topLevel = new Array(2).fill(null);function $allBuild($tracked) {
       const newValue = $model[\\"list\\"];return newValue;
     }function $firstBuild($tracked) {
-      const newValue = $topLevel[0][0];return newValue;
+      const newValue = $topLevel[0 /*\\"all\\"*/][0];return newValue;
     }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
@@ -1770,7 +1770,7 @@ const modelBuilder = (function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
-      } });if ( /* DEBUG */false) {
+      } });if ( /* DEBUG */true) {
       Object.assign($res, { $ast: () => {
           return { \\"all\\": [\\"*get*\\", \\"list\\", \\"*root*\\"], \\"first\\": [\\"*get*\\", 0, [\\"*get*\\", \\"all\\", \\"*topLevel*\\"]] };
         }, $source: () => null });
