@@ -14,6 +14,8 @@
     }
   },
   "rules": {
+    "require-atomic-updates": 0,
+    "no-prototype-builtins": 0,
     "strict": 0,
     "no-unused-vars": 0,
     "import/no-extraneous-dependencies": 0,

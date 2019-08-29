@@ -122,7 +122,7 @@ function analyzeFile(filePath, cache) {
     .map(childFilePath => {
       const absoluteChildPath = tryResolveExt(
         path.dirname(filePath),
-        childFilePath,
+        childFilePath
       );
 
       return absoluteChildPath;
