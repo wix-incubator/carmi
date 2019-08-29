@@ -67,7 +67,7 @@
     "eslint": "^6.2.2",
     "eslint-config-wix-editor": "^7.3.0",
     "invert-promise": "^1.0.1",
-    "jest": "^23.6.0",
+    "jest": "~24.9.0",
     "mobx": "^5.13.0",
     "mock-require": "^3.0.3",
     "random-seed": "^0.3.0",

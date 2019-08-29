@@ -37,8 +37,9 @@ describe('carmi binary', () => {
   });
 
   it('compiles a carmi file', async () => {
-    const file = await runBinary(`--source ${CARMI_MODEL}`);
-    eval(file);
+    const file = await runBinary(`--source ${CARMI_MODEL}`)
+    /*eslint no-new-func:0*/
+    const model = new Function(`${file}; return model`)()
     expect(typeof model).toBe('function');
   });
 
