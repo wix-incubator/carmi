@@ -1,4 +1,3 @@
-/*eslint no-evalOrLoad:0*/
 const {compile, and, or, root, arg0, setter, chain, splice} = require('../../index');
 
 const {
