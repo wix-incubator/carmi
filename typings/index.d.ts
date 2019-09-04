@@ -1,7 +1,7 @@
 export interface FunctionLibrary { [name: string]: (...args: any[]) => any }
 interface Looper<T> { }
 
-type UnionToIntersection<U> = (U extends {} ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
+type UnionToIntersection<U> = (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
 
 interface AbstractGraph {$isCarmiGraph: true}
 export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType}
@@ -11,7 +11,7 @@ export type Argument<T> = AsNative<T> | GraphBase<T> | T
 type MatchesArguments<Function, Args extends any[]> = Function extends (...args: Args) => any ? true : false
 type AsNativeRecursive<T> =
         AsNative<T> extends any[] ? AsNative<T> :
-        AsNative<T> extends {} ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
+        AsNative<T> extends object ? {[k in keyof AsNative<T>]: AsNative<AsNative<T>[k]>} : AsNative<T>
 type BoundFunction<F, A = unknown, B = unknown, C = unknown, D = unknown, E = unknown> =
     unknown extends A ? (F extends (...args: infer Args) => infer R ? F : never) :
     unknown extends B ? (F extends (a: A, ...args: infer Args) => infer R ? (...args: Args) => R : never) :
@@ -303,7 +303,7 @@ interface StringGraph<NativeType extends string, F extends FunctionLibrary> exte
 /**
 * Array or Object
 */
-interface ArrayOrObjectGraphImpl<NativeType extends any[]|{}, F extends FunctionLibrary, Key = keyof NativeType>
+interface ArrayOrObjectGraphImpl<NativeType extends any[]|object, F extends FunctionLibrary, Key = keyof NativeType>
     extends GraphImpl<NativeType, F> {
     /**
     * Returns the specific key/index from the object/array.
@@ -349,14 +349,12 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     /**
      * Combines all array values of the object. Like: `_.reduce(NativeType, _.assign, {})`
      */
-    assign<T = NativeType extends {} ? true : never>()
-        :ObjectGraph<UnionToIntersection<Value>, F>
+    assign<T = NativeType extends object ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
      * Combines all array values of the object, in reverse order. Like: `_.reduce(NativeType, _.defaults, {})`
      */
-    defaults<T = NativeType extends {} ? true : never>()
-        :ObjectGraph<UnionToIntersection<Value>, F>
+    defaults<T = NativeType extends object ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
      * Resolves to the first item in an array.
@@ -609,7 +607,7 @@ interface ObjectGraphImpl<NativeType extends {[key: string]: any}, F extends Fun
      *
      * @param value
      * @sugar */
-    assignIn<V extends {}>(value: Argument<V>[]): ObjectGraph<NativeType & AsNative<V>, F>
+    assignIn<V extends object>(value: Argument<V>[]): ObjectGraph<NativeType & AsNative<V>, F>
 
     /**
     * Sets value for given key.
@@ -659,7 +657,7 @@ type SpliceExpression<Model, Path, F> = {}
 type PushExpression<Model, Path, F> = {}
 
 export interface ArrayGraph<T extends any[], F extends FunctionLibrary> extends ArrayGraphImpl<T, F> {}
-export interface ObjectGraph<T extends {}, F extends FunctionLibrary> extends ObjectGraphImpl<AsNative<T>, F> {}
+export interface ObjectGraph<T extends any, F extends FunctionLibrary> extends ObjectGraphImpl<AsNative<T>, F> {}
 
 export type Graph<N, F extends FunctionLibrary> =
     N extends AbstractGraph ? N :
@@ -668,13 +666,13 @@ export type Graph<N, F extends FunctionLibrary> =
     N extends string ? StringGraph<N, F> :
     N extends number ? NumberGraph<N, F> :
     N extends boolean ? BoolGraph<F> :
-    N extends {} ? ObjectGraph<N, F> :
+    N extends object ? ObjectGraph<N, F> :
     never
 
 /**
 * External
 */
-export interface CarmiAPI<Schema extends {} = any, F extends FunctionLibrary = any> {
+export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary = any> {
     $schema: Schema
     $functions: F
     root: ObjectGraphImpl<Schema, F>
@@ -782,7 +780,7 @@ export interface CarmiAPI<Schema extends {} = any, F extends FunctionLibrary = a
     * }, [3, 2, 1]);
     * instance.output //Second array item is:2.
     */
-    template<Schema extends {} = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: any[]): StringGraph<string, F>
+    template<Schema extends object = any, F extends FunctionLibrary = {}>(template: TemplateStringsArray, ...placeholders: any[]): StringGraph<string, F>
 
     arg0: Token
     arg1: Token
@@ -806,5 +804,5 @@ export const template: CarmiAPI['template']
 declare const carmiDefaultAPI : CarmiAPI
 export default carmiDefaultAPI
 
-export function withSchema<Schema extends {}, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
-export function compile(transformations: {}, options ?: {}): string
+export function withSchema<Schema extends object, F extends FunctionLibrary = {}>(model?: Schema, functions?: F): CarmiAPI<Schema, F>
+export function compile(transformations: object, options ?: object): string
