@@ -1,7 +1,7 @@
 export interface FunctionLibrary { [name: string]: (...args: any[]) => any }
 interface Looper<T> { }
 
-type UnionToIntersection<U> = (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
+type UnionToIntersection<U> = (U extends {} ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
 
 interface AbstractGraph {$isCarmiGraph: true}
 export interface GraphBase<NativeType> extends AbstractGraph {$value: NativeType}
@@ -349,14 +349,14 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     /**
      * Combines all array values of the object. Like: `_.reduce(NativeType, _.assign, {})`
      */
-    // @ts-ignore
-    assign<T = NativeType extends {} ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
+    assign<T = NativeType extends {} ? true : never>()
+        :ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
      * Combines all array values of the object, in reverse order. Like: `_.reduce(NativeType, _.defaults, {})`
      */
-    // @ts-ignore
-    defaults<T = NativeType extends {} ? true : never>(): ObjectGraph<UnionToIntersection<Value>, F>
+    defaults<T = NativeType extends {} ? true : never>()
+        :ObjectGraph<UnionToIntersection<Value>, F>
 
     /**
      * Resolves to the first item in an array.
