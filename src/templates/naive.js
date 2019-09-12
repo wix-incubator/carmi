@@ -55,9 +55,10 @@ function base() {
       /* DERIVED */
       /* RESET */
       $inRecalculate = false;
-      $listeners.forEach(callback => callback());
       if ($batchPending.length) {
         $res.$endBatch();
+      } else {
+        $listeners.forEach(callback => callback());
       }
     }
 
