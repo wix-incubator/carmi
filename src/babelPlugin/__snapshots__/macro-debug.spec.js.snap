@@ -533,8 +533,10 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
+      } else {
+        $listeners.forEach(callback => callback());
       }
     }function ensurePath(path) {
       if (path.length < 2) {
@@ -1125,8 +1127,10 @@ module.exports = function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
+      } else {
+        $listeners.forEach(callback => callback());
       }
     }function ensurePath(path) {
       if (path.length < 2) {
@@ -1719,8 +1723,10 @@ const modelBuilder = (function () {
     }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;$listeners.forEach(callback => callback());if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
+      } else {
+        $listeners.forEach(callback => callback());
       }
     }function ensurePath(path) {
       if (path.length < 2) {
