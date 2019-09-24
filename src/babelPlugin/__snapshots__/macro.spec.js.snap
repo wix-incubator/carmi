@@ -68,8 +68,10 @@ module.exports = function () {
         }
       }$target[$key] = $val;
     }function truncateArray($target, newLen) {
-      for (let i = newLen; i < $target.length; i++) {
-        triggerInvalidations($target, i, true);
+      const $invalidatedKeys = $invalidatedMap.get($target);for (let i = newLen; i < $target.length; i++) {
+        triggerInvalidations($target, i, true);if ($invalidatedKeys) {
+          delete $invalidatedKeys.$subKeys[i];
+        }
       }$target.length = newLen;
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
@@ -662,8 +664,10 @@ module.exports = function () {
         }
       }$target[$key] = $val;
     }function truncateArray($target, newLen) {
-      for (let i = newLen; i < $target.length; i++) {
-        triggerInvalidations($target, i, true);
+      const $invalidatedKeys = $invalidatedMap.get($target);for (let i = newLen; i < $target.length; i++) {
+        triggerInvalidations($target, i, true);if ($invalidatedKeys) {
+          delete $invalidatedKeys.$subKeys[i];
+        }
       }$target.length = newLen;
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
@@ -1258,8 +1262,10 @@ const modelBuilder = (function () {
         }
       }$target[$key] = $val;
     }function truncateArray($target, newLen) {
-      for (let i = newLen; i < $target.length; i++) {
-        triggerInvalidations($target, i, true);
+      const $invalidatedKeys = $invalidatedMap.get($target);for (let i = newLen; i < $target.length; i++) {
+        triggerInvalidations($target, i, true);if ($invalidatedKeys) {
+          delete $invalidatedKeys.$subKeys[i];
+        }
       }$target.length = newLen;
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {

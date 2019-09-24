@@ -89,8 +89,12 @@ function library() {
     }
 
     function truncateArray($target, newLen) {
+      const $invalidatedKeys = $invalidatedMap.get($target);
       for (let i = newLen; i <$target.length;i++) {
         triggerInvalidations($target, i, true);
+        if ($invalidatedKeys) {
+          delete $invalidatedKeys.$subKeys[i]
+        }
       }
       $target.length = newLen;
     }
