@@ -30,6 +30,7 @@ const optionDefinitions = [
   {name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage'},
   {name: 'stats', type: String, defaultValue: '', description: 'generate stats file'},
   {name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits'},
+  {name: 'setup-file-path', type: String, defaultValue: null, description: 'require a file before starting compilation'},
   {name: 'ast', type: Boolean, defaultValue: false}
 ];
 
@@ -56,12 +57,18 @@ async function run() {
     name: options.name,
   });
 
-  require('@babel/register')({
-    rootMode: 'upward',
-    extensions: ['.ts', '.js'],
-    ignore: [/node_modules/],
-    envName: 'carmi'
-  })
+    // Run custom setup file
+    if (options['setup-file-path']) {
+      require(options['setup-file-path']);
+    } else {
+      // Or use the default setup
+      require('@babel/register')({
+        rootMode: 'upward',
+        extensions: ['.ts', '.js'],
+        ignore: [/node_modules/],
+        envName: 'carmi'
+      })
+    }
 
   const statsFilePath = path.resolve(options.stats);
   const dependencies = analyzeDependencies(absPath, statsFilePath);
