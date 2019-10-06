@@ -470,7 +470,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     concat<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
 
     /**
-     * Resolves to an array of unique values that are included in given arrays.
+     * Resolves to an array of unique values that are included in given arrays of strings.
      * @param arrays
      * @sugar */
     intersection<T>(...arrays: Argument<T[]>[]) : ArrayGraph<(Value|T)[], F>
@@ -513,7 +513,7 @@ interface ArrayGraphImpl<NativeType extends any[], F extends FunctionLibrary,
     compact(): this
 
     /**
-     * Resolves to a duplicate-free version of an array
+     * Resolves to a duplicate-free version of an array of strings.
      * @sugar */
     uniq(): this
 

@@ -58,7 +58,7 @@ Resolves to the first item in an array.
 Resolves to true if the array contains an argument equal to value.
 
 ### `intersection(arrays)` 🍬
-Resolves to an array of unique values that are included in given arrays.
+Resolves to an array of unique values that are included in given arrays of strings.
 
 ### `join(separator)` 🍬
 Joins an array of strings to a single string, like `NativeType.join(separator)`.
@@ -103,7 +103,7 @@ Resolves to NativeType.length
 Resolves to the sum of numbers in a number array.
 
 ### `uniq()` 🍬
-Resolves to a duplicate-free version of an array
+Resolves to a duplicate-free version of an array of strings.
 
 ## Array or Object
 ### `get(key)` 
