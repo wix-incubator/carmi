@@ -5,6 +5,7 @@ const fs = require('fs-extra');
 const resolve = require('resolve');
 const babelParser = require('@babel/parser');
 const walk = require('babylon-walk');
+const {execSync} = require('child_process');
 
 function getDependencies(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -165,11 +166,29 @@ function isUpToDate(deps, cacheFilePath) {
     const outTime = mtime(cacheFilePath)
     return isEveryFileBefore(depsArray, outTime)
   } catch (e) {
+    console.log('ERROR', e);
     return false
   }
 }
 
+const getDependenciesHashes = (dependencies) => {
+  try {
+    const depsArray = Object.keys(dependencies);
+    return execSync(`git ls-tree --abbrev=7 --full-name -r HEAD ${depsArray.join(' ')}`, {encoding: 'utf8'}).split('\n').reduce((total, item) => {
+      if (item) {
+        const [, , hash] = item.split(/\s/);
+        return total.concat(hash);
+      }
+      return total;
+    }, []);
+  } catch (e) {
+    console.log('ERROR', e);
+    return undefined;
+  }
+};
+
 module.exports = {
   isUpToDate,
+  getDependenciesHashes,
   analyzeDependencies
 }
