@@ -3,12 +3,36 @@
 'use strict';
 
 const mock = require('mock-require')
+const crypto = require('crypto');
+const childProcess = require('child_process');
 const carmi = require('../../')
+
+const getHash = input => crypto.createHash('md5').update(input).digest('hex').slice(-7);
+
+const getLsTreeResultLine = (filename, withRandomHash) => {
+  const hashInput = withRandomHash && withRandomHash !== 'undefined' ? Date.now().toString() : filename;
+  return `123456 blob ${getHash(hashInput)} ${filename}`;
+};
 
 // Mock cache directory to allow tests working with own one.
 if (process.env.CACHE_DIR) {
   mock('find-cache-dir', () => process.env.CACHE_DIR)
 }
+
+// Mock git ls-tree call to check git-hash test scenario
+mock('child_process', {
+  ...childProcess,
+  execSync(cmd, ...args) {
+    if (cmd.includes('git ls-tree')) {
+      if (process.env.ERROR_STAGE === 'git-hash') {
+        throw new Error('Oops');
+      }
+      const withRandomHash = process.env.RANDOM_GIT_HASH;
+      return [getLsTreeResultLine('test.carmi.js', withRandomHash), getLsTreeResultLine('test2.carmi.js', withRandomHash)].join('\n');
+    }
+    return childProcess.execSync(cmd, ...args);
+  }
+});
 
 // Mock carmi to send compilation call message to the parrent process.
 mock('../..', {
