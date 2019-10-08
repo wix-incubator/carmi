@@ -72,7 +72,7 @@ describe('carmi binary', () => {
       cacheDir = tempy.directory();
     })
 
-    it.only('gets result from cache for same options', async () => {
+    it('gets result from cache for same options', async () => {
       carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, {cacheDir});
       carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, {cacheDir});
 

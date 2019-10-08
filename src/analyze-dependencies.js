@@ -166,7 +166,6 @@ function isUpToDate(deps, cacheFilePath) {
     const outTime = mtime(cacheFilePath)
     return isEveryFileBefore(depsArray, outTime)
   } catch (e) {
-    console.log('ERROR', e);
     return false
   }
 }
@@ -182,7 +181,7 @@ const getDependenciesHashes = (dependencies) => {
       return total;
     }, []);
   } catch (e) {
-    console.log('ERROR', e);
+    console.warn("Can't use `git ls-tree` for the current cache scenario. Using fallback to `mtime` file check");
     return undefined;
   }
 };
