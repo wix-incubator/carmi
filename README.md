@@ -142,19 +142,30 @@ Compiles Carmi files on the fly with a fly webpack loader.
 
 Add this to your webpack configurations:
 
-```
+```js
 module: {
   rules: [
     {
       test: /\.carmi\.js$/,
       exclude: /(node_modules|bower_components)/,
       use: {
-        loader: 'carmi/loader'
+        loader: 'carmi/loader',
+        options: {
+          // Carmi options...
+        }
       }
     }
   ]
 }
 ```
+
+#### Available carmi options:
+**`debug`**: Add debug function to the generated code.  
+**`type-check`**: Add static type checking to the generated code.
+**`no-cache`**: Cache will be ignored. *(It could noticeably affect the build time)*
+**`cache-scenario`** (**`mtime`** *(default)* | **`git-hash`**): Specify which cache scenario you want to use. Each of scenario is collection all dependencies of the entry file and checking if at least one of it was updated. Then cache will be ignored and carmi will compile file from the scratch. The difference is how carmi checks which dependency was updated. **mtime** option will check last modified date of the file. But it won't work for cases when you are going to `git clone` project before each build since git doesn't contain a created/modified file metadata. For this cases **git-hash** option could be useful. It collects state based on git hash of each dependency and invalidate file if some of hash was updated (usually it happens after each git tree modification.) *(Will be ignored if no-cache option is enabled)*
+**`ast`**: Add AST to the output for debug purposes.
+
 
 Then you can just `require('./model.carmi.js')` like a boss
 

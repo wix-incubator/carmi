@@ -4,7 +4,6 @@ const {exec} = pify(childProcess);
 const path = require('path');
 const tempy = require('tempy');
 const invert = require('invert-promise');
-const carmi = require('../index');
 
 jest.mock('../index');
 
@@ -19,10 +18,14 @@ const CARMI_MODEL = path.resolve(
 );
 
 const runBinary = args => exec(`${BINARY_PATH} ${args}`);
-const getCompileCalls = (args, cacheDir) =>
+const getCompileCalls = (args, {cacheDir, withRandomGitHash, errorStage}) =>
   new Promise((resolve, reject) => {
     const child = childProcess.fork(MOCKED_BINARY_PATH, args.split(' '), {
-      env: {CACHE_DIR: cacheDir}
+      env: {
+        CACHE_DIR: cacheDir,
+        ERROR_STAGE: errorStage,
+        RANDOM_GIT_HASH: withRandomGitHash
+      }
     });
     let compileCalls = 0;
     child.on('message', name => name === 'carmi:compile' && compileCalls++);
@@ -70,23 +73,51 @@ describe('carmi binary', () => {
     })
 
     it('gets result from cache for same options', async () => {
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, cacheDir);
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug`, {cacheDir});
+
+      expect(carmiCompileCalls).toBe(1);
+    });
+
+    it('works with `cache-scenario=mtime` param result from cache for same options', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=mtime`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=mtime`, {cacheDir});
+
+      expect(carmiCompileCalls).toBe(1);
+    });
+
+    it('works with `cache-scenario=git-hash` result from cache if file has the same git hash', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=git-hash`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=git-hash`, {cacheDir});
+
+      expect(carmiCompileCalls).toBe(1);
+    });
+
+    it('works with `cache-scenario=git-hash` result from cache if file has different git hashes', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=git-hash`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=git-hash`, {cacheDir, withRandomGitHash: true});
+
+      expect(carmiCompileCalls).toBe(2);
+    });
+
+    it('uses fallback tos `cache-scenario=mtime` if `git ls-tree` command failed', async () => {
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=git-hash`, {cacheDir, errorStage: 'git-hash'});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs --debug --cache-scenario=git-hash`, {cacheDir, errorStage: 'git-hash'});
 
       expect(carmiCompileCalls).toBe(1);
     });
 
     it('doesn\'t get result from cache if debug argument was changed', async () => {
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --debug`, cacheDir);
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL}`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --debug`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL}`, {cacheDir});
 
       expect(carmiCompileCalls).toBe(2);
     });
 
     it('doesn\'t override cache for different options', async () => {
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs`, cacheDir);
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format iife`, cacheDir);
-      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs`, cacheDir);
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format iife`, {cacheDir});
+      carmiCompileCalls += await getCompileCalls(`--source ${CARMI_MODEL} --format cjs`, {cacheDir});
 
       expect(carmiCompileCalls).toBe(2);
     });

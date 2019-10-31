@@ -6,10 +6,15 @@ const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
-const {isUpToDate, analyzeDependencies} = require('../src/analyze-dependencies');
+const {isUpToDate, getDependenciesHashes, analyzeDependencies} = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
 const wrapModule = require('../src/wrap-module');
 const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
+
+const CACHE_SCENARIOS = {
+  mtime: 'mtime',
+  gitHash: 'git-hash'
+};
 
 const optionDefinitions = [
   {name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model'},
@@ -27,6 +32,7 @@ const optionDefinitions = [
   {name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function'},
   {name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output'},
   {name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache'},
+  {name: 'cache-scenario', type: String, defaultValue: CACHE_SCENARIOS.mtime, description: `cache scenario to use (${Object.values(CACHE_SCENARIOS).join(' | ')})`},
   {name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage'},
   {name: 'stats', type: String, defaultValue: '', description: 'generate stats file'},
   {name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits'},
@@ -48,13 +54,6 @@ async function run() {
   }
 
   const absPath = path.resolve(process.cwd(), options.source);
-  const cacheFilePath = getCacheFilePath({
-    path: absPath,
-    debug: options.debug,
-    format: options.format,
-    prettier: options.prettier,
-    name: options.name,
-  });
 
   require('@babel/register')({
     rootMode: 'upward',
@@ -67,14 +66,30 @@ async function run() {
   const dependencies = analyzeDependencies(absPath, statsFilePath);
   const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
 
+  const dependenciesHashes = options['cache-scenario'] === CACHE_SCENARIOS.gitHash ?
+    getDependenciesHashes(dependencies) :
+    null;
+
+  const cacheFilePath = getCacheFilePath({
+    path: absPath,
+    debug: options.debug,
+    format: options.format,
+    prettier: options.prettier,
+    dependenciesHashes,
+    name: options.name
+  });
+
   if (options.stats) {
     await fs.outputJSON(statsFilePath, dependencies);
   }
 
   let code;
 
-  // return from cache
-  if (!options['no-cache'] && fs.existsSync(cacheFilePath) && isUpToDate(dependencies, cacheFilePath)) {
+  // We are using fallback to mtime check if scenario is `git-hash`, but getting hashes was resulted in error.
+  const upToDate = Boolean(dependenciesHashes) || isUpToDate(dependencies, cacheFilePath);
+  const useCache = !options['no-cache'] && fs.existsSync(cacheFilePath) && upToDate;
+  if (useCache) {
+    // return from cache
     code = await fs.readFile(cacheFilePath, encoding);
   } else {
     // run carmi and generate cache
