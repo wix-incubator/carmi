@@ -8,7 +8,7 @@
     "test": "jest",
     "watchTypes": "nodemon -w ./typings/index.d.ts -w ./typedoc/generate.js ./typedoc/generate.js",
     "docgen": "node ./docs/alternative/generate",
-    "release": "wnpm-release --no-shrinkwrap"
+    "release": "npx -p wnpm-ci wnpm-release --no-shrinkwrap"
   },
   "bin": {
     "carmi": "./bin/carmi"
