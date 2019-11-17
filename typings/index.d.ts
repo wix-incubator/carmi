@@ -713,6 +713,7 @@ interface ArrayGraphImpl<
 /**
  * Object
  */
+
 interface ObjectGraphImpl<
   NativeType extends { [key: string]: any },
   F extends FunctionLibrary,
@@ -835,7 +836,7 @@ interface ObjectGraphImpl<
    * @param path[] Array
    * @param value
    * @sugar */
-  setIn(path: string[]): ObjectGraph<NativeType, F>;
+  setIn(path: string[], value: any): ObjectGraph<NativeType, F>;
 
   /**
    * Resolves to an object with keys identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
