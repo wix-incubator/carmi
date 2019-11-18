@@ -66,7 +66,7 @@ function tryResolveExt(dir, i) {
 
 function tryResolve(basedir, i) {
   try {
-    return resolve.sync(i, {basedir})
+    return resolve.sync(i, {basedir, preserveSymlinks: false})
     // return requireUtil.resolve(i)
   } catch (e) {
     // console.log(i, e)
