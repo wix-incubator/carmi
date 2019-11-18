@@ -775,6 +775,16 @@ interface ObjectGraphImpl<
   ): ObjectGraph<{ [name in keyof NativeType]: AsNativeRecursive<Ret> }, F>;
 
   /**
+   * Resolves to an object with the same keys, with each value resolves to the value at propName of the corresponding entry.
+   * This is equivalent to x => x.get(propName)
+   *
+   * @param propName property name
+   */
+  mapValues<K extends keyof Value>(
+    propName: Argument<K>
+  ): ObjectGraph<{ [name in keyof NativeType]: AsNativeRecursive<Value[K]> }, F>;
+
+  /**
    * Resolves to an object with the same values, with each key resolves to the return value of functor on the corresponding entry.
    *
    * @param functor
@@ -788,7 +798,14 @@ interface ObjectGraphImpl<
     ) => Ret,
     scope?: Scope
   ): ObjectGraph<{ [key in Ret extends string ? Ret : string]: Value }, F>;
-  mapKeys(key: Argument<string>): ObjectGraph<{ [key: string]: Value }, F>;
+
+
+  /**
+   * Resolves to an object with the same values, with each key resolves to the value at propName of the corresponding entry.
+   *
+   * @param propName property name
+   */
+  mapKeys<K extends keyof Value>(propName: Argument<K>): ObjectGraph<{ [key: string]: Value }, F>;
 
   /**
    * Resolves to a boolean representing whether the object contains any value for which the functor has resolved to true
@@ -928,7 +945,7 @@ export interface CarmiAPI<
    *  }, [{shelf: 'scifi'}, {scifi: ['a scanner darkly']}]);
    *  instance.output //{books: ["a scanner darkly"], shelf: "scifi"}
    */
-  chain<T>(t: T): Graph<T, F>;
+  chain<T>(t: T): Graph<AsNativeRecursive<T>, F>
 
   /**
    * Logical operand or.
