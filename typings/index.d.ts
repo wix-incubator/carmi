@@ -717,10 +717,10 @@ interface ArrayGraphImpl<
 interface ObjectGraphImpl<
   NativeType extends { [key: string]: any },
   F extends FunctionLibrary,
-  Key = keyof NativeType,
+  Key = keyof NativeType & string,
   Value = AsNative<NativeType[keyof NativeType]>,
   ValueGraph = Graph<Value, F>,
-  KeyGraph = Graph<keyof NativeType, F>
+  KeyGraph = Graph<Key, F>
 >
   extends ArrayOrObjectGraphImpl<
     { [key in keyof NativeType]: AsNative<NativeType[key]> },
