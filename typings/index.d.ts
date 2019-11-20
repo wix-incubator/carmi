@@ -1025,21 +1025,17 @@ export interface CarmiAPI<
    * Calls the function name passed from the function library while passing current value as the first argument, and then the provided args.
    */
   call<
-    FunctionName extends keyof F,
-    Arguments extends F[FunctionName] extends (...args: (infer Args)[]) => any
-      ? Args
-      : never
-  >(
+    FunctionName extends keyof F>(
     func: FunctionName,
-    ...args: Arguments[]
+    ...args: Argument<Parameters<F[FunctionName]>[number]>[]
   ): Graph<ReturnType<F[FunctionName]>, F>;
 
   /**
    * See the docs for [`effect(func, args)`](api.html#effectfunc-args-1) in the **Graph** section of this API reference.
    */
-  effect<FunctionName extends keyof F, Args>(
+  effect<FunctionName extends keyof F>(
     func: FunctionName,
-    ...args: Args[]
+    ...args: Argument<Parameters<F[FunctionName]>[number]>[]
   ): Graph<ReturnType<F[FunctionName]>, F>;
 
   /**
@@ -1052,25 +1048,25 @@ export interface CarmiAPI<
     func: FunctionName,
     a: A
   ): FunctionGraph<BoundFunction<F[FunctionName], A>, F>;
-  bind<FunctionName extends keyof F, A, B>(
+  bind<FunctionName extends keyof F, A = Parameters<F[FunctionName]>[0], B = Parameters<F[FunctionName]>[1]>(
     func: FunctionName,
     a: A,
     b: B
   ): FunctionGraph<BoundFunction<F[FunctionName], A, B>, F>;
-  bind<FunctionName extends keyof F, A, B, C>(
+  bind<FunctionName extends keyof F, A = Parameters<F[FunctionName]>[0], B = Parameters<F[FunctionName]>[1], C = Parameters<F[FunctionName]>[2]>(
     func: FunctionName,
     a: A,
     b: B,
     c: C
   ): FunctionGraph<BoundFunction<F[FunctionName], A, B, C>, F>;
-  bind<FunctionName extends keyof F, A, B, C, D>(
+  bind<FunctionName extends keyof F, A = Parameters<F[FunctionName]>[0], B = Parameters<F[FunctionName]>[1], C = Parameters<F[FunctionName]>[2], D = Parameters<F[FunctionName]>[3]>(
     func: FunctionName,
     a: A,
     b: B,
     c: C,
     d: D
   ): FunctionGraph<BoundFunction<F[FunctionName], A, B, C, D>, F>;
-  bind<FunctionName extends keyof F, A, B, C, D, E>(
+  bind<FunctionName extends keyof F, A = Parameters<F[FunctionName]>[0], B = Parameters<F[FunctionName]>[1], C = Parameters<F[FunctionName]>[2], D = Parameters<F[FunctionName]>[3], E = Parameters<F[FunctionName]>[4]>(
     func: FunctionName,
     a: A,
     b: B,
