@@ -446,7 +446,28 @@ interface ArrayOrObjectGraphImpl<
   >(
     path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>]
   ): Graph<NativeType[K0][K1][K2][K3][K4], F>;
-  /**
+  getIn<
+    K0 extends keyof NativeType,
+    K1 extends keyof NativeType[K0],
+    K2 extends keyof NativeType[K0][K1],
+    K3 extends keyof NativeType[K0][K1][K2],
+    K4 extends keyof NativeType[K0][K1][K2][K3],
+    K5 extends keyof NativeType[K0][K1][K2][K3][K4]
+  >(
+    path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>, Argument<K5>]
+  ): Graph<NativeType[K0][K1][K2][K3][K4][K5], F>;
+  getIn<
+    K0 extends keyof NativeType,
+    K1 extends keyof NativeType[K0],
+    K2 extends keyof NativeType[K0][K1],
+    K3 extends keyof NativeType[K0][K1][K2],
+    K4 extends keyof NativeType[K0][K1][K2][K3],
+    K5 extends keyof NativeType[K0][K1][K2][K3][K4],
+    K6 extends keyof NativeType[K0][K1][K2][K3][K4][K5]
+  >(
+    path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>, Argument<K5>, Argument<K6>]
+  ): Graph<NativeType[K0][K1][K2][K3][K4][K5][K6], F>;
+/**
    * Returns true if the key/index exists on the object/array.
    */
   has(key: Argument<string> | Argument<number>): BoolGraph<F>;
@@ -518,7 +539,23 @@ interface ArrayGraphImpl<
   map<Scope, Ret>(
     functor: (value: ValueGraph, key: KeyGraph, scope: Scope) => Argument<Ret>,
     scope?: Scope
-  ): ArrayGraph<Ret[], F>;
+  ): ArrayGraph<Array<Ret>, F>;
+
+  /**
+   * Returns a graph that resolves to an array with the value at propName of each corresponding entry.
+   *
+   * @param propName The property name
+   * @example
+   * const { root } = require('carmi')
+   * const input = [{age: 3}, {age: 2}, {age: 1}]
+   * const instance = createInstance({
+   *     output: root.map('age')
+   * }, input)
+   * instance.output //[3, 2, 1]
+   */
+  map<K extends keyof Value>(
+    propName: K
+  ): ArrayGraph<Array<Value[K]>, F>;
 
   /**
    * Returns a boolean graph that resolves to *true* if at least one element in the array
@@ -571,7 +608,7 @@ interface ArrayGraphImpl<
    * }, [{items: [1]}, {items: [1, 2]}, {items: [1, 2, 3]}, {items: [1, 2, 3, 4]}]);
    * instance.output // {1: [1], 2: [1, 2], 3: [1, 2, 3], 4: [1, 2, 3, 4]}
    **/
-  keyBy<Scope, Ret extends Argument<string>>(
+  keyBy<Scope, Ret extends Argument<string | number>>(
     functor: (value: ValueGraph, key: KeyGraph, scope: Scope) => Argument<Ret>,
     scope?: Scope
   ): ObjectGraph<
@@ -579,7 +616,7 @@ interface ArrayGraphImpl<
     F
   >;
 
-  /**
+   /**
    * Returns an array graph containing only the values for which the functor resolved to `true`.
    *
    * @param functor A function to run for every item of the array, returning a boolean
