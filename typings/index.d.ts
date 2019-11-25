@@ -987,6 +987,10 @@ export interface CarmiAPI<
   /**
    * Logical operand or.
    */
+  or<A>(a: A, b: never[] | {}): Graph<A, F>;
+  or<A, B>(a: A, b: B, c: never[] | {}): Graph<A, F> | Graph<B, F>;
+  or<A, B, C>(a: A, b: B, c: C, d: never[] | {}): Graph<A, F> | Graph<B, F> | Graph<C, F>;
+  or<A, B, C, D>(a: A, b: B, c: C, d: D, e: never[] | {}): Graph<A, F> | Graph<B, F> | Graph<C, F> | Graph<D, F>;
   or<A, B>(a: A, b: B): Graph<A, F> | Graph<B, F>;
   or<A, B, C>(a: A, b: B, c: C): Graph<A, F> | Graph<B, F> | Graph<C, F>;
   or<A, B, C, D>(
