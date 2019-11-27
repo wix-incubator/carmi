@@ -6,8 +6,9 @@
     "strict": true,
     "moduleResolution": "node",
     "typeRoots": ["./typings"],
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": true
   },
   "compileOnSave": true,
-  "exclude": ["node_modules", ".vscode"]
+  "exclude": ["node_modules", ".vscode", "src/testData"]
 }
