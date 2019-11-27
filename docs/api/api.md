@@ -58,7 +58,7 @@ Resolves to the first item in an array.
 Resolves to true if the array contains an argument equal to value.
 
 ### `intersection(arrays)` 🍬
-Resolves to an array of unique values that are included in given arrays of strings.
+Resolves to an array of unique values that are included in given arrays.
 
 ### `join(separator)` 🍬
 Joins an array of strings to a single string, like `NativeType.join(separator)`.
@@ -103,7 +103,7 @@ Resolves to NativeType.length
 Resolves to the sum of numbers in a number array.
 
 ### `uniq()` 🍬
-Resolves to a duplicate-free version of an array of strings.
+Resolves to a duplicate-free version of an array
 
 ## Array or Object
 ### `get(key)` 
@@ -322,7 +322,7 @@ Resolves to a new object with only the keys passed as argument
 Resolves to an object with keys identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
 The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
 
-### `setIn(path)` 🍬
+### `setIn(path, value)` 🍬
 Sets value for given path.
 
 ### `simpleSet(path)` 🍬

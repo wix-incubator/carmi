@@ -4,10 +4,9 @@
   "main": "./index.js",
   "typings": "./typings/index.d.ts",
   "scripts": {
-    "pretest": "eslint .",
+    "pretest": "eslint . && tsc",
     "test": "jest",
     "watchTypes": "nodemon -w ./typings/index.d.ts -w ./typedoc/generate.js ./typedoc/generate.js",
-    "docgen": "node ./docs/alternative/generate",
     "release": "npx -p wnpm-ci wnpm-release --no-shrinkwrap"
   },
   "bin": {
@@ -71,6 +70,7 @@
     "mock-require": "^3.0.3",
     "random-seed": "^0.3.0",
     "typedoc": "^0.14.2",
+    "typescript": "^3.7.2",
     "wnpm-ci": "latest"
   },
   "description": "CARMI - Compiler for Automatic Reactive Modelling of Inference"
