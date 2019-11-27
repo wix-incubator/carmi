@@ -440,7 +440,7 @@ interface ArrayGraphImpl<
 	 */
 	assign<T = NativeType extends object ? true : never>(): ObjectGraph<
 		// @ts-ignore
-		UnionToIntersection<Value>,
+		AsNativeRecursive<UnionToIntersection<Value>>,
 		F
 	>
 
@@ -449,7 +449,7 @@ interface ArrayGraphImpl<
 	 */
 	defaults<T = NativeType extends object ? true : never>(): ObjectGraph<
 		// @ts-ignore
-		UnionToIntersection<Value>,
+		AsNativeRecursive<UnionToIntersection<Value>>,
 		F
 	>
 
@@ -768,7 +768,7 @@ interface ObjectGraphImpl<
 	 *
 	 * @param value
 	 * @sugar */
-	assignIn<V extends object>(value: Argument<V>[]): ObjectGraph<NativeType & AsNative<V>, F>
+	assignIn<V extends object>(value: Argument<V>[]): ObjectGraph<NativeType & AsNativeRecursive<V>, F>
 
 	/**
 	 * Sets value for given key.
