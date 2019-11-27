@@ -322,7 +322,7 @@ Resolves to a new object with only the keys passed as argument
 Resolves to an object with keys identical to NativeType, with each element resolving to the result of functor on the equivalent element in NativeType.
 The functor is given a "loop" parameter, which can be used to retrieve the functor's result on a different key. For example:
 
-### `setIn(path)` 🍬
+### `setIn(path, value)` 🍬
 Sets value for given path.
 
 ### `simpleSet(path)` 🍬
