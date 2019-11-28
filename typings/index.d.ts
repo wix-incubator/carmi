@@ -486,10 +486,10 @@ interface ArrayGraphImpl<
 	 * }, [3, 2, 1])
 	 * instance.output //[6, 4, 2]
 	 */
-	map<Scope, Ret>(
-		functor: (value: ValueGraph, key: KeyGraph, scope: Scope) => Argument<Ret>,
+	map<Scope, T extends (value: ValueGraph, key?: KeyGraph, scope?: Scope) => any>(
+		functor: T,
 		scope?: Scope
-	): ArrayGraph<Array<Ret>, F>
+	): ArrayGraph<Array<ReturnType<T>>, F>
 
 	/**
 	 * Returns a graph that resolves to an array with the value at propName of each corresponding entry.
@@ -711,10 +711,10 @@ interface ObjectGraphImpl<
 	 * @param functor
 	 * @param scope
 	 */
-	mapValues<Scope, Ret>(
-		functor: (value: ValueGraph, key: KeyGraph, scope: Scope) => Ret,
+	mapValues<Scope, T extends (value?: ValueGraph, key?: KeyGraph, scope?: Scope) => any>(
+		functor: T,
 		scope?: Scope
-	): ObjectGraph<{ [name in keyof NativeType]: AsNativeRecursive<Ret> }, F>
+	): ObjectGraph<{ [name in keyof NativeType]: AsNativeRecursive<ReturnType<T>> }, F>
 
 	/**
 	 * Resolves to an object with the same keys, with each value resolves to the value at propName of the corresponding entry.
@@ -732,10 +732,10 @@ interface ObjectGraphImpl<
 	 * @param functor
 	 * @param scope
 	 */
-	mapKeys<Scope, Ret>(
-		functor: (value: ValueGraph, key: StringGraph<string, F>, scope: Scope) => Ret,
+	mapKeys<Scope, T extends (value?: ValueGraph, key?: KeyGraph, scope?: Scope) => any>(
+		functor: T,
 		scope?: Scope
-	): ObjectGraph<{ [key in Ret extends string ? Ret : string]: Value }, F>
+	): ObjectGraph<{ [key in ReturnType<T> extends string ? ReturnType<T> : string]: Value }, F>
 
 	/**
 	 * Resolves to an object with the same values, with each key resolves to the value at propName of the corresponding entry.
