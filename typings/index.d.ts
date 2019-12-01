@@ -486,7 +486,7 @@ interface ArrayGraphImpl<
 	 * }, [3, 2, 1])
 	 * instance.output //[6, 4, 2]
 	 */
-	map<Scope, T extends (value: ValueGraph, key?: KeyGraph, scope?: Scope) => any>(
+	map<Scope, T extends (value: ValueGraph, key: KeyGraph, scope: Scope) => any>(
 		functor: T,
 		scope?: Scope
 	): ArrayGraph<Array<ReturnType<T>>, F>
@@ -711,7 +711,7 @@ interface ObjectGraphImpl<
 	 * @param functor
 	 * @param scope
 	 */
-	mapValues<Scope, T extends (value?: ValueGraph, key?: KeyGraph, scope?: Scope) => any>(
+	mapValues<Scope, T extends (value: ValueGraph, key: KeyGraph, scope: Scope) => any>(
 		functor: T,
 		scope?: Scope
 	): ObjectGraph<{ [name in keyof NativeType]: AsNativeRecursive<ReturnType<T>> }, F>
@@ -732,7 +732,7 @@ interface ObjectGraphImpl<
 	 * @param functor
 	 * @param scope
 	 */
-	mapKeys<Scope, T extends (value?: ValueGraph, key?: KeyGraph, scope?: Scope) => any>(
+	mapKeys<Scope, T extends (value: ValueGraph, key: KeyGraph, scope: Scope) => any>(
 		functor: T,
 		scope?: Scope
 	): ObjectGraph<{ [key in ReturnType<T> extends string ? ReturnType<T> : string]: Value }, F>
@@ -795,17 +795,11 @@ interface ObjectGraphImpl<
 	 */
 	recursiveMapValues<
 		Scope,
-		Functor extends (loop: Looper<Ret>, value: ValueGraph, key: KeyGraph, scope: Scope) => Argument<Ret>,
-		Ret = ReturnType<Functor>
+		Functor extends (looper: Looper<unknown>, value: ValueGraph, key: KeyGraph, scope: Scope) => any
 	>(
 		functor: Functor,
 		scope?: Scope
-	): ObjectGraph<
-		{
-			[key: string]: Ret
-		},
-		F
-	>
+	): ObjectGraph<{ [name in keyof NativeType]: AsNativeRecursive<ReturnType<Functor>> }, F>
 
 	/**
 	 * Resolves to an array representing the keys of the object.
