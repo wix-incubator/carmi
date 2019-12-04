@@ -1012,7 +1012,7 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
 	 * }, [3, 2, 1]);
 	 * instance.output //Second array item is:2.
 	 */
-	template<F extends FunctionLibrary>(template: TemplateStringsArray, ...placeholders: any[]): StringGraph<string, F>
+	template(template: TemplateStringsArray, ...placeholders: any[]): StringGraph<string, F>
 
 	arg0: Token
 	arg1: Token
@@ -1032,6 +1032,9 @@ export const call: CarmiAPI['call']
 export const chain: CarmiAPI['chain']
 export const root: CarmiAPI['root']
 export const template: CarmiAPI['template']
+export const arg0: CarmiAPI['arg0']
+export const arg1: CarmiAPI['arg1']
+export const arg2: CarmiAPI['arg2']
 
 declare const carmiDefaultAPI: CarmiAPI
 export default carmiDefaultAPI
