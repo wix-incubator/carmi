@@ -330,8 +330,7 @@ class NaiveCompiler {
   topLevelOverrides() {
     return {
       NAME: this.options.name,
-       // TODO: fix memory issue and reenable AST output
-      AST: () => JSON.stringify(this.getters, null, 2),
+      AST: () => this.options.ast ? JSON.stringify(this.getters, null, 2) : '[]',
       DEBUG_MODE: () => `/* DEBUG */${!!this.options.debug}`,
       SOURCE_FILES: () => () => this.options.debug ? JSON.stringify(Object.values(this.getters).reduce((acc, getter) => {
         const tag = getter instanceof Expression && getter[0][SourceTag];
