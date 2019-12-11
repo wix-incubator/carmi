@@ -43,5 +43,5 @@ mock('../..', {
   }
 })
 
-// Require ogiginal carmi binary after all mocks installed
+// Require original carmi binary after all mocks installed
 require('../carmi')
