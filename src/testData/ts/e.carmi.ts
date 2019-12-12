@@ -1,1 +1,1 @@
-import d from 'd'
+import d from './d'
