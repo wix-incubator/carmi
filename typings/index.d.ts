@@ -369,50 +369,78 @@ interface ArrayOrObjectGraphImpl<NativeType extends any[] | object, F extends Fu
 	 * @param path
 	 * @sugar */
 	getIn<K extends keyof NativeType>(path: [Argument<K>]): Graph<NativeType[K], F>
-	getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0]>(
-		path: [Argument<K0>, Argument<K1>]
-	): Graph<NativeType[K0][K1], F>
-	getIn<K0 extends keyof NativeType, K1 extends keyof NativeType[K0], K2 extends keyof NativeType[K0][K1]>(
-		path: [Argument<K0>, Argument<K1>, Argument<K2>]
-	): Graph<NativeType[K0][K1][K2], F>
 	getIn<
 		K0 extends keyof NativeType,
-		K1 extends keyof NativeType[K0],
-		K2 extends keyof NativeType[K0][K1],
-		K3 extends keyof NativeType[K0][K1][K2]
+		K1 extends keyof V0,
+		V0 = NonNullable<NativeType[K0]>
+	>(
+		path: [Argument<K0>, Argument<K1>]
+	): Graph<V0[K1], F>
+	getIn<
+		K0 extends keyof NativeType,
+		K1 extends keyof V0,
+		K2 extends keyof V1,
+		V0 = NonNullable<NativeType[K0]>,
+		V1 = NonNullable<V0[K1]>
+	>(
+		path: [Argument<K0>, Argument<K1>, Argument<K2>]
+	): Graph<V1[K2], F>
+	getIn<
+		K0 extends keyof NativeType,
+		K1 extends keyof V0,
+		K2 extends keyof V1,
+		K3 extends keyof V2,
+		V0 = NonNullable<NativeType[K0]>,
+		V1 = NonNullable<V0[K1]>,
+		V2 = NonNullable<V1[K2]>
 	>(
 		path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>]
-	): Graph<NativeType[K0][K1][K2][K3], F>
+	): Graph<V2[K3], F>
 	getIn<
 		K0 extends keyof NativeType,
-		K1 extends keyof NativeType[K0],
-		K2 extends keyof NativeType[K0][K1],
-		K3 extends keyof NativeType[K0][K1][K2],
-		K4 extends keyof NativeType[K0][K1][K2][K3]
+		K1 extends keyof V0,
+		K2 extends keyof V1,
+		K3 extends keyof V2,
+		K4 extends keyof V3,
+		V0 = NonNullable<NativeType[K0]>,
+		V1 = NonNullable<V0[K1]>,
+		V2 = NonNullable<V1[K2]>,
+		V3 = NonNullable<V2[K3]>
 	>(
 		path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>]
-	): Graph<NativeType[K0][K1][K2][K3][K4], F>
+	): Graph<V3[K4], F>
 	getIn<
 		K0 extends keyof NativeType,
-		K1 extends keyof NativeType[K0],
-		K2 extends keyof NativeType[K0][K1],
-		K3 extends keyof NativeType[K0][K1][K2],
-		K4 extends keyof NativeType[K0][K1][K2][K3],
-		K5 extends keyof NativeType[K0][K1][K2][K3][K4]
+		K1 extends keyof V0,
+		K2 extends keyof V1,
+		K3 extends keyof V2,
+		K4 extends keyof V3,
+		K5 extends keyof V4,
+		V0 = NonNullable<NativeType[K0]>,
+		V1 = NonNullable<V0[K1]>,
+		V2 = NonNullable<V1[K2]>,
+		V3 = NonNullable<V2[K3]>,
+		V4 = NonNullable<V3[K4]>
 	>(
 		path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>, Argument<K5>]
-	): Graph<NativeType[K0][K1][K2][K3][K4][K5], F>
+	): Graph<V4[K5], F>
 	getIn<
 		K0 extends keyof NativeType,
-		K1 extends keyof NativeType[K0],
-		K2 extends keyof NativeType[K0][K1],
-		K3 extends keyof NativeType[K0][K1][K2],
-		K4 extends keyof NativeType[K0][K1][K2][K3],
-		K5 extends keyof NativeType[K0][K1][K2][K3][K4],
-		K6 extends keyof NativeType[K0][K1][K2][K3][K4][K5]
+		K1 extends keyof V0,
+		K2 extends keyof V1,
+		K3 extends keyof V2,
+		K4 extends keyof V3,
+		K5 extends keyof V4,
+		K6 extends keyof V5,
+		V0 = NonNullable<NativeType[K0]>,
+		V1 = NonNullable<V0[K1]>,
+		V2 = NonNullable<V1[K2]>,
+		V3 = NonNullable<V2[K3]>,
+		V4 = NonNullable<V3[K4]>,
+		V5 = NonNullable<V4[K5]>
 	>(
 		path: [Argument<K0>, Argument<K1>, Argument<K2>, Argument<K3>, Argument<K4>, Argument<K5>, Argument<K6>]
-	): Graph<NativeType[K0][K1][K2][K3][K4][K5][K6], F>
+	): Graph<V5[K6], F>
 	/**
 	 * Returns true if the key/index exists on the object/array.
 	 */
@@ -489,7 +517,7 @@ interface ArrayGraphImpl<
 	map<Scope, T extends (value: ValueGraph, key: KeyGraph, scope: Scope) => any>(
 		functor: T,
 		scope?: Scope
-	): ArrayGraph<Array<ReturnType<T>>, F>
+	): ArrayGraph<Array<AsNativeRecursive<ReturnType<T>>>, F>
 
 	/**
 	 * Returns a graph that resolves to an array with the value at propName of each corresponding entry.
