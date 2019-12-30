@@ -54,28 +54,18 @@ function shouldFollow(p) {
 //   return stats.isSymbolicLink()
 // }
 
-function tryResolveExt(dir, i) {
-  const vars = ['.js', '.ts']
-  for (const v of vars) {
-    const r = tryResolve(dir, addExt(i, v))
-    if (r) {
-      return r
-    }
-  }
-}
-
 function tryResolve(basedir, i) {
   try {
-    return resolve.sync(i, {basedir, preserveSymlinks: false})
+    const resolved = resolve.sync(i, {basedir, preserveSymlinks: false, extensions: ['.js', '.ts']})
+    const exists = fs.existsSync(resolved);
+
+    if (exists) {
+      return resolved;
+    }
     // return requireUtil.resolve(i)
   } catch (e) {
     // console.log(i, e)
   }
-}
-
-function addExt(f, ext = '.js') {
-  const exts = ['.js', '.json', '.ts']
-  return exts.includes(path.extname(f)) ? f : f + ext
 }
 
 function mtime(filename) {
@@ -121,10 +111,11 @@ function analyzeFile(filePath, cache) {
 
   return dependencies
     .map(childFilePath => {
-      const absoluteChildPath = tryResolveExt(
+      const absoluteChildPath = tryResolve(
         path.dirname(filePath),
         childFilePath
       );
+
 
       return absoluteChildPath;
     })

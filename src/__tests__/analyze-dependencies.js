@@ -35,6 +35,15 @@ describe('analyze-dependencies', () => {
     }))
   })
 
+  it('should read ts from package.json main field', async () => {
+    const deps = analyzeDependencies(res('ts/e.carmi.ts'), null)
+    expect(deps).toEqual(resObject({
+      'ts/e.carmi.ts': ['ts/d/main.carmi.ts'],
+      'ts/d/main.carmi.ts': ['ts/d/f.carmi.js'],
+      'ts/d/f.carmi.js': []
+    }))
+  })
+
   it('should read esm', () => {
     const deps = analyzeDependencies(res('esm/a.carmi.js'))
     expect(deps).toEqual(resObject({
