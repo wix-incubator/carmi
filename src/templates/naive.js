@@ -270,6 +270,14 @@ function library() {
     return Array.isArray(src) ? src.length : Object.keys(src).length;
   }
 
+  function isEmpty(src) {
+    return Array.isArray(src) ? src.length === 0 : Object.keys(src).length === 0;
+  }
+
+  function last(src) {
+    return src[src.length - 1];
+  }
+
   function range(end, start = 0, step = 1) {
     const res = [];
     for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {

@@ -174,7 +174,7 @@ const visitorFuncDeclStatements = {
         }
       ];
     } else if (node.callee.name === 'initOutput') {
-      const hasCache = node.arguments[4].name !== 'nullFunc';
+      state.initOutput = true
       node.arguments.splice(0, 2);
       node.arguments[0] = {
         type: 'BinaryExpression',
@@ -329,6 +329,8 @@ const snippets = _.mapValues(
     },
     srcEnd: ($offset, $length) => {
       this.$collections.pop();
+    },
+    initOutputEnd: ($offset, $length) => {
       this.$currentSets.pop();
     },
     contextPre: ($offset, $length) => {
@@ -444,15 +446,19 @@ const extractedFuncs = Object.entries(verbFunctions)
         .filter(Boolean)
         )
     );
-    const paramEnds = _.flatten(
-      f.params
+    const paramNamesEnds = f.params
         .map(t => `${t.name}End`)
-        .map(t => snippets[t])
-        .filter(Boolean)
-    );
-    walk.ancestor(f, visitorFuncDeclStatements, []);
+    ;
+    const state = {initOutput: false}
+    walk.ancestor(f, visitorFuncDeclStatements, state);
     walk.ancestor(f, visitorsPointFunctionsToThis, []);
     f.body.body.splice(0, 0, ...paramsPre, ...params);
+    if (state.initOutput) {
+      paramNamesEnds.push('initOutputEnd')
+    }
+    const paramEnds = _.flatten(paramNamesEnds
+      .map(t => snippets[t])
+      .filter(Boolean))
     f.body.body.push(...paramEnds);
 
     // console.log('func', name, JSON.stringify(f, null, 2));

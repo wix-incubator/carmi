@@ -935,19 +935,16 @@ function library() {
       return $out
     }
 
-    function sizeOpt($tracked, src, identifier) {
-      const $storage = initOutput($tracked, src, identifier, emptyArr, nullFunc)
-      const $out = $storage[1]
-      const $invalidatedKeys = $storage[2]
-      const $new = $storage[3]
-      if ($new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length
-      }
-      if (!$new) {
-        $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length
-        $invalidatedKeys.clear()
-      }
-      return $out[0]
+    function size(src) {
+      return Array.isArray(src) ? src.length : Object.keys(src).length;
+    }
+  
+    function isEmpty(src) {
+      return Array.isArray(src) ? src.length === 0 : Object.keys(src).length === 0;
+    }
+  
+    function last(src) {
+      return src[src.length - 1];
     }
 
     function sumOpt($tracked, src, identifier) {
