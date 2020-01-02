@@ -3,10 +3,6 @@
 const {TokenTypeData} = require('./lang');
 const {chain, or, and} = require('./frontend');
 
-function isEmpty(obj) {
-  return obj.size().eq(0)
-}
-
 function getIn(obj, path) {
   const pathGetters = [obj].concat(path.map((_part, index) => path.slice(0, index + 1).reduce((acc, part) => acc.get(part), obj)))
   return and(...pathGetters);
@@ -91,10 +87,6 @@ function head(array) {
   return array.get(0)
 }
 
-function last(array) {
-  return array.get(array.size().minus(1))
-}
-
 function reverse(array) {
   return array.map((item, index) => array.get(array.size().minus(index.plus(1))))
 }
@@ -165,7 +157,6 @@ function tapTrace(obj, tapFn) {
 const sugarApi = {
   getIn,
   includes,
-  isEmpty,
   assignIn,
   reduce,
   uniq,
@@ -180,7 +171,6 @@ const sugarApi = {
   includesValue,
   has,
   reverse,
-  last,
   head,
   every,
   simpleSet,

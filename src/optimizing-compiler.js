@@ -157,7 +157,6 @@ $tainted = new WeakSet();
       case 'values':
       case 'sum':
       case 'flatten':
-      case 'size':
       case 'assign':
       case 'defaults':
         return `${tokenType}Opt($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;

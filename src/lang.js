@@ -85,6 +85,8 @@ const TokenTypeData = {
   keys: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['object'], stable: true}),
   flatten: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array'], stable: true}),
   size: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array', 'object']}),
+  isEmpty: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array', 'object']}),
+  last: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array']}),
   sum: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array']}),
   range: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 4], stable: true}),
   assign: new TokenTypes({collectionVerb: true, chainIndex: 1, len: [2, 2], expectedTypes: ['array'], stable: true}),

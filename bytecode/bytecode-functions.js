@@ -31,6 +31,8 @@ module.exports.$get = function $get($offset, $len) {
 // keys skipped
 // flatten skipped
 // size skipped
+// isEmpty skipped
+// last skipped
 // sum skipped
 // range skipped
 // assign skipped
@@ -300,8 +302,8 @@ module.exports.$mapValues = function mapValues($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$filterBy = function filterBy($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -356,8 +358,8 @@ module.exports.$filterBy = function filterBy($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$map = function map($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -418,8 +420,8 @@ module.exports.$map = function map($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 // recursiveMap skipped from optimizing
 // recursiveMapValues skipped from optimizing
@@ -505,8 +507,8 @@ module.exports.$keyBy = function keyBy($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$mapKeys = function mapKeys($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -577,8 +579,8 @@ module.exports.$mapKeys = function mapKeys($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$filter = function filter($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -652,8 +654,8 @@ module.exports.$filter = function filter($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$any = function any($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -731,8 +733,8 @@ module.exports.$any = function any($offset, $length) {
   this.$stack.push($out.length === 1)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$anyValues = function anyValues($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -808,8 +810,8 @@ module.exports.$anyValues = function anyValues($offset, $length) {
   this.$stack.push($out.length === 1)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$groupBy = function groupBy($offset, $length) {
   const func = this.$expressions[++$offset];
@@ -911,8 +913,8 @@ module.exports.$groupBy = function groupBy($offset, $length) {
   this.$stack.push($out)
   this.$functions.pop();
   this.$collections.pop();
-  this.$currentSets.pop();
   this.$contexts.pop();
+  this.$currentSets.pop();
 };
 module.exports.$values = function values($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
@@ -1319,23 +1321,22 @@ module.exports.$size = function size($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
   let src = this.$stack.pop();
   this.$collections.push(src);
-  const $storage = this.initOutput($offset - $length, emptyArr, nullFunc);
-  const $out = $storage[1];
-  const $invalidatedKeys = $storage[2];
-  const $new = $storage[3];
-
-  if ($new) {
-    $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
-  }
-
-  if (!$new) {
-    $out[0] = Array.isArray(src) ? src.length : Object.keys(src).length;
-    $invalidatedKeys.clear();
-  }
-
-  this.$stack.push($out[0])
+  this.$stack.push(Array.isArray(src) ? src.length : Object.keys(src).length)
   this.$collections.pop();
-  this.$currentSets.pop();
+};
+module.exports.$isEmpty = function isEmpty($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  this.$stack.push(Array.isArray(src) ? src.length === 0 : Object.keys(src).length === 0)
+  this.$collections.pop();
+};
+module.exports.$last = function last($offset, $length) {
+  this.processValue(this.$expressions[++$offset]);
+  let src = this.$stack.pop();
+  this.$collections.push(src);
+  this.$stack.push(src[src.length - 1])
+  this.$collections.pop();
 };
 module.exports.$sum = function sum($offset, $length) {
   this.processValue(this.$expressions[++$offset]);
@@ -1504,8 +1505,14 @@ setOnArray($target, $key, $val, $new) {
   $target[$key] = $val;
 }
 truncateArray($target, newLen) {
+  const $invalidatedKeys = this.$invalidatedMap.get($target);
+
   for (let i = newLen; i < $target.length; i++) {
     this.triggerInvalidations($target, i, true);
+
+    if ($invalidatedKeys) {
+      delete $invalidatedKeys.$subKeys[i];
+    }
   }
 
   $target.length = newLen;
