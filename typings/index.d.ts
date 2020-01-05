@@ -728,10 +728,9 @@ interface ObjectGraphImpl<
 	/**
 	 * Resolves to a new object with only the keys passed as argument
 	 *
-	 * @param functor
-	 * @param scope
+	 * @param keys
 	 * @sugar */
-	pick<K extends keyof NativeType>(keys: Argument<K[]>): this
+	pick<K extends keyof NativeType, Keys extends Array<K>>(keys: Keys): ObjectGraph<Pick<NativeType, Keys[number]>, F>
 
 	/**
 	 * Resolves to an object with the same keys, with each value resolves to the return value of functor on the corresponding entry.
@@ -801,10 +800,10 @@ interface ObjectGraphImpl<
 	/**
 	 * Sets value for given key.
 	 *
-	 * @param key string
-	 * @param value
+	 * @param key The property name
+	 * @param value The value to set
 	 * @sugar */
-	simpleSet(path: string): ObjectGraph<NativeType, F>
+	simpleSet<Key extends string, Value>(key: Key, value: Argument<Value>): ObjectGraph<NativeType & {[key in Key]: Value}, F>
 
 	/**
 	 * Sets value for given path.

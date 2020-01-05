@@ -325,7 +325,7 @@ The functor is given a "loop" parameter, which can be used to retrieve the funct
 ### `setIn(path, value)` 🍬
 Sets value for given path.
 
-### `simpleSet(path)` 🍬
+### `simpleSet(key, value)` 🍬
 Sets value for given key.
 
 ### `size()` 
