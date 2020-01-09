@@ -31,12 +31,12 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
-      const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
+    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+      const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked.has($targetKey)) {
         return;
-      }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
+      }const $trackedByKey = $tracked.get($targetKey);for (let i = 0; i < $trackedByKey.length; i += 3) {
         const $trackingSource = $trackingMap.get($trackedByKey[i]);$trackingSource[$trackedByKey[i + 1]].delete($trackedByKey[i + 2]);
-      }delete $tracked[$targetKey];
+      }$tracked.delete($targetKey);
     }function invalidate($targetKeySet, $targetKey) {
       if ($targetKeySet.has($targetKey)) {
         return;
@@ -76,7 +76,9 @@ module.exports = function () {
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
-      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push($sourceObj, $sourceKey, $target);
+      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;let tracking = $tracked.get($target[1]);if (!tracking) {
+        $tracked.set($target[1], tracking = []);
+      }tracking.push($sourceObj, $sourceKey, $target);
     }function trackPath($target, $path) {
       const $end = $path.length - 2;let $current = $path[0];for (let i = 0; i <= $end; i++) {
         track($target, $current, $path[i + 1], i !== $end);$current = $current[$path[i + 1]];
@@ -95,7 +97,7 @@ module.exports = function () {
       }
     }function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();let $cachedByFunc = $cachePerTargetKey.get(func);if (!$cachedByFunc) {
-        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = {};$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
+        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = new Map();$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
       } else {
         $cachedByFunc[3] = false;
       }const $invalidatedKeys = $cachedByFunc[2];const $prevSrc = $cachedByFunc[0];if ($prevSrc !== src) {
@@ -627,12 +629,12 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
-      const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
+    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+      const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked.has($targetKey)) {
         return;
-      }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
+      }const $trackedByKey = $tracked.get($targetKey);for (let i = 0; i < $trackedByKey.length; i += 3) {
         const $trackingSource = $trackingMap.get($trackedByKey[i]);$trackingSource[$trackedByKey[i + 1]].delete($trackedByKey[i + 2]);
-      }delete $tracked[$targetKey];
+      }$tracked.delete($targetKey);
     }function invalidate($targetKeySet, $targetKey) {
       if ($targetKeySet.has($targetKey)) {
         return;
@@ -672,7 +674,9 @@ module.exports = function () {
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
-      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push($sourceObj, $sourceKey, $target);
+      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;let tracking = $tracked.get($target[1]);if (!tracking) {
+        $tracked.set($target[1], tracking = []);
+      }tracking.push($sourceObj, $sourceKey, $target);
     }function trackPath($target, $path) {
       const $end = $path.length - 2;let $current = $path[0];for (let i = 0; i <= $end; i++) {
         track($target, $current, $path[i + 1], i !== $end);$current = $current[$path[i + 1]];
@@ -691,7 +695,7 @@ module.exports = function () {
       }
     }function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();let $cachedByFunc = $cachePerTargetKey.get(func);if (!$cachedByFunc) {
-        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = {};$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
+        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = new Map();$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
       } else {
         $cachedByFunc[3] = false;
       }const $invalidatedKeys = $cachedByFunc[2];const $prevSrc = $cachedByFunc[0];if ($prevSrc !== src) {
@@ -1225,12 +1229,12 @@ const modelBuilder = (function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = {};let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
-      const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked[$targetKey]) {
+    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = {};$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+      const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked.has($targetKey)) {
         return;
-      }const $trackedByKey = $tracked[$targetKey];for (let i = 0; i < $trackedByKey.length; i += 3) {
+      }const $trackedByKey = $tracked.get($targetKey);for (let i = 0; i < $trackedByKey.length; i += 3) {
         const $trackingSource = $trackingMap.get($trackedByKey[i]);$trackingSource[$trackedByKey[i + 1]].delete($trackedByKey[i + 2]);
-      }delete $tracked[$targetKey];
+      }$tracked.delete($targetKey);
     }function invalidate($targetKeySet, $targetKey) {
       if ($targetKeySet.has($targetKey)) {
         return;
@@ -1270,7 +1274,9 @@ const modelBuilder = (function () {
     }function track($target, $sourceObj, $sourceKey, $soft) {
       if (!$trackingMap.has($sourceObj)) {
         $trackingMap.set($sourceObj, {});
-      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;$tracked[$target[1]] = $tracked[$target[1]] || [];$tracked[$target[1]].push($sourceObj, $sourceKey, $target);
+      }const $track = $trackingMap.get($sourceObj);$track[$sourceKey] = $track[$sourceKey] || new Map();$track[$sourceKey].set($target, $soft);const $tracked = $target[0].$tracked;let tracking = $tracked.get($target[1]);if (!tracking) {
+        $tracked.set($target[1], tracking = []);
+      }tracking.push($sourceObj, $sourceKey, $target);
     }function trackPath($target, $path) {
       const $end = $path.length - 2;let $current = $path[0];for (let i = 0; i <= $end; i++) {
         track($target, $current, $path[i + 1], i !== $end);$current = $current[$path[i + 1]];
@@ -1289,7 +1295,7 @@ const modelBuilder = (function () {
       }
     }function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
       const subKeys = $tracked[0].$subKeys;const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();let $cachedByFunc = $cachePerTargetKey.get(func);if (!$cachedByFunc) {
-        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = {};$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
+        const $resultObj = createDefaultValue();const $cacheValue = createCacheValue();const $invalidatedKeys = new Set();$invalidatedKeys.$subKeys = {};$invalidatedKeys.$parentKey = $tracked[1];$invalidatedKeys.$parent = $tracked[0];$invalidatedKeys.$tracked = new Map();$invalidatedMap.set($resultObj, $invalidatedKeys);$cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];$cachePerTargetKey.set(func, $cachedByFunc);
       } else {
         $cachedByFunc[3] = false;
       }const $invalidatedKeys = $cachedByFunc[2];const $prevSrc = $cachedByFunc[0];if ($prevSrc !== src) {
