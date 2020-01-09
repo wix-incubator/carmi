@@ -6,22 +6,22 @@ function library() {
     $invalidatedRoots.$subKeys = {};
     $invalidatedRoots.$parentKey = null;
     $invalidatedRoots.$parent = null;
-    $invalidatedRoots.$tracked = {};
+    $invalidatedRoots.$tracked = new Map();
     let $first = true;
     let $tainted = new WeakSet();
     $invalidatedMap.set($res, $invalidatedRoots);
 
     function untrack($targetKeySet, $targetKey){
       const $tracked = $targetKeySet.$tracked;
-      if (!$tracked || !$tracked[$targetKey]) {
+      if (!$tracked || !$tracked.has($targetKey)) {
         return;
       }
-      const $trackedByKey = $tracked[$targetKey];
+      const $trackedByKey = $tracked.get($targetKey);
       for (let i = 0; i < $trackedByKey.length; i+=3) {
         const $trackingSource = $trackingMap.get($trackedByKey[i]);
         $trackingSource[$trackedByKey[i+1]].delete($trackedByKey[i+2]);
       }
-      delete $tracked[$targetKey];
+      $tracked.delete($targetKey);
     }
 
     function invalidate($targetKeySet, $targetKey){
@@ -107,8 +107,11 @@ function library() {
       $track[$sourceKey] = $track[$sourceKey] || new Map();
       $track[$sourceKey].set($target, $soft);
       const $tracked = $target[0].$tracked;
-      $tracked[$target[1]] = $tracked[$target[1]] || [];
-      $tracked[$target[1]].push($sourceObj, $sourceKey, $target);
+      let tracking = $tracked.get($target[1])
+      if (!tracking) {
+        $tracked.set($target[1], tracking = [])
+      }
+      tracking.push($sourceObj, $sourceKey, $target);
     }
 
     function trackPath($target, $path) {
@@ -148,7 +151,7 @@ function library() {
         $invalidatedKeys.$subKeys = {};
         $invalidatedKeys.$parentKey = $tracked[1];
         $invalidatedKeys.$parent = $tracked[0];
-        $invalidatedKeys.$tracked = {};
+        $invalidatedKeys.$tracked = new Map();
         $invalidatedMap.set($resultObj, $invalidatedKeys);
         $cachedByFunc = [null, $resultObj, $invalidatedKeys, true, $cacheValue];
         $cachePerTargetKey.set(func, $cachedByFunc);
