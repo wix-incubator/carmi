@@ -3,7 +3,7 @@ function library() {
     const $trackingWildcards = new WeakMap();
     const $invalidatedMap = new WeakMap();
     const $invalidatedRoots = new Set();
-    $invalidatedRoots.$subKeys = {};
+    $invalidatedRoots.$subKeys = new Map();
     $invalidatedRoots.$parentKey = null;
     $invalidatedRoots.$parent = null;
     $invalidatedRoots.$tracked = new Map();
@@ -64,7 +64,7 @@ function library() {
       triggerInvalidations($target, $key, $hard);
       const $invalidatedKeys = $invalidatedMap.get($target);
       if ($invalidatedKeys) {
-        delete $invalidatedKeys.$subKeys[$key]
+        $invalidatedKeys.$subKeys.delete($key)
       }
     }
     delete $target[$key];
@@ -93,7 +93,7 @@ function library() {
       for (let i = newLen; i <$target.length;i++) {
         triggerInvalidations($target, i, true);
         if ($invalidatedKeys) {
-          delete $invalidatedKeys.$subKeys[i]
+          $invalidatedKeys.$subKeys.delete(i)
         }
       }
       $target.length = newLen;
@@ -141,14 +141,17 @@ function library() {
     }
 
     function initOutput($tracked, src, func, createDefaultValue, createCacheValue) {
-      const subKeys = $tracked[0].$subKeys;
-      const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();
+      const $subKeys = $tracked[0].$subKeys;
+      if (!$subKeys.has($tracked[1])) {
+        $subKeys.set($tracked[1], new Map());
+      }
+      const $cachePerTargetKey = $subKeys.get($tracked[1]);
       let $cachedByFunc = $cachePerTargetKey.get(func);
       if (!$cachedByFunc) {
         const $resultObj = createDefaultValue();
         const $cacheValue = createCacheValue();
         const $invalidatedKeys = new Set();
-        $invalidatedKeys.$subKeys = {};
+        $invalidatedKeys.$subKeys = new Map();
         $invalidatedKeys.$parentKey = $tracked[1];
         $invalidatedKeys.$parent = $tracked[0];
         $invalidatedKeys.$tracked = new Map();
@@ -779,8 +782,11 @@ function library() {
     }
 
     function getEmptyArray($tracked, token) {
-      const subKeys = $tracked[0].$subKeys;
-      const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();
+      const $subKeys = $tracked[0].$subKeys;
+      if (!$subKeys.has($tracked[1])) {
+        $subKeys.set($tracked[1], new Map());
+      }
+      const $cachePerTargetKey = $subKeys.get($tracked[1]);
       if (!$cachePerTargetKey.has(token)) {
         $cachePerTargetKey.set(token, []);
       }
@@ -788,8 +794,11 @@ function library() {
     }
 
     function getEmptyObject($tracked, token) {
-      const subKeys = $tracked[0].$subKeys;
-      const $cachePerTargetKey = subKeys[$tracked[1]] = subKeys[$tracked[1]] || new Map();
+      const $subKeys = $tracked[0].$subKeys;
+      if (!$subKeys.has($tracked[1])) {
+        $subKeys.set($tracked[1], new Map());
+      }
+      const $cachePerTargetKey = $subKeys.get($tracked[1]);
       if (!$cachePerTargetKey.has(token)) {
         $cachePerTargetKey.set(token, {});
       }
