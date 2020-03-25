@@ -55,16 +55,17 @@ module.exports.$floor = 51;
 module.exports.$ceil = 52;
 module.exports.$round = 53;
 module.exports.$parseInt = 54;
-module.exports.$substring = 55;
-module.exports.$split = 56;
-module.exports.$isUndefined = 57;
-module.exports.$isBoolean = 58;
-module.exports.$isString = 59;
-module.exports.$isNumber = 60;
-module.exports.$isArray = 61;
-module.exports.$quote = 62;
-module.exports.$trackPath = 63;
-module.exports.VerbsCount = 64;
+module.exports.$parseFloat = 55;
+module.exports.$substring = 56;
+module.exports.$split = 57;
+module.exports.$isUndefined = 58;
+module.exports.$isBoolean = 59;
+module.exports.$isString = 60;
+module.exports.$isNumber = 61;
+module.exports.$isArray = 62;
+module.exports.$quote = 63;
+module.exports.$trackPath = 64;
+module.exports.VerbsCount = 65;
 module.exports.Verbs = {
   $and: 0,
   $or: 1,
@@ -121,15 +122,16 @@ module.exports.Verbs = {
   $ceil: 52,
   $round: 53,
   $parseInt: 54,
-  $substring: 55,
-  $split: 56,
-  $isUndefined: 57,
-  $isBoolean: 58,
-  $isString: 59,
-  $isNumber: 60,
-  $isArray: 61,
-  $quote: 62,
-  $trackPath: 63
+  $parseFloat: 55,
+  $substring: 56,
+  $split: 57,
+  $isUndefined: 58,
+  $isBoolean: 59,
+  $isString: 60,
+  $isNumber: 61,
+  $isArray: 62,
+  $quote: 63,
+  $trackPath: 64
 };
 
 
