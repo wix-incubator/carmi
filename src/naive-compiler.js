@@ -130,6 +130,8 @@ class NaiveCompiler {
         return `(${this.getNativeMathFunction(tokenType, source)})(${this.generateExpr(expr[1])})`;
       case 'parseInt':
         return `parseInt(${this.generateExpr(expr[1])}, ${expr.length > 2 ? expr[2] : 10})`;
+      case 'parseFloat':
+        return `parseFloat(${this.generateExpr(expr[1])})`;
       case 'eq':
       case 'lt':
       case 'lte':

@@ -345,6 +345,11 @@ export interface StringGraph<NativeType extends string, F extends FunctionLibrar
 	 * @param radix base (10, 16 etc)
 	 */
 	parseInt(radix?: number): NumberGraph<number, F>
+
+	/**
+	 * Resolves to parseFloat(NativeType).
+	 */
+	parseFloat(): NumberGraph<number, F>
 }
 
 /**
