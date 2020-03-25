@@ -53,6 +53,11 @@ verbFuncs[Verbs.$parseInt] = function $parseInt($offset, $length) {
   this.$stack.push(parseInt(this.$stack.pop(), radix));
 };
 
+verbFuncs[Verbs.$parseFloat] = function $parseInt($offset) {
+  this.processValue(this.$expressions[++$offset]);
+  this.$stack.push(parseFloat(this.$stack.pop()));
+};
+
 verbFuncs[Verbs.$and] = function $and($offset, $length) {
   for (let i = 1; i < $length; i++) {
     this.processValue(this.$expressions[$offset + i]);

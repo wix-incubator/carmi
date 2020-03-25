@@ -26,6 +26,8 @@ describe('testing string functions', () => {
     testStringFunction('abcde', 'toUpperCase', [], 'ABCDE');
     testStringFunction('abcDE', 'toLowerCase', [], 'abcde');
     testStringFunction('0xff', 'parseInt', [16], 255);
+    testStringFunction('0.3asd', 'parseFloat', [], 0.3);
+    testStringFunction('0.8', 'parseFloat', [], 0.8);
     testStringFunction('abcde', 'stringLength', [], 5)
 
     describe('String.split', () => {

@@ -133,6 +133,7 @@ const TokenTypeData = {
   ceil: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2], expectedTypes: ['number']}),
   round: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2], expectedTypes: ['number']}),
   parseInt: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 3], expectedTypes: ['string']}),
+  parseFloat: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2], expectedTypes: ['string']}),
   substring: new TokenTypes({nonChained: true, chainIndex: 1, len: [4, 4], expectedTypes: ['string']}),
   split: new TokenTypes({nonChained: true, chainIndex: 1, len: [3, 3]}),
   isUndefined: new TokenTypes({nonChained: true, chainIndex: 1, len: [2, 2]}),

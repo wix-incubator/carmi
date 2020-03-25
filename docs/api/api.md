@@ -341,6 +341,9 @@ Resolves to (NativeType.endsWith(s)).
 ### `parseInt(radix)` 
 Resolves to parseInt(NativeType, radix).
 
+### `parseFloat(radix)` 
+Resolves to parseFloat(NativeType).
+
 ### `plus(other)` 
 Resolves to (NativeType + s).
 
