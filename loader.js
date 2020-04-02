@@ -10,6 +10,7 @@ const {readFileSync} = require('fs')
 const loaderUtils = require('loader-utils')
 
 module.exports = function CarmiLoader() {
+  const callback = this.async()
   const statsPath = tempy.file({extension: 'json'})
   const tempOutputPath = tempy.file({extension: 'js'})
   const loaderOptions = loaderUtils.getOptions(this) || {}
@@ -24,16 +25,18 @@ module.exports = function CarmiLoader() {
 
   let compiled;
 
-  try {
-    execa.sync('node', [require.resolve('./bin/carmi'), ...dargs(options)])
-    compiled = readFileSync(tempOutputPath, 'utf8')
-  } finally {
-    Object.keys(require(statsPath)).forEach(filePath => {
-      // Add those modules as loader dependencies
-      // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
-      this.addDependency(filePath)
-    });
-  }
-
-  return compiled;
+  execa('node', [require.resolve('./bin/carmi'), ...dargs(options)])
+    .then(() => {
+      compiled = readFileSync(tempOutputPath, 'utf8')
+    })
+    .finally(() => {
+      Object.keys(require(statsPath)).forEach(filePath => {
+        // Add those modules as loader dependencies
+        // See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
+        this.addDependency(filePath)
+      });
+    })
+    .then(() => {
+      callback(null, compiled)
+    })
 };
