@@ -657,5 +657,17 @@ describe('testing objects', () => {
       expect(inst.defined.a).toEqual('women');
       expect(inst.notDefined.x).toEqual('men');
     });
+    it('object with empty string as keys should work', () => {
+      const model = {
+        empty: chain({}),
+        notEmpty: chain({'': 100})
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const initialData = {};
+
+      const inst = optModel(initialData);
+      expect(inst.empty).toEqual({});
+      expect(inst.notEmpty).toEqual({'': 100});
+    });
   });
 });

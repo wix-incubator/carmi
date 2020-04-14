@@ -424,7 +424,7 @@ function dedupFunctionsObjects(getters) {
   const prevObjectKeys = new Map();
   const allObjects = allExpressions.filter(expr => expr[0].$type === 'object')
   allObjects.forEach(expr => {
-    const keys = _.range(1, expr.length, 2).map(index => expr[index]).join(',');
+    const keys = _.range(1, expr.length, 2).map(index => `#${expr[index]}#`).join(',');
     if (!prevObjectKeys.has(keys)) {
       prevObjectKeys.set(keys, expr);
     } else {
