@@ -12,6 +12,8 @@ export interface GraphBase<NativeType> extends AbstractGraph {
 	$value: NativeType
 }
 
+export type Abstract<T, F extends FunctionLibrary> = Graph<T, F> & {$abs: true}
+
 export type AsNative<T> = T extends GraphBase<infer N> ? N : T
 export type Argument<T> = AsNative<T> | GraphBase<T> | T
 
@@ -1023,12 +1025,12 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
 	 * Defines a projection to be implemented later in the code using the [`implement(iface, name)`](api.html#implementiface-name) method.
 	 * @param name used for debug only
 	 */
-	abstract(name: string): Graph<unknown, F>
+	abstract<T = never>(name: string): Abstract<T, F>
 
 	/**
 	 * Uses a previously declared abstract clause and assigns an actual value to the named abstract.
 	 */
-	implement(iface: Graph<unknown, F>, name: string): void
+	implement<Abs extends Abstract<T, F>, T>(abs: Abs, impl: T): void
 
 	/**
 	 * A debug feature that allows to name the actual projection functions on the carmi root.
