@@ -589,6 +589,13 @@ interface ArrayGraphImpl<
 	): ObjectGraph<Ret extends string ? { [name in Ret]: Value } : { [name: string]: Value }, F>
 
 	/**
+	 * Returns an object graph with the same values, with each key resolves to the value at propName of the corresponding entry.
+	 *
+	 * @param propName property name
+	 */
+	keyBy<K extends keyof Value>(propName: Argument<K>): ObjectGraph<{ [key: string]: Value }, F>
+
+	/**
 	 * Returns an array graph containing only the values for which the functor resolved to `true`.
 	 *
 	 * @param functor A function to run for every item of the array, returning a boolean
