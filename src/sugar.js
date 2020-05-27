@@ -88,7 +88,7 @@ function head(array) {
 }
 
 function reverse(array) {
-  return array.map((item, index) => array.get(array.size().minus(index.plus(1))))
+  return array.map((item, index, scopedArray) => scopedArray.get(scopedArray.size().minus(index.plus(1))), array)
 }
 
 function includesValue(collection, val) {
