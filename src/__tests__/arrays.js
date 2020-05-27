@@ -663,6 +663,17 @@ describe('testing array', () => {
       expect(inst.numbers).toEqual(initialData.reverse());
     });
 
+    it('test reverse inside map', () => {
+      const model = {
+        numbers: root.map(arr => arr.reverse())
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const initialData = [[1, 2, 3], [4, 5, 6]]
+
+      const inst = optModel(initialData);
+      expect(inst.numbers).toEqual(initialData.map(data => data.reverse()));
+    });
+
     describe('isEmpty', () => {
       it('should return true for empty array', () => {
         const initialData = {data: []}
