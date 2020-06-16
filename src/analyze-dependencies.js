@@ -20,6 +20,11 @@ function getDependencies(filePath) {
         state.push(node.source.value)
       }
     },
+    ExportAllDeclaration(node, state) {
+      if (node.source) {
+        state.push(node.source.value);
+      }
+    },
     CallExpression(node, state) {
       if (node.callee.name === 'require' && node.arguments.length > 0 && node.arguments[0].type === 'StringLiteral') {
         state.push(node.arguments[0].value)
