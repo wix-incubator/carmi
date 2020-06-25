@@ -24,10 +24,14 @@ module.exports = function CarmiLoader() {
   }
 
   let compiled;
+  let err = null;
 
   execa('node', [require.resolve('./bin/carmi'), ...dargs(options)])
     .then(() => {
       compiled = readFileSync(tempOutputPath, 'utf8')
+    })
+    .catch(e => {
+      err = e || new Error(`Error compiling ${options.source}`)
     })
     .finally(() => {
       Object.keys(require(statsPath)).forEach(filePath => {
@@ -37,6 +41,6 @@ module.exports = function CarmiLoader() {
       });
     })
     .then(() => {
-      callback(null, compiled)
+      callback(err, compiled)
     })
 };
