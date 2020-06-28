@@ -8,15 +8,11 @@ const processCarmi = require('./api')
 
 module.exports = function CarmiLoader() {
 	const callback = this.async()
-	// const statsPath = tempy.file({extension: 'json'})
-	// const tempOutputPath = tempy.file({extension: 'js'})
 	const loaderOptions = loaderUtils.getOptions(this) || {}
 
 	const options = {
 		source: this.getDependencies()[0],
-		// stats: statsPath,
 		format: 'cjs',
-		// output: tempOutputPath,
 		...loaderOptions
 	}
 
