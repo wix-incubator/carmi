@@ -19,7 +19,7 @@ module.exports = function CarmiLoader() {
 	try {
 		const {code, dependencies} = processCarmi(options)
 
-		Object.keys(require(dependencies)).forEach((filePath) => {
+		Object.keys(dependencies).forEach((filePath) => {
 			// Add those modules as loader dependencies
 			// See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
 			this.addDependency(filePath)
