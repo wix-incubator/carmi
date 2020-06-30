@@ -6,8 +6,15 @@ const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
-const processCarmi = require('../api')
-const {CACHE_SCENARIOS} = require('../src/cache-scenarios')
+const {isUpToDate, getDependenciesHashes, analyzeDependencies} = require('../src/analyze-dependencies');
+const getCacheFilePath = require('../src/get-cache-file-path');
+const wrapModule = require('../src/wrap-module');
+const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
+
+const CACHE_SCENARIOS = {
+  mtime: 'mtime',
+  gitHash: 'git-hash'
+};
 
 const optionDefinitions = [
   {name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model'},
@@ -48,8 +55,71 @@ async function run() {
 
   const absPath = path.resolve(process.cwd(), options.source);
 
-  const {code} = processCarmi({...options, source: absPath})
+  require('@babel/register')({
+    rootMode: 'upward',
+    extensions: ['.ts', '.js'],
+    ignore: [/node_modules/],
+    envName: 'carmi'
+  })
 
+  const statsFilePath = path.resolve(options.stats);
+  const dependencies = analyzeDependencies(absPath, statsFilePath);
+  const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
+
+  const dependenciesHashes = options['cache-scenario'] === CACHE_SCENARIOS.gitHash ?
+    getDependenciesHashes(dependencies) :
+    null;
+
+  const cacheFilePath = getCacheFilePath({
+    path: absPath,
+    debug: options.debug,
+    format: options.format,
+    prettier: options.prettier,
+    dependenciesHashes,
+    name: options.name
+  });
+
+  if (options.stats) {
+    await fs.outputJSON(statsFilePath, dependencies);
+  }
+
+  let code;
+
+  // We are using fallback to mtime check if scenario is `git-hash`, but getting hashes was resulted in error.
+  const upToDate = Boolean(dependenciesHashes) || isUpToDate(dependencies, cacheFilePath);
+  const useCache = !options['no-cache'] && fs.existsSync(cacheFilePath) && upToDate;
+  if (useCache) {
+    // return from cache
+    code = await fs.readFile(cacheFilePath, encoding);
+  } else {
+    // run carmi and generate cache
+    let model;
+
+    try {
+      model = require(absPath);
+    } catch (e) {
+      console.error(`failed to require ${options.source} ${e.stack}`);
+      throw e;
+    }
+
+    code = carmi.compile(model, options);
+  }
+
+  if (options['no-coverage'] && typeof code === 'string') {
+    code = `/* istanbul ignore file */
+  ${code}`
+  }
+
+  if (!options['no-cache']) {
+    await fs.outputFile(cacheFilePath, code, encoding)
+  }
+  if (typeof code !== 'string' && options.format !== 'binary') {
+    code = wrapModule(options.format, `require('carmi/bytecode/carmi-instance')('${base64ArrayBuffer.encode(code)}')`, options.name);
+  }
+  if (options['no-coverage'] && typeof code === 'string') {
+    code = `/* istanbul ignore file */
+  ${code}`
+  }
   if (options.output) {
     await fs.outputFile(options.output, code);
   } else {

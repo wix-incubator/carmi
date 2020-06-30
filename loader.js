@@ -3,30 +3,63 @@
 
 'use strict'
 
+const execa = require('execa')
+const dargs = require('dargs')
+const tempy = require('tempy')
+const {readFileSync} = require('fs')
 const loaderUtils = require('loader-utils')
-const processCarmi = require('./api')
+const queue = []
 
-module.exports = function CarmiLoader() {
-	const callback = this.async()
-	const loaderOptions = loaderUtils.getOptions(this) || {}
+async function addToQueue() {
+	const item = {promise: null, resolve: null}
+	queue.push(item)
+	item.promise = new Promise((resolve) => {
+		item.resolve = resolve
+	})
+	if (queue.length > 1) {
+		await queue[queue.length - 2].promise
+	}
+}
+
+function finish() {
+	const item = queue.shift()
+	item.resolve()
+}
+
+async function CarmiLoader(loader) {
+	const callback = loader.async()
+	const statsPath = tempy.file({extension: 'json'})
+	const tempOutputPath = tempy.file({extension: 'js'})
+	const loaderOptions = loaderUtils.getOptions(loader) || {}
 
 	const options = {
-		source: this.getDependencies()[0],
+		source: loader.getDependencies()[0],
+		stats: statsPath,
 		format: 'cjs',
+		output: tempOutputPath,
 		...loaderOptions
 	}
+	await addToQueue()
+
+	let compiled
+	let err = null
 
 	try {
-		const {code, dependencies} = processCarmi(options)
-
-		Object.keys(require(dependencies)).forEach((filePath) => {
+		await execa('node', [require.resolve('./bin/carmi'), ...dargs(options)])
+		compiled = readFileSync(tempOutputPath, 'utf8')
+	} catch (e) {
+		err = e || new Error(`Error compiling ${options.source}`)
+	} finally {
+		Object.keys(require(statsPath)).forEach((filePath) => {
 			// Add those modules as loader dependencies
 			// See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
-			this.addDependency(filePath)
+			loader.addDependency(filePath)
 		})
-
-		callback(null, code)
-	} catch (error) {
-		callback(error)
 	}
+	finish()
+	callback(err, compiled)
+}
+
+module.exports = function CarmiLoaderPublic() {
+	CarmiLoader(this)
 }
