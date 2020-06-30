@@ -25,6 +25,7 @@
     "index.js",
     "jsx.js",
     "loader.js",
+    "api.js",
     "macro.js",
     "carmiRoot.js"
   ],
