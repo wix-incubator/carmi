@@ -1,10 +1,12 @@
 'use strict';
-
+const {addSideEffect} = require('@babel/helper-module-imports')
 const isCarmiRegex = /^(.+\.carmi)(?:\.js)?$/;
 const isCarmiFilename = x => isCarmiRegex.test(x);
 const {relative, resolve} = require('path');
 const compileFile = require('./compileFile');
 const babylon = require('@babel/parser');
+
+const IMPORT_SOURCE_MAP_SUPPORT = 'source-map-support/register'
 
 const parseCompiledFile = code => {
   const compiledAST = babylon.parse(code);
@@ -36,6 +38,7 @@ module.exports = function carmiBabelTransform({types: t}) {
           '@carmi',
           ''
         );
+        addSideEffect(path, IMPORT_SOURCE_MAP_SUPPORT)
       },
       CallExpression(path) {
         if (!this.doWork) {return;}
