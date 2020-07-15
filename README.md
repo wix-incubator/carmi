@@ -4,6 +4,9 @@
 
 ## Compiler for Automatic Reactive Modelling of Inference
 
+- [Read about it here](https://carmi.js.org/)
+- [Getting started guide](https://carmi.js.org/docs/introduction/getting-started.html)
+
 This is a POC of an entirely new approach to modelling inferred state, there are 4 classic methods of handling
 derivation of state
 
