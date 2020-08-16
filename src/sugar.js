@@ -132,7 +132,7 @@ function switchCase(obj, caseTuples, defaultCase) {
       caseTuple[1],
       result
     ),
-    defaultCase || chain(null)
+    typeof defaultCase === 'undefined' ? chain(null) : chain(defaultCase)
   )
 }
 
