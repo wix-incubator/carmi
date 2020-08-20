@@ -267,6 +267,7 @@ function library() {
         $dependencyMap.get(key).push($tracked);
       }
       if ($invalidatedKeys.has(key)) {
+        $invalidatedKeys.delete(key);
         $currentStack.push(key);
         if (Array.isArray($out)) {
           if (key >= src.length) {
@@ -950,11 +951,11 @@ function library() {
     function size(src) {
       return Array.isArray(src) ? src.length : Object.keys(src).length;
     }
-  
+
     function isEmpty(src) {
       return Array.isArray(src) ? src.length === 0 : Object.keys(src).length === 0;
     }
-  
+
     function last(src) {
       return src[src.length - 1];
     }
