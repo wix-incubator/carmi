@@ -162,7 +162,7 @@ module.exports = function () {
           $dependencyMap.set(key, []);
         }$dependencyMap.get(key).push($tracked);
       }if ($invalidatedKeys.has(key)) {
-        $currentStack.push(key);if (Array.isArray($out)) {
+        $invalidatedKeys.delete(key);$currentStack.push(key);if (Array.isArray($out)) {
           if (key >= src.length) {
             setOnArray($out, key, undefined, $new);$out.length = src.length;
           } else {
@@ -766,7 +766,7 @@ module.exports = function () {
           $dependencyMap.set(key, []);
         }$dependencyMap.get(key).push($tracked);
       }if ($invalidatedKeys.has(key)) {
-        $currentStack.push(key);if (Array.isArray($out)) {
+        $invalidatedKeys.delete(key);$currentStack.push(key);if (Array.isArray($out)) {
           if (key >= src.length) {
             setOnArray($out, key, undefined, $new);$out.length = src.length;
           } else {
@@ -1372,7 +1372,7 @@ const modelBuilder = (function () {
           $dependencyMap.set(key, []);
         }$dependencyMap.get(key).push($tracked);
       }if ($invalidatedKeys.has(key)) {
-        $currentStack.push(key);if (Array.isArray($out)) {
+        $invalidatedKeys.delete(key);$currentStack.push(key);if (Array.isArray($out)) {
           if (key >= src.length) {
             setOnArray($out, key, undefined, $new);$out.length = src.length;
           } else {
