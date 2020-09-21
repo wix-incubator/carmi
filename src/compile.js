@@ -12,10 +12,6 @@ compilerTypes.naive = require('./naive-compiler');
 compilerTypes.simple = require('./simple-compiler');
 compilerTypes.optimizing = require('./optimizing-compiler');
 compilerTypes.bytecode = require('./bytecode-compiler');
-try {
-  compilerTypes.flow = require('./flow-compiler');
-  compilerTypes.rust = require('./rust-compiler');
-} catch (e) { } //eslint-disable-line no-empty
 
 module.exports = (model, options) => {
   clearHashStrings();
@@ -27,10 +23,12 @@ module.exports = (model, options) => {
     options.compiler = 'optimizing';
   }
 
+  const onlyAST = options.ast && !options.debug
+
   model = unwrap(model);
   const hashFile =
     options.cache &&
-    !options.ast &&
+    !onlyAST &&
     path.resolve(process.cwd(), options.cache, exprHash({model, options}));
   if (options.cache) {
     try {
@@ -42,7 +40,7 @@ module.exports = (model, options) => {
   }
   const Compiler = compilerTypes[options.compiler];
   const compiler = new Compiler(model, options);
-  if (options.ast) {
+  if (onlyAST) {
     return JSON.stringify(compiler.getters, null, 2);
   }
   const rawSource = compiler.compile();
