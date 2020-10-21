@@ -797,12 +797,19 @@ interface ObjectGraphImpl<
 	): BoolGraph<F>
 
 	/**
-	 * Returns a new object with the keys returned by the functor, and the values resolves to arrays with all the elements which returned that key.
+	 * Returns a new object with the keys returned by the functor, and the values resolves to an object with all the elements which returned that key.
 	 */
 	groupBy<Scope, Ret>(
 		functor: (value: ValueGraph, key: KeyGraph, scope: Scope) => Argument<Ret>,
 		scope?: Scope
 	): ObjectGraph<{ [key: string]: NativeType }, F>
+
+	/**
+	 * Returns a new object with keys composed of values of `propName` in the original object's elements, and values resolved to an object with all the elements whose `propName` value matched that key.
+	 *
+	 * @param propName property name
+	 */
+	groupBy<K extends keyof Value>(propName: Argument<K>): ObjectGraph<{ [key: string]: NativeType }, F>
 
 	/**
 	 * Returns a new object which resolves to `_.assign(NativeType, value)`.
