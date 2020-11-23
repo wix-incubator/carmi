@@ -10,6 +10,8 @@ const {isUpToDate, getDependenciesHashes, analyzeDependencies} = require('../src
 const getCacheFilePath = require('../src/get-cache-file-path');
 const wrapModule = require('../src/wrap-module');
 const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
+const {renameSync} = require('fs')
+const uuid = require('uuid');
 
 const CACHE_SCENARIOS = {
   mtime: 'mtime',
@@ -111,7 +113,9 @@ async function run() {
   }
 
   if (!options['no-cache']) {
-    await fs.outputFile(cacheFilePath, code, encoding)
+    // We use an atomic write file here, because another carmi process could be running
+    // in parallel, and will try to read the cache file while it's still being written
+    await writeFileAtomic(cacheFilePath, code, encoding)
   }
   if (typeof code !== 'string' && options.format !== 'binary') {
     code = wrapModule(options.format, `require('carmi/bytecode/carmi-instance')('${base64ArrayBuffer.encode(code)}')`, options.name);
@@ -131,3 +135,9 @@ run().catch(e => {
   console.log(`error ${e}`)
   process.exit(1)
 });
+
+async function writeFileAtomic(filepath, data, options) {
+  const tempFile = `${filepath}__${uuid()}`
+  await fs.outputFile(tempFile, data, options)
+  renameSync(tempFile, filepath)
+}
