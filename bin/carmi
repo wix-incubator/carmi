@@ -11,7 +11,7 @@ const getCacheFilePath = require('../src/get-cache-file-path');
 const wrapModule = require('../src/wrap-module');
 const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
 const {renameSync} = require('fs')
-const uuid = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 const CACHE_SCENARIOS = {
   mtime: 'mtime',
@@ -137,7 +137,7 @@ run().catch(e => {
 });
 
 async function writeFileAtomic(filepath, data, options) {
-  const tempFile = `${filepath}__${uuid()}`
+  const tempFile = `${filepath}__${uuidv4()}`
   await fs.outputFile(tempFile, data, options)
   renameSync(tempFile, filepath)
 }
