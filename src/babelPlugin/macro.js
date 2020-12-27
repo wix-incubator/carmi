@@ -1,5 +1,5 @@
 const path = require('path');
-const uuid = require('uuid');
+const {v4: uuidv4} = require('uuid');
 const fs = require('fs');
 const babylon = require('@babel/parser');
 const {createMacro, MacroError} = require('babel-plugin-macros');
@@ -30,7 +30,7 @@ const compile = ({code, filename, isMJS = false, isDebug = false}) => {
   const newFilename = path.resolve(
     filename,
     '..',
-    `.${path.basename(filename)}.${uuid()}.carmi${isMJS ? '.mjs' : '.js'}`
+    `.${path.basename(filename)}.${uuidv4()}.carmi${isMJS ? '.mjs' : '.js'}`
   );
   fs.writeFileSync(newFilename, code, 'utf-8');
   const transformed = compileFile(newFilename, {isDebug});
