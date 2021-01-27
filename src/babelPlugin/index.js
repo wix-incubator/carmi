@@ -49,7 +49,8 @@ module.exports = function carmiBabelTransform({types: t}) {
     },
     post() {
       if (!this.doWork) {return;}
-      const compiledFile = compileFile(this.file.opts.filename);
+      const options = { isDebug: this.opts.debug };
+      const compiledFile = compileFile(this.file.opts.filename, options);
       const functionAST = parseCompiledFile(compiledFile);
       const moduleExportsAssignment = t.assignmentExpression(
         '=',

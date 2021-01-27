@@ -22,8 +22,30 @@ it('compiles carmi files to a module that exposes a function', () => {
   // Test simple model
   const modelBuilder = eval(code);
   const model = modelBuilder([1, 2, 3], fnLib);
+  const debugKeyBy = Object.entries(model).find(([key]) => key.startsWith('$keyBy'))
+  expect(debugKeyBy).toBeUndefined()
   expect(model.first).toBe(1);
   expect(model.sum).toBe(6);
+});
+
+it('compiles carmi in debug mode if the debug option was set to true', () => {
+  const testFile = resolve(__dirname, 'test.carmi.js');
+  const original = fs.readFileSync(testFile);
+  const {code} = babel.transform(original, {
+    plugins: [[plugin, {debug: true}]],
+    filename: testFile
+  });
+  const fnLib = {sum: arr => arr.reduce((a, b) => a + b)};
+
+  // Test simple model
+  const modelBuilder = eval(code);
+  const model = modelBuilder([1, 2, 3], fnLib);
+  const [,debugValue] = Object.entries(model).find(([key]) => key.startsWith('$keyBy'))
+  expect(debugValue).toEqual({
+    'index-1': 1,
+    'index-2': 2,
+    'index-3': 3
+  })
 });
 
 it('doesn\'t compile non-carmi files', () => {
