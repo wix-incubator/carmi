@@ -37,6 +37,7 @@ async function CarmiLoader(loader) {
 		stats: statsPath,
 		format: 'cjs',
 		output: tempOutputPath,
+		debug: process.env.NODE_ENV !== 'production',
 		...loaderOptions
 	}
 	await addToQueue()
