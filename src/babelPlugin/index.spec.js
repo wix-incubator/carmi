@@ -40,7 +40,7 @@ it('compiles carmi in debug mode if the debug option was set to true', () => {
   // Test simple model
   const modelBuilder = eval(code);
   const model = modelBuilder([1, 2, 3], fnLib);
-  const [,debugValue] = Object.entries(model).find(([key]) => key.startsWith('$keyBy'))
+  const [, debugValue] = Object.entries(model).find(([key]) => key.startsWith('$keyBy'))
   expect(debugValue).toEqual({
     'index-1': 1,
     'index-2': 2,
