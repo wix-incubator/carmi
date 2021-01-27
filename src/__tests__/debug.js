@@ -16,7 +16,7 @@ describe('Tests for usability and debugging carmi', () => {
       const makeSureThisCanBeFound = root.map(item => item.mult(2));
       const res = makeSureThisCanBeFound.map(item => item.plus(80));
       const model = {res, set: setter(arg0)}
-      const optCode = evalOrLoad(compile(model, {compiler, debug: true}));
+      const optCode = evalOrLoad(compile(model, {compiler, debug: true, ast: true}));
       const inst = optCode([1, 2, 3], funcLibrary);
       expect(inst.res).toEqual([82, 84, 86]);
       const sources = JSON.stringify(inst.$source());

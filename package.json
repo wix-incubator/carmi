@@ -25,7 +25,6 @@
     "index.js",
     "jsx.js",
     "loader.js",
-    "api.js",
     "macro.js",
     "carmiRoot.js"
   ],
@@ -63,7 +62,8 @@
     "prettier": "^1.16.4",
     "resolve": "^1.10.0",
     "tempy": "^0.2.1",
-    "toposort": "^1.0.6"
+    "toposort": "^1.0.6",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",
