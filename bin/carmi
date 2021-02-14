@@ -66,9 +66,11 @@ async function run() {
 
   const statsFilePath = path.resolve(options.stats);
 
-  const dependencies = fs.existsSync(statsFilePath)
-		? require(statsFilePath)
-		: analyzeDependencies(absPath, statsFilePath)
+  const statsExists = fs.existsSync(statsFilePath)
+
+  const dependencies = statsExists
+    ? require(statsFilePath)
+    : analyzeDependencies(absPath, statsFilePath)
 
   const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
 
@@ -131,7 +133,7 @@ async function run() {
   }
 
   if (options.stats) {
-    const updatedDependencies = analyzeDependencies(absPath, statsFilePath);
+    const updatedDependencies = statsExists ? analyzeDependencies(absPath, statsFilePath) : dependencies;
     await fs.outputJSON(statsFilePath, updatedDependencies);
   }
 }
