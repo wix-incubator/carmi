@@ -60,8 +60,16 @@ async function run() {
   require('@babel/register')({
     rootMode: 'upward',
     extensions: ['.ts', '.js'],
-    ignore: [/node_modules/],
-    envName: 'carmi'
+    ignore: [
+      /node_modules/,
+      // collect dependencies as we run, note that this ignores `node_modules`
+      // but can be moved up so its not
+      function(filepath) {
+        dependencies.push(filepath)
+        return false
+      },
+    ],
+    envName: 'carmi',
   })
 
   const statsFilePath = path.resolve(options.stats);
