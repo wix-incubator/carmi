@@ -57,7 +57,7 @@ async function run() {
 
   const absPath = path.resolve(process.cwd(), options.source);
 
-  const dependencies = [];
+  const collectDependencies = [];
 
   require('@babel/register')({
     rootMode: 'upward',
@@ -67,7 +67,7 @@ async function run() {
       // collect dependencies as we run, note that this ignores `node_modules`
       // but can be moved up so its not
       function(filepath) {
-        dependencies.push(filepath)
+        collectDependencies.push(filepath)
         return false
       },
     ],
@@ -80,11 +80,11 @@ async function run() {
 
   const dependencies = statsExists
     ? require(statsFilePath)
-    : analyzeDependencies(absPath, statsFilePath)
+    : null
 
   const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
 
-  const dependenciesHashes = options['cache-scenario'] === CACHE_SCENARIOS.gitHash ?
+  const dependenciesHashes = options['cache-scenario'] === CACHE_SCENARIOS.gitHash && dependencies ?
     getDependenciesHashes(dependencies) :
     null;
 
@@ -100,7 +100,7 @@ async function run() {
   let code;
 
   // We are using fallback to mtime check if scenario is `git-hash`, but getting hashes was resulted in error.
-  const upToDate = Boolean(dependenciesHashes) || isUpToDate(dependencies, cacheFilePath);
+  const upToDate = Boolean(dependenciesHashes) || (dependencies && isUpToDate(dependencies, cacheFilePath));
   const useCache = !options['no-cache'] && fs.existsSync(cacheFilePath) && upToDate;
   if (useCache) {
     // return from cache
@@ -143,8 +143,7 @@ async function run() {
   }
 
   if (options.stats) {
-    const updatedDependencies = statsExists ? analyzeDependencies(absPath, statsFilePath) : dependencies;
-    await fs.outputJSON(statsFilePath, updatedDependencies);
+    await fs.outputJSON(statsFilePath, collectDependencies);
   }
 }
 
