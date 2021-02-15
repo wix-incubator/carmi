@@ -78,9 +78,16 @@ async function run() {
 
   const statsExists = fs.existsSync(statsFilePath)
 
-  const dependencies = statsExists
+  let dependencies = statsExists
     ? require(statsFilePath)
     : null
+
+  // Before https://github.com/wix-incubator/carmi/pull/283 stats used to be
+  // an object. This helps not have a migration for those that already have a
+  // json file created.
+  if (dependencies && !Array.isArray(dependencies)) {
+    dependencies = Object.keys(dependencies)
+  }
 
   const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
 
