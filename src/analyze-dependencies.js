@@ -161,9 +161,7 @@ const isEveryFileBefore = (files, time) => files.every(f => mtime(f) < time)
  * @param {string} cacheFilePath
  * @return {boolean}
  */
-function isUpToDate(deps, cacheFilePath) {
-  const depsArray = Object.keys(deps)
-
+function isUpToDate(depsArray, cacheFilePath) {
   try {
     const outTime = mtime(cacheFilePath)
     return isEveryFileBefore(depsArray, outTime)
@@ -172,9 +170,8 @@ function isUpToDate(deps, cacheFilePath) {
   }
 }
 
-const getDependenciesHashes = (dependencies) => {
+const getDependenciesHashes = (depsArray) => {
   try {
-    const depsArray = Object.keys(dependencies);
     return execSync(`git ls-tree --abbrev=7 --full-name -r HEAD ${depsArray.join(' ')}`, {encoding: 'utf8'}).split('\n').reduce((total, item) => {
       if (item) {
         const [, , hash] = item.split(/\s/);

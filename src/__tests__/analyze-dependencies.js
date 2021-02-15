@@ -56,7 +56,7 @@ describe('analyze-dependencies', () => {
   it('should isUpToDate when output is new', async () => {
     await fsTouch(res('esm/a.output.js'))
     const deps = analyzeDependencies(res('esm/a.carmi.js'))
-    const upToDate = isUpToDate(deps, res('esm/a.output.js'))
+    const upToDate = isUpToDate(Object.keys(deps), res('esm/a.output.js'))
     expect(upToDate).toEqual(true)
   })
 
