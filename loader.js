@@ -51,7 +51,16 @@ async function CarmiLoader(loader) {
 	} catch (e) {
 		err = e || new Error(`Error compiling ${options.source}`)
 	} finally {
-		Object.keys(require(statsPath)).forEach((filePath) => {
+		let stats = require(statsPath);
+
+		// Before https://github.com/wix-incubator/carmi/pull/283 stats used to be
+		// an object. This helps not have a migration for those that already have a
+		// json file created.
+		if (typeof stats === 'object') {
+			stats = Object.keys(stats);
+		}
+
+		stats.forEach((filePath) => {
 			// Add those modules as loader dependencies
 			// See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
 			loader.addDependency(filePath)
