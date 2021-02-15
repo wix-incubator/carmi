@@ -66,7 +66,7 @@ async function run() {
 
   const statsFilePath = path.resolve(options.stats);
 
-  const statsExists = fs.existsSync(statsFilePath)
+  const statsExists = options.stats && fs.existsSync(statsFilePath)
 
   const dependencies = statsExists
     ? require(statsFilePath)
