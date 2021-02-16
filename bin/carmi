@@ -150,7 +150,7 @@ async function run() {
   }
 
   if (options.stats) {
-    await fs.outputJSON(statsFilePath, collectDependencies);
+    await fs.outputJSON(statsFilePath, statsExists ? dependencies : collectDependenciescollectDependencies);
   }
 }
 
