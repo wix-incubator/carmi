@@ -66,21 +66,31 @@ async function run() {
       /node_modules/,
       // collect dependencies as we run, note that this ignores `node_modules`
       // but can be moved up so its not
-      function(filepath) {
+      function (filepath) {
         collectDependencies.push(filepath)
         return false
-      },
+      }
     ],
-    envName: 'carmi',
+    envName: 'carmi'
   })
 
-  const statsFilePath = path.resolve(options.stats);
+  const statsFilePath = options.stats ?
+    path.resolve(options.stats) :
+    // default path for stats
+    getCacheFilePath({
+      fileType: 'stats',
+      path: absPath,
+      debug: options.debug,
+      format: options.format,
+      prettier: options.prettier,
+      name: options.name
+    })
 
   const statsExists = fs.existsSync(statsFilePath)
 
-  let dependencies = statsExists
-    ? require(statsFilePath)
-    : null
+  let dependencies = statsExists ?
+    fs.readJSONSync(statsFilePath) :
+    null
 
   // Before https://github.com/wix-incubator/carmi/pull/283 stats used to be
   // an object. This helps not have a migration for those that already have a
@@ -96,6 +106,7 @@ async function run() {
     null;
 
   const cacheFilePath = getCacheFilePath({
+    fileType: 'carmi',
     path: absPath,
     debug: options.debug,
     format: options.format,
@@ -107,7 +118,7 @@ async function run() {
   let code;
 
   // We are using fallback to mtime check if scenario is `git-hash`, but getting hashes was resulted in error.
-  const upToDate = Boolean(dependenciesHashes) || (dependencies && isUpToDate(dependencies, cacheFilePath));
+  const upToDate = Boolean(dependenciesHashes) || dependencies && isUpToDate(dependencies, cacheFilePath);
   const useCache = !options['no-cache'] && fs.existsSync(cacheFilePath) && upToDate;
   if (useCache) {
     // return from cache
@@ -149,9 +160,11 @@ async function run() {
     console.log(code);
   }
 
-  if (options.stats) {
-    await fs.outputJSON(statsFilePath, collectDependencies);
-  }
+  await fs.outputJSON(
+    statsFilePath,
+    // collectDependencies is empty if cache was hit
+    statsExists ? dependencies : collectDependencies,
+  );
 }
 
 run().catch(e => {
