@@ -168,7 +168,7 @@ function pathFragmentToString(token) {
     return token.$type;
   } else if (token instanceof Expression && token[0].$type === 'invoke') {
     return token[1];
-  } 
+  }
     return '*';
 }
 
@@ -273,7 +273,7 @@ function tagUnconditionalExpressions(expr, cond) {
 function parentFunction(expr) {
   if (expr[0].$type === 'func' || !expr[0].$parent) {
     return expr;
-  } 
+  }
     return parentFunction(expr[0].$parent);
 }
 
@@ -326,7 +326,7 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
       } else {
         currentSetters.push([TopLevel, name]);
       }
-      
+
       // console.log('added', name, condsThatAreTracked.size)
     }
     if (condsThatAreTracked.size) {
@@ -359,7 +359,7 @@ const wrapPrimitivesInQuotes = v => {
     return Expr(Quote, v.toJSON());
   }
   return v;
-}; 
+};
 
 const canHaveSideEffects = memoizeExprFunc(expr => {
   if (expr[0].$type === 'call' || expr[0].$type === 'effect') {
@@ -506,10 +506,10 @@ function findFuncExpr(getters, funcId) {
 }
 
 function normalizeAndTagAllGetters(getters, setters, options) {
-  getters = rewriteUniqueByHash(getters);
+  getters = rewriteUniqueByHash(getters, options);
   getters = _.mapValues(getters, getter => wrapPrimitivesInQuotes(deadCodeElimination(getter)));
   getters = rewriteStaticsToTopLevels(getters);
-  getters = rewriteUniqueByHash(getters);
+  getters = rewriteUniqueByHash(getters, options);
   if (!options.disableHelperFunctions) {
     getters = rewriteLocalsToFunctions(getters);
   }

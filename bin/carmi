@@ -6,12 +6,13 @@ const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
-const {isUpToDate, getDependenciesHashes, analyzeDependencies} = require('../src/analyze-dependencies');
+const { isUpToDate, getDependenciesHashes, analyzeDependencies } = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
 const wrapModule = require('../src/wrap-module');
 const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
-const {renameSync} = require('fs')
-const {v4: uuidv4} = require('uuid');
+const { renameSync } = require('fs')
+const { v4: uuidv4 } = require('uuid');
+const { getChangedFilesForRoots, findRepos } = require('jest-changed-files');
 
 const CACHE_SCENARIOS = {
   mtime: 'mtime',
@@ -19,33 +20,33 @@ const CACHE_SCENARIOS = {
 };
 
 const optionDefinitions = [
-  {name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model'},
-  {name: 'output', type: String, defaultValue: '', description: 'output filename'},
-  {name: 'cwd', type: String, defaultValue: process.cwd(), description: 'root directory for carmi files. Needed for babel config'},
+  { name: 'source', type: String, defaultOption: true, description: 'source filename, which exports a carmi model' },
+  { name: 'output', type: String, defaultValue: '', description: 'output filename' },
+  { name: 'cwd', type: String, defaultValue: process.cwd(), description: 'root directory for carmi files. Needed for babel config' },
   {
     name: 'compiler',
     type: String,
     defaultValue: 'optimizing',
     description: 'compiler version to use naive/simple/optimizing/bytecode'
   },
-  {name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code'},
-  {name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code'},
-  {name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs... or binary'},
-  {name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function'},
-  {name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output'},
-  {name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache'},
-  {name: 'cache-scenario', type: String, defaultValue: CACHE_SCENARIOS.mtime, description: `cache scenario to use (${Object.values(CACHE_SCENARIOS).join(' | ')})`},
-  {name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage'},
-  {name: 'stats', type: String, defaultValue: '', description: 'generate stats file'},
-  {name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits'},
-  {name: 'ast', type: Boolean, defaultValue: false}
+  { name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code' },
+  { name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code' },
+  { name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs... or binary' },
+  { name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function' },
+  { name: 'prettier', type: Boolean, defaultValue: false, description: 'run prettier on the output' },
+  { name: 'no-cache', type: Boolean, defaultValue: false, description: 'ignore cache' },
+  { name: 'cache-scenario', type: String, defaultValue: CACHE_SCENARIOS.mtime, description: `cache scenario to use (${Object.values(CACHE_SCENARIOS).join(' | ')})` },
+  { name: 'no-coverage', type: Boolean, defaultValue: false, description: 'generate header to disable coverage' },
+  { name: 'stats', type: String, defaultValue: '', description: 'generate stats file' },
+  { name: 'help', type: Boolean, defaultValue: false, description: 'shows this very help message and quits' },
+  { name: 'ast', type: Boolean, defaultValue: false }
 ];
 
 const HELP = `carmi [<options>] <src>
 ${optionDefinitions
-  .filter(v => v.description)
-  .map(opt => `--${opt.name} - ${opt.description}`)
-  .join('\n')}
+    .filter(v => v.description)
+    .map(opt => `--${opt.name} - ${opt.description}`)
+    .join('\n')}
 `;
 
 const options = commandLineArgs(optionDefinitions);
@@ -57,7 +58,7 @@ async function run() {
 
   const absPath = path.resolve(process.cwd(), options.source);
 
-  const collectDependencies = [];
+  const collectDependencies = new Set();
 
   require('@babel/register')({
     rootMode: 'upward',
@@ -67,7 +68,7 @@ async function run() {
       // collect dependencies as we run, note that this ignores `node_modules`
       // but can be moved up so its not
       function (filepath) {
-        collectDependencies.push(filepath)
+        collectDependencies.add(filepath)
         return false
       }
     ],
@@ -129,17 +130,29 @@ async function run() {
     // return from cache
     code = await fs.readFile(cacheFilePath, encoding);
   } else {
-    // run carmi and generate cache
-    let model;
+      // run carmi and generate cache
+      let model;
 
-    try {
-      model = require(absPath);
-    } catch (e) {
-      console.error(`failed to require ${options.source} ${e.stack}`);
-      throw e;
-    }
+      try {
+        model = require(absPath);
+      } catch (e) {
+        console.error(`failed to require ${options.source} ${e.stack}`);
+        throw e;
+      }
 
-    code = carmi.compile(model, options);
+      let dependenciesChangedFiles = new Set();
+      if (options.debug) {
+        const { git, hg } = await findRepos([path.dirname(absPath)])
+        let { changedFiles } = await getChangedFilesForRoots([...git, ...hg], { withAncestor: true })
+        dependenciesChangedFiles = [...changedFiles].reduce((acc, f) => {
+          if (collectDependencies.has(f)) {
+            acc.add(f)
+          }
+          return acc
+        }, new Set());
+      }
+
+      code = carmi.compile(model, { ...options, changedFiles: dependenciesChangedFiles });
   }
 
   if (options['no-coverage'] && typeof code === 'string') {
@@ -168,7 +181,7 @@ async function run() {
   await fs.outputJSON(
     statsFilePath,
     // collectDependencies is empty if cache was hit
-    useCache ? dependencies : collectDependencies,
+    useCache ? dependencies : [...collectDependencies],
   );
 }
 
