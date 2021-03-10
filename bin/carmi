@@ -95,8 +95,13 @@ async function run() {
   // Before https://github.com/wix-incubator/carmi/pull/283 stats used to be
   // an object. This helps not have a migration for those that already have a
   // json file created.
-  if (dependencies && !Array.isArray(dependencies)) {
-    dependencies = Object.keys(dependencies)
+  if (dependencies) {
+    if (!Array.isArray(dependencies)) {
+      dependencies = Object.keys(dependencies)
+    }
+
+    // Remove deleted files from the dependencies array that was saved on previous build
+    dependencies = dependencies.filter(f => fs.existsSync(f))
   }
 
   const encoding = options.compiler === 'bytecode' ? null : 'utf-8';
@@ -163,7 +168,7 @@ async function run() {
   await fs.outputJSON(
     statsFilePath,
     // collectDependencies is empty if cache was hit
-    statsExists ? dependencies : collectDependencies,
+    useCache ? dependencies : collectDependencies,
   );
 }
 
