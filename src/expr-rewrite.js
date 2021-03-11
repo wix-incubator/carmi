@@ -2,7 +2,7 @@ const _ = require('lodash');
 const {flattenExpression, searchExpressions, searchExpressionsWithoutInnerFunctions, getAllFunctions, flattenExpressionWithoutInnerFunctions} = require('./expr-search');
 const {memoizeExprFunc, memoize} = require('./memoize');
 const {exprHash, hashString} = require('./expr-hash');
-const {TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func} = require('./lang');
+const {TokenTypeData, Expression, Get, Expr, TopLevel, Token, Invoke, FuncArg, Func, SourceTag} = require('./lang');
 const {generateName, generateNameFromTag} = require('./expr-names');
 const objectHash = require('object-hash');
 
@@ -108,7 +108,7 @@ function rewriteLocalsToFunctions(getters) {
         loop: true
     }
 
-    const rewriteExpr = memoizeExprFunc(e => { 
+    const rewriteExpr = memoizeExprFunc(e => {
             const hash = exprHash(e);
             const found = countIdenticals[hash];
             if (found && found.counter > 2 && found.children.length > 4) {
@@ -126,17 +126,23 @@ function rewriteLocalsToFunctions(getters) {
                     newGetters[name] = Expr(Func, Expr(...e.map(rewriteExpr)), ...found.tokens);
                 }
                 return Expr(Invoke, name, ...found.tokens.map(t => new Token(t.$type)));
-            } 
+            }
             return Expr(...e.map(rewriteExpr));
         },
         (t) => t)
-    
+
 
     Object.assign(newGetters, _.mapValues(getters, rewriteExpr))
     return newGetters;
 }
 
-function rewriteUniqueByHash(getters) {
+/**
+ *
+ * @param {*} getters
+ * @param {{changedFiles?: Set<string>}} options
+ * @returns
+ */
+function rewriteUniqueByHash(getters, {changedFiles = new Set()} = {}) {
     const exprs = flattenExpression(Object.values(getters));
     const allHashes = {};
     exprs.forEach(e => {
@@ -145,17 +151,25 @@ function rewriteUniqueByHash(getters) {
         allHashes[hash].push(e)
     })
     const canonical = {};
-    function getCanoncial(expr) {
+    function getCanonical(expr) {
         if (expr instanceof Expression) {
             const hash = exprHash(expr);
             if (!canonical.hasOwnProperty(hash)) {
-                canonical[hash] = Expr(...expr.map(getCanoncial));
+                if (changedFiles.size && allHashes[hash].length > 1) {
+                    const changedExpression = allHashes[hash].find(([e]) => {
+                        const source = e[SourceTag]
+                        return !!source && changedFiles.has(source.split(':')[0]);
+                    }) || expr
+                    canonical[hash] = Expr(...changedExpression.map(getCanonical));
+                } else {
+                    canonical[hash] = Expr(...expr.map(getCanonical));
+                }
             }
             return canonical[hash];
         }
         return expr;
     }
-    const newGetters = _.mapValues(getters, getCanoncial)
+    const newGetters = _.mapValues(getters, getCanonical)
     return newGetters;
 }
 
