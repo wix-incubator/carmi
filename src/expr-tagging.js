@@ -73,24 +73,24 @@ function countPathParts(pathAsStr) {
 function generatePathCondExpr(pathExpressions, pathAsStr, outputCondsByPathStr) {
   const pathPartsCnt = countPathParts(pathAsStr);
   const nearestDeeperPaths = Object.keys(outputCondsByPathStr).filter(otherPathStr => countPathParts(otherPathStr) === pathPartsCnt + 1 &&
-        otherPathStr.substr(0, pathAsStr.length) === pathAsStr);
+    otherPathStr.substr(0, pathAsStr.length) === pathAsStr);
   const nearestDeeperPathsCond = or(...nearestDeeperPaths.map(otherPathStr => outputCondsByPathStr[otherPathStr]))
   const condsOfOnlyTested = [];
   const condsOfUsed = [];
   pathExpressions.forEach(expr => {
-      let condOfExpr = true;
-      if (expr[0].$conditional) {
-        const condId = expr[0].$conditional[0][0].$id;
-        const condBranch = expr[0].$conditional[1];
-        const condIsTernary = expr[0].$conditional[0][0].$type === 'ternary';
-        condOfExpr = Expr(condIsTernary ? Eq : Gte, Expr(Cond, condId), condBranch);
-      }
-      const usedAsBool = genUsedOnlyAsBooleanValue(expr);
-      if (usedAsBool) {
-        condsOfOnlyTested.push(condOfExpr);
-      } else {
-        condsOfUsed.push(condOfExpr)
-      }
+    let condOfExpr = true;
+    if (expr[0].$conditional) {
+      const condId = expr[0].$conditional[0][0].$id;
+      const condBranch = expr[0].$conditional[1];
+      const condIsTernary = expr[0].$conditional[0][0].$type === 'ternary';
+      condOfExpr = Expr(condIsTernary ? Eq : Gte, Expr(Cond, condId), condBranch);
+    }
+    const usedAsBool = genUsedOnlyAsBooleanValue(expr);
+    if (usedAsBool) {
+      condsOfOnlyTested.push(condOfExpr);
+    } else {
+      condsOfUsed.push(condOfExpr)
+    }
   });
   const touchedButNotDeeper = and(or(...condsOfOnlyTested), not(nearestDeeperPathsCond))
   const pathCond = or(...condsOfUsed, touchedButNotDeeper)
@@ -169,7 +169,7 @@ function pathFragmentToString(token) {
   } else if (token instanceof Expression && token[0].$type === 'invoke') {
     return token[1];
   }
-    return '*';
+  return '*';
 }
 
 function pathToString(path) {
@@ -232,16 +232,16 @@ function tagExpressions(expr, name, currentDepth, indexChain, funcType, rootName
 }
 
 const cloneAndHash = expr => {
-    if (expr instanceof Expression) {
-      const hash = exprHash(expr);
-      const res = new Expression(...expr.map(cloneAndHash));
-      res[0].$hash = hash;
-      return res;
-    } else if (expr instanceof Token) {
-      return cloneToken(expr);
-    }
-    return expr;
+  if (expr instanceof Expression) {
+    const hash = exprHash(expr);
+    const res = new Expression(...expr.map(cloneAndHash));
+    res[0].$hash = hash;
+    return res;
+  } else if (expr instanceof Token) {
+    return cloneToken(expr);
   }
+  return expr;
+}
 
 
 function cloneExpressions(getters) {
@@ -274,7 +274,7 @@ function parentFunction(expr) {
   if (expr[0].$type === 'func' || !expr[0].$parent) {
     return expr;
   }
-    return parentFunction(expr[0].$parent);
+  return parentFunction(expr[0].$parent);
 }
 
 function unmarkPathsThatHaveNoSetters(getters, setters) {
@@ -318,7 +318,7 @@ function unmarkPathsThatHaveNoSetters(getters, setters) {
       });
     });
     // if (name.indexOf('navigation') !== -1) {
-      // console.log('unmarkPathsThatHaveNoSetters', name, canBeExprBeInvalidated, JSON.stringify(getter));
+    // console.log('unmarkPathsThatHaveNoSetters', name, canBeExprBeInvalidated, JSON.stringify(getter));
     // }
     if (canBeExprBeInvalidated) {
       if (getters[name][0].$type === 'func') {
@@ -399,51 +399,47 @@ const deadCodeElimination = memoizeExprFunc(
   token => token
 );
 
-function dedupFunctionsObjects(getters) {
-  const prevFunctions = new Map();
+/**
+ *
+ * @param {*} getters
+ * @param {{changedFiles?: Set<string>}} options
+ */
+function dedupFunctionsObjects(getters, {changedFiles = new Set()} = {}) {
   const allExpressions = flattenExpression(...Object.values(getters));
-  const allFunctions = allExpressions.filter(expr => expr[0].$type === 'func' && expr[0].$parent)
-  let duplicateFunctions = 0;
-  allFunctions
-    .forEach(expr => {
-      const hash = `${exprHash(expr)}.${expr[0].$parent[0].$type}.${expr[0].$invalidates}`;
-      if (!prevFunctions.has(hash)) {
-        expr[0].$duplicate = false;
-        prevFunctions.set(hash, expr)
-      } else {
-        const prev = prevFunctions.get(hash);
-        duplicateFunctions++;
-        expr[0].$duplicate = prev[0].$funcId;
-      }
-  });
-  const countFunctions = allFunctions.length;
-  const countGetters = Object.keys(getters).length;
-  // console.error('duplicate stats:', {
-  //   duplicateFunctions, countFunctions, countGetters
-  // })
-  const prevObjectKeys = new Map();
-  const allObjects = allExpressions.filter(expr => expr[0].$type === 'object')
-  allObjects.forEach(expr => {
-    const keys = _.range(1, expr.length, 2).map(index => `#${expr[index]}#`).join(',');
-    if (!prevObjectKeys.has(keys)) {
-      prevObjectKeys.set(keys, expr);
-    } else {
-      const prev = prevObjectKeys.get(keys);
-      expr[0].$duplicate = prev[0].$id;
-    }
-  });
+  const changedTags = new Set([...changedFiles].map(file => tagToSimpleFilename(file)))
+  _(allExpressions)
+    .filter(([expr]) => expr.$type === 'func' && expr.$parent)
+    .groupBy((expr) => `${exprHash(expr)}.${expr[0].$parent[0].$type}.${expr[0].$invalidates}`)
+    .filter((group) => group.length > 1)
+    .forEach((group) => {
+        const changedExpression = group.find(([e]) => changedTags.has(e.$funcId.split('_')[1])) || group[0]
+        group.forEach(e => {
+          e[0].$duplicate = e === changedExpression ? false : changedExpression[0].$funcId
+        })
+    })
 
-  // console.log('duplicated', allFunctions.length, prevFunctions.size);
+  _(allExpressions)
+    .filter(([expr]) => expr.$type === 'object')
+    .groupBy((expr) => _.range(1, expr.length, 2).map(index => `#${expr[index]}#`).join(','))
+    .filter((group) => group.length > 1)
+    .forEach((group) => {
+      const changedExpression = group.find(([e]) => changedTags.has(e.$funcId.split('_')[1])) || group[0]
+      group.forEach(expr => {
+        if (expr !== changedExpression) {
+          expr[0].$duplicate = changedExpression[0].$id;
+        }
+      })
+    })
 }
 
 const allPathsInGetter = memoize(getter => _(flattenExpression([getter]))
-    .filter(e => e instanceof Expression && e[0].$path)
-    .map(e => Array.from(e[0].$path.entries()))
-    .flatten()
-    .reduce((acc, item) => {
-      acc.set(item[0], item[1]);
-      return acc;
-    }, new Map()));
+  .filter(e => e instanceof Expression && e[0].$path)
+  .map(e => Array.from(e[0].$path.entries()))
+  .flatten()
+  .reduce((acc, item) => {
+    acc.set(item[0], item[1]);
+    return acc;
+  }, new Map()));
 
 function pathMatches(srcPath, trgPath) {
   // console.log('pathMatches', JSON.stringify(srcPath), JSON.stringify(trgPath));
@@ -526,7 +522,7 @@ function normalizeAndTagAllGetters(getters, setters, options) {
   //     console.log('unmarkPathsThatHaveNoSetters', name, t[0])
   //   })
   // })
-  dedupFunctionsObjects(getters);
+  dedupFunctionsObjects(getters, options);
   let index = 0;
   topologicalSortGetters(getters).forEach(name => {
     if (getters[name][0].$type !== 'func') {// not a helper function
