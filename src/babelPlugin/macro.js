@@ -26,14 +26,14 @@ const wrapWithModuleExports = node => ({
     }
   });
 
-const compile = ({code, filename, isMJS = false, isDebug = false}) => {
+const compile = ({code, filename, isMJS = false, isDebug = false, disableCurrentLineFunctionName = false}) => {
   const newFilename = path.resolve(
     filename,
     '..',
     `.${path.basename(filename)}.${uuidv4()}.carmi${isMJS ? '.mjs' : '.js'}`
   );
   fs.writeFileSync(newFilename, code, 'utf-8');
-  const transformed = compileFile(newFilename, {isDebug});
+  const transformed = compileFile(newFilename, {isDebug, disableCurrentLineFunctionName});
   fs.unlink(newFilename, () => {});
   return transformed;
 };
@@ -43,6 +43,7 @@ const CARMI_COMMENT_RE = /\s*@carmi\s*/;
 function macro({babel, state, references, source, config = {}}) {
   const commentTag = state.file.ast.comments.some(comment => CARMI_COMMENT_RE.test(comment.value));
   const isDebug = config && config.debug;
+  const disableCurrentLineFunctionName = config && config.disableCurrentLineFunctionName;
   references = references.default || [];
   if (commentTag && references.length === 0) {
     const filename = state.file.opts.filename;
@@ -52,7 +53,7 @@ function macro({babel, state, references, source, config = {}}) {
     const isMJS = body.some(node => node.type === 'ExportDefaultDeclaration');
     const carmiReact = babylonJsx(state.file.ast, 'createElement');
     const code = generate.default(carmiReact).code;
-    const transformed = compile({code, filename, isMJS, isDebug});
+    const transformed = compile({code, filename, isMJS, isDebug, disableCurrentLineFunctionName});
     const node = extractNodeFromCarmiCode(transformed);
     body.splice(0, body.length, wrapWithModuleExports(node));
     return {keepImports: true};
@@ -61,7 +62,7 @@ function macro({babel, state, references, source, config = {}}) {
       if (referencePath.parentPath.type === 'TaggedTemplateExpression') {
         const filename = referencePath.context.scope.hub.file.opts.filename;
         const code = referencePath.parentPath.get('quasi').evaluate().value;
-        const transformed = compile({code, filename, isDebug});
+        const transformed = compile({code, filename, isDebug, disableCurrentLineFunctionName});
         const node = extractNodeFromCarmiCode(transformed);
         node.callee = babel.types.sequenceExpression([node.callee]);
         referencePath.parentPath.replaceWith(node);
