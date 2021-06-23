@@ -9,7 +9,7 @@ const {
   SourceTag,
   UnwrappedExpr
 } = require('./lang');
-const { getCurrentLine } = require('./currentLine');
+const {getCurrentLine} = require('./currentLine');
 const {searchExpressionsWithoutInnerFunctions} = require('./expr-search');
 
 const tokensNotAllowedToReuseFromOtherExpressions = {

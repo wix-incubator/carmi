@@ -11,7 +11,7 @@ const {
   isExpression,
   withName
 } = require('./src/lang');
-const { getCurrentLine } = require('./src/currentLine');
+const {getCurrentLine} = require('./src/currentLine');
 
 const GLOBAL_TOKEN = '__$CARMI$__';
 if (global[GLOBAL_TOKEN]) {

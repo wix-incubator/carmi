@@ -37,4 +37,4 @@ const getCurrentLine = () => {
     .join(':')
 }
 
-module.exports = { getCurrentLine, enableCurrentLine }
+module.exports = {getCurrentLine, enableCurrentLine}

@@ -6,7 +6,7 @@ const {
   Token,
   WrappedPrimitive
 } = require('./lang');
-const { getCurrentLine } = require('./currentLine');
+const {getCurrentLine} = require('./currentLine');
 const {paths} = require('./cache');
 
 function withPathInfo(value, key, currentPath) {

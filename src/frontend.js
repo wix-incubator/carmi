@@ -8,7 +8,7 @@ const {
   WrappedPrimitive,
   UnwrappedExpr
 } = require('./lang');
-const { getCurrentLine } = require('./currentLine');
+const {getCurrentLine} = require('./currentLine');
 const {convertArrayAndObjectsToExpr, createExpr} = require('./expressionBuilder');
 const {wrap} = require('./unwrapable-proxy');
 const {searchExpressions} = require('./expr-search');
