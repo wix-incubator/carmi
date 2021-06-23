@@ -6,14 +6,14 @@ const {
   Token,
   WrappedPrimitive
 } = require('./lang');
-const currentLine = require('./currentLine');
+const {getCurrentLine} = require('./currentLine');
 const {paths} = require('./cache');
 
 function withPathInfo(value, key, currentPath) {
   const isArray = typeof key === 'number'
   const newPath = `${currentPath}${isArray ? `[${key}]` : `.${key}`}`
   if (typeof value === 'undefined') {
-    throw new Error(`Undefined value in carmi expression: ${newPath} at ${currentLine()}`)
+    throw new Error(`Undefined value in carmi expression: ${newPath} at ${getCurrentLine()}`)
   }
 
   if (value && typeof value === 'object') {
@@ -42,7 +42,7 @@ function convertArrayAndObjectsToExpr(v) {
     return new Token('null');
   } else if (v.constructor === Object) {
     return createExpr(
-      new Token('object', currentLine()),
+      new Token('object', getCurrentLine()),
       ...Object.keys(v).reduce((acc, key) => {
         acc.push(key);
         acc.push(withPathInfo(v[key], key, path));
@@ -50,7 +50,7 @@ function convertArrayAndObjectsToExpr(v) {
       }, [])
     );
   } else if (v.constructor === Array) {
-    return createExpr(new Token('array', currentLine()), ...v.map((entry, index) => withPathInfo(entry, index, path)));
+    return createExpr(new Token('array', getCurrentLine()), ...v.map((entry, index) => withPathInfo(entry, index, path)));
   } else if (typeof v === 'boolean' || typeof v === 'string' || typeof v === 'number') {
     return new WrappedPrimitive(v);
   }

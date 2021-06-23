@@ -11,7 +11,7 @@ const {
   isExpression,
   withName
 } = require('./src/lang');
-const currentLine = require('./src/currentLine');
+const {getCurrentLine} = require('./src/currentLine');
 
 const GLOBAL_TOKEN = '__$CARMI$__';
 if (global[GLOBAL_TOKEN]) {
@@ -19,7 +19,7 @@ if (global[GLOBAL_TOKEN]) {
     `require of multiple versions of Carmi is not supported previously loaded from:${global[GLOBAL_TOKEN]}`
   );
 }
-global[GLOBAL_TOKEN] = currentLine();
+global[GLOBAL_TOKEN] = getCurrentLine();
 const {initProxyHandler} = require('./src/proxyHandler');
 const expressionBuilder = require('./src/expressionBuilder');
 const unwrapableProxy = require('./src/unwrapable-proxy');
@@ -44,7 +44,6 @@ const API = {
 };
 
 module.exports = API
-
 
 function withSchema() {
   return API
