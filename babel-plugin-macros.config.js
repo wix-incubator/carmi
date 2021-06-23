@@ -1,5 +1,6 @@
 module.exports = {
   carmi: {
-    debug: false
+    debug: false,
+    disableCurrentLineFunctionName: false
   }
 };

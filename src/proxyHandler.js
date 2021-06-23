@@ -9,7 +9,7 @@ const {
   SourceTag,
   UnwrappedExpr
 } = require('./lang');
-const currentLine = require('./currentLine');
+const {getCurrentLine} = require('./currentLine');
 const {searchExpressionsWithoutInnerFunctions} = require('./expr-search');
 
 const tokensNotAllowedToReuseFromOtherExpressions = {
@@ -68,7 +68,7 @@ const init = _.once(({
       if (sugar[key]) {
         return (...args) => sugar[key](chain(target), ...args);
       }
-      throw new Error(`unknown token: "${key}" at ${currentLine()}`);
+      throw new Error(`unknown token: "${key}" at ${getCurrentLine()}`);
     }
     if (key === UnwrappedExpr) {
       if (target[UnwrappedExpr]) {
@@ -82,7 +82,7 @@ const init = _.once(({
     }
     return (...args) => {
       // console.log(key, args);
-      const sourceTag = currentLine()
+      const sourceTag = getCurrentLine()
       args = [new Token(key, sourceTag), ...args];
       if (tokenData.chainIndex) {
         if (tokenData.collectionVerb && tokenData.chainIndex === 2) {
