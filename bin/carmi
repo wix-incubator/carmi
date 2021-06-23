@@ -135,7 +135,7 @@ async function run() {
     let model;
 
     try {
-      enableCurrentLine(options['use-current-line-function-names'] ?? options.debug);
+      enableCurrentLine(options['use-current-line-function-names'] === undefined ? options.debug : options['use-current-line-function-names']);
       model = require(absPath);
     } catch (e) {
       console.error(`failed to require ${options.source} ${e.stack}`);
