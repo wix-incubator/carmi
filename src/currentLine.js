@@ -15,7 +15,16 @@ function isExternalLine(line) {
   return (!isCarmi || isTest) && containsLineNumber
 }
 
-module.exports = () => {
+let enabled = true
+const enableCurrentLine = (value) => {
+  enabled = value
+}
+
+const getCurrentLine = () => {
+  if (!enabled) {
+    return 'unknown'
+  }
+
   const firstExternalLine = (new Error()).stack
     .split('\n')
     .slice(1)
@@ -27,3 +36,5 @@ module.exports = () => {
     .map((str, idx) => idx > 0 ? `${parseInt(str, 10)}` : str)
     .join(':')
 }
+
+module.exports = { getCurrentLine, enableCurrentLine }

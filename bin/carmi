@@ -6,6 +6,7 @@ const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
+const { enableCurrentLine } = require('../src/currentLine');
 const {isUpToDate, getDependenciesHashes, analyzeDependencies} = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
 const wrapModule = require('../src/wrap-module');
@@ -29,6 +30,7 @@ const optionDefinitions = [
     description: 'compiler version to use naive/simple/optimizing/bytecode'
   },
   {name: 'debug', type: Boolean, defaultValue: false, description: 'add debug functions to the generated code'},
+  {name: 'use-current-line-function-names', type: Boolean, description: 'do not resolve line and position of running line'},
   {name: 'type-check', type: Boolean, defaultValue: false, description: 'add static type checking to runtime code'},
   {name: 'format', type: String, defaultValue: 'iife', description: 'output format - iife,cjs... or binary'},
   {name: 'name', type: String, defaultValue: 'model', description: 'name of the output module/function'},
@@ -133,6 +135,7 @@ async function run() {
     let model;
 
     try {
+      enableCurrentLine(options['use-current-line-function-names'] ?? options.debug);
       model = require(absPath);
     } catch (e) {
       console.error(`failed to require ${options.source} ${e.stack}`);

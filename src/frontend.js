@@ -8,7 +8,7 @@ const {
   WrappedPrimitive,
   UnwrappedExpr
 } = require('./lang');
-const currentLine = require('./currentLine');
+const { getCurrentLine } = require('./currentLine');
 const {convertArrayAndObjectsToExpr, createExpr} = require('./expressionBuilder');
 const {wrap} = require('./unwrapable-proxy');
 const {searchExpressions} = require('./expr-search');
@@ -37,7 +37,7 @@ const abstract = title => {
   if (typeof title !== 'string') {
     throw new Error('the title of abstract must be a string');
   }
-  return wrap(createExpr(new Token('abstract', currentLine()), title, new Error(`failed to implement ${title}`)));
+  return wrap(createExpr(new Token('abstract', getCurrentLine()), title, new Error(`failed to implement ${title}`)));
 }
 const implement = (abstract, expr) => {
   const target = privateUnwrap(abstract);
@@ -45,7 +45,7 @@ const implement = (abstract, expr) => {
     expr = new WrappedPrimitive(expr);
   }
   if (expr instanceof WrappedPrimitive) {
-    expr = Expr(new Token('quote', currentLine()), expr.toJSON());
+    expr = Expr(new Token('quote', getCurrentLine()), expr.toJSON());
   }
   if (!isExpression(target) || target[0].$type !== 'abstract') {
     throw new Error('can only implement an abstract');
@@ -65,7 +65,7 @@ Object.keys(TokenTypeData).forEach(t => {
   if (TokenTypeData[t].nonVerb) {
     frontendApi[t] = wrap(new Token(t));
   } else if (TokenTypeData[t].nonChained) {
-    frontendApi[t] = (...args) => wrap(createExpr(new Token(t, currentLine()), ...args));
+    frontendApi[t] = (...args) => wrap(createExpr(new Token(t, getCurrentLine()), ...args));
   }
 });
 
