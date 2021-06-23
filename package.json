@@ -76,7 +76,7 @@
     "random-seed": "^0.3.0",
     "typedoc": "^0.14.2",
     "typescript": "^3.7.2",
-    "wnpm-ci": "latest"
+    "wnpm-ci": "^8.0.131"
   },
   "description": "CARMI - Compiler for Automatic Reactive Modelling of Inference"
 }
