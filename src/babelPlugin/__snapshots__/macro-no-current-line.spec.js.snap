@@ -528,9 +528,9 @@ module.exports = function () {
       }invalidatePath(pathWithKey);arr.splice(key, len, ...newItems);
     }const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
       const newValue = call($tracked, [\\"createElement\\", $topLevel[0]], 2, 2);return newValue;
-    }function $array_unknown_1Build($tracked) {
+    }function $array_unknown_2_0_1Build($tracked) {
       const newValue = array($tracked, [\\"div\\", null, $model[0]], 5, 3);return newValue;
-    }const builderFunctions = [$array_unknown_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
+    }const builderFunctions = [$array_unknown_2_0_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
       for (let i = 0; i < 2; i++) {
         if ($first || $invalidatedRoots.has(i)) {
           const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, $first);if (!$first) {

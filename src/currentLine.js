@@ -22,7 +22,7 @@ const enableCurrentLine = (value) => {
 
 const getCurrentLine = () => {
   if (!enabled) {
-    return 'unknown'
+    return `/unknown.js:${_.uniqueId()}:0`;
   }
 
   const firstExternalLine = (new Error()).stack
