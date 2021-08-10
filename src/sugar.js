@@ -154,6 +154,14 @@ function tapTrace(obj, tapFn) {
   return or(tapFn(obj).trace().ternary(chain(false), chain(false)), obj)
 }
 
+function spread(obj, keys) {
+	return keys.reduce((acc, key) => ({
+			...acc,
+			[key]: obj.get(key)
+		}), {})
+}
+
+
 const sugarApi = {
   getIn,
   includes,
@@ -175,6 +183,7 @@ const sugarApi = {
   every,
   simpleSet,
   compact,
+  spread,
   switch: switchCase,
   conditionalTrace,
   conditionalBreakpoint,

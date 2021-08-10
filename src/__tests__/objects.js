@@ -433,6 +433,16 @@ describe('testing objects', () => {
       inst.setSelect('first');
       expect(inst.projection).toEqual({a: 1, b: 3});
     });
+    it('spread', () => {
+      const {a, b} = root.get('obj').spread(['a', 'b']);
+      const model = {
+        sum: a.plus(b)
+      }
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const initialData = {obj: {a: 1, b: 1}};
+      const inst = optModel(initialData);
+      expect(inst.sum).toEqual(2);
+    })
     describe('find', () => {
       it('should find value if exists', () => {
         const initialData = {a: 'nothing', b: 'something'};

@@ -747,6 +747,24 @@ interface ObjectGraphImpl<
 	pick<K extends keyof NativeType, Keys extends Array<K>>(keys: Keys): ObjectGraph<Pick<NativeType, Keys[number]>, F>
 
 	/**
+	 * Return native object with values as the values of the object graph
+	 *
+	 * @example
+	 *  const { root } = require('carmi');
+	 *  const person = root.get('person')
+	 *
+	 *  // Without spread operation:
+	 *  const firstName = person.get('firstName')
+	 *  const lastName = person.get('lastName')
+	 *
+	 *  // With spread operation:
+	 *  const { firstName, lasterName } = spread(root.get('person'), ['name', 'age'])
+	 *
+	 * @param keys
+	 * @sugar */
+	spread<Keys extends Array<keyof NativeType>>(keys: Keys): { [key in Keys[number]]: Graph<NativeType[key], F>}
+
+	/**
 	 * Resolves to an object with the same keys, with each value resolves to the return value of functor on the corresponding entry.
 	 *
 	 * @param functor
