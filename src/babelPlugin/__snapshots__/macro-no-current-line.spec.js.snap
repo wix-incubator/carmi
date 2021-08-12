@@ -13,7 +13,7 @@ module.exports = {todosList};
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+    let $funcLib = $funcLibRaw;let $tap;if ( /* DEBUG */false) {
       $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
@@ -26,7 +26,9 @@ module.exports = function () {
         }return Math[name](arg);
       };
     }function checkTypes(input, name, types, functionName, source) {
-      function checkType(type) {
+      if ($tap) {
+        $tap({ input, name, types, functionName, source });
+      }function checkType(type) {
         const isArray = Array.isArray(input);return type == 'array' && isArray || type === typeof input && !isArray;
       }if (types.some(checkType)) {
         return;
@@ -596,6 +598,8 @@ module.exports = function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
+      }, $setTapFunction: func => {
+        $tap = func;
       } });if ( /* DEBUG */false) {
       Object.assign($res, { $ast: () => {
           return null;
@@ -617,7 +621,7 @@ module.exports = { first: root.get(0), second: root.get(1) };
 
 module.exports = function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+    let $funcLib = $funcLibRaw;let $tap;if ( /* DEBUG */false) {
       $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
@@ -630,7 +634,9 @@ module.exports = function () {
         }return Math[name](arg);
       };
     }function checkTypes(input, name, types, functionName, source) {
-      function checkType(type) {
+      if ($tap) {
+        $tap({ input, name, types, functionName, source });
+      }function checkType(type) {
         const isArray = Array.isArray(input);return type == 'array' && isArray || type === typeof input && !isArray;
       }if (types.some(checkType)) {
         return;
@@ -1200,6 +1206,8 @@ module.exports = function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
+      }, $setTapFunction: func => {
+        $tap = func;
       } });if ( /* DEBUG */false) {
       Object.assign($res, { $ast: () => {
           return null;
@@ -1223,7 +1231,7 @@ const modelBuilder = carmi\`
 
 const modelBuilder = (function () {
   return function model($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw;if ( /* DEBUG */false) {
+    let $funcLib = $funcLibRaw;let $tap;if ( /* DEBUG */false) {
       $funcLib = !$funcLibRaw || typeof Proxy === 'undefined' ? $funcLibRaw : new Proxy($funcLibRaw, { get: (target, functionName) => {
           if (target[functionName]) {
             return target[functionName];
@@ -1236,7 +1244,9 @@ const modelBuilder = (function () {
         }return Math[name](arg);
       };
     }function checkTypes(input, name, types, functionName, source) {
-      function checkType(type) {
+      if ($tap) {
+        $tap({ input, name, types, functionName, source });
+      }function checkType(type) {
         const isArray = Array.isArray(input);return type == 'array' && isArray || type === typeof input && !isArray;
       }if (types.some(checkType)) {
         return;
@@ -1806,6 +1816,8 @@ const modelBuilder = (function () {
         $listeners.delete(func);
       }, $setBatchingStrategy: func => {
         $batchingStrategy = func;
+      }, $setTapFunction: func => {
+        $tap = func;
       } });if ( /* DEBUG */false) {
       Object.assign($res, { $ast: () => {
           return null;
