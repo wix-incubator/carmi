@@ -69,6 +69,7 @@
     "babel-plugin-tester": "^5.5.1",
     "eslint": "^5.14.1",
     "eslint-config-wix-editor": "^7.0.0",
+    "eslint-plugin-import": "^2.24.0",
     "invert-promise": "^1.0.1",
     "jest": "^23.6.0",
     "mobx": "^5.0.2",

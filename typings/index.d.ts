@@ -1065,8 +1065,37 @@ export interface CarmiAPI<Schema extends object = any, F extends FunctionLibrary
 	arg0: Token
 	arg1: Token
 	arg2: Token
+
+	/**
+	 * This api allow the usage of the destructuring javascript syntax on carmi objects
+	 * @example
+	 * const { root, template } = require('carmi');
+	 * const { a, b } = destruct(root)
+	 * const instance = createInstance({
+	 *   output: a.plus(b)
+	 * }, {a: 1, b: 1});
+	 * @param obj an object
+	 */
+	destruct<T extends ObjectGraph<any, F>>(
+		obj: T
+	): { [key in keyof T['$value']]: Graph<T['$value'][key], F> }
+
+	/**
+	 * This api allow the usage of the destructuring javascript syntax on carmi arrays
+	 * @example
+	 * const { root, template } = require('carmi');
+	 * const [, b, c] = destruct(root)
+	 * const instance = createInstance({
+	 *   output: b.plus(c)
+	 * }, [1, 2, 3]);
+	 * @param obj an object
+	 */
+	 destruct<T extends ArrayGraph<any[], F>>(
+		obj: T
+	): Array<Graph<T['$value'][number], F>>
 }
 
+export const destruct: CarmiAPI['destruct']
 export const bind: CarmiAPI['bind']
 export const or: CarmiAPI['or']
 export const and: CarmiAPI['and']
