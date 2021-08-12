@@ -12,6 +12,7 @@ const {
   withName
 } = require('./src/lang');
 const {getCurrentLine} = require('./src/currentLine');
+const {destruct} = require('./src/utils/destruct');
 
 const GLOBAL_TOKEN = '__$CARMI$__';
 if (global[GLOBAL_TOKEN]) {
@@ -29,6 +30,7 @@ const sugar = require('./src/sugar');
 initProxyHandler({sugar, unwrapableProxy, expressionBuilder, frontend});
 
 const API = {
+  destruct,
   compile,
   setter: Setter,
   splice: Splice,
