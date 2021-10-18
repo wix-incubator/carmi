@@ -755,7 +755,8 @@ describe('testing array', () => {
     it('join', () => {
       const model = {
         joinWithDelimiter: root.join(' '),
-        joinNoDelimiter: root.join()
+        joinNoDelimiter: root.join(),
+        joinEmptyStringDelimiter: root.join('')
       }
       const code = compile(model, {compiler});
       const optModel = evalOrLoad(code);
@@ -764,6 +765,7 @@ describe('testing array', () => {
       const inst = optModel(initialData);
       expect(inst.joinWithDelimiter).toEqual('join succeeded');
       expect(inst.joinNoDelimiter).toEqual('join,succeeded');
+      expect(inst.joinEmptyStringDelimiter).toEqual('joinsucceeded');
   })
 
     describe('every', () => {

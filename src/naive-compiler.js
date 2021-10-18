@@ -152,9 +152,10 @@ class NaiveCompiler {
       case 'get':
         return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
       case 'join': {
-        const value = expr.length === 3 ? expr[2] : expr[1];
-        const delimiter = expr.length === 3 && expr[1];
-        return `Array.prototype.join.call(${this.generateExpr(value)}${delimiter ? `, ${this.generateExpr(delimiter)})` : ')'}`
+        const hasDelimiter = expr.length === 3
+        const value = hasDelimiter ? expr[2] : expr[1];
+        const delimiter = hasDelimiter && expr[1];
+        return `Array.prototype.join.call(${this.generateExpr(value)}${hasDelimiter ? `, ${this.generateExpr(delimiter)})` : ')'}`
       }
       case 'mapValues':
       case 'filterBy':
