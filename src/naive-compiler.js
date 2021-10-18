@@ -151,6 +151,10 @@ class NaiveCompiler {
         return `(${this.getNativeStringFunction(tokenType, source)}).call(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${this.generateExpr(expr[3])})`;
       case 'get':
         return `${this.generateExpr(expr[2])}[${this.generateExpr(expr[1])}]`;
+      case 'join':
+        const value = expr.length === 3 ? expr[2] : expr[1];
+        const delimiter = expr.length === 3 && expr[1];
+        return `Array.prototype.join.call(${this.generateExpr(value)}${delimiter ? `, ${this.generateExpr(delimiter)})` : ')'}`
       case 'mapValues':
       case 'filterBy':
       case 'groupBy':

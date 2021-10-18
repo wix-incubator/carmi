@@ -651,11 +651,11 @@ interface ArrayGraphImpl<
 	 * @sugar */
 	find<Scope>(functor: (value: ValueGraph, key: KeyGraph, scope: Scope) => Argument<boolean>, scope?: Scope): ValueGraph
 
-	/**
-	 * Joins an array of strings to a single string, like `NativeType.join(separator)`.
-	 * @param separator
-	 * @sugar */
-	join(separator: Argument<string>): Value extends string ? StringGraph<string, F> : never
+    /**
+     * Adds all the elements of an array into a string, separated by the specified separator string.
+     * @param separator A string used to separate one element of the array from the next in the resulting string. If omitted, the array elements are separated with a comma.
+     */
+	 join(separator?: Argument<string>): StringGraph<string, F>
 
 	/**
 	 * Returns an array graph with an additional element (value) at the end.

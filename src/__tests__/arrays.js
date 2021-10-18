@@ -752,6 +752,19 @@ describe('testing array', () => {
       const inst = optModel(initialData);
       expect(inst.compact).toEqual(_.compact(initialData.data));
     });
+    it('join', () => {
+      const model = {
+        joinWithDelimiter: root.join(' '),
+        joinNoDelimiter: root.join()
+      }
+      const code = compile(model, { compiler });
+      const optModel = evalOrLoad(code);
+      const initialData = ['join', 'succeeded'];
+
+      const inst = optModel(initialData);
+      expect(inst.joinWithDelimiter).toEqual('join succeeded');
+      expect(inst.joinNoDelimiter).toEqual('join,succeeded');
+  })
 
     describe('every', () => {
       it('should return true if predicate returns truthy for all elements in the array', () => {

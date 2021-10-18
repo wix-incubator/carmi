@@ -47,6 +47,7 @@ const TokenTypeData = {
   ternary: new TokenTypes({nonChained: true, chainIndex: 1, len: [4, 4]}),
   trace: new TokenTypes({chainIndex: 2, len: [2, 4]}),
   get: new TokenTypes({chainIndex: 2, len: [3, 3]}),
+  join: new TokenTypes({chainIndex: 2, len: [2, 3], expectedTypes: ['array']}),
   root: new TokenTypes({nonVerb: true}),
   topLevel: new TokenTypes({nonVerb: true, private: true}),
   mapValues: new TokenTypes({collectionVerb: true, chainIndex: 2, len: [3, 4], stable: true}),
