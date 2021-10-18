@@ -757,7 +757,7 @@ describe('testing array', () => {
         joinWithDelimiter: root.join(' '),
         joinNoDelimiter: root.join()
       }
-      const code = compile(model, { compiler });
+      const code = compile(model, {compiler});
       const optModel = evalOrLoad(code);
       const initialData = ['join', 'succeeded'];
 
