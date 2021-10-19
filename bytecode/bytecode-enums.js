@@ -65,7 +65,8 @@ module.exports.$isNumber = 61;
 module.exports.$isArray = 62;
 module.exports.$quote = 63;
 module.exports.$trackPath = 64;
-module.exports.VerbsCount = 65;
+module.exports.$join = 65;
+module.exports.VerbsCount = 66;
 module.exports.Verbs = {
   $and: 0,
   $or: 1,
@@ -131,7 +132,8 @@ module.exports.Verbs = {
   $isNumber: 61,
   $isArray: 62,
   $quote: 63,
-  $trackPath: 64
+  $trackPath: 64,
+  $join: 65
 };
 
 
@@ -225,5 +227,5 @@ module.exports.setterTypes = {
 // }
 
 // root_type Bytecode;
-// 
+//
 

@@ -237,6 +237,17 @@ module.exports.$isArray = function $isArray($offset, $len) {
     this.$stack.push(Array.isArray(arg0));
 }
 
+module.exports.$join = function $join($offset, $length) {
+  let delimiter
+  if ($length === 3) {
+    this.processValue(this.$expressions[++$offset])
+    delimiter = this.$stack.pop();
+  }
+  this.processValue(this.$expressions[++$offset])
+  const arg0 = this.$stack.pop();
+    this.$stack.push(Array.prototype.join.call(arg0, delimiter));
+}
+
 module.exports.$quote = function $quote($offset, $len) {
  this.processValue(this.$expressions[++$offset])
   const arg0 = this.$stack.pop();

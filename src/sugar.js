@@ -52,10 +52,6 @@ function find(collection, predicate, givenCtx) {
   return collection.values().filter((val, key, ctx) => predicate(val, key, ctx), givenCtx || null).get(0)
 }
 
-function join(arr, separator) {
-  return reduce(arr, (acc, value, index) => index.eq(0).ternary(acc.plus(value), acc.plus(separator).plus(value)), '')
-}
-
 function append(arr, value) {
   return chain([arr, [value]]).flatten()
   //return arr.size().plus(1).range().map(v => v.lt(arr.size()).ternary(arr.get(v), value))
@@ -163,7 +159,6 @@ const sugarApi = {
   intersection,
   concat,
   find,
-  join,
   append,
   setIn,
   pick,
