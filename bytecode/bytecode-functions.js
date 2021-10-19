@@ -237,7 +237,7 @@ module.exports.$isArray = function $isArray($offset, $len) {
     this.$stack.push(Array.isArray(arg0));
 }
 
-module.exports.$join = function $isArray($offset, $length) {
+module.exports.$join = function $join($offset, $length) {
   let delimiter
   if ($length === 3) {
     this.processValue(this.$expressions[++$offset])
