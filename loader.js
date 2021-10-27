@@ -7,6 +7,7 @@ const execa = require('execa')
 const dargs = require('dargs')
 const tempy = require('tempy')
 const fs = require('fs-extra')
+const path = require('path')
 const loaderUtils = require('loader-utils')
 const getCacheFilePath = require('./src/get-cache-file-path')
 const queue = []
@@ -27,7 +28,15 @@ function finish() {
 	item.resolve()
 }
 
+function getUserConfig() {
+  const userConfigPath = path.join(process.cwd(), 'carmi.config.js')
+  const isUserConfigFileExists = fs.existsSync(userConfigPath)
+  return isUserConfigFileExists ? require(isUserConfigFileExists) : {}
+}
+const userConfig = getUserConfig()
+
 async function CarmiLoader(loader) {
+
 	const callback = loader.async()
 	const tempOutputPath = tempy.file({extension: 'js'})
 	const loaderOptions = loaderUtils.getOptions(loader) || {}
@@ -37,7 +46,8 @@ async function CarmiLoader(loader) {
 		format: 'cjs',
 		output: tempOutputPath,
 		debug: process.env.NODE_ENV !== 'production',
-		...loaderOptions
+		...loaderOptions,
+    ...userConfig
 	}
 
     options.stats = getCacheFilePath({
@@ -45,7 +55,8 @@ async function CarmiLoader(loader) {
        path: options.source,
        debug: options.debug,
        format: options.format,
-       name: 'model'
+       name: 'model',
+      ...userConfig
     });
 
 	await addToQueue()
