@@ -28,12 +28,6 @@ function finish() {
 	item.resolve()
 }
 
-function getUserConfig() {
-  const userConfigPath = path.join(process.cwd(), 'carmi.config.js')
-  const isUserConfigFileExists = fs.existsSync(userConfigPath)
-  return isUserConfigFileExists ? require(isUserConfigFileExists) : {}
-}
-const userConfig = getUserConfig()
 
 async function CarmiLoader(loader) {
 
@@ -47,7 +41,6 @@ async function CarmiLoader(loader) {
 		output: tempOutputPath,
 		debug: process.env.NODE_ENV !== 'production',
 		...loaderOptions,
-    ...userConfig
 	}
 
     options.stats = getCacheFilePath({
@@ -56,7 +49,6 @@ async function CarmiLoader(loader) {
        debug: options.debug,
        format: options.format,
        name: 'model',
-      ...userConfig
     });
 
 	await addToQueue()

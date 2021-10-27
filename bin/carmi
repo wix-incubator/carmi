@@ -50,7 +50,17 @@ ${optionDefinitions
   .join('\n')}
 `;
 
-const options = commandLineArgs(optionDefinitions);
+function getUserConfig() {
+  const userConfigPath = path.join(process.cwd(), 'carmi.config.js')
+  const isUserConfigFileExists = fs.existsSync(userConfigPath)
+  return isUserConfigFileExists ? require(isUserConfigFileExists) : {}
+}
+const userConfig = getUserConfig()
+
+const options = {
+  ...commandLineArgs(optionDefinitions),
+  ...userConfig
+};
 
 async function run() {
   if (options.help) {
@@ -85,7 +95,8 @@ async function run() {
       debug: options.debug,
       format: options.format,
       prettier: options.prettier,
-      name: options.name
+      name: options.name,
+      ...userConfig
     })
 
   const statsExists = fs.existsSync(statsFilePath)
