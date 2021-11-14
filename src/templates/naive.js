@@ -197,7 +197,7 @@ function recursiveMapValues() {
 function library() {
   function mapValues(func, src, context) {
     return Object.keys(src).reduce((acc, key) => {
-      acc[key] = func(src[key], key, context);
+      acc[key] = src[key] ? func(src[key], key, context) : undefined;
       return acc;
     }, {});
   }
