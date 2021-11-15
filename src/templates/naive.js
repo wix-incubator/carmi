@@ -293,7 +293,7 @@ function library() {
   function loopFunction(resolved, res, func, src, context, key) {
     if (!resolved[key]) {
       resolved[key] = true;
-      res[key] = src[key] ? func(src[key], key, context, loopFunction.bind(null, resolved, res, func, src, context)) : undefined;
+      res[key] = src.hasOwnProperty(key) ? func(src[key], key, context, loopFunction.bind(null, resolved, res, func, src, context)) : undefined;
     }
     return res[key];
   }
