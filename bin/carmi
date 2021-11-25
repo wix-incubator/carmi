@@ -120,7 +120,8 @@ async function run() {
     format: options.format,
     prettier: options.prettier,
     dependenciesHashes,
-    name: options.name
+    name: options.name,
+    compiler: options.compiler || 'optimizing'
   });
 
   let code;
