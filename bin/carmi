@@ -85,7 +85,8 @@ async function run() {
       debug: options.debug,
       format: options.format,
       prettier: options.prettier,
-      name: options.name
+      name: options.name,
+      compiler: options.compiler
     })
 
   const statsExists = fs.existsSync(statsFilePath)
