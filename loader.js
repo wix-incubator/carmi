@@ -45,7 +45,7 @@ async function CarmiLoader(loader) {
        path: options.source,
        debug: options.debug,
        format: options.format,
-	   compiler: options.compiler || 'optimized',
+	   compiler: options.compiler || 'optimizing',
        name: 'model'
     });
 
