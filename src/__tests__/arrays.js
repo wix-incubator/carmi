@@ -1,3 +1,4 @@
+const path = require('path')
 const {compile, and, or, root, arg0, arg1, setter, splice, bind, chain} = require('../../index');
 const {
   describeCompilers,
@@ -10,7 +11,7 @@ const {
 const _ = require('lodash');
 
 describe('testing array', () => {
-  describeCompilers(['simple', 'optimizing', 'bytecode'], compiler => {
+  describeCompilers(['optimizing'], compiler => {
     describe('map', () => {
       it('simple map', () => {
         const model = {negated: root.map(val => val.not().call('tap')), set: setter(arg0)};
@@ -154,7 +155,8 @@ describe('testing array', () => {
         setArr: setter('arr', arg0),
         setCompareTo: setter('compareTo')
       };
-      const optModel = evalOrLoad(compile(model, {compiler}));
+      const compiled = compile(model, {compiler});
+      const optModel = evalOrLoad(compiled.replace ? compiled.replace('carmi/src/lib', path.resolve(__dirname, '../lib')) : compiled);
       const inst = optModel({arr: [0, 1, 2, 3, 4], compareTo: 2}, funcLibrary);
       expect(currentValues(inst)).toEqual({
         greaterThan: [false, false, false, true, true],

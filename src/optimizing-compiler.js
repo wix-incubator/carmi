@@ -21,6 +21,7 @@ class OptimizingCompiler extends SimpleCompiler {
     return Object.assign({}, super.topLevelOverrides(), {
       RESET: `$first = false;
 $tainted = new WeakSet();
+updateTainted($tainted);
 `,
       DERIVED: 'updateDerived()'
     });
@@ -35,7 +36,7 @@ $tainted = new WeakSet();
       }
     });
     const countTopLevels = realGetters.length;
-    
+
     return `
     const $topLevel = new Array(${countTopLevels}).fill(null);
     ${super.allExpressions()}
@@ -91,7 +92,7 @@ $tainted = new WeakSet();
   wrapExprCondPart(expr, indexInExpr) {
     if (!expr[0].$tracked) {
       return `(${this.generateExpr(expr[indexInExpr])})`;
-    } 
+    }
       return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`;
   }
 
@@ -113,20 +114,20 @@ $tainted = new WeakSet();
         return '$topLevel';
       case 'and':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('&&') 
+            .join('&&')
           })`
         );
       case 'or':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('||') 
+            .join('||')
           })`
         );
       case 'ternary':

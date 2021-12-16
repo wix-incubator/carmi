@@ -3,43 +3,44 @@ function base() {
     let $funcLib = $funcLibRaw
 
     if ($DEBUG_MODE) {
-    $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
-      get: (target, functionName) => {
-        if (target[functionName]) {
-          return target[functionName]
+      $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
+        get: (target, functionName) => {
+          if (target[functionName]) {
+            return target[functionName]
+          }
+
+          throw new TypeError(`Trying to call undefined function: ${functionName} `)
+        }
+      })
+    }
+
+    function mathFunction(name, source) {
+      return arg => {
+        const type = typeof arg
+        if (type !== 'number') {
+          throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
         }
 
-        throw new TypeError(`Trying to call undefined function: ${functionName} `)
-    }})
-  }
+        return Math[name](arg)
+      }
+    }
 
-  function mathFunction(name, source) {
-    return arg => {
-      const type = typeof arg
-      if (type !== 'number') {
-        throw new TypeError(`Trying to call ${JSON.stringify(arg)}.${name}. Expects number, received ${type} at ${source}`)
+    function checkTypes(input, name, types, functionName, source) {
+      function checkType(type) {
+        const isArray = Array.isArray(input)
+        return type == 'array' && isArray || (type === typeof input && !isArray)
       }
 
-      return Math[name](arg)
-    }
-  }
+      if (types.some(checkType)) {
+        return
+      }
 
-  function checkTypes(input, name, types, functionName, source) {
-    function checkType(type) {
-      const isArray = Array.isArray(input)
-      return type == 'array' && isArray || (type === typeof input && !isArray)
-    }
+      const asString = typeof input === 'object' ? JSON.stringify(input) : input
 
-    if (types.some(checkType)) {
-      return
+      throw new TypeError(`${functionName} expects ${types.join('/')}. ${name} at ${source}: ${asString}.${functionName}`)
     }
 
-    const asString = typeof input === 'object' ? JSON.stringify(input) : input
-
-    throw new TypeError(`${functionName} expects ${types.join('/')}. ${name} at ${source}: ${asString}.${functionName}`)
-  }
-
-  const $res = { $model };
+    const $res = { $model };
     const $listeners = new Set();
     /* LIBRARY */
     /* ALL_EXPRESSIONS */
@@ -114,7 +115,7 @@ function base() {
 
     Object.assign(
       $res,
-      {$SETTERS},
+      { $SETTERS },
       {
         $startBatch: () => {
           $inBatch = true;
@@ -166,7 +167,7 @@ function base() {
 
 function func() {
   function $FUNCNAME(val, key, context) {
-      return $EXPR1;
+    return $EXPR1;
   }
 }
 
@@ -178,7 +179,7 @@ function topLevel() {
 
 function recursiveMap() {
   function $FUNCNAME(val, key, context, loop) {
-      return $EXPR1;
+    return $EXPR1;
   }
 }
 
@@ -195,148 +196,37 @@ function recursiveMapValues() {
 }
 
 function library() {
-  function mapValues(func, src, context) {
-    return Object.keys(src).reduce((acc, key) => {
-      acc[key] = func(src[key], key, context);
-      return acc;
-    }, {});
-  }
-
-  function filterBy(func, src, context) {
-    return Object.keys(src).reduce((acc, key) => {
-      if (func(src[key], key, context)) {
-        acc[key] = src[key];
-      }
-      return acc;
-    }, {});
-  }
-
-  function groupBy(func, src, context) {
-    if (Array.isArray(src)) {
-      throw new Error('groupBy only works on objects');
-    }
-    return Object.keys(src).reduce((acc, key) => {
-      const newKey = func(src[key], key, context);
-      acc[newKey] = acc[newKey] || {};
-      acc[newKey][key] = src[key];
-      return acc;
-    }, {});
-  }
-
-  function mapKeys(func, src, context) {
-    return Object.keys(src).reduce((acc, key) => {
-      const newKey = func(src[key], key, context);
-      acc[newKey] = src[key];
-      return acc;
-    }, {});
-  }
-
-  function map(func, src, context) {
-    return src.map((val, key) => func(val, key, context));
-  }
-
-  function any(func, src, context) {
-    return src.some((val, key) => func(val, key, context));
-  }
-
-  function filter(func, src, context) {
-    return src.filter((val, key) => func(val, key, context));
-  }
-
-  function anyValues(func, src, context) {
-    return Object.keys(src).some(key => func(src[key], key, context));
-  }
-
-  function keyBy(func, src, context) {
-    return src.reduce((acc, val, key) => {
-      acc[func(val, key, context)] = val;
-      return acc;
-    }, {});
-  }
-
-  function keys(src) {
-    return Array.from(Object.keys(src));
-  }
-
-  function values(src) {
-    return Array.isArray(src) ? src : Array.from(Object.values(src));
-  }
-
-  function assign(src) {
-    return Object.assign({}, ...src);
-  }
-
-  function size(src) {
-    return Array.isArray(src) ? src.length : Object.keys(src).length;
-  }
-
-  function isEmpty(src) {
-    return Array.isArray(src) ? src.length === 0 : Object.keys(src).length === 0;
-  }
-
-  function last(src) {
-    return src[src.length - 1];
-  }
-
-  function range(end, start = 0, step = 1) {
-    const res = [];
-    for (let val = start; (step > 0 && val < end) || (step < 0 && val > end); val += step) {
-      res.push(val);
-    }
-    return res;
-  }
-
-  function defaults(src) {
-    return Object.assign({}, ...[...src].reverse());
-  }
-
-  function loopFunction(resolved, res, func, src, context, key) {
-    if (!resolved[key]) {
-      resolved[key] = true;
-      res[key] = func(src[key], key, context, loopFunction.bind(null, resolved, res, func, src, context));
-    }
-    return res[key];
-  }
-
-  function sum(src) {
-    return src.reduce((sum, val) => sum + val, 0)
-  }
-
-  function flatten(src) {
-    return [].concat(...src)
-  }
-
-  function recursiveMap(func, src, context) {
-    const res = [];
-    const resolved = src.map(x => false);
-    src.forEach((val, key) => {
-      loopFunction(resolved, res, func, src, context, key);
-    });
-    return res;
-  }
-
-  function recursiveMapValues(func, src, context) {
-    const res = {};
-    const resolved = {};
-    Object.keys(src).forEach(key => (resolved[key] = false));
-    Object.keys(src).forEach(key => {
-      loopFunction(resolved, res, func, src, context, key);
-    });
-    return res;
-  }
-
-  function set(path, value) {
-    ensurePath(path)
-    applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
-  }
-
-  function splice(pathWithKey, len, ...newItems) {
-    ensurePath(pathWithKey)
-    const key = pathWithKey[pathWithKey.length - 1]
-    const path = pathWithKey.slice(0, pathWithKey.length - 1)
-    const arr = getAssignableObject(path, path.length)
-    arr.splice(key, len, ...newItems)
-  }
+  const { createLibrary } = require('carmi/src/lib/naive')
+  const {
+    mapValues,
+    filterBy,
+    groupBy,
+    mapKeys,
+    map,
+    any,
+    filter,
+    anyValues,
+    keyBy,
+    keys,
+    values,
+    assign,
+    size,
+    isEmpty,
+    last,
+    range,
+    defaults,
+    loopFunction,
+    sum,
+    flatten,
+    recursiveMap,
+    recursiveMapValues,
+    set,
+    splice
+  } = createLibrary({
+    ensurePath,
+    applySetter,
+    getAssignableObject
+  });
 }
 
 module.exports = { base, library, func, topLevel, helperFunc, recursiveMapValues, recursiveMap };
