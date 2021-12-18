@@ -52,7 +52,7 @@ function evalOrLoad(src) {
       // eslint-disable-next-line no-eval
       return eval(src);
     } catch (e) {
-      require('fs').writeFileSync('./new.js', src);
+      require('fs').writeFileSync('./tmp.js', src);
       throw e;
     }
   }

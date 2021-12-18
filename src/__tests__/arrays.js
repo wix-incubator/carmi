@@ -11,7 +11,7 @@ const {
 const _ = require('lodash');
 
 describe('testing array', () => {
-  describeCompilers(['optimizing'], compiler => {
+  describeCompilers(['simple', 'optimizing', 'bytecode'], compiler => {
     describe('map', () => {
       it('simple map', () => {
         const model = {negated: root.map(val => val.not().call('tap')), set: setter(arg0)};
