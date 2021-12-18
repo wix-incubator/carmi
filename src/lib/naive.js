@@ -1,12 +1,22 @@
-function createLibrary({ensurePath, applySetter, getAssignableObject}) {
-  function mapValues(func, src, context) {
+/* eslint-disable arrow-body-style */
+
+const {createUtils} = require('./utils')
+
+const createLibrary = (model) => {
+  const {
+    ensurePath,
+    getAssignableObject,
+    applySetter
+  } = createUtils(model)
+
+  const mapValues = (func, src, context) => {
     return Object.keys(src).reduce((acc, key) => {
       acc[key] = func(src[key], key, context);
       return acc;
     }, {});
   }
 
-  function filterBy(func, src, context) {
+  const filterBy = (func, src, context) => {
     return Object.keys(src).reduce((acc, key) => {
       if (func(src[key], key, context)) {
         acc[key] = src[key];
@@ -15,7 +25,7 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     }, {});
   }
 
-  function groupBy(func, src, context) {
+  const groupBy = (func, src, context) => {
     if (Array.isArray(src)) {
       throw new Error('groupBy only works on objects');
     }
@@ -27,7 +37,7 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     }, {});
   }
 
-  function mapKeys(func, src, context) {
+  const mapKeys = (func, src, context) => {
     return Object.keys(src).reduce((acc, key) => {
       const newKey = func(src[key], key, context);
       acc[newKey] = src[key];
@@ -35,54 +45,54 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     }, {});
   }
 
-  function map(func, src, context) {
+  const map = (func, src, context) => {
     return src.map((val, key) => func(val, key, context));
   }
 
-  function any(func, src, context) {
+  const any = (func, src, context) => {
     return src.some((val, key) => func(val, key, context));
   }
 
-  function filter(func, src, context) {
+  const filter = (func, src, context) => {
     return src.filter((val, key) => func(val, key, context));
   }
 
-  function anyValues(func, src, context) {
+  const anyValues = (func, src, context) => {
     return Object.keys(src).some(key => func(src[key], key, context));
   }
 
-  function keyBy(func, src, context) {
+  const keyBy = (func, src, context) => {
     return src.reduce((acc, val, key) => {
       acc[func(val, key, context)] = val;
       return acc;
     }, {});
   }
 
-  function keys(src) {
+  const keys = (src) => {
     return Array.from(Object.keys(src));
   }
 
-  function values(src) {
+  const values = (src) => {
     return Array.isArray(src) ? src : Array.from(Object.values(src));
   }
 
-  function assign(src) {
+  const assign = (src) => {
     return Object.assign({}, ...src);
   }
 
-  function size(src) {
+  const size = (src) => {
     return Array.isArray(src) ? src.length : Object.keys(src).length;
   }
 
-  function isEmpty(src) {
+  const isEmpty = (src) => {
     return Array.isArray(src) ? src.length === 0 : Object.keys(src).length === 0;
   }
 
-  function last(src) {
+  const last = (src) => {
     return src[src.length - 1];
   }
 
-  function range(end, start = 0, step = 1) {
+  const range = (end, start = 0, step = 1) => {
     const res = [];
     // eslint-disable-next-line no-unmodified-loop-condition
     for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
@@ -91,11 +101,11 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     return res;
   }
 
-  function defaults(src) {
+  const defaults = (src) => {
     return Object.assign({}, ...[...src].reverse());
   }
 
-  function loopFunction(resolved, res, func, src, context, key) {
+  const loopFunction = (resolved, res, func, src, context, key) => {
     if (!resolved[key]) {
       resolved[key] = true;
       res[key] = src.hasOwnProperty(key) ? func(src[key], key, context, loopFunction.bind(null, resolved, res, func, src, context)) : undefined;
@@ -103,15 +113,15 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     return res[key];
   }
 
-  function sum(src) {
+  const sum = (src) => {
     return src.reduce((sum, val) => sum + val, 0)
   }
 
-  function flatten(src) {
+  const flatten = (src) => {
     return [].concat(...src)
   }
 
-  function recursiveMap(func, src, context) {
+  const recursiveMap = (func, src, context) => {
     const res = [];
     const resolved = src.map(x => false);
     src.forEach((val, key) => {
@@ -120,7 +130,7 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     return res;
   }
 
-  function recursiveMapValues(func, src, context) {
+  const recursiveMapValues = (func, src, context) => {
     const res = {};
     const resolved = {};
     Object.keys(src).forEach(key => resolved[key] = false);
@@ -130,12 +140,12 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     return res;
   }
 
-  function set(path, value) {
+  const set = (path, value) => {
     ensurePath(path)
     applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
   }
 
-  function splice(pathWithKey, len, ...newItems) {
+  const splice = (pathWithKey, len, ...newItems) => {
     ensurePath(pathWithKey)
     const key = pathWithKey[pathWithKey.length - 1]
     const path = pathWithKey.slice(0, pathWithKey.length - 1)
@@ -143,31 +153,39 @@ function createLibrary({ensurePath, applySetter, getAssignableObject}) {
     arr.splice(key, len, ...newItems)
   }
 
+  const push = (path, value) => {
+    ensurePath([...path, 0])
+    const arr = getAssignableObject(path, path.length)
+    splice([...path, arr.length], 0, value)
+  }
+
+
   return {
-    mapValues,
-    filterBy,
-    groupBy,
-    mapKeys,
-    map,
     any,
-    filter,
     anyValues,
+    assign,
+    defaults,
+    filter,
+    filterBy,
+    flatten,
+    groupBy,
+    isEmpty,
     keyBy,
     keys,
-    values,
-    assign,
-    size,
-    isEmpty,
     last,
-    range,
-    defaults,
     loopFunction,
-    sum,
-    flatten,
+    map,
+    mapKeys,
+    mapValues,
+    push,
+    range,
     recursiveMap,
     recursiveMapValues,
     set,
+    size,
     splice,
+    sum,
+    values
   }
 }
 

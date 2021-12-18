@@ -160,7 +160,7 @@ updateTainted($tainted);
       case 'flatten':
       case 'assign':
       case 'defaults':
-        return `${tokenType}Opt($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
+        return `${tokenType}($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'range':
         return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
@@ -176,7 +176,7 @@ updateTainted($tainted);
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-        return `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
+        return `${tokenType}($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
         typeof expr[3] === 'undefined' || expr[3] instanceof Token && expr[3].$type === 'null' ?

@@ -63,7 +63,7 @@ ${defineEnum('setterTypes', setterTypes)}
 // }
 
 // root_type Bytecode;
-// 
+//
 
 `;
 fs.writeFileSync(path.join(__dirname, '..', 'bytecode', 'bytecode-enums.js'), enums);
@@ -310,8 +310,8 @@ const visitorsPointFunctionsToThis = {
 
 const functionsById = functions.reduce((acc, f) => ({...acc, [f.id.name]: f}), {});
 const verbFunctions = Object.keys(functionsById).reduce((acc, name) => {
-  if (verbsSet.has(name) || verbsSet.has(name.replace('Opt', ''))) {
-    return {...acc, [verbsSet.has(name) ? name : name.replace('Opt', '')]: functionsById[name]};
+  if (verbsSet.has(name)) {
+    return {...acc, [name]: functionsById[name]};
   }
   return acc;
 }, {});
@@ -378,7 +378,7 @@ const snippets = _.mapValues(
       } else {
         this.$stack.push(0);
       }
-    }, 
+    },
     start: ($offset, $length) => {
       const start = this.$stack.pop();
     },

@@ -63,43 +63,6 @@ function base() {
       }
     }
 
-    function ensurePath(path) {
-      if (path.length < 2) {
-        return
-      }
-
-      if (path.length > 2) {
-        ensurePath(path.slice(0, path.length - 1))
-      }
-
-      const lastObjectKey = path[path.length - 2]
-
-      const assignable = getAssignableObject(path, path.length - 2)
-      if (assignable[lastObjectKey]) {
-        return
-      }
-      const lastType = typeof path[path.length - 1]
-      assignable[lastObjectKey] = lastType === 'number' ? [] : {}
-    }
-
-    function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model)
-    }
-
-    function push(path, value) {
-      ensurePath([...path, 0])
-      const arr = getAssignableObject(path, path.length)
-      splice([...path, arr.length], 0, value)
-    }
-
-    function applySetter(object, key, value) {
-      if (typeof value === 'undefined') {
-        delete object[key]
-      } else {
-        object[key] = value;
-      }
-    }
-
     function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
         $batchPending.push({ func, args });
@@ -221,12 +184,9 @@ function library() {
     recursiveMap,
     recursiveMapValues,
     set,
-    splice
-  } = createLibrary({
-    ensurePath,
-    applySetter,
-    getAssignableObject
-  });
+    splice,
+    push,
+  } = createLibrary($model);
 }
 
 module.exports = { base, library, func, topLevel, helperFunc, recursiveMapValues, recursiveMap };

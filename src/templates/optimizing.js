@@ -8,56 +8,38 @@ function library() {
   let $tainted = new WeakSet();
   $invalidatedMap.set($res, $invalidatedRoots);
   const {
-    updateTainted,
-    untrack,
-    invalidate,
-    setOnObject,
-    deleteOnObject,
-    setOnArray,
-    truncateArray,
-    track,
+		any,
+		anyValues,
+		array,
+		assign,
+		bind,
+		call,
+		defaults,
+		filter,
+		filterBy,
+		flatten,
+		groupBy,
+		isEmpty,
+		keyBy,
+		keys,
+		last,
+		map,
+		mapKeys,
+		mapValues,
+        object,
+		push,
+		range,
+		recursiveMap,
+		recursiveMapValues,
+		set,
+		size,
+		splice,
+		sum,
     trackPath,
-    triggerInvalidations,
-    initOutput,
-    emptyObj,
-    emptyArr,
-    nullFunc,
-    mapValuesOpt,
-    filterByOpt,
-    mapOpt,
-    recursiveSteps,
-    cascadeRecursiveInvalidations,
-    recursiveCacheFunc,
-    recursiveMapOpt,
-    recursiveMapValuesOpt,
-    keyByOpt,
-    mapKeysOpt,
-    filterCacheFunc,
-    filterOpt,
-    anyOpt,
-    anyValuesOpt,
-    groupByOpt,
-    valuesOrKeysCacheFunc,
-    valuesOpt,
-    keysOpt,
-    getEmptyArray,
-    getEmptyObject,
-    array,
-    object,
-    call,
-    bind,
-    assignOpt,
-    defaultsOpt,
-    flattenOpt,
-    size,
-    isEmpty,
-    last,
-    sumOpt,
-    range,
-    invalidatePath,
-    set,
-    splice
-  } = library({
+		values,
+		updateModel,
+		updateTainted
+  } = library(
     $trackingMap,
     $trackingWildcards,
     $invalidatedMap,
@@ -65,10 +47,8 @@ function library() {
     $res,
     $funcLib,
     $funcLibRaw,
-    getAssignableObject,
-    ensurePath,
-    applySetter
-  })
+    $model
+  )
 
 }
 
@@ -90,7 +70,6 @@ function object() {
 
 function array() {
 }
-
 
 function func() {
   function $FUNCNAME($tracked, key, val, context) {
@@ -124,20 +103,8 @@ const base = require('./naive').base;
 function updateDerived() {
   const builderFunctions = [/*BUILDER_FUNCS*/];
   const builderNames = [/*BUILDER_NAMES*/];
-  function updateDerived() {
-    for (let i = 0; i < $COUNT_GETTERS; i++) {
-      if ($first || $invalidatedRoots.has(i)) {
-        const newValue = builderFunctions[i]([$invalidatedRoots, i]);
-        setOnArray($topLevel, i, newValue, $first);
-        if (!$first) {
-          $invalidatedRoots.delete(i);
-        }
-        if (builderNames[i]) {
-          $res[builderNames[i]] = newValue;
-        }
-      }
-    }
-  }
+
+  const updateDerived = () => updateModel($COUNT_GETTERS, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res)
 }
 
 module.exports = {

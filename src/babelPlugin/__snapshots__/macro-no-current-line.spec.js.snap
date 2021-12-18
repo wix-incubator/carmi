@@ -31,45 +31,17 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { updateTainted, untrack, invalidate, setOnObject, deleteOnObject, setOnArray, truncateArray, track, trackPath, triggerInvalidations, initOutput, emptyObj, emptyArr, nullFunc, mapValuesOpt, filterByOpt, mapOpt, recursiveSteps, cascadeRecursiveInvalidations, recursiveCacheFunc, recursiveMapOpt, recursiveMapValuesOpt, keyByOpt, mapKeysOpt, filterCacheFunc, filterOpt, anyOpt, anyValuesOpt, groupByOpt, valuesOrKeysCacheFunc, valuesOpt, keysOpt, getEmptyArray, getEmptyObject, array, object, call, bind, assignOpt, defaultsOpt, flattenOpt, size, isEmpty, last, sumOpt, range, invalidatePath, set, splice } = library({ $trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, getAssignableObject, ensurePath, applySetter });const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
+    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, updateTainted } = library($trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, $model);const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
       const newValue = call($tracked, [\\"createElement\\", $topLevel[0]], 2, 2);return newValue;
     }function $array_unknown_2_0_1Build($tracked) {
       const newValue = array($tracked, [\\"div\\", null, $model[0]], 5, 3);return newValue;
-    }const builderFunctions = [$array_unknown_2_0_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];function updateDerived() {
-      for (let i = 0; i < 2; i++) {
-        if ($first || $invalidatedRoots.has(i)) {
-          const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, $first);if (!$first) {
-            $invalidatedRoots.delete(i);
-          }if (builderNames[i]) {
-            $res[builderNames[i]] = newValue;
-          }
-        }
-      }
-    }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
+    }const builderFunctions = [$array_unknown_2_0_1Build, $todosListBuild];const builderNames = [\\"\\", \\"todosList\\"];const updateDerived = () => updateModel(2, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
       }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();updateTainted($tainted);$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       } else {
         $listeners.forEach(callback => callback());
-      }
-    }function ensurePath(path) {
-      if (path.length < 2) {
-        return;
-      }if (path.length > 2) {
-        ensurePath(path.slice(0, path.length - 1));
-      }const lastObjectKey = path[path.length - 2];const assignable = getAssignableObject(path, path.length - 2);if (assignable[lastObjectKey]) {
-        return;
-      }const lastType = typeof path[path.length - 1];assignable[lastObjectKey] = lastType === 'number' ? [] : {};
-    }function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
-    }function push(path, value) {
-      ensurePath([...path, 0]);const arr = getAssignableObject(path, path.length);splice([...path, arr.length], 0, value);
-    }function applySetter(object, key, value) {
-      if (typeof value === 'undefined') {
-        delete object[key];
-      } else {
-        object[key] = value;
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
@@ -140,45 +112,17 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { updateTainted, untrack, invalidate, setOnObject, deleteOnObject, setOnArray, truncateArray, track, trackPath, triggerInvalidations, initOutput, emptyObj, emptyArr, nullFunc, mapValuesOpt, filterByOpt, mapOpt, recursiveSteps, cascadeRecursiveInvalidations, recursiveCacheFunc, recursiveMapOpt, recursiveMapValuesOpt, keyByOpt, mapKeysOpt, filterCacheFunc, filterOpt, anyOpt, anyValuesOpt, groupByOpt, valuesOrKeysCacheFunc, valuesOpt, keysOpt, getEmptyArray, getEmptyObject, array, object, call, bind, assignOpt, defaultsOpt, flattenOpt, size, isEmpty, last, sumOpt, range, invalidatePath, set, splice } = library({ $trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, getAssignableObject, ensurePath, applySetter });const $topLevel = new Array(2).fill(null);function $firstBuild($tracked) {
+    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, updateTainted } = library($trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, $model);const $topLevel = new Array(2).fill(null);function $firstBuild($tracked) {
       const newValue = $model[0];return newValue;
     }function $secondBuild($tracked) {
       const newValue = $model[1];return newValue;
-    }const builderFunctions = [$firstBuild, $secondBuild];const builderNames = [\\"first\\", \\"second\\"];function updateDerived() {
-      for (let i = 0; i < 2; i++) {
-        if ($first || $invalidatedRoots.has(i)) {
-          const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, $first);if (!$first) {
-            $invalidatedRoots.delete(i);
-          }if (builderNames[i]) {
-            $res[builderNames[i]] = newValue;
-          }
-        }
-      }
-    }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
+    }const builderFunctions = [$firstBuild, $secondBuild];const builderNames = [\\"first\\", \\"second\\"];const updateDerived = () => updateModel(2, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
       }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();updateTainted($tainted);$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       } else {
         $listeners.forEach(callback => callback());
-      }
-    }function ensurePath(path) {
-      if (path.length < 2) {
-        return;
-      }if (path.length > 2) {
-        ensurePath(path.slice(0, path.length - 1));
-      }const lastObjectKey = path[path.length - 2];const assignable = getAssignableObject(path, path.length - 2);if (assignable[lastObjectKey]) {
-        return;
-      }const lastType = typeof path[path.length - 1];assignable[lastObjectKey] = lastType === 'number' ? [] : {};
-    }function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
-    }function push(path, value) {
-      ensurePath([...path, 0]);const arr = getAssignableObject(path, path.length);splice([...path, arr.length], 0, value);
-    }function applySetter(object, key, value) {
-      if (typeof value === 'undefined') {
-        delete object[key];
-      } else {
-        object[key] = value;
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
@@ -251,45 +195,17 @@ const modelBuilder = (function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { updateTainted, untrack, invalidate, setOnObject, deleteOnObject, setOnArray, truncateArray, track, trackPath, triggerInvalidations, initOutput, emptyObj, emptyArr, nullFunc, mapValuesOpt, filterByOpt, mapOpt, recursiveSteps, cascadeRecursiveInvalidations, recursiveCacheFunc, recursiveMapOpt, recursiveMapValuesOpt, keyByOpt, mapKeysOpt, filterCacheFunc, filterOpt, anyOpt, anyValuesOpt, groupByOpt, valuesOrKeysCacheFunc, valuesOpt, keysOpt, getEmptyArray, getEmptyObject, array, object, call, bind, assignOpt, defaultsOpt, flattenOpt, size, isEmpty, last, sumOpt, range, invalidatePath, set, splice } = library({ $trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, getAssignableObject, ensurePath, applySetter });const $topLevel = new Array(2).fill(null);function $allBuild($tracked) {
+    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, updateTainted } = library($trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, $model);const $topLevel = new Array(2).fill(null);function $allBuild($tracked) {
       const newValue = $model[\\"list\\"];return newValue;
     }function $firstBuild($tracked) {
       const newValue = $topLevel[0][0];return newValue;
-    }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];function updateDerived() {
-      for (let i = 0; i < 2; i++) {
-        if ($first || $invalidatedRoots.has(i)) {
-          const newValue = builderFunctions[i]([$invalidatedRoots, i]);setOnArray($topLevel, i, newValue, $first);if (!$first) {
-            $invalidatedRoots.delete(i);
-          }if (builderNames[i]) {
-            $res[builderNames[i]] = newValue;
-          }
-        }
-      }
-    }let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
+    }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];const updateDerived = () => updateModel(2, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
       }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();updateTainted($tainted);$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       } else {
         $listeners.forEach(callback => callback());
-      }
-    }function ensurePath(path) {
-      if (path.length < 2) {
-        return;
-      }if (path.length > 2) {
-        ensurePath(path.slice(0, path.length - 1));
-      }const lastObjectKey = path[path.length - 2];const assignable = getAssignableObject(path, path.length - 2);if (assignable[lastObjectKey]) {
-        return;
-      }const lastType = typeof path[path.length - 1];assignable[lastObjectKey] = lastType === 'number' ? [] : {};
-    }function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model);
-    }function push(path, value) {
-      ensurePath([...path, 0]);const arr = getAssignableObject(path, path.length);splice([...path, arr.length], 0, value);
-    }function applySetter(object, key, value) {
-      if (typeof value === 'undefined') {
-        delete object[key];
-      } else {
-        object[key] = value;
       }
     }function $setter(func, ...args) {
       if ($inBatch || $inRecalculate || $batchingStrategy) {
