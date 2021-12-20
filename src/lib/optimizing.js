@@ -12,7 +12,6 @@ const createInvalidatedSet = (parentKey, parent) => {
 }
 
 function createLibrary(res, funcLib, funcLibRaw) {
-	const model = res.$model
 	let tainted = new WeakSet()
 	const trackingMap = new WeakMap()
 	const trackingWildcards = new WeakMap()
@@ -20,7 +19,7 @@ function createLibrary(res, funcLib, funcLibRaw) {
 	const invalidatedRoots = createInvalidatedSet(null, null);
 	invalidatedMap.set(res, invalidatedRoots);
 
-	const {ensurePath, getAssignableObject, applySetter} = createUtils(model)
+	const {ensurePath, getAssignableObject, applySetter} = createUtils(res.$model)
 
 	const resetTainted = () => {
 		tainted = new WeakSet()
@@ -230,8 +229,8 @@ function createLibrary(res, funcLib, funcLibRaw) {
 					deleteOnObject(out, key, isNew)
 				}
 			} else {
-				const res = func([invalidatedKeys, key], key, src[key], context)
-				setOnObject(out, key, res, isNew)
+				const result = func([invalidatedKeys, key], key, src[key], context)
+				setOnObject(out, key, result, isNew)
 			}
 		})
 		invalidatedKeys.clear()
@@ -249,8 +248,8 @@ function createLibrary(res, funcLib, funcLibRaw) {
 					deleteOnObject(out, key, isNew)
 				}
 			} else {
-				const res = func([invalidatedKeys, key], key, src[key], context)
-				if (res) {
+				const result = func([invalidatedKeys, key], key, src[key], context)
+				if (result) {
 					setOnObject(out, key, src[key], isNew)
 				} else if (out.hasOwnProperty(key)) {
 					deleteOnObject(out, key, isNew)
@@ -268,14 +267,14 @@ function createLibrary(res, funcLib, funcLibRaw) {
 		const isNew = storage[3]
 		if (isNew) {
 			for (let key = 0; key < src.length; key++) {
-				const res = func([invalidatedKeys, key], key, src[key], context)
-				setOnArray(out, key, res, isNew)
+				const result = func([invalidatedKeys, key], key, src[key], context)
+				setOnArray(out, key, result, isNew)
 			}
 		} else {
 			invalidatedKeys.forEach((key) => {
 				if (key < src.length) {
-					const res = func([invalidatedKeys, key], key, src[key], context)
-					setOnArray(out, key, res, isNew)
+					const result = func([invalidatedKeys, key], key, src[key], context)
+					setOnArray(out, key, result, isNew)
 				}
 			})
 			if (out.length > src.length) {
@@ -599,12 +598,12 @@ function createLibrary(res, funcLib, funcLibRaw) {
 		}
 		if (isNew) {
 			Object.keys(src).forEach((key) => {
-				const res = `${func([invalidatedKeys, key], key, src[key], context)}`
-				keyToKey[key] = res
-				if (!out[res]) {
-					setOnObject(out, res, {}, isNew)
+				const result = `${func([invalidatedKeys, key], key, src[key], context)}`
+				keyToKey[key] = result
+				if (!out[result]) {
+					setOnObject(out, result, {}, isNew)
 				}
-				setOnObject(out[res], key, src[key], isNew)
+				setOnObject(out[result], key, src[key], isNew)
 			})
 		} else {
 			const keysPendingDelete = {}
@@ -619,26 +618,26 @@ function createLibrary(res, funcLib, funcLibRaw) {
 					delete keyToKey[key]
 					return
 				}
-				const res = `${func([invalidatedKeys, key], key, src[key], context)}`
-				keyToKey[key] = res
-				if (!out[res]) {
-					out[res] = {}
+				const result = `${func([invalidatedKeys, key], key, src[key], context)}`
+				keyToKey[key] = result
+				if (!out[result]) {
+					out[result] = {}
 				}
-				setOnObject(out[res], key, src[key], isNew)
-				setOnObject(out, res, out[res], isNew)
-				if (keysPendingDelete.hasOwnProperty(res)) {
-					keysPendingDelete[res].delete(key)
+				setOnObject(out[result], key, src[key], isNew)
+				setOnObject(out, result, out[result], isNew)
+				if (keysPendingDelete.hasOwnProperty(result)) {
+					keysPendingDelete[result].delete(key)
 				}
 			})
-			Object.keys(keysPendingDelete).forEach((res) => {
-				if (keysPendingDelete[res].size > 0) {
-					keysPendingDelete[res].forEach((key) => {
-						deleteOnObject(out[res], key, isNew)
+			Object.keys(keysPendingDelete).forEach((result) => {
+				if (keysPendingDelete[result].size > 0) {
+					keysPendingDelete[result].forEach((key) => {
+						deleteOnObject(out[result], key, isNew)
 					})
-					if (Object.keys(out[res]).length === 0) {
-						deleteOnObject(out, res, isNew)
+					if (Object.keys(out[result]).length === 0) {
+						deleteOnObject(out, result, isNew)
 					} else {
-						setOnObject(out, res, out[res], isNew)
+						setOnObject(out, result, out[result], isNew)
 					}
 				}
 			})
@@ -824,22 +823,22 @@ function createLibrary(res, funcLib, funcLibRaw) {
 	}
 
 	const array = (tracked, newVal, identifier, len) => {
-		const res = getEmptyArray(tracked, identifier)
-		const isNew = res.length === 0
+		const result = getEmptyArray(tracked, identifier)
+		const isNew = result.length === 0
 		for (let i = 0; i < len; i++) {
-			setOnArray(res, i, newVal[i], isNew)
+			setOnArray(result, i, newVal[i], isNew)
 		}
-		return res
+		return result
 	}
 
 	const object = (tracked, valsList, identifier, keysList) => {
-		const res = getEmptyObject(tracked, identifier)
-		const isNew = keysList.length && !res.hasOwnProperty(keysList[0])
+		const result = getEmptyObject(tracked, identifier)
+		const isNew = keysList.length && !result.hasOwnProperty(keysList[0])
 		for (let i = 0; i < keysList.length; i++) {
 			const name = keysList[i]
-			setOnObject(res, name, valsList[i], isNew)
+			setOnObject(result, name, valsList[i], isNew)
 		}
-		return res
+		return result
 	}
 
 	const call = (tracked, newVal, identifier, len) => {
@@ -884,12 +883,12 @@ function createLibrary(res, funcLib, funcLibRaw) {
 		if (isNew) {
 			Object.assign(out, ...src)
 		} else {
-			const res = Object.assign({}, ...src)
-			Object.keys(res).forEach((key) => {
-				setOnObject(out, key, res[key], isNew)
+			const result = Object.assign({}, ...src)
+			Object.keys(result).forEach((key) => {
+				setOnObject(out, key, result[key], isNew)
 			})
 			Object.keys(out).forEach((key) => {
-				if (!res.hasOwnProperty(key)) {
+				if (!result.hasOwnProperty(key)) {
 					deleteOnObject(out, key, isNew)
 				}
 			})
@@ -907,12 +906,12 @@ function createLibrary(res, funcLib, funcLibRaw) {
 		if (isNew) {
 			Object.assign(out, ...src)
 		} else {
-			const res = Object.assign({}, ...src)
-			Object.keys(res).forEach((key) => {
-				setOnObject(out, key, res[key], isNew)
+			const result = Object.assign({}, ...src)
+			Object.keys(result).forEach((key) => {
+				setOnObject(out, key, result[key], isNew)
 			})
 			Object.keys(out).forEach((key) => {
-				if (!res.hasOwnProperty(key)) {
+				if (!result.hasOwnProperty(key)) {
 					deleteOnObject(out, key, isNew)
 				}
 			})
@@ -1006,27 +1005,27 @@ function createLibrary(res, funcLib, funcLibRaw) {
 
 	const range = (tracked, end, start, step, identifier) => {
 		const out = getEmptyArray(tracked, identifier)
-		let res
+		let result
 		if (out.length === 0) {
-			res = []
-			out.push(res)
+			result = []
+			out.push(result)
 			// eslint-disable-next-line no-unmodified-loop-condition
 			for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-				res.push(val)
+				result.push(val)
 			}
 		} else {
 			let len = 0
-			res = out[0]
+			result = out[0]
 			// eslint-disable-next-line no-unmodified-loop-condition
 			for (let val = start; step > 0 && val < end || step < 0 && val > end; val += step) {
-				setOnArray(res, len, val, false)
+				setOnArray(result, len, val, false)
 				len++
 			}
-			if (res.length > len) {
-				truncateArray(res, len)
+			if (result.length > len) {
+				truncateArray(result, len)
 			}
 		}
-		return res
+		return result
 	}
 
 	const invalidatePath = (path) => {
