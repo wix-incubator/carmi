@@ -1099,5 +1099,5 @@ function createLibrary(res, funcLib, funcLibRaw) {
 }
 
 module.exports = {
-	createLibrary,
+	createLibrary
 }
