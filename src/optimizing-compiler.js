@@ -19,9 +19,8 @@ class OptimizingCompiler extends SimpleCompiler {
 
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
-      RESET: `$first = false;
-$tainted = new WeakSet();
-updateTainted($tainted);
+      RESET: `
+resetTainted();
 `,
       DERIVED: 'updateDerived()'
     });

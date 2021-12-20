@@ -31,14 +31,14 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, updateTainted } = library($trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, $model);const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
+    }const $res = { $model };const $listeners = new Set();const { createLibrary } = require('carmi/src/lib/optimizing');const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, resetTainted } = createLibrary($res, $funcLib, $funcLibRaw);const $topLevel = new Array(2).fill(null);function $todosListBuild($tracked) {
       const newValue = call($tracked, [\\"createElement\\", $topLevel[0 /*\\"$array_temp_4_19_1\\"*/]], 2, 2);return newValue;
     }function $array_temp_4_19_1Build($tracked) {
       const newValue = array($tracked, [\\"div\\", null, $model[0]], 5, 3);return newValue;
-    }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"$array_temp_4_19_1\\", \\"todosList\\"];const updateDerived = () => updateModel(2, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
+    }const builderFunctions = [$array_temp_4_19_1Build, $todosListBuild];const builderNames = [\\"$array_temp_4_19_1\\", \\"todosList\\"];const updateDerived = () => updateModel(2, builderFunctions, $topLevel, builderNames);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();updateTainted($tainted);$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();resetTainted();$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       } else {
         $listeners.forEach(callback => callback());
@@ -112,14 +112,14 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, updateTainted } = library($trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, $model);const $topLevel = new Array(2).fill(null);function $firstBuild($tracked) {
+    }const $res = { $model };const $listeners = new Set();const { createLibrary } = require('carmi/src/lib/optimizing');const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, resetTainted } = createLibrary($res, $funcLib, $funcLibRaw);const $topLevel = new Array(2).fill(null);function $firstBuild($tracked) {
       const newValue = $model[0];return newValue;
     }function $secondBuild($tracked) {
       const newValue = $model[1];return newValue;
-    }const builderFunctions = [$firstBuild, $secondBuild];const builderNames = [\\"first\\", \\"second\\"];const updateDerived = () => updateModel(2, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
+    }const builderFunctions = [$firstBuild, $secondBuild];const builderNames = [\\"first\\", \\"second\\"];const updateDerived = () => updateModel(2, builderFunctions, $topLevel, builderNames);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();updateTainted($tainted);$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();resetTainted();$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       } else {
         $listeners.forEach(callback => callback());
@@ -195,14 +195,14 @@ const modelBuilder = (function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing');const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = createInvalidatedSet(null, null);let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, updateTainted } = library($trackingMap, $trackingWildcards, $invalidatedMap, $tainted, $res, $funcLib, $funcLibRaw, $model);const $topLevel = new Array(2).fill(null);function $allBuild($tracked) {
+    }const $res = { $model };const $listeners = new Set();const { createLibrary } = require('carmi/src/lib/optimizing');const { any, anyValues, array, assign, bind, call, defaults, filter, filterBy, flatten, groupBy, isEmpty, keyBy, keys, last, map, mapKeys, mapValues, object, push, range, recursiveMap, recursiveMapValues, set, size, splice, sum, trackPath, values, updateModel, resetTainted } = createLibrary($res, $funcLib, $funcLibRaw);const $topLevel = new Array(2).fill(null);function $allBuild($tracked) {
       const newValue = $model[\\"list\\"];return newValue;
     }function $firstBuild($tracked) {
       const newValue = $topLevel[0 /*\\"all\\"*/][0];return newValue;
-    }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];const updateDerived = () => updateModel(2, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
+    }const builderFunctions = [$allBuild, $firstBuild];const builderNames = [\\"all\\", \\"first\\"];const updateDerived = () => updateModel(2, builderFunctions, $topLevel, builderNames);let $inBatch = false;let $batchPending = [];let $inRecalculate = false;function recalculate() {
       if ($inBatch) {
         return;
-      }$inRecalculate = true;updateDerived();$first = false;$tainted = new WeakSet();updateTainted($tainted);$inRecalculate = false;if ($batchPending.length) {
+      }$inRecalculate = true;updateDerived();resetTainted();$inRecalculate = false;if ($batchPending.length) {
         $res.$endBatch();
       } else {
         $listeners.forEach(callback => callback());

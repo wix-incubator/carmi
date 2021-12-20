@@ -1,12 +1,5 @@
 function library() {
-  const { library, createInvalidatedSet } = require('carmi/src/lib/optimizing')
-  const $trackingMap = new WeakMap();
-  const $trackingWildcards = new WeakMap();
-  const $invalidatedMap = new WeakMap();
-  const $invalidatedRoots = createInvalidatedSet(null, null)
-  let $first = true;
-  let $tainted = new WeakSet();
-  $invalidatedMap.set($res, $invalidatedRoots);
+  const { createLibrary } = require('carmi/src/lib/optimizing')
   const {
 		any,
 		anyValues,
@@ -38,16 +31,11 @@ function library() {
     trackPath,
 		values,
 		updateModel,
-		updateTainted
-  } = library(
-    $trackingMap,
-    $trackingWildcards,
-    $invalidatedMap,
-    $tainted,
+		resetTainted
+  } = createLibrary(
     $res,
     $funcLib,
-    $funcLibRaw,
-    $model
+    $funcLibRaw
   )
 
 }
@@ -104,7 +92,7 @@ function updateDerived() {
   const builderFunctions = [/*BUILDER_FUNCS*/];
   const builderNames = [/*BUILDER_NAMES*/];
 
-  const updateDerived = () => updateModel($COUNT_GETTERS, $first, $invalidatedRoots, builderFunctions, $topLevel, builderNames, $res)
+  const updateDerived = () => updateModel($COUNT_GETTERS, builderFunctions, $topLevel, builderNames)
 }
 
 module.exports = {

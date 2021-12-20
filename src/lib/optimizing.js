@@ -11,11 +11,19 @@ const createInvalidatedSet = (parentKey, parent) => {
 	return invalidatedSet
 }
 
-function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, funcLib, funcLibRaw, model) {
+function createLibrary(res, funcLib, funcLibRaw) {
+	const model = res.$model
+	let tainted = new WeakSet()
+	const trackingMap = new WeakMap()
+	const trackingWildcards = new WeakMap()
+	const invalidatedMap = new WeakMap()
+	const invalidatedRoots = createInvalidatedSet(null, null);
+	invalidatedMap.set(res, invalidatedRoots);
+
 	const {ensurePath, getAssignableObject, applySetter} = createUtils(model)
 
-	const updateTainted = (newTaintedSet) => {
-		tainted = newTaintedSet
+	const resetTainted = () => {
+		tainted = new WeakSet()
 	}
 
 	const untrack = (targetKeySet, targetKey) => {
@@ -77,7 +85,8 @@ function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, f
 		target[key] = val
 	}
 
-	const updateModel = (countGetters, first, invalidatedRoots, builderFunctions, topLevel, builderNames, res) => {
+	let first = true
+	const updateModel = (countGetters, builderFunctions, topLevel, builderNames) => {
 		for (let i = 0; i < countGetters; i++) {
 			if (first || invalidatedRoots.has(i)) {
 				const newValue = builderFunctions[i]([invalidatedRoots, i])
@@ -90,6 +99,7 @@ function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, f
 				}
 			}
 		}
+		first = false
 	}
 
 	const setOnObject = (target, key, val, isNew) => {
@@ -395,7 +405,7 @@ function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, f
 			for (let index = 0; index < src.length; index++) {
 				const key = `${func([invalidatedKeys, index], index, src[index], context)}`
 				cache.indexToKey[index] = key
-				cache.keyToIndices[key] = cache.keyToIndices[key] || new Set()
+				cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set()
 				cache.keyToIndices[key].add(index)
 				setOnObject(out, key, src[index], isNew)
 			}
@@ -416,7 +426,7 @@ function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, f
 					const key = `${func([invalidatedKeys, index], index, src[index], context)}`
 					cache.indexToKey[index] = key
 					keysPendingDelete.delete(key)
-					cache.keyToIndices[key] = cache.keyToIndices[key] || new Set()
+					cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set()
 					cache.keyToIndices[key].add(index)
 					setOnObject(out, key, src[index], isNew)
 				}
@@ -600,7 +610,7 @@ function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, f
 			const keysPendingDelete = {}
 			invalidatedKeys.forEach((key) => {
 				if (keyToKey[key]) {
-					keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] || new Set()
+					keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] && keysPendingDelete[keyToKey[key]] instanceof Set ? keysPendingDelete[keyToKey[key]] : new Set()
 					keysPendingDelete[keyToKey[key]].add(key)
 				}
 			})
@@ -1084,11 +1094,10 @@ function library(trackingMap, trackingWildcards, invalidatedMap, tainted, res, f
 
 		// update library functions
 		updateModel,
-		updateTainted
+		resetTainted
 	}
 }
 
 module.exports = {
-	library,
-	createInvalidatedSet
+	createLibrary,
 }

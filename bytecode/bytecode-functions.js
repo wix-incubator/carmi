@@ -485,7 +485,7 @@ module.exports.$keyBy = function keyBy($offset, $length) {
       this.collectionFunction();
       const key = '' + this.$stack.pop();
       $cache.indexToKey[index] = key;
-      $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
+      $cache.keyToIndices[key] = $cache.keyToIndices[key] && $cache.keyToIndices[key] instanceof Set ? $cache.keyToIndices[key] : new Set()
       $cache.keyToIndices[key].add(index);
       this.setOnObject($out, key, src[index], $new);
     }
@@ -509,7 +509,7 @@ module.exports.$keyBy = function keyBy($offset, $length) {
         const key = '' + this.$stack.pop();
         $cache.indexToKey[index] = key;
         keysPendingDelete.delete(key);
-        $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
+        $cache.keyToIndices[key] = $cache.keyToIndices[key] && $cache.keyToIndices[key] instanceof Set ? $cache.keyToIndices[key] : new Set()
         $cache.keyToIndices[key].add(index);
         this.setOnObject($out, key, src[index], $new);
       }
@@ -885,7 +885,7 @@ module.exports.$groupBy = function groupBy($offset, $length) {
     const keysPendingDelete = {};
     $invalidatedKeys.forEach(key => {
       if ($keyToKey[key]) {
-        keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
+        keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] && keysPendingDelete[$keyToKey[key]] instanceof Set ? keysPendingDelete[$keyToKey[key]] : new Set()
         keysPendingDelete[$keyToKey[key]].add(key);
       }
     });
