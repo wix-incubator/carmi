@@ -208,7 +208,7 @@ module.exports = function () {
       }$invalidatedKeys.clear();return $out;
     }function keyByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];if ($new) {
-        $cache.indexToKey = [];$cache.keyToIndices = {};for (let index = 0; index < src.length; index++) {
+        $cache.indexToKey = [];$cache.keyToIndices = Object.create(null);for (let index = 0; index < src.length; index++) {
           const key = '' + func([$invalidatedKeys, index], index, src[index], context);$cache.indexToKey[index] = key;$cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();$cache.keyToIndices[key].add(index);setOnObject($out, key, src[index], $new);
         }
       } else {
@@ -812,7 +812,7 @@ module.exports = function () {
       }$invalidatedKeys.clear();return $out;
     }function keyByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];if ($new) {
-        $cache.indexToKey = [];$cache.keyToIndices = {};for (let index = 0; index < src.length; index++) {
+        $cache.indexToKey = [];$cache.keyToIndices = Object.create(null);for (let index = 0; index < src.length; index++) {
           const key = '' + func([$invalidatedKeys, index], index, src[index], context);$cache.indexToKey[index] = key;$cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();$cache.keyToIndices[key].add(index);setOnObject($out, key, src[index], $new);
         }
       } else {
@@ -1418,7 +1418,7 @@ const modelBuilder = (function () {
       }$invalidatedKeys.clear();return $out;
     }function keyByOpt($tracked, identifier, func, src, context) {
       const $storage = initOutput($tracked, src, identifier, emptyObj, emptyArr);const $out = $storage[1];const $invalidatedKeys = $storage[2];const $new = $storage[3];const $cache = $storage[4];if ($new) {
-        $cache.indexToKey = [];$cache.keyToIndices = {};for (let index = 0; index < src.length; index++) {
+        $cache.indexToKey = [];$cache.keyToIndices = Object.create(null);for (let index = 0; index < src.length; index++) {
           const key = '' + func([$invalidatedKeys, index], index, src[index], context);$cache.indexToKey[index] = key;$cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();$cache.keyToIndices[key].add(index);setOnObject($out, key, src[index], $new);
         }
       } else {
