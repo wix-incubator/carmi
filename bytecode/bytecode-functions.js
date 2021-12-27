@@ -478,7 +478,7 @@ module.exports.$keyBy = function keyBy($offset, $length) {
 
   if ($new) {
     $cache.indexToKey = [];
-    $cache.keyToIndices = {};
+    $cache.keyToIndices = Object.create(null);
 
     for (let index = 0; index < src.length; index++) {
       this.$keys.push(index);

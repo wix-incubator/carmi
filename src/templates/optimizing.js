@@ -375,7 +375,7 @@ function library() {
       const $cache = $storage[4];
       if ($new) {
         $cache.indexToKey = []
-        $cache.keyToIndices = {}
+        $cache.keyToIndices = Object.create(null)
         for (let index = 0; index < src.length; index++) {
           const key = '' + func([$invalidatedKeys, index], index, src[index], context);
           $cache.indexToKey[index] = key
