@@ -1,5 +1,4 @@
 function library() {
-  const { createLibrary } = require('carmi/src/lib/optimizing')
   const {
 		any,
 		anyValues,

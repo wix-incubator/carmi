@@ -1,17 +1,17 @@
 const {createUtils} = require('./utils')
 
-const createInvalidatedSet = (parentKey, parent) => {
-	const invalidatedSet = Object.assign(new Set(), {
-		subKeys: new Map(),
-		parentKey,
-		parent,
-		tracked: new Map()
-	})
+const createLibrary = (res, funcLib, funcLibRaw) => {
+	const createInvalidatedSet = (parentKey, parent) => {
+		const invalidatedSet = Object.assign(new Set(), {
+			subKeys: new Map(),
+			parentKey,
+			parent,
+			tracked: new Map()
+		})
 
-	return invalidatedSet
-}
+		return invalidatedSet
+	}
 
-function createLibrary(res, funcLib, funcLibRaw) {
 	let tainted = new WeakSet()
 	const trackingMap = new WeakMap()
 	const trackingWildcards = new WeakMap()

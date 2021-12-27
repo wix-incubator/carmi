@@ -159,7 +159,6 @@ function recursiveMapValues() {
 }
 
 function library() {
-  const { createLibrary } = require('carmi/src/lib/naive')
   const {
     mapValues,
     filterBy,

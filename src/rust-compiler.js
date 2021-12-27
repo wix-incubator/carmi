@@ -28,6 +28,10 @@ class RustCompiler extends NaiveCompiler {
     super({...model, ...normalizeAndTagAllGetters(getters, setters)}, options);
   }
 
+  importLibrary() {
+    return ''
+  }
+
   // buildDerived(name) {
   //   return `$${name}Build();`;
   // }
@@ -47,7 +51,7 @@ class RustCompiler extends NaiveCompiler {
       return this.topLevelType;
     } else if (token.$type && token.$id && this.exprAnnotations[token.$id]) {
       return this.exprAnnotations[token.$id];
-    } 
+    }
       throw new Error(`tried to classify unknown token ${JSON.stringify(token)}`);
   }
 

@@ -1,16 +1,11 @@
 const {
-  Expr,
   Token,
-  Setter,
-  Expression,
-  SetterExpression,
-  SpliceSetterExpression,
-  TokenTypeData,
-  Clone
-} = require('./lang');
+  Expression} = require('./lang');
+const {createLibrary} = require('./lib/optimizing');
+const {createUtils} = require('./lib/utils');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
-const {topologicalSortGetters, pathMatches} = require('./expr-tagging');
+const {pathMatches} = require('./expr-tagging');
 
 class OptimizingCompiler extends SimpleCompiler {
   get template() {
@@ -24,6 +19,16 @@ resetTainted();
 `,
       DERIVED: 'updateDerived()'
     });
+  }
+
+  importLibrary() {
+    switch (this.options.format) {
+      case 'cjs':
+        return 'const { createLibrary } = require("carmi/src/lib/optimizing")';
+      default:
+        return `const createUtils = ${createUtils.toString()}
+        const createLibrary = ${createLibrary.toString()}`;
+    }
   }
 
   allExpressions() {
@@ -65,7 +70,6 @@ resetTainted();
 
   exprTemplatePlaceholders(expr, funcName) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
-    const tokenType = currentToken.$type;
     return Object.assign(
       {},
       super.exprTemplatePlaceholders(expr, funcName),
