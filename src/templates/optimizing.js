@@ -379,7 +379,7 @@ function library() {
         for (let index = 0; index < src.length; index++) {
           const key = '' + func([$invalidatedKeys, index], index, src[index], context);
           $cache.indexToKey[index] = key
-          $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set()
+          $cache.keyToIndices[key] = $cache.keyToIndices[key] instanceof Set ? $cache.keyToIndices[key] : new Set()
           $cache.keyToIndices[key].add(index)
           setOnObject($out, key, src[index], $new);
         }
@@ -400,7 +400,7 @@ function library() {
             const key = '' + func([$invalidatedKeys, index], index, src[index], context);
             $cache.indexToKey[index] = key
             keysPendingDelete.delete(key)
-            $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set();
+            $cache.keyToIndices[key] = $cache.keyToIndices[key] instanceof Set ? $cache.keyToIndices[key] : new Set();
             $cache.keyToIndices[key].add(index)
             setOnObject($out, key, src[index], $new);
           }
@@ -585,7 +585,7 @@ function library() {
         const keysPendingDelete = {};
         $invalidatedKeys.forEach(key => {
           if ($keyToKey[key]) {
-            keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] || new Set();
+            keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] instanceof Set ? keysPendingDelete[$keyToKey[key]] : new Set();
             keysPendingDelete[$keyToKey[key]].add(key);
           }
         });
