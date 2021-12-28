@@ -144,6 +144,15 @@ describe('testing array', () => {
       expect(inst.asObject).toEqual({a: 'a', b: 'b'})
     });
 
+    it('keyBy should support "constructor" as key', () => {
+      const model = {
+        asObject: root.keyBy(val => val)
+      };
+      const optModel = evalOrLoad(compile(model, {compiler}));
+      const inst = optModel(['a', 'constructor'], funcLibrary);
+      expect(inst.asObject).toEqual({a: 'a', constructor: 'constructor'})
+    })
+
     it('simple comparison operations', () => {
       const arr = root.get('arr');
       const compareTo = root.get('compareTo');

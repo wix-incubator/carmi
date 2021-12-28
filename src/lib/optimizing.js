@@ -400,11 +400,11 @@ const createLibrary = (res, funcLib, funcLibRaw) => {
 		const cache = storage[4]
 		if (isNew) {
 			cache.indexToKey = []
-			cache.keyToIndices = {}
+			cache.keyToIndices = Object.create(null)
 			for (let index = 0; index < src.length; index++) {
 				const key = `${func([invalidatedKeys, index], index, src[index], context)}`
 				cache.indexToKey[index] = key
-				cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set()
+				cache.keyToIndices[key] = cache.keyToIndices[key] || new Set()
 				cache.keyToIndices[key].add(index)
 				setOnObject(out, key, src[index], isNew)
 			}
@@ -425,7 +425,7 @@ const createLibrary = (res, funcLib, funcLibRaw) => {
 					const key = `${func([invalidatedKeys, index], index, src[index], context)}`
 					cache.indexToKey[index] = key
 					keysPendingDelete.delete(key)
-					cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set()
+					cache.keyToIndices[key] = cache.keyToIndices[key] || new Set()
 					cache.keyToIndices[key].add(index)
 					setOnObject(out, key, src[index], isNew)
 				}
@@ -606,10 +606,10 @@ const createLibrary = (res, funcLib, funcLibRaw) => {
 				setOnObject(out[result], key, src[key], isNew)
 			})
 		} else {
-			const keysPendingDelete = {}
+			const keysPendingDelete = Object.create(null)
 			invalidatedKeys.forEach((key) => {
 				if (keyToKey[key]) {
-					keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] && keysPendingDelete[keyToKey[key]] instanceof Set ? keysPendingDelete[keyToKey[key]] : new Set()
+					keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] || new Set()
 					keysPendingDelete[keyToKey[key]].add(key)
 				}
 			})
@@ -625,7 +625,7 @@ const createLibrary = (res, funcLib, funcLibRaw) => {
 				}
 				setOnObject(out[result], key, src[key], isNew)
 				setOnObject(out, result, out[result], isNew)
-				if (keysPendingDelete.hasOwnProperty(result)) {
+				if (keysPendingDelete[result]) {
 					keysPendingDelete[result].delete(key)
 				}
 			})

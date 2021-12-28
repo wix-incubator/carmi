@@ -478,14 +478,14 @@ module.exports.$keyBy = function keyBy($offset, $length) {
 
   if ($new) {
     $cache.indexToKey = [];
-    $cache.keyToIndices = {};
+    $cache.keyToIndices = Object.create(null);
 
     for (let index = 0; index < src.length; index++) {
       this.$keys.push(index);
       this.collectionFunction();
       const key = '' + this.$stack.pop();
       $cache.indexToKey[index] = key;
-      $cache.keyToIndices[key] = $cache.keyToIndices[key] && $cache.keyToIndices[key] instanceof Set ? $cache.keyToIndices[key] : new Set()
+      $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set()
       $cache.keyToIndices[key].add(index);
       this.setOnObject($out, key, src[index], $new);
     }
@@ -509,7 +509,7 @@ module.exports.$keyBy = function keyBy($offset, $length) {
         const key = '' + this.$stack.pop();
         $cache.indexToKey[index] = key;
         keysPendingDelete.delete(key);
-        $cache.keyToIndices[key] = $cache.keyToIndices[key] && $cache.keyToIndices[key] instanceof Set ? $cache.keyToIndices[key] : new Set()
+        $cache.keyToIndices[key] = $cache.keyToIndices[key] || new Set()
         $cache.keyToIndices[key].add(index);
         this.setOnObject($out, key, src[index], $new);
       }
@@ -882,10 +882,10 @@ module.exports.$groupBy = function groupBy($offset, $length) {
       this.setOnObject($out[res], key, src[key], $new);
     });
   } else {
-    const keysPendingDelete = {};
+    const keysPendingDelete = Object.create(null);
     $invalidatedKeys.forEach(key => {
       if ($keyToKey[key]) {
-        keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]] && keysPendingDelete[$keyToKey[key]] instanceof Set ? keysPendingDelete[$keyToKey[key]] : new Set()
+        keysPendingDelete[$keyToKey[key]] = keysPendingDelete[$keyToKey[key]]|| new Set()
         keysPendingDelete[$keyToKey[key]].add(key);
       }
     });
@@ -907,7 +907,7 @@ module.exports.$groupBy = function groupBy($offset, $length) {
       this.setOnObject($out[res], key, src[key], $new);
       this.setOnObject($out, res, $out[res], $new);
 
-      if (keysPendingDelete.hasOwnProperty(res)) {
+      if (keysPendingDelete[res]) {
         keysPendingDelete[res].delete(key);
       }
     });

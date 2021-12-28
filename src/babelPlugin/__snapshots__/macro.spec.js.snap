@@ -218,8 +218,8 @@ module.exports = function () {
       }invalidatedKeys.clear();return out;
     };const keyBy = (tracked, identifier, func, src, context) => {
       const storage = initOutput(tracked, src, identifier, emptyObj, emptyArr);const out = storage[1];const invalidatedKeys = storage[2];const isNew = storage[3];const cache = storage[4];if (isNew) {
-        cache.indexToKey = [];cache.keyToIndices = {};for (let index = 0; index < src.length; index++) {
-          const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
+        cache.indexToKey = [];cache.keyToIndices = Object.create(null);for (let index = 0; index < src.length; index++) {
+          const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;cache.keyToIndices[key] = cache.keyToIndices[key] || new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
         }
       } else {
         const keysPendingDelete = new Set();invalidatedKeys.forEach(index => {
@@ -230,7 +230,7 @@ module.exports = function () {
           }
         });invalidatedKeys.forEach(index => {
           if (index < src.length) {
-            const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;keysPendingDelete.delete(key);cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
+            const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;keysPendingDelete.delete(key);cache.keyToIndices[key] = cache.keyToIndices[key] || new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
           }
         });keysPendingDelete.forEach(key => {
           deleteOnObject(out, key, isNew);
@@ -322,16 +322,16 @@ module.exports = function () {
           }setOnObject(out[result], key, src[key], isNew);
         });
       } else {
-        const keysPendingDelete = {};invalidatedKeys.forEach(key => {
+        const keysPendingDelete = Object.create(null);invalidatedKeys.forEach(key => {
           if (keyToKey[key]) {
-            keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] && keysPendingDelete[keyToKey[key]] instanceof Set ? keysPendingDelete[keyToKey[key]] : new Set();keysPendingDelete[keyToKey[key]].add(key);
+            keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] || new Set();keysPendingDelete[keyToKey[key]].add(key);
           }
         });invalidatedKeys.forEach(key => {
           if (!src.hasOwnProperty(key)) {
             delete keyToKey[key];return;
           }const result = \`\${func([invalidatedKeys, key], key, src[key], context)}\`;keyToKey[key] = result;if (!out[result]) {
             out[result] = {};
-          }setOnObject(out[result], key, src[key], isNew);setOnObject(out, result, out[result], isNew);if (keysPendingDelete.hasOwnProperty(result)) {
+          }setOnObject(out[result], key, src[key], isNew);setOnObject(out, result, out[result], isNew);if (keysPendingDelete[result]) {
             keysPendingDelete[result].delete(key);
           }
         });Object.keys(keysPendingDelete).forEach(result => {
@@ -823,8 +823,8 @@ module.exports = function () {
       }invalidatedKeys.clear();return out;
     };const keyBy = (tracked, identifier, func, src, context) => {
       const storage = initOutput(tracked, src, identifier, emptyObj, emptyArr);const out = storage[1];const invalidatedKeys = storage[2];const isNew = storage[3];const cache = storage[4];if (isNew) {
-        cache.indexToKey = [];cache.keyToIndices = {};for (let index = 0; index < src.length; index++) {
-          const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
+        cache.indexToKey = [];cache.keyToIndices = Object.create(null);for (let index = 0; index < src.length; index++) {
+          const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;cache.keyToIndices[key] = cache.keyToIndices[key] || new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
         }
       } else {
         const keysPendingDelete = new Set();invalidatedKeys.forEach(index => {
@@ -835,7 +835,7 @@ module.exports = function () {
           }
         });invalidatedKeys.forEach(index => {
           if (index < src.length) {
-            const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;keysPendingDelete.delete(key);cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
+            const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;keysPendingDelete.delete(key);cache.keyToIndices[key] = cache.keyToIndices[key] || new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
           }
         });keysPendingDelete.forEach(key => {
           deleteOnObject(out, key, isNew);
@@ -927,16 +927,16 @@ module.exports = function () {
           }setOnObject(out[result], key, src[key], isNew);
         });
       } else {
-        const keysPendingDelete = {};invalidatedKeys.forEach(key => {
+        const keysPendingDelete = Object.create(null);invalidatedKeys.forEach(key => {
           if (keyToKey[key]) {
-            keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] && keysPendingDelete[keyToKey[key]] instanceof Set ? keysPendingDelete[keyToKey[key]] : new Set();keysPendingDelete[keyToKey[key]].add(key);
+            keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] || new Set();keysPendingDelete[keyToKey[key]].add(key);
           }
         });invalidatedKeys.forEach(key => {
           if (!src.hasOwnProperty(key)) {
             delete keyToKey[key];return;
           }const result = \`\${func([invalidatedKeys, key], key, src[key], context)}\`;keyToKey[key] = result;if (!out[result]) {
             out[result] = {};
-          }setOnObject(out[result], key, src[key], isNew);setOnObject(out, result, out[result], isNew);if (keysPendingDelete.hasOwnProperty(result)) {
+          }setOnObject(out[result], key, src[key], isNew);setOnObject(out, result, out[result], isNew);if (keysPendingDelete[result]) {
             keysPendingDelete[result].delete(key);
           }
         });Object.keys(keysPendingDelete).forEach(result => {
@@ -1430,8 +1430,8 @@ const modelBuilder = (function () {
       }invalidatedKeys.clear();return out;
     };const keyBy = (tracked, identifier, func, src, context) => {
       const storage = initOutput(tracked, src, identifier, emptyObj, emptyArr);const out = storage[1];const invalidatedKeys = storage[2];const isNew = storage[3];const cache = storage[4];if (isNew) {
-        cache.indexToKey = [];cache.keyToIndices = {};for (let index = 0; index < src.length; index++) {
-          const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
+        cache.indexToKey = [];cache.keyToIndices = Object.create(null);for (let index = 0; index < src.length; index++) {
+          const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;cache.keyToIndices[key] = cache.keyToIndices[key] || new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
         }
       } else {
         const keysPendingDelete = new Set();invalidatedKeys.forEach(index => {
@@ -1442,7 +1442,7 @@ const modelBuilder = (function () {
           }
         });invalidatedKeys.forEach(index => {
           if (index < src.length) {
-            const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;keysPendingDelete.delete(key);cache.keyToIndices[key] = cache.keyToIndices[key] && cache.keyToIndices[key] instanceof Set ? cache.keyToIndices[key] : new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
+            const key = \`\${func([invalidatedKeys, index], index, src[index], context)}\`;cache.indexToKey[index] = key;keysPendingDelete.delete(key);cache.keyToIndices[key] = cache.keyToIndices[key] || new Set();cache.keyToIndices[key].add(index);setOnObject(out, key, src[index], isNew);
           }
         });keysPendingDelete.forEach(key => {
           deleteOnObject(out, key, isNew);
@@ -1534,16 +1534,16 @@ const modelBuilder = (function () {
           }setOnObject(out[result], key, src[key], isNew);
         });
       } else {
-        const keysPendingDelete = {};invalidatedKeys.forEach(key => {
+        const keysPendingDelete = Object.create(null);invalidatedKeys.forEach(key => {
           if (keyToKey[key]) {
-            keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] && keysPendingDelete[keyToKey[key]] instanceof Set ? keysPendingDelete[keyToKey[key]] : new Set();keysPendingDelete[keyToKey[key]].add(key);
+            keysPendingDelete[keyToKey[key]] = keysPendingDelete[keyToKey[key]] || new Set();keysPendingDelete[keyToKey[key]].add(key);
           }
         });invalidatedKeys.forEach(key => {
           if (!src.hasOwnProperty(key)) {
             delete keyToKey[key];return;
           }const result = \`\${func([invalidatedKeys, key], key, src[key], context)}\`;keyToKey[key] = result;if (!out[result]) {
             out[result] = {};
-          }setOnObject(out[result], key, src[key], isNew);setOnObject(out, result, out[result], isNew);if (keysPendingDelete.hasOwnProperty(result)) {
+          }setOnObject(out[result], key, src[key], isNew);setOnObject(out, result, out[result], isNew);if (keysPendingDelete[result]) {
             keysPendingDelete[result].delete(key);
           }
         });Object.keys(keysPendingDelete).forEach(result => {
