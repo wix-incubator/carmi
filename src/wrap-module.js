@@ -1,13 +1,16 @@
-function wrapModule(format, source, name) {
+function wrapModule(format, source, name, imports) {
     switch (format) {
         case 'iife':
           return `var ${name} = (function () {
+            ${imports}
             return ${source}
           }())`;
         case 'cjs':
-          return `module.exports = ${source}`;
+          return `${imports}
+          module.exports = ${source}`;
         case 'esm':
-          return `export default ${source}`;
+          return `${imports}
+          export default ${source}`;
         case 'umd':
           return `
             (function (global, factory) {
@@ -15,18 +18,21 @@ function wrapModule(format, source, name) {
               typeof define === 'function' && define.amd ? define(factory) :
               (global.${name} = factory());
             }(this, (function () {
+              ${imports}
               return ${source}
             })))
           `;
         case 'amd':
           return `
             define(function () {
+              ${imports}
               return ${source}
             });
           `;
         default:
           return `(function () {
             'use strict';
+            ${imports}
             return ${source}
           })()`;
       }

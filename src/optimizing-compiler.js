@@ -1,16 +1,11 @@
 const {
-  Expr,
   Token,
-  Setter,
-  Expression,
-  SetterExpression,
-  SpliceSetterExpression,
-  TokenTypeData,
-  Clone
-} = require('./lang');
+  Expression} = require('./lang');
+const {createLibrary} = require('./lib/optimizing');
+const {createUtils} = require('./lib/utils');
 const _ = require('lodash');
 const SimpleCompiler = require('./simple-compiler');
-const {topologicalSortGetters, pathMatches} = require('./expr-tagging');
+const {pathMatches} = require('./expr-tagging');
 
 class OptimizingCompiler extends SimpleCompiler {
   get template() {
@@ -19,11 +14,21 @@ class OptimizingCompiler extends SimpleCompiler {
 
   topLevelOverrides() {
     return Object.assign({}, super.topLevelOverrides(), {
-      RESET: `$first = false;
-$tainted = new WeakSet();
+      RESET: `
+resetTainted();
 `,
       DERIVED: 'updateDerived()'
     });
+  }
+
+  importLibrary() {
+    switch (this.options.format) {
+      case 'cjs':
+        return 'const { createLibrary } = require("carmi/src/lib/optimizing")';
+      default:
+        return `const createUtils = ${createUtils.toString()}
+        const createLibrary = ${createLibrary.toString()}`;
+    }
   }
 
   allExpressions() {
@@ -35,7 +40,7 @@ $tainted = new WeakSet();
       }
     });
     const countTopLevels = realGetters.length;
-    
+
     return `
     const $topLevel = new Array(${countTopLevels}).fill(null);
     ${super.allExpressions()}
@@ -65,7 +70,6 @@ $tainted = new WeakSet();
 
   exprTemplatePlaceholders(expr, funcName) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
-    const tokenType = currentToken.$type;
     return Object.assign(
       {},
       super.exprTemplatePlaceholders(expr, funcName),
@@ -91,7 +95,7 @@ $tainted = new WeakSet();
   wrapExprCondPart(expr, indexInExpr) {
     if (!expr[0].$tracked) {
       return `(${this.generateExpr(expr[indexInExpr])})`;
-    } 
+    }
       return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`;
   }
 
@@ -113,20 +117,20 @@ $tainted = new WeakSet();
         return '$topLevel';
       case 'and':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('&&') 
+            .join('&&')
           })`
         );
       case 'or':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('||') 
+            .join('||')
           })`
         );
       case 'ternary':
@@ -159,7 +163,7 @@ $tainted = new WeakSet();
       case 'flatten':
       case 'assign':
       case 'defaults':
-        return `${tokenType}Opt($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
+        return `${tokenType}($tracked, ${this.generateExpr(expr[1])}, ${this.uniqueId(expr)})`;
       case 'range':
         return `range($tracked, ${this.generateExpr(expr[1])}, ${
           expr.length > 2 ? this.generateExpr(expr[2]) : '0'
@@ -175,7 +179,7 @@ $tainted = new WeakSet();
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-        return `${tokenType}Opt($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
+        return `${tokenType}($tracked, ${this.uniqueId(expr)}, ${this.generateExpr(expr[1])}, ${this.generateExpr(
         expr[2]
       )}, ${
         typeof expr[3] === 'undefined' || expr[3] instanceof Token && expr[3].$type === 'null' ?

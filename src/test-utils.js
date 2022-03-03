@@ -48,13 +48,14 @@ function describeCompilers(compilers, tests) {
 
 function evalOrLoad(src) {
   if (typeof src === 'string') {
-    try { // eslint-disable-next-line no-eval
+    try {
+      // eslint-disable-next-line no-eval
       return eval(src);
     } catch (e) {
       require('fs').writeFileSync('./tmp.js', src);
       throw e;
     }
-  } 
+  }
   return loadBytecode(src.buffer);
 }
 

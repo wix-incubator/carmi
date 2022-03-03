@@ -44,6 +44,7 @@ module.exports = (model, options) => {
     return JSON.stringify(compiler.getters, null, 2);
   }
   const rawSource = compiler.compile();
+  const imports = compiler.importLibrary();
   let source = rawSource;
   if (options.prettier && typeof source === 'string') {
     try {
@@ -53,7 +54,7 @@ module.exports = (model, options) => {
   let result;
 
   if (compiler.lang === 'js' && typeof source === 'string') {
-    result = wrapModule(options.format, source, options.name);
+    result = wrapModule(options.format, source, options.name, imports);
   } else {
     result = source;
   }

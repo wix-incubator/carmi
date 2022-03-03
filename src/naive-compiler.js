@@ -2,6 +2,8 @@ const {Expr, Token, Expression, SpliceSetterExpression, SourceTag, TokenTypeData
 const _ = require('lodash');
 const {splitSettersGetters, topologicalSortGetters, tagAllExpressions, tagToSimpleFilename} = require('./expr-tagging');
 const objectHash = require('object-hash');
+const {createLibrary} = require('./lib/naive');
+const {createUtils} = require('./lib/utils');
 
 const nativeOps = {
   eq: '===',
@@ -335,6 +337,16 @@ class NaiveCompiler {
 
   allExpressions() {
     return _.reduce(this.getters, this.buildExprFunctions.bind(this), []).join('\n')
+  }
+
+  importLibrary() {
+    switch (this.options.format) {
+      case 'cjs':
+        return 'const { createLibrary } = require("carmi/src/lib/naive")';
+      default:
+        return `const createUtils = ${createUtils.toString()}
+        const createLibrary = ${createLibrary.toString()}`;
+    }
   }
 
   topLevelOverrides() {
