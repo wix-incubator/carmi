@@ -40,13 +40,13 @@ async function CarmiLoader(loader) {
 		...loaderOptions
 	}
 
-    options.stats = getCacheFilePath({
-       fileType: 'stats',
-       path: options.source,
-       debug: options.debug,
-       format: options.format,
-       name: 'model'
-    });
+	options.stats = getCacheFilePath({
+		fileType: 'stats',
+		path: options.source,
+		debug: options.debug,
+		format: options.format,
+		name: 'model'
+	});
 
 	await addToQueue()
 
@@ -56,14 +56,15 @@ async function CarmiLoader(loader) {
 	try {
 		await execa('node', [require.resolve('./bin/carmi'), ...dargs(options, {ignoreFalse: true})])
 		compiled = fs.readFileSync(tempOutputPath, 'utf8')
+		if (fs.pathExistsSync(options.stats)) {
+			fs.readJSONSync(options.stats).forEach((filePath) => {
+				// Add those modules as loader dependencies
+				// See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
+				loader.addDependency(filePath)
+			})
+		}
 	} catch (e) {
 		err = e || new Error(`Error compiling ${options.source}`)
-	} finally {
-		fs.readJSONSync(options.stats).forEach((filePath) => {
-			// Add those modules as loader dependencies
-			// See https://webpack.js.org/contribute/writing-a-loader/#loader-dependencies
-			loader.addDependency(filePath)
-		})
 	}
 	finish()
 	callback(err, compiled)
