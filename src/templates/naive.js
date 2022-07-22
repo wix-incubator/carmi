@@ -1,6 +1,7 @@
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
+    let $tap;
 
     if ($DEBUG_MODE) {
     $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
@@ -25,6 +26,9 @@ function base() {
   }
 
   function checkTypes(input, name, types, functionName, source) {
+    if ($tap) {
+      $tap({input, name, types, functionName, source})
+    }
     function checkType(type) {
       const isArray = Array.isArray(input)
       return type == 'array' && isArray || (type === typeof input && !isArray)
@@ -149,6 +153,9 @@ function base() {
         },
         $setBatchingStrategy: func => {
           $batchingStrategy = func;
+        },
+        $setTapFunction: (func) => {
+          $tap = func;
         }
       }
     );
