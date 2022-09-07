@@ -211,7 +211,7 @@ class NaiveCompiler {
           .map(subExpr => `,${this.generateExpr(subExpr)}`)
           .join('')})`;
       case 'invoke':
-          return `(${expr[1]}.call(this, ${expr.slice(2).map(t => t.$type).join(',')}))`
+          return `(${expr[1]}.call(this${expr.slice(2).map(t => `,${t.$type}`).join('')}))`
       case 'abstract':
           throw expr[2]
       default:
