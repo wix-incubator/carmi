@@ -72,9 +72,9 @@ describe('simple todo', () => {
     return res;
   }
 
-  it('compare naive and optimized', () => {
-    const naiveFunc = evalOrLoad(compile(TodosModel(), true));
-    const optFunc = evalOrLoad(compile(TodosModel()));
+  it('compare naive and optimizing', () => {
+    const naiveFunc = evalOrLoad(compile(TodosModel(), {compiler: 'naive'}));
+    const optFunc = evalOrLoad(compile(TodosModel(), {compiler: 'optimizing'}));
     const initialState = {
       todos: generateTestTodoItems(countItems),
       currentTask: '1',
