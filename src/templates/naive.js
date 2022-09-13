@@ -1,18 +1,7 @@
+// dummy variables for templates that will be replaced or added in the generated code
+var $DEBUG_MODE, $EXPR, $EXPR1, $SETTERS, $AST, applySetter;
+
 function base() {
-  function $NAME($model, $funcLibRaw, $batchingStrategy) {
-    let $funcLib = $funcLibRaw
-
-    if ($DEBUG_MODE) {
-    $funcLib = (!$funcLibRaw || typeof Proxy === 'undefined') ? $funcLibRaw : new Proxy($funcLibRaw, {
-      get: (target, functionName) => {
-        if (target[functionName]) {
-          return target[functionName]
-        }
-
-        throw new TypeError(`Trying to call undefined function: ${functionName} `)
-    }})
-  }
-
   function mathFunction(name, source) {
     return arg => {
       const type = typeof arg
@@ -39,41 +28,66 @@ function base() {
     throw new TypeError(`${functionName} expects ${types.join('/')}. ${name} at ${source}: ${asString}.${functionName}`)
   }
 
-  const $res = { $model };
-    const $listeners = new Set();
-    /* LIBRARY */
-    /* ALL_EXPRESSIONS */
-    let $inBatch = false;
-    let $batchPending = [];
-    let $inRecalculate = false;
+  function applySetter(object, key, value) {
+    if (typeof value === 'undefined') {
+      delete object[key]
+    } else {
+      object[key] = value;
+    }
+  }
 
-    function recalculate() {
-      if ($inBatch) {
-        return;
+  /* LIBRARY */
+
+  /* ALL_EXPRESSIONS */
+  class CarmiModel {
+    constructor($model, $funcLibRaw, $batchingStrategy) {
+      this.$model = $model
+      this.$batchingStrategy = $batchingStrategy
+      this.$listeners = new Set();
+      this.$inBatch = false;
+      this.$batchPending = [];
+      this.$inRecalculate = false;
+      this.$res = { $model }
+      this.$setters = {$SETTERS}
+
+      if ($funcLibRaw) {
+        // bind all methods to the instance and the setters to the instance
+        this.$funcLib = Object.entries($funcLibRaw).reduce((agg, [key, value]) => {
+          agg[key] = value.bind({...this, ...this.$setters})
+          return agg
+        }, {})
+
+        if ($DEBUG_MODE) {
+          this.$funcLib = new Proxy(this.$funcLib, {
+            get: (target, functionName) => {
+              if (target[functionName]) {
+                return target[functionName]
+              }
+
+              throw new TypeError(`Trying to call undefined function: ${String(functionName)} `)
+            }
+          })
+        }
       }
-      $inRecalculate = true;
-      /* DERIVED */
-      /* RESET */
-      $inRecalculate = false;
-      if ($batchPending.length) {
-        $res.$endBatch();
-      } else {
-        $listeners.forEach(callback => callback());
-      }
+
     }
 
-    function ensurePath(path) {
+    getAssignableObject(path, index) {
+      return path.slice(0, index).reduce((agg, p) => agg[p], this.$model)
+    }
+
+    ensurePath(path) {
       if (path.length < 2) {
         return
       }
 
       if (path.length > 2) {
-        ensurePath(path.slice(0, path.length - 1))
+        this.ensurePath(path.slice(0, path.length - 1))
       }
 
       const lastObjectKey = path[path.length - 2]
 
-      const assignable = getAssignableObject(path, path.length - 2)
+      const assignable = this.getAssignableObject(path, path.length - 2)
       if (assignable[lastObjectKey]) {
         return
       }
@@ -81,92 +95,103 @@ function base() {
       assignable[lastObjectKey] = lastType === 'number' ? [] : {}
     }
 
-    function getAssignableObject(path, index) {
-      return path.slice(0, index).reduce((agg, p) => agg[p], $model)
-    }
-
-    function push(path, value) {
-      ensurePath([...path, 0])
-      const arr = getAssignableObject(path, path.length)
-      splice([...path, arr.length], 0, value)
-    }
-
-    function applySetter(object, key, value) {
-      if (typeof value === 'undefined') {
-        delete object[key]
+    recalculate() {
+      if (this.$inBatch) {
+        return
+      }
+      this.$inRecalculate = true
+      /* DERIVED */
+      /* RESET */
+      this.$inRecalculate = false
+      if (this.$batchPending.length) {
+        this.$endBatch()
       } else {
-        object[key] = value;
+        this.$listeners.forEach(callback => callback())
       }
     }
-
-    function $setter(func, ...args) {
-      if ($inBatch || $inRecalculate || $batchingStrategy) {
-        $batchPending.push({ func, args });
-        if ((!$inBatch && !$inRecalculate) && $batchingStrategy) {
-          $inBatch = true;
-          $batchingStrategy.call($res);
+    $startBatch() {
+      this.$inBatch = true
+    }
+    $endBatch() {
+      if (this.$inRecalculate) {
+        throw new Error('Can not end batch in the middle of a batch')
+      }
+      this.$inBatch = false
+      if (this.$batchPending.length) {
+        this.$batchPending.forEach(({ func, args }) => {
+          func.apply(this.$res, args)
+        })
+        this.$batchPending = []
+        this.recalculate()
+      }
+    }
+    $setter(func, ...args) {
+      if (this.$inBatch || this.$inRecalculate || this.$batchingStrategy) {
+        this.$batchPending.push({ func, args })
+        if ((!this.$inBatch && !this.$inRecalculate) && this.$batchingStrategy) {
+          this.$inBatch = true
+          this.$batchingStrategy.call(this)
         }
       } else {
-        func.apply($res, args);
-        recalculate();
+        func.apply(this, args)
+        this.recalculate()
       }
     }
+    $runInBatch(func) {
+      if (this.$inRecalculate) {
+        func()
+      } else {
+        this.$startBatch()
+        func()
+        this.$endBatch()
+      }
+    }
+    $addListener(func) {
+      this.$listeners.add(func)
+    }
+    $removeListener(func) {
+      this.$listeners.delete(func)
+    }
+    $setBatchingStrategy(func) {
+      this.$batchingStrategy = func
+    }
 
-    Object.assign(
-      $res,
-      {$SETTERS},
+
+  }
+
+  function $NAME($model, $funcLibRaw, $batchingStrategy) {
+    const instance = new CarmiModel($model, $funcLibRaw, $batchingStrategy);
+    instance.recalculate()
+
+    const publicInstance = Object.assign(
+      instance.$res,
+      instance.$setters,
       {
-        $startBatch: () => {
-          $inBatch = true;
-        },
-        $endBatch: () => {
-          if ($inRecalculate) {
-            throw new Error('Can not end batch in the middle of a batch');
-          }
-          $inBatch = false;
-          if ($batchPending.length) {
-            $batchPending.forEach(({ func, args }) => {
-              func.apply($res, args);
-            });
-            $batchPending = [];
-            recalculate();
-          }
-        },
-        $runInBatch: func => {
-          if ($inRecalculate) {
-            func();
-          } else {
-            $res.$startBatch();
-            func();
-            $res.$endBatch();
-          }
-        },
-        $addListener: func => {
-          $listeners.add(func);
-        },
-        $removeListener: func => {
-          $listeners.delete(func);
-        },
-        $setBatchingStrategy: func => {
-          $batchingStrategy = func;
-        }
+        $startBatch: instance.$startBatch.bind(instance),
+        $endBatch: instance.$endBatch.bind(instance),
+        $addListener: instance.$addListener.bind(instance),
+        $removeListener: instance.$removeListener.bind(instance),
+        $setBatchingStrategy: instance.$setBatchingStrategy.bind(instance),
+        $runInBatch: instance.$runInBatch.bind(instance),
       }
     );
 
     if ($DEBUG_MODE) {
-      Object.assign($res, {
+      Object.assign(publicInstance, {
         $ast: () => { return $AST },
         $source: () => null
       })
     }
-    recalculate();
-    return $res;
+
+    return publicInstance
   }
+
+  module.exports = $NAME
 }
 
 function func() {
   function $FUNCNAME(val, key, context) {
-      return $EXPR1;
+    return $EXPR1;
   }
 }
 
@@ -178,7 +203,7 @@ function topLevel() {
 
 function recursiveMap() {
   function $FUNCNAME(val, key, context, loop) {
-      return $EXPR1;
+    return $EXPR1;
   }
 }
 
@@ -293,7 +318,7 @@ function library() {
   function loopFunction(resolved, res, func, src, context, key) {
     if (!resolved[key]) {
       resolved[key] = true;
-      res[key] = src.hasOwnProperty(key) ? func(src[key], key, context, loopFunction.bind(null, resolved, res, func, src, context)) : undefined;
+      res[key] = src.hasOwnProperty(key) ? func(src[key], key, context, loopFunction.bind(this, resolved, res, func, src, context)) : undefined;
     }
     return res[key];
   }
@@ -310,7 +335,7 @@ function library() {
     const res = [];
     const resolved = src.map(x => false);
     src.forEach((val, key) => {
-      loopFunction(resolved, res, func, src, context, key);
+      loopFunction.call(this, resolved, res, func, src, context, key);
     });
     return res;
   }
@@ -320,23 +345,30 @@ function library() {
     const resolved = {};
     Object.keys(src).forEach(key => (resolved[key] = false));
     Object.keys(src).forEach(key => {
-      loopFunction(resolved, res, func, src, context, key);
+      loopFunction.call(this, resolved, res, func, src, context, key);
     });
     return res;
   }
 
   function set(path, value) {
-    ensurePath(path)
-    applySetter(getAssignableObject(path, path.length - 1), path[path.length - 1], value)
+    this.ensurePath(path)
+    applySetter(this.getAssignableObject(path, path.length - 1), path[path.length - 1], value)
   }
 
   function splice(pathWithKey, len, ...newItems) {
-    ensurePath(pathWithKey)
+    this.ensurePath(pathWithKey)
     const key = pathWithKey[pathWithKey.length - 1]
     const path = pathWithKey.slice(0, pathWithKey.length - 1)
-    const arr = getAssignableObject(path, path.length)
+    const arr = this.getAssignableObject(path, path.length)
     arr.splice(key, len, ...newItems)
   }
+
+  function push(path, value) {
+    this.ensurePath([...path, 0])
+    const arr = this.getAssignableObject(path, path.length)
+    splice.call(this, [...path, arr.length], 0, value)
+  }
+
 }
 
 module.exports = { base, library, func, topLevel, helperFunc, recursiveMapValues, recursiveMap };

@@ -1,19 +1,20 @@
-const {Expr, Token, Setter, Expression, SetterExpression, SpliceSetterExpression, TokenTypeData} = require('./lang');
+
 const _ = require('lodash');
-const NaiveCompiler = require('./naive-compiler');
+const OldNaiveCompiler = require('./naive-function-compiler');
 const {
   splitSettersGetters,
   normalizeAndTagAllGetters
 } = require('./expr-tagging');
 
-class SimpleCompiler extends NaiveCompiler {
+// This is the old implementation of the simple compiler, which is still used for the optimizing compiler
+class OldSimpleCompiler extends OldNaiveCompiler {
   constructor(model, options) {
     const {getters, setters} = splitSettersGetters(model);
     super({...model, ...normalizeAndTagAllGetters(getters, setters, options)}, options);
   }
 
   buildDerived(name) {
-    return `this.$res.${name} = ${this.generateExpr(this.getters[name])};`;
+    return `$res.${name} = ${this.generateExpr(this.getters[name])};`;
   }
 
   topLevelToIndex(str) {
@@ -25,4 +26,4 @@ class SimpleCompiler extends NaiveCompiler {
   }
 }
 
-module.exports = SimpleCompiler;
+module.exports = OldSimpleCompiler;

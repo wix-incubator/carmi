@@ -9,10 +9,10 @@ const {
   Clone
 } = require('./lang');
 const _ = require('lodash');
-const SimpleCompiler = require('./simple-compiler');
+const OldSimpleCompiler = require('./simple-function-compiler');
 const {topologicalSortGetters, pathMatches} = require('./expr-tagging');
 
-class OptimizingCompiler extends SimpleCompiler {
+class OptimizingCompiler extends OldSimpleCompiler {
   get template() {
     return require('./templates/optimizing.js');
   }
@@ -35,7 +35,7 @@ $tainted = new WeakSet();
       }
     });
     const countTopLevels = realGetters.length;
-    
+
     return `
     const $topLevel = new Array(${countTopLevels}).fill(null);
     ${super.allExpressions()}
@@ -91,7 +91,7 @@ $tainted = new WeakSet();
   wrapExprCondPart(expr, indexInExpr) {
     if (!expr[0].$tracked) {
       return `(${this.generateExpr(expr[indexInExpr])})`;
-    } 
+    }
       return `(($cond_${expr[0].$id} = ${indexInExpr}) && ${this.generateExpr(expr[indexInExpr])})`;
   }
 
@@ -113,20 +113,20 @@ $tainted = new WeakSet();
         return '$topLevel';
       case 'and':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('&&') 
+            .join('&&')
           })`
         );
       case 'or':
         return (
-          `(${ 
+          `(${
           expr
             .slice(1)
             .map((t, index) => this.wrapExprCondPart(expr, index + 1))
-            .join('||') 
+            .join('||')
           })`
         );
       case 'ternary':

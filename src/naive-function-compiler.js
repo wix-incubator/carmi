@@ -23,7 +23,8 @@ const typeOfChecks = {
   isNumber: 'number'
 }
 
-class NaiveCompiler {
+// This is the old implementation of the naive compiler, which is still used for the optimizing compiler
+class OldNaiveCompiler {
   constructor(model, options) {
     const {getters, setters} = splitSettersGetters(model);
     tagAllExpressions(getters);
@@ -31,7 +32,6 @@ class NaiveCompiler {
     this.setters = setters;
     // console.log(JSON.stringify(getters, null, 2));
     this.options = options;
-    this.options.name = this.options.name.replace(/^./, m => m.toUpperCase());
   }
 
   get template() {
@@ -46,7 +46,7 @@ class NaiveCompiler {
     return `String.prototype.${name}`
   }
 
-  generateExpr(expr, bindExpr = false) {
+  generateExpr(expr) {
     const currentToken = expr instanceof Expression ? expr[0] : expr;
     const source = currentToken[SourceTag]
 
@@ -100,7 +100,7 @@ class NaiveCompiler {
           .map(idx => `"${expr[idx]}": ${this.generateExpr(expr[idx + 1])}`)
           .join(',')}}`;
       case 'range':
-        return `range.call(this, ${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
+        return `range(${this.generateExpr(expr[1])}, ${expr.length > 2 ? this.generateExpr(expr[2]) : '0'}, ${
           expr.length > 3 ? this.generateExpr(expr[3]) : '1'
           })`;
       case 'keys':
@@ -112,7 +112,7 @@ class NaiveCompiler {
       case 'last':
       case 'isEmpty':
       case 'flatten':
-        return `${tokenType}.call(this, ${this.generateExpr(expr[1])})`;
+        return `${tokenType}(${this.generateExpr(expr[1])})`;
       case 'isArray':
         return `Array.isArray(${this.generateExpr(expr[1])})`
       case 'isBoolean':
@@ -169,17 +169,17 @@ class NaiveCompiler {
       case 'anyValues':
       case 'recursiveMap':
       case 'recursiveMapValues':
-        return `${tokenType}.call(this, ${this.generateExpr(expr[1], true)}, ${this.generateExpr(expr[2])}, ${
+        return `${tokenType}(${this.generateExpr(expr[1])}, ${this.generateExpr(expr[2])}, ${
           typeof expr[3] === 'undefined' ? null : this.generateExpr(expr[3])
           })`;
       case 'loop':
         return 'loop';
       case 'recur':
-        return `${this.generateExpr(expr[1])}.call(this, ${this.generateExpr(expr[2])})`;
+        return `${this.generateExpr(expr[1])}(${this.generateExpr(expr[2])})`;
       case 'func':
-        return bindExpr ? `${currentToken.$funcId}.bind(this)` : currentToken.$funcId;
+        return currentToken.$funcId;
       case 'root':
-        return 'this.$model';
+        return '$model';
       case 'null':
       case 'val':
       case 'key':
@@ -196,22 +196,22 @@ class NaiveCompiler {
       case 'context':
         return tokenType;
       case 'topLevel':
-        return 'this.$res';
+        return '$res';
       case 'cond':
           return `$cond_${this.generateExpr(expr[1])}`
       case 'effect':
       case 'call':
-        return `(this.$funcLib[${this.generateExpr(expr[1])}].call(null${expr
+        return `($funcLib[${this.generateExpr(expr[1])}].call($res${expr
           .slice(2)
           .map(subExpr => `,${this.generateExpr(subExpr)}`)
           .join('')}) ${tokenType === 'effect' ? ' && void 0' : ''})`;
       case 'bind':
-        return `(this.$funcLib[${this.generateExpr(expr[1])}] || this.$setters[${this.generateExpr(expr[1])}]).bind(null${expr
+        return `($funcLibRaw[${this.generateExpr(expr[1])}] || $res[${this.generateExpr(expr[1])}]).bind($res${expr
           .slice(2)
           .map(subExpr => `,${this.generateExpr(subExpr)}`)
           .join('')})`;
       case 'invoke':
-          return `(${expr[1]}.call(this${expr.slice(2).map(t => `,${t.$type}`).join('')}))`
+          return `(${expr[1]}(${expr.slice(2).map(t => t.$type).join(',')}))`
       case 'abstract':
           throw expr[2]
       default:
@@ -220,8 +220,8 @@ class NaiveCompiler {
   }
 
   buildDerived(name) {
-    const prefix = name.indexOf('$') === 0 ? '' : `this.$res.${name} = `;
-    return `${prefix} $${name}.call(this);`;
+    const prefix = name.indexOf('$') === 0 ? '' : `$res.${name} = `;
+    return `${prefix} $${name}();`;
   }
 
   buildSetter(setter, name) {
@@ -239,7 +239,7 @@ class NaiveCompiler {
 
           return token.$type
         }).join(',')
-        return `${name}: this.$setter.bind(this, (${Array(numTokens).fill(null).map((a, i) => `arg${i}`).concat('...additionalArgs').join(',')}) => ${setterType}.call(this, [${pathExpr}], ...additionalArgs))`
+        return `${name}: $setter.bind(null, (${Array(numTokens).fill(null).map((a, i) => `arg${i}`).concat('...additionalArgs').join(',')}) => ${setterType}([${pathExpr}], ...additionalArgs))`
       }
 
   pathToString(path, n = 0) {
@@ -377,4 +377,5 @@ class NaiveCompiler {
   }
 }
 
-module.exports = NaiveCompiler;
+
+module.exports = OldNaiveCompiler;

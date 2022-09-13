@@ -53,7 +53,7 @@ module.exports = (model, options) => {
   let result;
 
   if (compiler.lang === 'js' && typeof source === 'string') {
-    result = wrapModule(options.format, source, options.name);
+    result = wrapModule(options.format, source, options.name, options.compiler);
   } else {
     result = source;
   }
