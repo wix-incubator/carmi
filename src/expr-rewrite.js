@@ -137,13 +137,6 @@ function rewriteLocalsToFunctions(getters) {
 }
 
 function rewriteUniqueByHash(getters) {
-    const exprs = flattenExpression(Object.values(getters));
-    const allHashes = {};
-    exprs.forEach(e => {
-        const hash = exprHash(e);
-        allHashes[hash] = allHashes[hash] || [];
-        allHashes[hash].push(e)
-    })
     const canonical = {};
     function getCanoncial(expr) {
         if (expr instanceof Expression) {
