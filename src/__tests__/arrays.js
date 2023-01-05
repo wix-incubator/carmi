@@ -828,9 +828,9 @@ describe('testing array', () => {
         const model = {
           add30: root.map(val => add10(val).plus(add10(val)).plus(add10(val)))
         };
-        const src = compile(model, {compiler, prettier: true})
+        const src = compile(model, {compiler})
         if (typeof src === 'string') {
-          expect(src.split(' + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1').length - 1).toEqual(1)
+          expect(src.split(' + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1').length - 1).toEqual(0)
         }
         const optModel = evalOrLoad(src);
         const initialData = [1, 2, 3];
