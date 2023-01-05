@@ -3,7 +3,8 @@
 const path = require('path');
 const fs = require('fs');
 const {exprHash, clearHashStrings} = require('./expr-hash');
-const prettier = require('prettier');
+// eslint-disable-next-line no-undef
+const prettier = __non_webpack_require__('prettier');
 const {unwrap} = require('./unwrapable-proxy');
 const wrapModule = require('./wrap-module');
 
