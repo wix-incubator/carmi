@@ -15,12 +15,10 @@ const {getCurrentLine} = require('./src/currentLine');
 const {destruct} = require('./src/utils/destruct');
 
 const GLOBAL_TOKEN = '__$CARMI$__';
-if (global[GLOBAL_TOKEN]) {
-  throw new Error(
-    `require of multiple versions of Carmi is not supported previously loaded from:${global[GLOBAL_TOKEN]}`
-  );
+if (!global[GLOBAL_TOKEN]) {
+    global[GLOBAL_TOKEN] = []
 }
-global[GLOBAL_TOKEN] = getCurrentLine();
+global[GLOBAL_TOKEN].push(getCurrentLine())
 const {initProxyHandler} = require('./src/proxyHandler');
 const expressionBuilder = require('./src/expressionBuilder');
 const unwrapableProxy = require('./src/unwrapable-proxy');

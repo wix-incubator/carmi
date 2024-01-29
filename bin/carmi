@@ -6,13 +6,15 @@ const commandLineArgs = require('command-line-args');
 const carmi = require('../index');
 const path = require('path');
 const fs = require('fs-extra');
-const { enableCurrentLine } = require('../src/currentLine');
+const {enableCurrentLine} = require('../src/currentLine');
 const {isUpToDate, getDependenciesHashes, analyzeDependencies} = require('../src/analyze-dependencies');
 const getCacheFilePath = require('../src/get-cache-file-path');
 const wrapModule = require('../src/wrap-module');
 const base64ArrayBuffer = require('../bytecode/base64-arraybuffer');
 const {renameSync} = require('fs')
 const {v4: uuidv4} = require('uuid');
+
+const GLOBAL_TOKEN = '__$CARMI$__';
 
 const CACHE_SCENARIOS = {
   mtime: 'mtime',
@@ -140,6 +142,12 @@ async function run() {
     } catch (e) {
       console.error(`failed to require ${options.source} ${e.stack}`);
       throw e;
+    }
+
+    if (global[GLOBAL_TOKEN] && global[GLOBAL_TOKEN].length > 1) {
+      throw new Error(
+        `require of multiple versions of Carmi is not supported previously loaded from:${global[GLOBAL_TOKEN]}`
+      );
     }
 
     code = carmi.compile(model, options);
