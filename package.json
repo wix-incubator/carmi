@@ -26,7 +26,8 @@
     "jsx.js",
     "loader.js",
     "macro.js",
-    "carmiRoot.js"
+    "carmiRoot.js",
+    "vite.js"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
