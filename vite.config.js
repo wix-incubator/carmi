@@ -1,5 +1,6 @@
-const { defineConfig } = require('vite');
+const {defineConfig} = require('vite');
 const carmiPlugin = require('./src/vitePlugin');
+const {resolve} = require('path')
 
 module.exports = api => defineConfig({
   plugins: [carmiPlugin()],
@@ -7,7 +8,7 @@ module.exports = api => defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'test.carmi.js')
+        main: resolve(__dirname, 'test.carmi.js')
       },
       output: {
         dir: 'dist',
