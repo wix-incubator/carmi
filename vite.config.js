@@ -1,6 +1,6 @@
 const {defineConfig} = require('vite');
 const carmiPlugin = require('./src/vitePlugin');
-const {resolve} = require('path')
+const {resolve} = require('path');
 
 module.exports = api => defineConfig({
   plugins: [carmiPlugin()],
