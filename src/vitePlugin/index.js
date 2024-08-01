@@ -26,7 +26,7 @@ function carmiVitePlugin(options = {}) {
 
       const compiledCode = compileFile(id, {
         isDebug: options.debug,
-        disableCurrentLineFunctionName: options.disableCurrentLineFunctionName,
+        disableCurrentLineFunctionName: options.disableCurrentLineFunctionName
       });
 
       return {
