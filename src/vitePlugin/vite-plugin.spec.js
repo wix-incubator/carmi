@@ -3,6 +3,7 @@ const vitePlugin = require('./index');
 describe('Carmi Vite Plugin', () => {
   let mockPluginContext;
 
+
   beforeEach(() => {
     mockPluginContext = {
       addWatchFile: jest.fn(),
@@ -11,6 +12,8 @@ describe('Carmi Vite Plugin', () => {
     jest.clearAllMocks();
   });
 
+  const getCarmiTestFile = async (plugin, mockCode) => await plugin.transform.call(mockPluginContext, mockCode, './src/vitePlugin/test.carmi.js');
+
   it('transforms .carmi.js files', async () => {
     const plugin = vitePlugin();
     const mockCode = `
@@ -18,7 +21,7 @@ describe('Carmi Vite Plugin', () => {
       module.exports = { first: root.get(0) };
     `;
 
-    const result = await plugin.transform.call(mockPluginContext, mockCode, 'test.carmi.js');
+    const result = await getCarmiTestFile(plugin, mockCode);
 
     expect(result).toBeDefined();
     expect(typeof result.code).toBe('string');
@@ -44,7 +47,7 @@ describe('Carmi Vite Plugin', () => {
       module.exports = { first: root.get(0) };
     `;
 
-    const result = await plugin.transform.call(mockPluginContext, mockCode, 'test.carmi.js');
+    const result = await getCarmiTestFile(plugin, mockCode);
 
     expect(result).toBeDefined();
     expect(result.code).toContain('function model');
@@ -71,7 +74,7 @@ describe('Carmi Vite Plugin', () => {
       module.exports = { first: root.get(0) };
     `;
 
-    const result = await plugin.transform.call(mockPluginContext, mockCode, 'test.carmi.js');
+    const result = await getCarmiTestFile(plugin, mockCode);
 
     expect(result).toBeDefined();
     expect(typeof result.code).toBe('string');
