@@ -31,7 +31,13 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = new Map();$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+    }const $res = { $model };const $listeners = new Set();function getWeakMap() {
+      if (typeof window !== 'undefined') {
+        return new WeakMap();
+      }if (window.WixMap) {
+        return new window.WixMap();
+      }return new WeakMap();
+    }const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = getWeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = new Map();$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked.has($targetKey)) {
         return;
       }const $trackedByKey = $tracked.get($targetKey);for (let i = 0; i < $trackedByKey.length; i += 3) {
@@ -635,7 +641,13 @@ module.exports = function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = new Map();$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+    }const $res = { $model };const $listeners = new Set();function getWeakMap() {
+      if (typeof window !== 'undefined') {
+        return new WeakMap();
+      }if (window.WixMap) {
+        return new window.WixMap();
+      }return new WeakMap();
+    }const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = getWeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = new Map();$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked.has($targetKey)) {
         return;
       }const $trackedByKey = $tracked.get($targetKey);for (let i = 0; i < $trackedByKey.length; i += 3) {
@@ -1241,7 +1253,13 @@ const modelBuilder = (function () {
       }if (types.some(checkType)) {
         return;
       }const asString = typeof input === 'object' ? JSON.stringify(input) : input;throw new TypeError(\`\${functionName} expects \${types.join('/')}. \${name} at \${source}: \${asString}.\${functionName}\`);
-    }const $res = { $model };const $listeners = new Set();const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = new WeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = new Map();$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
+    }const $res = { $model };const $listeners = new Set();function getWeakMap() {
+      if (typeof window !== 'undefined') {
+        return new WeakMap();
+      }if (window.WixMap) {
+        return new window.WixMap();
+      }return new WeakMap();
+    }const $trackingMap = new WeakMap();const $trackingWildcards = new WeakMap();const $invalidatedMap = getWeakMap();const $invalidatedRoots = new Set();$invalidatedRoots.$subKeys = new Map();$invalidatedRoots.$parentKey = null;$invalidatedRoots.$parent = null;$invalidatedRoots.$tracked = new Map();let $first = true;let $tainted = new WeakSet();$invalidatedMap.set($res, $invalidatedRoots);function untrack($targetKeySet, $targetKey) {
       const $tracked = $targetKeySet.$tracked;if (!$tracked || !$tracked.has($targetKey)) {
         return;
       }const $trackedByKey = $tracked.get($targetKey);for (let i = 0; i < $trackedByKey.length; i += 3) {
