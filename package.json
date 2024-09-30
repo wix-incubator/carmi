@@ -26,7 +26,8 @@
     "jsx.js",
     "loader.js",
     "macro.js",
-    "carmiRoot.js"
+    "carmiRoot.js",
+    "vite.js"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -63,7 +64,8 @@
     "resolve": "^1.10.0",
     "tempy": "^0.2.1",
     "toposort": "^1.0.6",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "vite": "2.9.13"
   },
   "devDependencies": {
     "babel-plugin-tester": "^5.5.1",
