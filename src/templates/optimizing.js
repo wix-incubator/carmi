@@ -165,9 +165,20 @@ function base() {
 }
 
 function library() {
+    function getWeakMap() {
+      if (typeof window !== 'undefined') {
+        return new WeakMap()
+      }
+
+      if (window.WixMap) {
+        return new window.WixMap()
+      }
+
+      return new WeakMap()
+    }
     const $trackingMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
-    const $invalidatedMap = new WeakMap();
+    const $invalidatedMap = getWeakMap()
     const $invalidatedRoots = new Set();
     $invalidatedRoots.$subKeys = new Map();
     $invalidatedRoots.$parentKey = null;
