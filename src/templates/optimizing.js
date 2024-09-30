@@ -1,3 +1,15 @@
+function getWeakMap() {
+  if (typeof window !== 'undefined') {
+    return new WeakMap()
+  }
+
+  if (window.WixMap) {
+    return new window.WixMap()
+  }
+
+  return new WeakMap()
+}
+
 function base() {
   function $NAME($model, $funcLibRaw, $batchingStrategy) {
     let $funcLib = $funcLibRaw
@@ -167,7 +179,7 @@ function base() {
 function library() {
     const $trackingMap = new WeakMap();
     const $trackingWildcards = new WeakMap();
-    const $invalidatedMap = new WeakMap();
+    const $invalidatedMap = getWeakMap()
     const $invalidatedRoots = new Set();
     $invalidatedRoots.$subKeys = new Map();
     $invalidatedRoots.$parentKey = null;
