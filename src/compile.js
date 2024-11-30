@@ -3,7 +3,6 @@
 const path = require('path');
 const fs = require('fs');
 const {exprHash, clearHashStrings} = require('./expr-hash');
-const prettier = require('prettier');
 const {unwrap} = require('./unwrapable-proxy');
 const wrapModule = require('./wrap-module');
 
@@ -43,13 +42,8 @@ module.exports = (model, options) => {
   if (onlyAST) {
     return JSON.stringify(compiler.getters, null, 2);
   }
-  const rawSource = compiler.compile();
-  let source = rawSource;
-  if (options.prettier && typeof source === 'string') {
-    try {
-      source = prettier.format(rawSource, {parser: 'babel'});
-    } catch (e) { } //eslint-disable-line no-empty
-  }
+  const source = compiler.compile();
+
   let result;
 
   if (compiler.lang === 'js' && typeof source === 'string') {
